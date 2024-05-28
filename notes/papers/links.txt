@@ -1,0 +1,12 @@
+https://github.com/knowm/jspice
+https://github.com/SpiceSharp/SpiceSharp
+
+Current Rust Spice implementations:
+https://github.com/dan-fritchman/Spice21
+https://github.com/Harnesser/tiny-spice-rs
+https://github.com/ftorres16/ftspice        - I like this one
+https://github.com/0xtaruhi/tiny-spice
+https://github.com/prokie/rust_spice
+
+Most Rust Spice  Implementations lack features - only a few are able to solve 
+non linear circuits. None is currently in developement (May 2024).

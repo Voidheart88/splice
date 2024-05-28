@@ -1,0 +1,38 @@
+[package]
+name = "splice"
+version = "0.3.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rayon = "1.10.0"
+nalgebra = "0.32.5"
+itertools = "0.13.0"
+clap = { version = "4.5.4", features = ["cargo","derive"] }
+serde = "1.0.201"
+serde_yaml = "0.9.34"
+derive_more = "0.99.17"
+miette = { version = "7.2.0", features = ["fancy"] }
+thiserror = "1.0.60"
+approx = "0.5.1"
+brunch = "0.5.3"
+plotters = "0.3.6"
+faer = "0.19.0"
+rsparse = "1.0.0"
+log = "0.4.21"
+simple_logger = "5.0.0"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+strip = "symbols"
+panic = "abort"
+
+# Enable a small amount of optimization in debug mode
+[profile.dev]
+opt-level = 1
+
+# Enable high optimizations for dependencies (incl. Bevy), but not for our code:
+[profile.dev.package."*"]
+opt-level = 3

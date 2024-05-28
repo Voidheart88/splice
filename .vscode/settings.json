@@ -1,0 +1,8 @@
+{
+    "triggerTaskOnSave.on": false,
+    "triggerTaskOnSave.tasks": {
+        "format": ["*.rs"]
+    },
+    "rust-analyzer.showUnlinkedFileNotification": false,
+    "ansible.python.interpreterPath": "/bin/python"
+}
