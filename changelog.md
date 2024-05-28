@@ -1,3 +1,11 @@
+## 0.3.1
+Cangelog:
+  - added dc output for csv output module
+
+Roadmap:
+  - BJT model
+  - FET model
+
 ## 0.3.0
 Cangelog:
   - implemented parallel evaluation of elements
