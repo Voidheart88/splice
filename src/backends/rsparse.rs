@@ -114,12 +114,9 @@ impl Backend for RSparseBackend {
         // Convert the triplet matrix to a sparse matrix
         let mut sprs = Sprs::new_from_trpl(&self.a);
 
-        // Solve the linear system using sparse matrix solver
-        self.x = self.b.clone();
+        rsparse::lusol(&sprs, &mut self.b, 1, 1e-6);
 
-        rsparse::lusol(&sprs, &mut self.x, 1, 1e-6);
-
-        Ok(&self.x)
+        Ok(&self.b)
     }
 }
 

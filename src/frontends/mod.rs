@@ -70,6 +70,7 @@ impl From<std::num::ParseFloatError> for FrontendError {
 pub struct SelectFrontend {}
 
 impl SelectFrontend {
+    /// Automatically select a frontend from a file extension
     pub fn from_path(pth: String) -> Result<Box<dyn Frontend>, FrontendError> {
         let end = pth.split(".").last().unwrap();
         match end {

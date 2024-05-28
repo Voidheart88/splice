@@ -38,7 +38,6 @@ pub struct Row(pub usize);
 pub struct Col(pub usize);
 
 /// Trait defining the backend interface.
-/// (unstable)
 pub trait Backend {
     /// Creates a new instance of the backend with the given number of variables.
     fn new(vars: usize) -> Result<Self, BackendError>
@@ -62,6 +61,8 @@ pub trait Backend {
     fn insert_b(&mut self, b_vec: &Doubles);
 
     /// Solves the system of equations (Ax = B for x) and returns a referenze to the solution.
+    /// Since there are solve in place backends, Ax = B can change b!
+    ///
     fn solve(&mut self) -> Result<&Vec<f64>, BackendError>;
 }
 

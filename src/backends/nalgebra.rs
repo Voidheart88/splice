@@ -62,11 +62,9 @@ impl Backend for NalgebraBackend {
             Triples::Single(tr) => self.insert_single(tr),
             Triples::Double(tr) => self.insert_double(tr),
             Triples::Quad(tr) => self.insert_quad(tr),
-            Triples::Vec(triples) => {
-                triples.iter().for_each(|(row,col, val)| {
-                    self.a_mat[(row.0, col.0)] += *val;
-                })
-            }
+            Triples::Vec(triples) => triples.iter().for_each(|(row, col, val)| {
+                self.a_mat[(row.0, col.0)] += *val;
+            }),
         };
     }
 
