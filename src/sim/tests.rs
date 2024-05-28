@@ -17,7 +17,7 @@ impl Backend for MockBackend {
     where
         Self: Sized,
     {
-        Err(BackendError::Unimplemented)
+        Ok(Self)
     }
 
     fn set_a(&mut self, _: &Triples) {}
@@ -25,7 +25,7 @@ impl Backend for MockBackend {
     fn set_b(&mut self, _: &Doubles) {}
 
     fn solve(&mut self) -> Result<&Vec<f64>, BackendError> {
-        Err(BackendError::Unimplemented)
+        Err(BackendError::MatrixNonInvertible)
     }
 
     fn insert_a(&mut self, _: &Triples) {}

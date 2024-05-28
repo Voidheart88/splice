@@ -21,10 +21,6 @@ pub enum BackendError {
         which happens when, for example, two ideal voltage sources short each other."
     ))]
     MatrixNonInvertible,
-
-    #[error("The Faer Backend is currently not implemented.")]
-    #[diagnostic(help("Help by implementing this backend."))]
-    Unimplemented,
 }
 
 #[derive(Copy, Clone, ValueEnum, PartialEq, Eq, PartialOrd, Ord)]
