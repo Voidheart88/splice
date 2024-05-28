@@ -1,15 +1,13 @@
-crate, license
+crate,license
 rayon,MIT;Apache-2.0
 nalgebra,BSD-3-Clause
 itertools,MIT;Apache-2.0
 clap,MIT;Apache-2.0
 serde,MIT;Apache-2.0
-serde_yaml,MIT;Apache-2.0
 derive_more,MIT
 miette,Apache-2.0
 thiserror,MIT;Apache-2.0
 approx,Apache-2.0
-brunch,WTFPL
 plotters,MIT
 faer,MIT
 rsparse,MIT

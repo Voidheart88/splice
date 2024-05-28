@@ -5,22 +5,25 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-rayon = "1.10.0"
-nalgebra = "0.32.5"
-itertools = "0.13.0"
-clap = { version = "4.5.4", features = ["cargo","derive"] }
-serde = "1.0.201"
-serde_yaml = "0.9.34"
+# Tools
 derive_more = "0.99.17"
+itertools = "0.13.0"
+rayon = "1.10.0"
+approx = "0.5.1"
+
+# Cli
+clap = { version = "4.5.4", features = ["cargo","derive"] }
 miette = { version = "7.2.0", features = ["fancy"] }
 thiserror = "1.0.60"
-approx = "0.5.1"
-brunch = "0.5.3"
-plotters = "0.3.6"
-faer = "0.19.0"
-rsparse = "1.0.0"
 log = "0.4.21"
 simple_logger = "5.0.0"
+
+# Backends
+nalgebra = "0.32.5"
+rsparse = "1.0.0"
+
+# Outputs
+plotters = "0.3.6"
 
 [profile.release]
 opt-level = 3
