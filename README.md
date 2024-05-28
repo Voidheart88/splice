@@ -1,11 +1,17 @@
 # Splice - A blazingly fast Spice simulator
 The goal of Splice is to provide a better simulation experience.
 
-## Features
+## Goals
   - Better error reporting! Your simulation fails? Splice tells you why. It shows you non-convergent nodes and tries to use the best possible method to choose a solving strategy for your problems. A valid but non-converging simulation is considered a bug!
   - Faster! Splice uses modern mechanisms like parallel element evaluation to be as fast as possible. The code is   well-tested!
   - Extensible! The interfaces between frontend, backend, and output modules are well-defined. New models, frontends,  and backends are easy to implement.
   - Minimal! Splice is runnable on small ARM PCs as well as on your HPC rig.
+
+## Features
+  - Working .dc simulation
+  - Working .op simulation
+  - Working V,I,R device models
+  - Minimal diode model
 
 ## Todos/Roadmap:
 ### Frontends:
