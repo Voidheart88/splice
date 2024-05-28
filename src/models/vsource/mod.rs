@@ -45,8 +45,8 @@ impl VSourceBundle {
     }
 
     /// Returns the name of the voltage source bundle.
-    pub fn name(&self) -> String {
-        self.name.to_string()
+    pub fn name(&self) -> Arc<String> {
+        self.name.clone()
     }
 
     /// Returns the index of node0 if it exists.

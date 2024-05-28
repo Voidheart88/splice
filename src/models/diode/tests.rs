@@ -9,7 +9,7 @@ fn test_new_diode_bundle() {
         Some(DiodeOptions::default()),
     );
 
-    assert_eq!(diode_bundle.name(), "DiodeBundle1");
+    assert_eq!(*diode_bundle.name(), "DiodeBundle1");
     assert_eq!(diode_bundle.triples(&vec![0.0, 0.0]).len(), 4);
     assert_eq!(diode_bundle.doubles(&vec![0.0, 0.0]).len(), 2);
     assert_eq!(diode_bundle.value, DiodeOptions::default());
@@ -24,7 +24,7 @@ fn test_name() {
         Some(DiodeOptions::default()),
     );
 
-    assert_eq!(diode_bundle.name(), "DiodeBundle2");
+    assert_eq!(*diode_bundle.name(), "DiodeBundle2");
 }
 
 #[test]

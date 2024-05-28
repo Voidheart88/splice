@@ -67,8 +67,8 @@ impl DiodeBundle {
     }
 
     /// Returns the name of the diode bundle.
-    pub fn name(&self) -> String {
-        self.name.to_string()
+    pub fn name(&self) -> Arc<String> {
+        self.name.clone()
     }
 
     /// Returns a reference to the triples representing matrix A.

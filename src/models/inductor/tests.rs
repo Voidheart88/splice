@@ -11,7 +11,7 @@ fn test_new_inductor_bundle() {
         5.0,
     );
 
-    assert_eq!(inductor_bundle.name(), "InductorBundle1");
+    assert_eq!(*inductor_bundle.name(), "InductorBundle1");
     if let Triples::Quad(triples) = inductor_bundle.triples() {
         assert_eq!(triples.len(), 4);
     } else {
@@ -31,7 +31,7 @@ fn test_name() {
         0.0,
     );
 
-    assert_eq!(inductor_bundle.name(), "InductorBundle2");
+    assert_eq!(*inductor_bundle.name(), "InductorBundle2");
 }
 
 #[test]

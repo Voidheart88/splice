@@ -218,7 +218,7 @@ impl<BE: Backend> Simulator<BE> {
         let mut voltage_source_index = None;
         for (index, element) in self.elements.iter().enumerate() {
             if let Element::VSource(ref vs) = element {
-                if vs.name() == **srcnam {
+                if vs.name() == *srcnam {
                     voltage_source_index = Some(index);
                     break;
                 }

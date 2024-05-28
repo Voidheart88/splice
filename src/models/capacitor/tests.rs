@@ -9,7 +9,7 @@ fn test_new_capacitor_bundle() {
         5.0,
     );
 
-    assert_eq!(capacitor_bundle.name(), "CapacitorBundle1");
+    assert_eq!(*capacitor_bundle.name(), "CapacitorBundle1");
     assert_eq!(capacitor_bundle.triples().len(), 1);
     assert_eq!(capacitor_bundle.value, Value(5.0));
 }
@@ -23,7 +23,7 @@ fn test_name() {
         0.0,
     );
 
-    assert_eq!(capacitor_bundle.name(), "CapacitorBundle2");
+    assert_eq!(*capacitor_bundle.name(), "CapacitorBundle2");
 }
 
 #[test]

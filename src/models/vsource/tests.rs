@@ -14,7 +14,7 @@ fn test_new_vsource_bundle() {
         5.0,
     );
 
-    assert_eq!(vsource_bundle.name(), "VSourceBundle1");
+    assert_eq!(*vsource_bundle.name(), "VSourceBundle1");
     assert_eq!(vsource_bundle.triples().len(), 4);
     assert_eq!(vsource_bundle.doubles().len(), 1);
     assert_eq!(vsource_bundle.value(), 5.0);
@@ -30,7 +30,7 @@ fn test_name() {
         0.0,
     );
 
-    assert_eq!(vsource_bundle.name(), "VSourceBundle2");
+    assert_eq!(*vsource_bundle.name(), "VSourceBundle2");
 }
 
 #[test]

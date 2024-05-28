@@ -182,6 +182,18 @@ impl Element {
             _ => false,
         }
     }
+
+    /// Returns the name of the element.
+    pub(crate) fn name(&self) -> Arc<String> {
+        match self {
+            Element::Capacitor(ele) => ele.name(),
+            Element::Inductor(ele) => ele.name(),
+            Element::Resistor(ele) => ele.name(),
+            Element::Diode(ele) => ele.name(),
+            Element::VSource(ele) => ele.name(),
+            Element::ISource(ele) => ele.name(),
+        }
+    }
 }
 
 #[cfg(test)]

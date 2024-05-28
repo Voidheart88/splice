@@ -39,8 +39,8 @@ impl ISourceBundle {
     }
 
     /// Returns the name of the current source bundle.
-    pub fn name(&self) -> String {
-        self.name.to_string()
+    pub fn name(&self) -> Arc<String> {
+        self.name.clone()
     }
 
     /// Returns the doubles representing the current source contributions to the vector b.

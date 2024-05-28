@@ -42,8 +42,8 @@ impl InductorBundle {
     }
 
     /// Returns the name of the inductor bundle.
-    pub fn name(&self) -> String {
-        self.name.to_string()
+    pub fn name(&self) -> Arc<String> {
+        self.name.clone()
     }
 
     /// Returns the triples representing the inductor's contribution to matrix A.

@@ -27,11 +27,8 @@ impl Frontend for SpiceFrontend {
     ///
     fn simulation(&self) -> Result<Simulation, FrontendError> {
         // Read the circuit file content
-        let mut file = File::open(&self.pth)
-            .map_err(|e| FrontendError::IoError(format!("Failed to open file: {}", e)))?;
         let mut circuit_string = String::new();
-        file.read_to_string(&mut circuit_string)
-            .map_err(|e| FrontendError::IoError(format!("Failed to read file: {}", e)))?;
+        File::open(&self.pth)?.read_to_string(&mut circuit_string)?;
 
         // Preprocess the circuit description
         let current_path = Path::new(&self.pth).parent().unwrap();
@@ -63,16 +60,9 @@ impl Frontend for SpiceFrontend {
         // Ensure all element names are unique
         let mut names = HashSet::new();
         for ele in &elements {
-            let ele_name = match ele {
-                Element::Capacitor(ele) => ele.name(),
-                Element::Inductor(ele) => ele.name(),
-                Element::Resistor(ele) => ele.name(),
-                Element::Diode(ele) => ele.name(),
-                Element::VSource(ele) => ele.name(),
-                Element::ISource(ele) => ele.name(),
-            };
+            let ele_name = ele.name();
             if !names.insert(ele_name.clone()) {
-                return Err(FrontendError::ElementDouble(ele_name));
+                return Err(FrontendError::ElementDouble(ele_name.to_string()));
             }
         }
 

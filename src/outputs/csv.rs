@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use super::Output;
 use crate::models::Variable;
 use crate::sim::simulation_result::Sim;
@@ -30,7 +32,7 @@ impl Output for CsvOutput {
         for res in results.iter() {
             match res {
                 Sim::Op(res) => Self::output_op(res),
-                Sim::Dc(_) => return Err(OutputError::Unimplemented),
+                Sim::Dc(res) => Self::output_dc(res),
             }
         }
 
@@ -69,6 +71,34 @@ impl CsvOutput {
     fn output_op(results: &Vec<(Variable, f64)>) {
         for res in results {
             println!("{},{}, {}", res.0.name(), res.1, res.0.unit())
+        }
+    }
+
+    fn output_dc(data: &Vec<Vec<(Variable, f64)>>) {
+        // Find all unique variables and print header
+        let mut headers: HashSet<String> = HashSet::new();
+        for step_data in data {
+            for (var, _) in step_data {
+                headers.insert(var.name().to_string());
+            }
+        }
+        let headers: Vec<_> = headers.into_iter().collect();
+        println!("Step,{}", headers.join(","));
+
+        // Print each step's data
+        for (step_idx, step_data) in data.iter().enumerate() {
+            let mut values = vec![format!("{}", step_idx)];
+            for header in &headers {
+                let mut value_str = String::new();
+                for (var, val) in step_data {
+                    if &var.name().to_string() == header {
+                        value_str = format!("{}", val);
+                        break;
+                    }
+                }
+                values.push(value_str);
+            }
+            println!("{}", values.join(","));
         }
     }
 }
