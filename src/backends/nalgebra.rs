@@ -2,7 +2,6 @@ use super::{Backend, BackendError, Col, Row};
 use crate::models::{Doubles, Triples};
 use na::LU;
 use nalgebra as na;
-use rayon::prelude::*;
 
 /// A backend implementation using the Nalgebra library.
 pub(crate) struct NalgebraBackend {
