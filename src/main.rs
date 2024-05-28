@@ -11,7 +11,7 @@ use clap::Parser;
 use log::info;
 use miette::{Diagnostic, Result};
 
-use backends::{faer::FaerBackend, Backends, NalgebraBackend, RSparseBackend};
+use backends::{Backends, NalgebraBackend, RSparseBackend};
 use frontends::*;
 use outputs::*;
 use sim::Simulator;
@@ -30,7 +30,7 @@ struct Cli {
     #[arg(short, long, default_value = "select")]
     frontend: Frontends,
 
-    #[arg(short, long, default_value = "nalgebra")]
+    #[arg(short, long, default_value = "r-sparse")]
     backend: Backends,
 
     #[arg(short, long, default_value = "error")]
@@ -68,10 +68,6 @@ fn main() -> Result<()> {
     info!("Simulate!");
     // Fixme: Implement backend selection logic
     let results = match cli.backend {
-        Backends::Faer => {
-            let mut sim: Simulator<FaerBackend> = Simulator::from(sim);
-            sim.run()
-        }
         Backends::RSparse => {
             let mut sim: Simulator<RSparseBackend> = Simulator::from(sim);
             sim.run()

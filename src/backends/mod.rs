@@ -1,9 +1,6 @@
-pub(crate) mod faer;
-/// The backends module defines the interface to different backends
 pub(crate) mod nalgebra;
 pub(crate) mod rsparse;
 
-use ::faer::sparse::CreationError;
 use clap::ValueEnum;
 use derive_more::Deref;
 use miette::Diagnostic;
@@ -25,11 +22,6 @@ pub enum BackendError {
     ))]
     MatrixNonInvertible,
 
-    /// Error indicating that the conductance matrix is not invertible.
-    #[error("Error while initializing the faer backend.")]
-    #[diagnostic(help("This is a severe error and should be reportet on github."))]
-    FaerCreationError(String),
-
     #[error("The Faer Backend is currently not implemented.")]
     #[diagnostic(help("Help by implementing this backend."))]
     Unimplemented,
@@ -37,15 +29,8 @@ pub enum BackendError {
 
 #[derive(Copy, Clone, ValueEnum, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Backends {
-    Faer,
     RSparse,
     Nalgebra,
-}
-
-impl From<CreationError> for BackendError {
-    fn from(value: CreationError) -> Self {
-        BackendError::FaerCreationError(format!("{}", value))
-    }
 }
 
 /// Type representing a row index.
