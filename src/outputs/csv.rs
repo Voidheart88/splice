@@ -70,7 +70,7 @@ impl CsvOutput {
     /// ```
     fn output_op(results: &Vec<(Variable, f64)>) {
         for res in results {
-            println!("{},{}, {}", res.0.name(), res.1, res.0.unit())
+            println!("{},{},{}", res.0.name(), res.1, res.0.unit())
         }
     }
 
