@@ -1,5 +1,6 @@
 pub(crate) mod nalgebra;
 pub(crate) mod rsparse;
+pub(crate) mod faer;
 
 use clap::ValueEnum;
 use derive_more::Deref;
@@ -27,6 +28,7 @@ pub enum BackendError {
 pub enum Backends {
     RSparse,
     Nalgebra,
+    Faer,
 }
 
 /// Type representing a row index.

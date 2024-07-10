@@ -11,7 +11,7 @@ use clap::Parser;
 use log::info;
 use miette::{Diagnostic, Result};
 
-use backends::{Backends, NalgebraBackend, RSparseBackend};
+use backends::{faer::FaerBackend, Backends, NalgebraBackend, RSparseBackend};
 use frontends::*;
 use outputs::*;
 use sim::Simulator;
@@ -74,6 +74,10 @@ fn main() -> Result<()> {
         }
         Backends::Nalgebra => {
             let mut sim: Simulator<NalgebraBackend> = Simulator::from(sim);
+            sim.run()
+        }
+        Backends::Faer => {
+            let mut sim: Simulator<FaerBackend> = Simulator::from(sim);
             sim.run()
         }
     };

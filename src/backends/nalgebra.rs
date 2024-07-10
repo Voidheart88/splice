@@ -7,11 +7,10 @@ use nalgebra as na;
 pub(crate) struct NalgebraBackend {
     /// The conductance matrix `A`.
     a_mat: na::DMatrix<f64>,
-    /// The non linear elements of the conductance matrix `A`.
     /// The vector `b`.
     b_vec: na::DVector<f64>,
     /// The Solution vector
-    x1: na::DVector<f64>,
+    x_vec: na::DVector<f64>,
 }
 
 impl Backend for NalgebraBackend {
@@ -21,7 +20,7 @@ impl Backend for NalgebraBackend {
         let b_vec = na::DVector::zeros(vars);
         let x1 = na::DVector::zeros(vars);
 
-        Ok(Self { a_mat, b_vec, x1 })
+        Ok(Self { a_mat, b_vec, x_vec: x1 })
     }
 
     /// Sets the conductance matrix (`a_mat`) and the vector (`b_vec`) into the backend.
@@ -89,13 +88,13 @@ impl Backend for NalgebraBackend {
         let lu = LU::new(self.a_mat.clone());
 
         // Solving the equations without unnecessary cloning
-        self.x1 = match lu.solve(&self.b_vec) {
+        self.x_vec = match lu.solve(&self.b_vec) {
             Some(v) => v,
             None => return Err(BackendError::MatrixNonInvertible),
         };
 
         // Returning a reference to the solution vector
-        Ok(&self.x1.data.as_vec())
+        Ok(&self.x_vec.data.as_vec())
     }
 }
 
