@@ -1,10 +1,10 @@
 use std::path::{Path, PathBuf};
 
-use super::Output;
+use super::Backend;
 use crate::{
     models::{Unit, Variable},
     sim::simulation_result::{Sim, SimulationResults},
-    OutputError,
+    BackendError,
 };
 use plotters::{
     backend::SVGBackend,
@@ -13,11 +13,11 @@ use plotters::{
 };
 
 /// A struct for handling plot output of simulation results.
-pub struct PlotOutput {
+pub struct PlotBackend {
     pth: String,
 }
 
-impl Output for PlotOutput {
+impl Backend for PlotBackend {
     /// Outputs the simulation results as a plot.
     ///
     /// # Parameters
@@ -26,8 +26,8 @@ impl Output for PlotOutput {
     ///
     /// # Returns
     ///
-    /// A `Result` which is `Ok` if the output operation succeeds, or an `OutputError` if it fails.
-    fn output(&self, res: SimulationResults) -> Result<(), OutputError> {
+    /// A `Result` which is `Ok` if the output operation succeeds, or an `BackendError` if it fails.
+    fn output(&self, res: SimulationResults) -> Result<(), BackendError> {
         for sim in res.0.iter() {
             self.select_output(sim)?;
         }
@@ -36,7 +36,7 @@ impl Output for PlotOutput {
     }
 }
 
-impl PlotOutput {
+impl PlotBackend {
     /// Creates a new `PlotOutput` instance.
     ///
     /// # Parameters
@@ -59,8 +59,8 @@ impl PlotOutput {
     ///
     /// # Returns
     ///
-    /// A `Result` which is `Ok` if the output operation succeeds, or an `OutputError` if it fails.
-    fn select_output(&self, sim: &Sim) -> Result<(), OutputError> {
+    /// A `Result` which is `Ok` if the output operation succeeds, or an `BackendError` if it fails.
+    fn select_output(&self, sim: &Sim) -> Result<(), BackendError> {
         match sim {
             Sim::Op(data) => self.plot_op(data)?,
             Sim::Dc(data) => self.plot_dc(data)?,
@@ -76,8 +76,8 @@ impl PlotOutput {
     ///
     /// # Returns
     ///
-    /// A `Result` which is `Ok` if the plotting operation succeeds, or an `OutputError` if it fails.
-    fn plot_dc(&self, data: &Vec<Vec<(Variable, f64)>>) -> Result<(), OutputError> {
+    /// A `Result` which is `Ok` if the plotting operation succeeds, or an `BackendError` if it fails.
+    fn plot_dc(&self, data: &Vec<Vec<(Variable, f64)>>) -> Result<(), BackendError> {
         let mut path = PathBuf::from(&self.pth);
         path.set_extension("svg");
 
@@ -102,7 +102,7 @@ impl PlotOutput {
             });
 
         let (max, min) = match (max, min) {
-            (None, None) => return Err(OutputError::CantFindMaxMin),
+            (None, None) => return Err(BackendError::CantFindMaxMin),
             (None, Some(v)) => (f64::MAX, v),
             (Some(v), None) => (v, f64::MIN),
             (Some(v1), Some(v2)) => (v1, v2),
@@ -189,8 +189,8 @@ impl PlotOutput {
     ///
     /// # Returns
     ///
-    /// A `Result` which is `Ok` if the plotting operation succeeds, or an `OutputError` if it fails.
-    fn plot_op(&self, data: &Vec<(Variable, f64)>) -> Result<(), OutputError> {
+    /// A `Result` which is `Ok` if the plotting operation succeeds, or an `BackendError` if it fails.
+    fn plot_op(&self, data: &Vec<(Variable, f64)>) -> Result<(), BackendError> {
         let mut path = PathBuf::from(&self.pth);
 
         if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
@@ -213,7 +213,7 @@ impl PlotOutput {
                 });
 
         let (max, min) = match (max, min) {
-            (None, None) => return Err(OutputError::CantFindMaxMin),
+            (None, None) => return Err(BackendError::CantFindMaxMin),
             (None, Some(v)) => (f64::MAX, v),
             (Some(v), None) => (v, f64::MIN),
             (Some(v1), Some(v2)) => (v1, v2),

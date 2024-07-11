@@ -3,67 +3,67 @@ use std::sync::Arc;
 
 /* -----------------------------------Tests---------------------------------- */
 use super::super::*;
-use crate::{
-    backends::{Col, NalgebraBackend, Row},
-    models::{DiodeBundle, Unit, VSourceBundle, Variable},
-};
+use crate::solver::{FaerSolver, Col, Row};
+use crate::models::{DiodeBundle, Unit, VSourceBundle, Variable};
 
 #[test]
 fn test_new() {
-    let backend = NalgebraBackend::new(3).unwrap();
-    assert_eq!(backend.rows(), 3);
-    assert_eq!(backend.cols(), 3);
-    assert_eq!(backend.b_vec_len(), 3);
+    let solver = FaerSolver::new(3).unwrap();
+
+    // Lens should be 0 since no value were loaded
+    assert_eq!(solver.rows(), 0);
+    assert_eq!(solver.cols(), 0);
+    assert_eq!(solver.b_vec_len(), 0);
 }
 
 #[test]
 fn test_set_a() {
-    let mut backend = NalgebraBackend::new(2).unwrap();
+    let mut solver = FaerSolver::new(2).unwrap();
     let triples = Triples::Vec(vec![(Row(0), Col(0), 1.0), (Row(1), Col(1), 2.0)]);
-    backend.set_a(&triples);
+    solver.set_a(&triples);
 
-    assert_eq!(backend.a_mat()[(0, 0)], 1.0);
-    assert_eq!(backend.a_mat()[(1, 1)], 2.0);
+    assert_eq!(solver.a_mat()[(0, 0)], 1.0);
+    assert_eq!(solver.a_mat()[(1, 1)], 2.0);
 }
 
 #[test]
 fn test_set_b() {
-    let mut backend = NalgebraBackend::new(2).unwrap();
+    let mut solver = FaerSolver::new(2).unwrap();
     let pairs = Pairs::Double([(Row(0), 3.0), (Row(1), 4.0)]);
-    backend.set_b(&pairs);
+    solver.set_b(&pairs);
 
-    assert_eq!(backend.b_vec()[0], 3.0);
-    assert_eq!(backend.b_vec()[1], 4.0);
+    assert_eq!(solver.b_vec()[(1,0)], 3.0);
+    assert_eq!(solver.b_vec()[(2,0)], 4.0);
 }
 
 #[test]
 fn test_solve() {
     // Solvable system
-    let mut backend = NalgebraBackend::new(2).unwrap();
+    let mut solver = FaerSolver::new(2).unwrap();
     let triples = Triples::Vec(vec![(Row(0), Col(0), 1.0), (Row(1), Col(1), 2.0)]);
     let pairs = Pairs::Double([(Row(0), 3.0), (Row(1), 4.0)]);
-    backend.set_a(&triples);
-    backend.set_b(&pairs);
+    solver.set_a(&triples);
+    solver.set_b(&pairs);
 
-    let solution = backend.solve().unwrap();
+    let solution = solver.solve().unwrap();
     assert_eq!(solution, &vec![3.0, 2.0]);
 
     // Singular system
-    let mut backend = NalgebraBackend::new(2).unwrap();
+    let mut solver = FaerSolver::new(2).unwrap();
     let triples = Triples::Vec(vec![(Row(0), Col(0), 1.0), (Row(0), Col(1), 1.0)]);
     let pairs = Pairs::Double([(Row(0), 3.0), (Row(1), 4.0)]);
-    backend.set_a(&triples);
-    backend.set_b(&pairs);
+    solver.set_a(&triples);
+    solver.set_b(&pairs);
 
-    let result = backend.solve();
+    let result = solver.solve();
     assert!(result.is_err());
-    assert_eq!(result.unwrap_err(), BackendError::MatrixNonInvertible);
+    assert_eq!(result.unwrap_err(), SolverError::MatrixNonInvertible);
 }
 
 #[test]
 fn test_newton() {
-    // Create an instance of the backend with 2 variables
-    let mut backend = NalgebraBackend::new(2).unwrap();
+    // Create an instance of the solver with 2 variables
+    let mut solver = FaerSolver::new(2).unwrap();
 
     let diode = DiodeBundle::new(
         Arc::new("d1".into()),
@@ -82,16 +82,16 @@ fn test_newton() {
     let x = vec![0.6, 0.0];
     let a_mat = diode.triples(&x) + vsource.triples();
     let b_vec = diode.pairs(&x) + vsource.pairs();
-    backend.set_a(&a_mat);
-    backend.set_b(&b_vec);
+    solver.set_a(&a_mat);
+    solver.set_b(&b_vec);
 
-    let x = backend.solve().unwrap();
+    let x = solver.solve().unwrap();
     let a_mat = diode.triples(&x) + vsource.triples();
     let b_vec = diode.pairs(&x) + vsource.pairs();
-    backend.set_a(&a_mat);
-    backend.set_b(&b_vec);
+    solver.set_a(&a_mat);
+    solver.set_b(&b_vec);
 
-    let x = backend.solve().unwrap();
+    let x = solver.solve().unwrap();
     println!("A: {:?}", a_mat);
     println!("b: {:?}", b_vec);
     println!("x: {:?}", x);
@@ -102,8 +102,8 @@ fn test_newton() {
 
 #[test]
 fn test_newton2() {
-    // Create an instance of the backend with 2 variables
-    let mut backend = NalgebraBackend::new(2).unwrap();
+    // Create an instance of the solver with 2 variables
+    let mut solver = FaerSolver::new(2).unwrap();
 
     let diode = DiodeBundle::new(
         Arc::new("d1".into()),
@@ -122,16 +122,16 @@ fn test_newton2() {
     let x = vec![0.5, 0.0];
     let a_mat = diode.triples(&x) + vsource.triples();
     let b_vec = diode.pairs(&x) + vsource.pairs();
-    backend.set_a(&a_mat);
-    backend.set_b(&b_vec);
+    solver.set_a(&a_mat);
+    solver.set_b(&b_vec);
 
-    let x = backend.solve().unwrap();
+    let x = solver.solve().unwrap();
     let a_mat = diode.triples(&x) + vsource.triples();
     let b_vec = diode.pairs(&x) + vsource.pairs();
-    backend.set_a(&a_mat);
-    backend.set_b(&b_vec);
+    solver.set_a(&a_mat);
+    solver.set_b(&b_vec);
 
-    let x = backend.solve().unwrap();
+    let x = solver.solve().unwrap();
     println!("A: {:?}", a_mat);
     println!("b: {:?}", b_vec);
     println!("x: {:?}", x);
@@ -139,3 +139,4 @@ fn test_newton2() {
     assert_eq!(x[0], 0.8);
     assert!(relative_eq!(x[1], -0.566820436, epsilon = 1e-8));
 }
+

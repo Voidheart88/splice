@@ -1,4 +1,4 @@
-use crate::backends::Row;
+use crate::solver::Row;
 use std::iter::FromIterator;
 use std::ops::Add;
 

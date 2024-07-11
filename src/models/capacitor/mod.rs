@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::backends::{Col, Row};
+use crate::solver::{Col, Row};
 
 use super::*;
 

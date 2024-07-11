@@ -10,7 +10,7 @@ mod vsource;
 use core::fmt::Display;
 use std::sync::Arc;
 
-use crate::backends::{Col, Row};
+use crate::solver::{Col, Row};
 
 use derive_more::{Deref, DerefMut};
 

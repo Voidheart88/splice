@@ -1,11 +1,11 @@
-use super::{Backend, BackendError};
+use super::{Solver, SolverError};
 use crate::models::{Pairs, Triples};
 use faer::solvers::SpSolver;
 use faer::sparse::{SparseColMat, SymbolicSparseColMat};
 use faer::Mat;
 
 /// A backend implementation using the Faer library.
-pub(crate) struct FaerBackend {
+pub(crate) struct FaerSolver {
     /// The conductance matrix `A`.
     a_mat: SparseColMat<usize, f64>,
     /// The vector `b`.
@@ -14,8 +14,8 @@ pub(crate) struct FaerBackend {
     x_vec: Vec<f64>,
 }
 
-impl Backend for FaerBackend {
-    fn new(vars: usize) -> Result<Self, BackendError>
+impl Solver for FaerSolver {
+    fn new(vars: usize) -> Result<Self, SolverError>
     where
         Self: Sized,
     {
@@ -28,7 +28,7 @@ impl Backend for FaerBackend {
         );
         let a_mat = SparseColMat::new(a_mat_sym, Vec::new());
 
-        Ok(FaerBackend {
+        Ok(FaerSolver {
             a_mat: a_mat,
             b_vec: Mat::new(),
             x_vec: Vec::new(),
@@ -121,7 +121,7 @@ impl Backend for FaerBackend {
         }
     }
 
-    fn solve(&mut self) -> Result<&Vec<f64>, BackendError> {
+    fn solve(&mut self) -> Result<&Vec<f64>, SolverError> {
         // Cloning only the necessary matrices for LU decomposition
         let lu = self.a_mat.sp_lu().unwrap();
 
@@ -137,7 +137,7 @@ impl Backend for FaerBackend {
 }
 
 #[cfg(test)]
-impl FaerBackend {
+impl FaerSolver {
     /// Returns the number of rows in the matrix `a_mat`.
     pub fn rows(&self) -> usize {
         self.a_mat.nrows()

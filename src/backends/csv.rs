@@ -1,12 +1,12 @@
 use std::collections::HashSet;
 
-use super::Output;
+use super::Backend;
 use crate::models::Variable;
 use crate::sim::simulation_result::Sim;
-use crate::{sim::simulation_result::SimulationResults, OutputError};
+use crate::{sim::simulation_result::SimulationResults, BackendError};
 
 /// A struct for handling CSV output of simulation results.
-pub struct CsvOutput {}
+pub struct CsvBackend {}
 
 /// Implementation of the `Output` trait for `CsvOutput`.
 /// This implementation defines how the simulation results are output as CSV.
@@ -18,7 +18,7 @@ pub struct CsvOutput {}
 /// let results = SimulationResult::new();
 /// csv_output.output(results)?;
 /// ```
-impl Output for CsvOutput {
+impl Backend for CsvBackend {
     /// Outputs the simulation results in CSV format.
     ///
     /// # Parameters
@@ -27,8 +27,8 @@ impl Output for CsvOutput {
     ///
     /// # Returns
     ///
-    /// A `Result` which is `Ok` if the output operation succeeds, or an `OutputError` if it fails.
-    fn output(&self, results: SimulationResults) -> Result<(), OutputError> {
+    /// A `Result` which is `Ok` if the output operation succeeds, or an `BackendError` if it fails.
+    fn output(&self, results: SimulationResults) -> Result<(), BackendError> {
         for res in results.iter() {
             match res {
                 Sim::Op(res) => Self::output_op(res),
@@ -40,7 +40,7 @@ impl Output for CsvOutput {
     }
 }
 
-impl CsvOutput {
+impl CsvBackend {
     /// Creates a new `CsvOutput` instance.
     ///
     /// # Returns
@@ -50,10 +50,10 @@ impl CsvOutput {
     /// # Example
     ///
     /// ```
-    /// let csv_output = CsvOutput::new();
+    /// let csv_output = CsvBackend::new();
     /// ```
     pub fn new() -> Self {
-        CsvOutput {}
+        CsvBackend {}
     }
 
     /// Outputs the operational simulation results in CSV format.
@@ -66,7 +66,7 @@ impl CsvOutput {
     ///
     /// ```
     /// let results = vec![("voltage".to_string(), 5.0), ("current".to_string(), 1.0)];
-    /// CsvOutput::output_op(&results);
+    /// CsvBackend::output_op(&results);
     /// ```
     fn output_op(results: &Vec<(Variable, f64)>) {
         for res in results {

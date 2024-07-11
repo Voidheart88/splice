@@ -1,19 +1,19 @@
 #![deny(unsafe_code)]
 
-mod backends;
+mod solver;
 mod consts;
 mod frontends;
 mod models;
-mod outputs;
+mod backends;
 mod sim;
 
 use clap::Parser;
 use log::info;
 use miette::{Diagnostic, Result};
 
-use backends::{faer::FaerBackend, Backends, NalgebraBackend, RSparseBackend};
+use solver::{FaerSolver, NalgebraSolver, RSparseSolver, Solvers};
 use frontends::*;
-use outputs::*;
+use backends::*;
 use sim::Simulator;
 use thiserror::Error;
 
@@ -31,13 +31,13 @@ struct Cli {
     frontend: Frontends,
 
     #[arg(short, long, default_value = "r-sparse")]
-    backend: Backends,
+    solver: Solvers,
 
     #[arg(short, long, default_value = "error")]
     verbose: log::Level,
 
     #[arg(short, long, default_value = "csv")]
-    output: Outputs,
+    backend: Backends,
 
     path: Option<String>,
 }
@@ -67,27 +67,27 @@ fn main() -> Result<()> {
 
     info!("Simulate!");
     // Fixme: Implement backend selection logic
-    let results = match cli.backend {
-        Backends::RSparse => {
-            let mut sim: Simulator<RSparseBackend> = Simulator::from(sim);
+    let results = match cli.solver {
+        Solvers::RSparse => {
+            let mut sim: Simulator<RSparseSolver> = Simulator::from(sim);
             sim.run()
         }
-        Backends::Nalgebra => {
-            let mut sim: Simulator<NalgebraBackend> = Simulator::from(sim);
+        Solvers::Nalgebra => {
+            let mut sim: Simulator<NalgebraSolver> = Simulator::from(sim);
             sim.run()
         }
-        Backends::Faer => {
-            let mut sim: Simulator<FaerBackend> = Simulator::from(sim);
+        Solvers::Faer => {
+            let mut sim: Simulator<FaerSolver> = Simulator::from(sim);
             sim.run()
         }
     };
 
     info!("Output Data");
-    let out: Box<dyn Output> = match cli.output {
-        Outputs::Csv => Box::new(CsvOutput::new()),
-        Outputs::Raw => Box::new(RawOutput::new()),
-        Outputs::Plot => Box::new(PlotOutput::new(pth)),
-        Outputs::Network => Box::new(NetworkOutput::new()),
+    let out: Box<dyn Backend> = match cli.backend {
+        Backends::Csv => Box::new(CsvBackend::new()),
+        Backends::Raw => Box::new(RawBackend::new()),
+        Backends::Plot => Box::new(PlotBackend::new(pth)),
+        Backends::Network => Box::new(NetworkBackend::new()),
     };
 
     out.output(results?)?;

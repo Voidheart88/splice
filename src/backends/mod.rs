@@ -1,72 +1,68 @@
-pub(crate) mod faer;
-pub(crate) mod nalgebra;
-pub(crate) mod rsparse;
+mod csv;
+mod network;
+mod plot;
+mod raw;
 
 use clap::ValueEnum;
-use derive_more::Deref;
 use miette::Diagnostic;
+use plotters::drawing::DrawingAreaErrorKind;
 use thiserror::Error;
 
-pub(crate) use nalgebra::NalgebraBackend;
-pub(crate) use rsparse::RSparseBackend;
+pub(crate) use csv::CsvBackend;
+pub(crate) use network::NetworkBackend;
+pub(crate) use plot::PlotBackend;
+pub(crate) use raw::RawBackend;
 
-use crate::models::{Pairs, Triples};
+use crate::sim::simulation_result::SimulationResults;
 
-/// Errors that can occur in the backend.
-#[derive(Debug, Error, Diagnostic, PartialEq, Eq, PartialOrd, Ord)]
+/// Error that can occur during output.
+#[derive(Debug, Error, Diagnostic)]
 pub enum BackendError {
-    /// Error indicating that the conductance matrix is not invertible.
-    #[error("The conductance matrix is not invertible")]
-    #[diagnostic(help(
-        "This is the case when the Matrix is singular,\n
-        which happens when, for example, two ideal voltage sources short each other."
-    ))]
-    MatrixNonInvertible,
+    /// Error that occurs when the output option is not implemented.
+    #[error("This output option is not implemented")]
+    #[diagnostic(help("Try helping by implementing this output option!"))]
+    Unimplemented,
+
+    /// Error that occurs during plotting.
+    #[error("An error occurred during plotting: {0}")]
+    PlotError(String),
+
+    #[error("Cant find Max or Min value für plotting")]
+    #[diagnostic(help("This is an Error and should be reportet on Github"))]
+    CantFindMaxMin,
 }
 
+impl From<DrawingAreaErrorKind<std::io::Error>> for BackendError {
+    fn from(err: DrawingAreaErrorKind<std::io::Error>) -> Self {
+        BackendError::PlotError(format!("{:?}", err))
+    }
+}
+
+// the trait `From<fn(std::string::String) -> outputs::BackendError {outputs::BackendError::PlotError}>` is not implemented for `outputs::BackendError`
+
+/// Enum for selecting different output options.
 #[derive(Copy, Clone, ValueEnum, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Backends {
-    RSparse,
-    Nalgebra,
-    Faer,
+    /// CSV output.
+    Csv,
+    /// Raw output.
+    Raw,
+    /// Plot output.
+    Plot,
+    /// Network output.
+    Network,
 }
 
-/// Type representing a row index.
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Ord, Eq, Deref, Hash)]
-pub struct Row(pub usize);
-
-/// Type representing a column index.
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Ord, Eq, Deref, Hash)]
-pub struct Col(pub usize);
-
-/// Trait defining the backend interface.
+/// Trait for various output types.
 pub trait Backend {
-    /// Creates a new instance of the backend with the given number of variables.
-    fn new(vars: usize) -> Result<Self, BackendError>
-    where
-        Self: Sized;
-
-    /// Sets the conductance matrix (`a`) into the backend.
-    /// Set sets a Value to the given matrix i,j
-    fn set_a(&mut self, a_mat: &Triples);
-
-    /// Sets the known values vector (`b`) into the backend.
-    /// Set sets a Value to the given vector i
-    fn set_b(&mut self, b_vec: &Pairs);
-
-    /// Inserts the conductance matrix (`a`) into the backend.
-    /// Insert adds a Value to the given matrix i,j
-    fn insert_a(&mut self, a_mat: &Triples);
-
-    /// Inserts the known values vector (`b`) into the backend.
-    /// Insert adds a Value to the given vector i
-    fn insert_b(&mut self, b_vec: &Pairs);
-
-    /// Solves the system of equations (Ax = B for x) and returns a referenze to the solution.
-    /// Since there are solve in place backends, Ax = B can change b!
+    /// Performs the output for the given simulation results.
     ///
-    fn solve(&mut self) -> Result<&Vec<f64>, BackendError>;
+    /// # Parameters
+    ///
+    /// - `res`: The simulation results to be output.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` which is `Ok` if the output was successful, or an `BackendError` if an error occurred.
+    fn output(&self, res: SimulationResults) -> Result<(), BackendError>;
 }
-
-#[cfg(test)]
-mod tests;

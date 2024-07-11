@@ -1,6 +1,6 @@
 #![allow(unused)]
 
-use super::{Backend, BackendError, Col, Row};
+use super::{Solver, SolverError, Col, Row};
 use crate::models::{Pairs, Triples};
 use log::trace;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
@@ -8,8 +8,8 @@ use rayon::vec;
 use rsparse::data::{Sprs, Trpl};
 use rsparse::lusol;
 
-/// A backend implementation using the Faer library.
-pub(crate) struct RSparseBackend {
+/// A Solver implementation using the Faer library.
+pub(crate) struct RSparseSolver {
     /// The conductance matrix `A` as a sparse matrix.
     a: Trpl,
     /// The vector `b` as a dense vector.
@@ -18,9 +18,9 @@ pub(crate) struct RSparseBackend {
     x: Vec<f64>,
 }
 
-impl Backend for RSparseBackend {
-    /// Creates a new instance of the Faer backend with the given number of variables.
-    fn new(vars: usize) -> Result<Self, BackendError> {
+impl Solver for RSparseSolver {
+    /// Creates a new instance of the Faer Solver with the given number of variables.
+    fn new(vars: usize) -> Result<Self, SolverError> {
         let a = Trpl::new();
         let b = Vec::with_capacity(vars);
         let x = Vec::with_capacity(vars);
@@ -28,7 +28,7 @@ impl Backend for RSparseBackend {
         Ok(Self { a, b, x })
     }
 
-    /// Sets the conductance matrix (`a_mat`) into the backend.
+    /// Sets the conductance matrix (`a_mat`) into the Solver.
     fn set_a(&mut self, a_mat: &Triples) {
         let mut new_a = Trpl::new();
         match a_mat {
@@ -53,7 +53,7 @@ impl Backend for RSparseBackend {
         self.a = new_a;
     }
 
-    /// Sets the known values vector (`b_vec`) into the backend.
+    /// Sets the known values vector (`b_vec`) into the Solver.
     fn set_b(&mut self, b_vec: &Pairs) {
         self.b = vec![0.0; self.b.capacity()];
         match b_vec {
@@ -69,7 +69,7 @@ impl Backend for RSparseBackend {
         }
     }
 
-    /// Inserts the conductance matrix (`a_mat`) into the backend.
+    /// Inserts the conductance matrix (`a_mat`) into the Solver.
     fn insert_a(&mut self, a_mat: &Triples) {
         match a_mat {
             Triples::Empty => {}
@@ -92,7 +92,7 @@ impl Backend for RSparseBackend {
         }
     }
 
-    /// Inserts the known values vector (`b_vec`) into the backend.
+    /// Inserts the known values vector (`b_vec`) into the Solver.
     fn insert_b(&mut self, b_vec: &Pairs) {
         match b_vec {
             Pairs::Empty => {}
@@ -110,7 +110,7 @@ impl Backend for RSparseBackend {
     }
 
     /// Solves the system of equations (Ax = B for x) and returns a reference to the solution.
-    fn solve(&mut self) -> Result<&Vec<f64>, BackendError> {
+    fn solve(&mut self) -> Result<&Vec<f64>, SolverError> {
         // Convert the triplet matrix to a sparse matrix
         let mut sprs = Sprs::new_from_trpl(&self.a);
 
@@ -121,7 +121,7 @@ impl Backend for RSparseBackend {
 }
 
 #[cfg(test)]
-impl RSparseBackend {
+impl RSparseSolver {
     /// Returns the number of rows in the matrix `a_mat`.
     pub fn rows(&self) -> usize {
         self.a.n

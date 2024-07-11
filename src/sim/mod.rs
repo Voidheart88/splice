@@ -10,7 +10,7 @@ use miette::Diagnostic;
 use rayon::prelude::*;
 use thiserror::Error;
 
-use crate::backends::{Backend, BackendError};
+use crate::solver::{Solver, SolverError};
 use crate::consts::{DIO_GUESS, MAXITER, VECTOL};
 use crate::models::{Pairs, Element, Triples, Variable};
 use crate::Simulation;
@@ -25,7 +25,7 @@ pub(crate) enum SimulatorError {
     Unimplemented,
 
     #[error("{0}")]
-    BackendError(BackendError),
+    BackendError(SolverError),
 
     #[error("The constant part of the conductance matrix is empty")]
     #[diagnostic(help("This is a severe error! Send your circuit to Github"))]
@@ -44,8 +44,8 @@ pub(crate) enum SimulatorError {
     VoltageSourceNotFound(String),
 }
 
-impl From<BackendError> for SimulatorError {
-    fn from(error: BackendError) -> Self {
+impl From<SolverError> for SimulatorError {
+    fn from(error: SolverError) -> Self {
         SimulatorError::BackendError(error)
     }
 }
@@ -55,7 +55,7 @@ impl From<BackendError> for SimulatorError {
 /// This struct represents a simulator used for analyzing electrical circuits.
 /// It contains the circuit elements, simulation commands, variables, backend,
 /// and results of the simulation.
-pub(super) struct Simulator<BE: Backend> {
+pub(super) struct Simulator<BE: Solver> {
     /// The elements in the circuit.
     elements: Vec<Element>,
     /// The simulation commands to be executed.
@@ -66,7 +66,7 @@ pub(super) struct Simulator<BE: Backend> {
     backend: BE,
 }
 
-impl<BE: Backend> Simulator<BE> {
+impl<BE: Solver> Simulator<BE> {
     /// Executes the simulation commands and returns the simulation results.
     ///
     /// This method iterates through the simulation commands, executes each one, and collects
@@ -518,7 +518,7 @@ impl<BE: Backend> Simulator<BE> {
 /// let sim = Simulator::<NalgebraBackend>::from(simulation);
 /// println!("{:?}", sim);
 /// ```
-impl<BE: Backend> Debug for Simulator<BE> {
+impl<BE: Solver> Debug for Simulator<BE> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Simulator").finish()
     }
@@ -545,7 +545,7 @@ impl<BE: Backend> Debug for Simulator<BE> {
 /// };
 /// let simulator: Simulator<NalgebraBackend> = Simulator::from(simulation);
 /// ```
-impl<BE: Backend> From<Simulation> for Simulator<BE> {
+impl<BE: Solver> From<Simulation> for Simulator<BE> {
     fn from(sim: Simulation) -> Self {
         let Simulation {
             variables,

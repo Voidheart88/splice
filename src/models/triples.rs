@@ -1,4 +1,4 @@
-use crate::backends::{Col, Row};
+use crate::solver::{Col, Row};
 use std::{cmp::Ordering, fmt, ops::Add};
 
 /// A structure representing the triples of an element.

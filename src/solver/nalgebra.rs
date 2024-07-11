@@ -1,10 +1,10 @@
-use super::{Backend, BackendError, Col, Row};
+use super::{Solver, SolverError, Col, Row};
 use crate::models::{Pairs, Triples};
 use na::LU;
 use nalgebra as na;
 
-/// A backend implementation using the Nalgebra library.
-pub(crate) struct NalgebraBackend {
+/// A Solver implementation using the Nalgebra library.
+pub(crate) struct NalgebraSolver {
     /// The conductance matrix `A`.
     a_mat: na::DMatrix<f64>,
     /// The vector `b`.
@@ -13,9 +13,9 @@ pub(crate) struct NalgebraBackend {
     x_vec: na::DVector<f64>,
 }
 
-impl Backend for NalgebraBackend {
-    /// Creates a new instance of the Nalgebra backend with the given number of variables.
-    fn new(vars: usize) -> Result<NalgebraBackend, BackendError> {
+impl Solver for NalgebraSolver {
+    /// Creates a new instance of the Nalgebra Solver with the given number of variables.
+    fn new(vars: usize) -> Result<NalgebraSolver, SolverError> {
         let a_mat = na::DMatrix::zeros(vars, vars);
         let b_vec = na::DVector::zeros(vars);
         let x1 = na::DVector::zeros(vars);
@@ -27,7 +27,7 @@ impl Backend for NalgebraBackend {
         })
     }
 
-    /// Sets the conductance matrix (`a_mat`) and the vector (`b_vec`) into the backend.
+    /// Sets the conductance matrix (`a_mat`) and the vector (`b_vec`) into the Solver.
     /// It can be used to change only the necessary changes.
     fn set_a(&mut self, a_mat: &Triples) {
         match a_mat {
@@ -57,7 +57,7 @@ impl Backend for NalgebraBackend {
         }
     }
 
-    /// Inserts the conductance matrix (`a_mat`) and the vector (`b_vec`) into the backend.
+    /// Inserts the conductance matrix (`a_mat`) and the vector (`b_vec`) into the Solver.
     /// It can be used to change only the necessary changes.
     fn insert_a(&mut self, a_mat: &Triples) {
         match a_mat {
@@ -87,14 +87,14 @@ impl Backend for NalgebraBackend {
         }
     }
 
-    fn solve(&mut self) -> Result<&Vec<f64>, BackendError> {
+    fn solve(&mut self) -> Result<&Vec<f64>, SolverError> {
         // Cloning only the necessary matrices for LU decomposition
         let lu = LU::new(self.a_mat.clone());
 
         // Solving the equations without unnecessary cloning
         self.x_vec = match lu.solve(&self.b_vec) {
             Some(v) => v,
-            None => return Err(BackendError::MatrixNonInvertible),
+            None => return Err(SolverError::MatrixNonInvertible),
         };
 
         // Returning a reference to the solution vector
@@ -102,7 +102,7 @@ impl Backend for NalgebraBackend {
     }
 }
 
-impl NalgebraBackend {
+impl NalgebraSolver {
     /// Sets a single-valued triple into the conductance matrix.
     fn set_single(&mut self, triple: &(Row, Col, f64)) {
         self.a_mat[(triple.0 .0, triple.1 .0)] = triple.2;
@@ -143,7 +143,7 @@ impl NalgebraBackend {
 }
 
 #[cfg(test)]
-impl NalgebraBackend {
+impl NalgebraSolver {
     /// Returns the number of rows in the matrix `a_mat`.
     pub fn rows(&self) -> usize {
         self.a_mat.nrows()

@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    backends::NalgebraBackend,
+    solver::NalgebraSolver,
     models::{ISourceBundle, ResistorBundle, Unit, VSourceBundle, Variable},
 };
 
@@ -12,8 +12,8 @@ use super::*;
 // Mock Backend für Testzwecke
 struct MockBackend;
 
-impl Backend for MockBackend {
-    fn new(_: usize) -> Result<Self, BackendError>
+impl Solver for MockBackend {
+    fn new(_: usize) -> Result<Self, SolverError>
     where
         Self: Sized,
     {
@@ -24,8 +24,8 @@ impl Backend for MockBackend {
 
     fn set_b(&mut self, _: &Pairs) {}
 
-    fn solve(&mut self) -> Result<&Vec<f64>, BackendError> {
-        Err(BackendError::MatrixNonInvertible)
+    fn solve(&mut self) -> Result<&Vec<f64>, SolverError> {
+        Err(SolverError::MatrixNonInvertible)
     }
 
     fn insert_a(&mut self, _: &Triples) {}
@@ -149,7 +149,7 @@ fn test_from_simulation() {
         commands,
     };
 
-    let _: Simulator<NalgebraBackend> = Simulator::from(sim);
+    let _: Simulator<NalgebraSolver> = Simulator::from(sim);
 }
 
 /// Test the simulation of a simple circuit with a voltage source (V1) and a resistor (R1).
@@ -170,7 +170,7 @@ fn test_run_simulation() {
         commands,
     };
 
-    let mut sim: Simulator<NalgebraBackend> = Simulator::from(sim);
+    let mut sim: Simulator<NalgebraSolver> = Simulator::from(sim);
 
     let res = sim.run().unwrap().0[0].clone();
     let res = match res {
@@ -205,7 +205,7 @@ fn test_run_simulation2() {
         commands,
     };
 
-    let mut sim: Simulator<NalgebraBackend> = Simulator::from(sim);
+    let mut sim: Simulator<NalgebraSolver> = Simulator::from(sim);
 
     let res = sim.run().unwrap().0[0].clone();
     let res = match res {
@@ -246,7 +246,7 @@ fn test_run_simulation3() {
         commands,
     };
 
-    let mut sim: Simulator<NalgebraBackend> = Simulator::from(sim);
+    let mut sim: Simulator<NalgebraSolver> = Simulator::from(sim);
     println!("Vars: {:?}", sim.vars);
 
     let res = sim.run().unwrap().0[0].clone();
@@ -289,7 +289,7 @@ fn test_run_simulation4() {
         commands,
     };
 
-    let mut sim: Simulator<NalgebraBackend> = Simulator::from(sim);
+    let mut sim: Simulator<NalgebraSolver> = Simulator::from(sim);
 
     let res = sim.run().unwrap().0[0].clone();
     let res = match res {
