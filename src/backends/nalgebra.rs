@@ -1,5 +1,5 @@
 use super::{Backend, BackendError, Col, Row};
-use crate::models::{Doubles, Triples};
+use crate::models::{Pairs, Triples};
 use na::LU;
 use nalgebra as na;
 
@@ -20,7 +20,11 @@ impl Backend for NalgebraBackend {
         let b_vec = na::DVector::zeros(vars);
         let x1 = na::DVector::zeros(vars);
 
-        Ok(Self { a_mat, b_vec, x_vec: x1 })
+        Ok(Self {
+            a_mat,
+            b_vec,
+            x_vec: x1,
+        })
     }
 
     /// Sets the conductance matrix (`a_mat`) and the vector (`b_vec`) into the backend.
@@ -37,17 +41,17 @@ impl Backend for NalgebraBackend {
         };
     }
 
-    fn set_b(&mut self, b_vec: &Doubles) {
+    fn set_b(&mut self, b_vec: &Pairs) {
         match b_vec {
-            Doubles::Empty => {}
-            Doubles::Single((col, val)) => {
+            Pairs::Empty => {}
+            Pairs::Single((col, val)) => {
                 self.b_vec[col.0] = *val;
             }
-            Doubles::Double([(col1, val1), (col2, val2)]) => {
+            Pairs::Double([(col1, val1), (col2, val2)]) => {
                 self.b_vec[col1.0] = *val1;
                 self.b_vec[col2.0] = *val2;
             }
-            Doubles::Vec(doubles) => doubles.iter().for_each(|(col, val)| {
+            Pairs::Vec(pairs) => pairs.iter().for_each(|(col, val)| {
                 self.b_vec[col.0] = *val;
             }),
         }
@@ -67,17 +71,17 @@ impl Backend for NalgebraBackend {
         };
     }
 
-    fn insert_b(&mut self, b_vec: &Doubles) {
+    fn insert_b(&mut self, b_vec: &Pairs) {
         match b_vec {
-            Doubles::Empty => {}
-            Doubles::Single((col, val)) => {
+            Pairs::Empty => {}
+            Pairs::Single((col, val)) => {
                 self.b_vec[col.0] += *val;
             }
-            Doubles::Double([(col1, val1), (col2, val2)]) => {
+            Pairs::Double([(col1, val1), (col2, val2)]) => {
                 self.b_vec[col1.0] += *val1;
                 self.b_vec[col2.0] += *val2;
             }
-            Doubles::Vec(doubles) => doubles.iter().for_each(|(col, val)| {
+            Pairs::Vec(pairs) => pairs.iter().for_each(|(col, val)| {
                 self.b_vec[col.0] += *val;
             }),
         }

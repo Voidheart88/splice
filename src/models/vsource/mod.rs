@@ -22,7 +22,7 @@ impl VSourceBundle {
     /// * `node0` - The name of the first node.
     /// * `node1` - The name of the second node.
     /// * `a` - The triples representing matrix A.
-    /// * `b` - The doubles representing vector b.
+    /// * `b` - The pairs representing vector b.
     /// * `value` - The value of the voltage source.
     ///
     /// # Returns
@@ -105,9 +105,9 @@ impl VSourceBundle {
         ])
     }
 
-    /// Returns a reference to the doubles representing vector b.
-    pub fn doubles(&self) -> Doubles {
-        Doubles::Single((Row(self.branch_idx()), *self.value))
+    /// Returns a reference to the pair representing vector b.
+    pub fn pairs(&self) -> Pairs {
+        Pairs::Single((Row(self.branch_idx()), *self.value))
     }
 
     pub fn set_voltage(&mut self, voltage: f64) {

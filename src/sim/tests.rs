@@ -22,7 +22,7 @@ impl Backend for MockBackend {
 
     fn set_a(&mut self, _: &Triples) {}
 
-    fn set_b(&mut self, _: &Doubles) {}
+    fn set_b(&mut self, _: &Pairs) {}
 
     fn solve(&mut self) -> Result<&Vec<f64>, BackendError> {
         Err(BackendError::MatrixNonInvertible)
@@ -30,7 +30,7 @@ impl Backend for MockBackend {
 
     fn insert_a(&mut self, _: &Triples) {}
 
-    fn insert_b(&mut self, _: &Doubles) {}
+    fn insert_b(&mut self, _: &Pairs) {}
 }
 
 fn create_mock_elements(vars: &Vec<Variable>) -> Vec<Element> {

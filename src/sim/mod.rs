@@ -12,7 +12,7 @@ use thiserror::Error;
 
 use crate::backends::{Backend, BackendError};
 use crate::consts::{DIO_GUESS, MAXITER, VECTOL};
-use crate::models::{Doubles, Element, Triples, Variable};
+use crate::models::{Pairs, Element, Triples, Variable};
 use crate::Simulation;
 use commands::SimulationCommand;
 use simulation_result::Sim;
@@ -342,20 +342,20 @@ impl<BE: Backend> Simulator<BE> {
 
     /// Builds a constant vector 'b' from the elements.
     ///
-    /// This method iterates over the elements and collects their constant doubles.
-    /// If any elements provide constant doubles, they are summed together.
+    /// This method iterates over the elements and collects their constant pairs.
+    /// If any elements provide constant pairs, they are summed together.
     ///
     /// # Returns
     ///
-    /// * `Ok(Doubles)` - The combined constant doubles.
-    /// * `Err(SimulatorError::ConstantVectorEmpty)` - If no constant doubles are found.
-    fn build_constant_b_vec(&self) -> Result<Doubles, SimulatorError> {
+    /// * `Ok(pairs)` - The combined constant pairs.
+    /// * `Err(SimulatorError::ConstantVectorEmpty)` - If no constant pairs are found.
+    fn build_constant_b_vec(&self) -> Result<Pairs, SimulatorError> {
         let const_b_vec = self
             .elements
             .par_iter()
-            .filter_map(|ele| ele.get_constant_doubles())
-            .reduce(|| Doubles::Empty, |acc, ele| acc + ele);
-        if const_b_vec == Doubles::Empty {
+            .filter_map(|ele| ele.get_constant_pairs())
+            .reduce(|| Pairs::Empty, |acc, ele| acc + ele);
+        if const_b_vec == Pairs::Empty {
             Err(SimulatorError::ConstantVectorEmpty)
         } else {
             Ok(const_b_vec)
@@ -379,17 +379,17 @@ impl<BE: Backend> Simulator<BE> {
 
     /// Builds a time-variant vector 'B' from the elements.
     ///
-    /// This method iterates over the elements and collects their time-variant doubles.
-    /// If any elements provide time-variant doubles, they are summed together.
+    /// This method iterates over the elements and collects their time-variant pairs.
+    /// If any elements provide time-variant pairs, they are summed together.
     ///
     /// # Returns
     ///
-    /// * `Doubles` - The combined time-variant doubles, or an empty `Doubles` if none are found.
-    fn build_time_variant_b_vec(&self) -> Doubles {
+    /// * `pairs` - The combined time-variant pairs, or an empty `pairs` if none are found.
+    fn build_time_variant_b_vec(&self) -> Pairs {
         self.elements
             .par_iter()
-            .filter_map(|ele| ele.get_time_variant_doubles())
-            .reduce(|| Doubles::Empty, |acc, ele| acc + ele)
+            .filter_map(|ele| ele.get_time_variant_pairs())
+            .reduce(|| Pairs::Empty, |acc, ele| acc + ele)
     }
 
     /// Builds a nonlinear matrix 'A' from the elements, based on a given vector `x_vec`.
@@ -414,17 +414,17 @@ impl<BE: Backend> Simulator<BE> {
 
     /// Builds a nonlinear vector 'B' from the elements.
     ///
-    /// This method iterates over the elements and collects their nonlinear doubles.
-    /// If any elements provide nonlinear doubles, they are summed together.
+    /// This method iterates over the elements and collects their nonlinear pairs.
+    /// If any elements provide nonlinear pairs, they are summed together.
     ///
     /// # Returns
     ///
-    /// * `Doubles` - The combined nonlinear doubles, or an empty `Doubles` if none are found.
-    fn build_nonlinear_b_vec(&self, x_vec: &Vec<f64>) -> Doubles {
+    /// * `pairs` - The combined nonlinear pairs, or an empty `pairs` if none are found.
+    fn build_nonlinear_b_vec(&self, x_vec: &Vec<f64>) -> Pairs {
         self.elements
             .par_iter()
-            .filter_map(|ele| ele.get_nonlinear_doubles(x_vec))
-            .reduce(|| Doubles::Empty, |acc, ele| acc + ele)
+            .filter_map(|ele| ele.get_nonlinear_pairs(x_vec))
+            .reduce(|| Pairs::Empty, |acc, ele| acc + ele)
     }
 
     /// Generates an initial guess for the node voltages in the circuit.

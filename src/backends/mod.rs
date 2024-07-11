@@ -1,6 +1,6 @@
+pub(crate) mod faer;
 pub(crate) mod nalgebra;
 pub(crate) mod rsparse;
-pub(crate) mod faer;
 
 use clap::ValueEnum;
 use derive_more::Deref;
@@ -10,7 +10,7 @@ use thiserror::Error;
 pub(crate) use nalgebra::NalgebraBackend;
 pub(crate) use rsparse::RSparseBackend;
 
-use crate::models::{Doubles, Triples};
+use crate::models::{Pairs, Triples};
 
 /// Errors that can occur in the backend.
 #[derive(Debug, Error, Diagnostic, PartialEq, Eq, PartialOrd, Ord)]
@@ -52,7 +52,7 @@ pub trait Backend {
 
     /// Sets the known values vector (`b`) into the backend.
     /// Set sets a Value to the given vector i
-    fn set_b(&mut self, b_vec: &Doubles);
+    fn set_b(&mut self, b_vec: &Pairs);
 
     /// Inserts the conductance matrix (`a`) into the backend.
     /// Insert adds a Value to the given matrix i,j
@@ -60,7 +60,7 @@ pub trait Backend {
 
     /// Inserts the known values vector (`b`) into the backend.
     /// Insert adds a Value to the given vector i
-    fn insert_b(&mut self, b_vec: &Doubles);
+    fn insert_b(&mut self, b_vec: &Pairs);
 
     /// Solves the system of equations (Ax = B for x) and returns a referenze to the solution.
     /// Since there are solve in place backends, Ax = B can change b!

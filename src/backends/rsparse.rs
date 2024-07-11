@@ -1,7 +1,7 @@
 #![allow(unused)]
 
 use super::{Backend, BackendError, Col, Row};
-use crate::models::{Doubles, Triples};
+use crate::models::{Pairs, Triples};
 use log::trace;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use rayon::vec;
@@ -54,16 +54,16 @@ impl Backend for RSparseBackend {
     }
 
     /// Sets the known values vector (`b_vec`) into the backend.
-    fn set_b(&mut self, b_vec: &Doubles) {
+    fn set_b(&mut self, b_vec: &Pairs) {
         self.b = vec![0.0; self.b.capacity()];
         match b_vec {
-            Doubles::Empty => {}
-            Doubles::Single((col, val)) => self.b[col.0] = *val,
-            Doubles::Double([(col1, val1), (col2, val2)]) => {
+            Pairs::Empty => {}
+            Pairs::Single((col, val)) => self.b[col.0] = *val,
+            Pairs::Double([(col1, val1), (col2, val2)]) => {
                 self.b[col1.0] = *val1;
                 self.b[col2.0] = *val2;
             }
-            Doubles::Vec(doubles) => doubles.iter().for_each(|(col, val)| {
+            Pairs::Vec(pairs) => pairs.iter().for_each(|(col, val)| {
                 self.b[col.0] = *val;
             }),
         }
@@ -93,16 +93,16 @@ impl Backend for RSparseBackend {
     }
 
     /// Inserts the known values vector (`b_vec`) into the backend.
-    fn insert_b(&mut self, b_vec: &Doubles) {
+    fn insert_b(&mut self, b_vec: &Pairs) {
         match b_vec {
-            Doubles::Empty => {}
-            Doubles::Single((col, val)) => self.b[col.0] += *val,
-            Doubles::Double([(col1, val1), (col2, val2)]) => {
+            Pairs::Empty => {}
+            Pairs::Single((col, val)) => self.b[col.0] += *val,
+            Pairs::Double([(col1, val1), (col2, val2)]) => {
                 self.b[col1.0] += *val1;
                 self.b[col2.0] += *val2;
             }
-            Doubles::Vec(doubles) => {
-                for (col, val) in doubles.iter() {
+            Pairs::Vec(pairs) => {
+                for (col, val) in pairs.iter() {
                     self.b[col.0] += *val;
                 }
             }
@@ -119,8 +119,6 @@ impl Backend for RSparseBackend {
         Ok(&self.b)
     }
 }
-
-impl RSparseBackend {}
 
 #[cfg(test)]
 impl RSparseBackend {

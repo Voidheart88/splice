@@ -29,8 +29,8 @@ fn test_set_a() {
 #[test]
 fn test_set_b() {
     let mut backend = NalgebraBackend::new(2).unwrap();
-    let doubles = Doubles::Double([(Row(0), 3.0), (Row(1), 4.0)]);
-    backend.set_b(&doubles);
+    let pairs = Pairs::Double([(Row(0), 3.0), (Row(1), 4.0)]);
+    backend.set_b(&pairs);
 
     assert_eq!(backend.b_vec()[0], 3.0);
     assert_eq!(backend.b_vec()[1], 4.0);
@@ -41,9 +41,9 @@ fn test_solve() {
     // Solvable system
     let mut backend = NalgebraBackend::new(2).unwrap();
     let triples = Triples::Vec(vec![(Row(0), Col(0), 1.0), (Row(1), Col(1), 2.0)]);
-    let doubles = Doubles::Double([(Row(0), 3.0), (Row(1), 4.0)]);
+    let pairs = Pairs::Double([(Row(0), 3.0), (Row(1), 4.0)]);
     backend.set_a(&triples);
-    backend.set_b(&doubles);
+    backend.set_b(&pairs);
 
     let solution = backend.solve().unwrap();
     assert_eq!(solution, &vec![3.0, 2.0]);
@@ -51,9 +51,9 @@ fn test_solve() {
     // Singular system
     let mut backend = NalgebraBackend::new(2).unwrap();
     let triples = Triples::Vec(vec![(Row(0), Col(0), 1.0), (Row(0), Col(1), 1.0)]);
-    let doubles = Doubles::Double([(Row(0), 3.0), (Row(1), 4.0)]);
+    let pairs = Pairs::Double([(Row(0), 3.0), (Row(1), 4.0)]);
     backend.set_a(&triples);
-    backend.set_b(&doubles);
+    backend.set_b(&pairs);
 
     let result = backend.solve();
     assert!(result.is_err());
@@ -81,13 +81,13 @@ fn test_newton() {
 
     let x = vec![0.6, 0.0];
     let a_mat = diode.triples(&x) + vsource.triples();
-    let b_vec = diode.doubles(&x) + vsource.doubles();
+    let b_vec = diode.pairs(&x) + vsource.pairs();
     backend.set_a(&a_mat);
     backend.set_b(&b_vec);
 
     let x = backend.solve().unwrap();
     let a_mat = diode.triples(&x) + vsource.triples();
-    let b_vec = diode.doubles(&x) + vsource.doubles();
+    let b_vec = diode.pairs(&x) + vsource.pairs();
     backend.set_a(&a_mat);
     backend.set_b(&b_vec);
 
@@ -121,13 +121,13 @@ fn test_newton2() {
 
     let x = vec![0.5, 0.0];
     let a_mat = diode.triples(&x) + vsource.triples();
-    let b_vec = diode.doubles(&x) + vsource.doubles();
+    let b_vec = diode.pairs(&x) + vsource.pairs();
     backend.set_a(&a_mat);
     backend.set_b(&b_vec);
 
     let x = backend.solve().unwrap();
     let a_mat = diode.triples(&x) + vsource.triples();
-    let b_vec = diode.doubles(&x) + vsource.doubles();
+    let b_vec = diode.pairs(&x) + vsource.pairs();
     backend.set_a(&a_mat);
     backend.set_b(&b_vec);
 

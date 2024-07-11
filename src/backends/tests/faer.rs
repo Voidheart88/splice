@@ -3,22 +3,22 @@ use std::sync::Arc;
 
 /* -----------------------------------Tests---------------------------------- */
 use super::super::*;
-use crate::{
-    backends::{Col, NalgebraBackend, Row},
-    models::{DiodeBundle, Unit, VSourceBundle, Variable},
-};
+use crate::backends::{faer::FaerBackend, Col, Row};
+use crate::models::{DiodeBundle, Unit, VSourceBundle, Variable};
 
 #[test]
 fn test_new() {
-    let backend = NalgebraBackend::new(3).unwrap();
-    assert_eq!(backend.rows(), 3);
-    assert_eq!(backend.cols(), 3);
-    assert_eq!(backend.b_vec_len(), 3);
+    let backend = FaerBackend::new(3).unwrap();
+
+    // Lens should be 0 since no value were loaded
+    assert_eq!(backend.rows(), 0);
+    assert_eq!(backend.cols(), 0);
+    assert_eq!(backend.b_vec_len(), 0);
 }
 
 #[test]
 fn test_set_a() {
-    let mut backend = NalgebraBackend::new(2).unwrap();
+    let mut backend = FaerBackend::new(2).unwrap();
     let triples = Triples::Vec(vec![(Row(0), Col(0), 1.0), (Row(1), Col(1), 2.0)]);
     backend.set_a(&triples);
 
@@ -28,18 +28,18 @@ fn test_set_a() {
 
 #[test]
 fn test_set_b() {
-    let mut backend = NalgebraBackend::new(2).unwrap();
+    let mut backend = FaerBackend::new(2).unwrap();
     let pairs = Pairs::Double([(Row(0), 3.0), (Row(1), 4.0)]);
     backend.set_b(&pairs);
 
-    assert_eq!(backend.b_vec()[0], 3.0);
-    assert_eq!(backend.b_vec()[1], 4.0);
+    assert_eq!(backend.b_vec()[(1,0)], 3.0);
+    assert_eq!(backend.b_vec()[(2,0)], 4.0);
 }
 
 #[test]
 fn test_solve() {
     // Solvable system
-    let mut backend = NalgebraBackend::new(2).unwrap();
+    let mut backend = FaerBackend::new(2).unwrap();
     let triples = Triples::Vec(vec![(Row(0), Col(0), 1.0), (Row(1), Col(1), 2.0)]);
     let pairs = Pairs::Double([(Row(0), 3.0), (Row(1), 4.0)]);
     backend.set_a(&triples);
@@ -49,7 +49,7 @@ fn test_solve() {
     assert_eq!(solution, &vec![3.0, 2.0]);
 
     // Singular system
-    let mut backend = NalgebraBackend::new(2).unwrap();
+    let mut backend = FaerBackend::new(2).unwrap();
     let triples = Triples::Vec(vec![(Row(0), Col(0), 1.0), (Row(0), Col(1), 1.0)]);
     let pairs = Pairs::Double([(Row(0), 3.0), (Row(1), 4.0)]);
     backend.set_a(&triples);
@@ -63,7 +63,7 @@ fn test_solve() {
 #[test]
 fn test_newton() {
     // Create an instance of the backend with 2 variables
-    let mut backend = NalgebraBackend::new(2).unwrap();
+    let mut backend = FaerBackend::new(2).unwrap();
 
     let diode = DiodeBundle::new(
         Arc::new("d1".into()),
@@ -103,7 +103,7 @@ fn test_newton() {
 #[test]
 fn test_newton2() {
     // Create an instance of the backend with 2 variables
-    let mut backend = NalgebraBackend::new(2).unwrap();
+    let mut backend = FaerBackend::new(2).unwrap();
 
     let diode = DiodeBundle::new(
         Arc::new("d1".into()),
@@ -139,3 +139,4 @@ fn test_newton2() {
     assert_eq!(x[0], 0.8);
     assert!(relative_eq!(x[1], -0.566820436, epsilon = 1e-8));
 }
+

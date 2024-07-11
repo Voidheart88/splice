@@ -41,7 +41,7 @@ impl DiodeBundle {
     /// * `node0` - The name of the first node.
     /// * `node1` - The name of the second node.
     /// * `a` - The triples representing matrix A.
-    /// * `b` - The doubles representing vector b.
+    /// * `b` - The pairs representing vector b.
     /// * `value` - The value of the diode.
     ///
     /// # Returns
@@ -106,8 +106,8 @@ impl DiodeBundle {
         ])
     }
 
-    /// Returns a reference to the doubles representing vector b.
-    pub fn doubles(&self, x_vec: &Vec<f64>) -> Doubles {
+    /// Returns a reference to the pairs representing vector b.
+    pub fn pairs(&self, x_vec: &Vec<f64>) -> Pairs {
         let a_voltage = match self.a_idx() {
             Some(idx) => x_vec[idx],
             None => 0.0,
@@ -128,16 +128,16 @@ impl DiodeBundle {
         let a_idx = if let Some(idx) = self.a_idx() {
             idx
         } else {
-            return Doubles::Single((Row(self.c_idx().unwrap()), cc));
+            return Pairs::Single((Row(self.c_idx().unwrap()), cc));
         };
 
         let c_idx = if let Some(idx) = self.c_idx() {
             idx
         } else {
-            return Doubles::Single((Row(self.a_idx().unwrap()), ca));
+            return Pairs::Single((Row(self.a_idx().unwrap()), ca));
         };
 
-        Doubles::Double([(Row(a_idx), ca), (Row(c_idx), cc)])
+        Pairs::Double([(Row(a_idx), ca), (Row(c_idx), cc)])
     }
 
     pub fn a_idx(&self) -> Option<usize> {

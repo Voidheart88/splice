@@ -43,13 +43,13 @@ impl ISourceBundle {
         self.name.clone()
     }
 
-    /// Returns the doubles representing the current source contributions to the vector b.
-    pub fn doubles(&self) -> Doubles {
+    /// Returns the pair representing the current source contributions to the vector b.
+    pub fn pairs(&self) -> Pairs {
         match (&self.node0, &self.node1) {
-            (None, None) => Doubles::Empty,
-            (Some(node0), None) => Doubles::Single((Row(node0.idx()), -*self.value)),
-            (None, Some(node1)) => Doubles::Single((Row(node1.idx()), *self.value)),
-            (Some(node0), Some(node1)) => Doubles::Double([
+            (None, None) => Pairs::Empty,
+            (Some(node0), None) => Pairs::Single((Row(node0.idx()), -*self.value)),
+            (None, Some(node1)) => Pairs::Single((Row(node1.idx()), *self.value)),
+            (Some(node0), Some(node1)) => Pairs::Double([
                 (Row(node0.idx()), -*self.value),
                 (Row(node1.idx()), *self.value),
             ]),

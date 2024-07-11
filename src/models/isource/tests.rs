@@ -12,7 +12,7 @@ fn test_new_isource_bundle() {
     );
 
     assert_eq!(isource_bundle.name(), "ISourceBundle1");
-    assert_eq!(isource_bundle.doubles().0.len(), 2); // Es sollten 2 Einträge im doubles Vektor sein
+    assert_eq!(isource_bundle.pairs().0.len(), 2); // Es sollten 2 Einträge im pairs Vektor sein
     assert_eq!(isource_bundle.value, Value(5.0));
 }
 
@@ -31,7 +31,7 @@ fn test_name() {
 }
 
 #[test]
-fn test_doubles_with_both_nodes() {
+fn test_pairs_with_both_nodes() {
     let isource_bundle = ISourceBundle::new(
         Rc::new("ISourceBundle3".to_string()),
         Some(Rc::new("Node0".to_string())),
@@ -41,14 +41,14 @@ fn test_doubles_with_both_nodes() {
         10.0,
     );
 
-    let doubles = isource_bundle.doubles();
-    assert_eq!(doubles.0.len(), 2);
-    assert_eq!(doubles.0[0], (Row(1), Value(-10.0)));
-    assert_eq!(doubles.0[1], (Row(2), Value(10.0)));
+    let pairs = isource_bundle.pairs();
+    assert_eq!(pairs.0.len(), 2);
+    assert_eq!(pairs.0[0], (Row(1), Value(-10.0)));
+    assert_eq!(pairs.0[1], (Row(2), Value(10.0)));
 }
 
 #[test]
-fn test_doubles_with_one_node() {
+fn test_pairs_with_one_node() {
     let isource_bundle = ISourceBundle::new(
         Rc::new("ISourceBundle4".to_string()),
         Some(Rc::new("Node0".to_string())),
@@ -58,13 +58,13 @@ fn test_doubles_with_one_node() {
         0.0,
     );
 
-    let doubles = isource_bundle.doubles();
-    assert_eq!(doubles.0.len(), 1);
-    assert_eq!(doubles.0[0], (Row(1), Value(0.0)));
+    let pairs = isource_bundle.pairs();
+    assert_eq!(pairs.0.len(), 1);
+    assert_eq!(pairs.0[0], (Row(1), Value(0.0)));
 }
 
 #[test]
-fn test_doubles_with_no_nodes() {
+fn test_pairs_with_no_nodes() {
     let isource_bundle = ISourceBundle::new(
         Rc::new("ISourceBundle5".to_string()),
         None,
@@ -74,6 +74,6 @@ fn test_doubles_with_no_nodes() {
         0.0,
     );
 
-    let doubles = isource_bundle.doubles();
-    assert_eq!(doubles.0.len(), 0);
+    let pairs = isource_bundle.pairs();
+    assert_eq!(pairs.0.len(), 0);
 }

@@ -16,7 +16,7 @@ fn test_new_vsource_bundle() {
 
     assert_eq!(*vsource_bundle.name(), "VSourceBundle1");
     assert_eq!(vsource_bundle.triples().len(), 4);
-    assert_eq!(vsource_bundle.doubles().len(), 1);
+    assert_eq!(vsource_bundle.pairs().len(), 1);
     assert_eq!(vsource_bundle.value(), 5.0);
 }
 
@@ -47,7 +47,7 @@ fn test_triples() {
 }
 
 #[test]
-fn test_doubles() {
+fn test_pairs() {
     let vsource_bundle = VSourceBundle::new(
         Arc::new("VSourceBundle4".to_string()),
         create_variable("Branch4", Unit::Ampere, 0),
@@ -56,5 +56,5 @@ fn test_doubles() {
         0.0,
     );
 
-    assert_eq!(vsource_bundle.doubles().len(), 1);
+    assert_eq!(vsource_bundle.pairs().len(), 1);
 }

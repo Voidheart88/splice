@@ -1,6 +1,6 @@
 mod capacitor;
 mod diode;
-mod doubles;
+mod pairs;
 mod inductor;
 mod isource;
 mod resistor;
@@ -16,7 +16,7 @@ use derive_more::{Deref, DerefMut};
 
 pub(crate) use self::capacitor::CapacitorBundle;
 pub(crate) use self::diode::DiodeBundle;
-pub(crate) use self::doubles::Doubles; //Fixme: Find a better word for this
+pub(crate) use self::pairs::Pairs; //Fixme: Find a better word for this
 pub(crate) use self::inductor::InductorBundle;
 pub(crate) use self::isource::ISourceBundle;
 pub(crate) use self::resistor::ResistorBundle;
@@ -116,12 +116,12 @@ impl Element {
     }
 
     #[allow(unused)]
-    /// Returns the time variant doubles of the element, if applicable.
-    pub(crate) fn get_doubles(&self, x_vec: &Vec<f64>) -> Option<Doubles> {
+    /// Returns the time variant pairs of the element, if applicable.
+    pub(crate) fn get_pairs(&self, x_vec: &Vec<f64>) -> Option<Pairs> {
         match self {
-            Element::Diode(ele) => Some(ele.doubles(x_vec)),
-            Element::VSource(ele) => Some(ele.doubles()),
-            Element::ISource(ele) => Some(ele.doubles()),
+            Element::Diode(ele) => Some(ele.pairs(x_vec)),
+            Element::VSource(ele) => Some(ele.pairs()),
+            Element::ISource(ele) => Some(ele.pairs()),
             _ => None,
         }
     }
@@ -134,11 +134,11 @@ impl Element {
         }
     }
 
-    /// Returns the constant doubles of the element, if applicable.
-    pub(crate) fn get_constant_doubles(&self) -> Option<Doubles> {
+    /// Returns the constant pairs of the element, if applicable.
+    pub(crate) fn get_constant_pairs(&self) -> Option<Pairs> {
         match self {
-            Element::VSource(ele) => Some(ele.doubles()),
-            Element::ISource(ele) => Some(ele.doubles()),
+            Element::VSource(ele) => Some(ele.pairs()),
+            Element::ISource(ele) => Some(ele.pairs()),
             _ => None,
         }
     }
@@ -152,8 +152,8 @@ impl Element {
         }
     }
 
-    /// Returns the time variant doubles of the element, if applicable.
-    pub(crate) fn get_time_variant_doubles(&self) -> Option<Doubles> {
+    /// Returns the time variant pairs of the element, if applicable.
+    pub(crate) fn get_time_variant_pairs(&self) -> Option<Pairs> {
         match self {
             _ => None,
         }
@@ -167,10 +167,10 @@ impl Element {
         }
     }
 
-    /// Returns the nonlinear doubles of the element, if applicable.
-    pub(crate) fn get_nonlinear_doubles(&self, x_vec: &Vec<f64>) -> Option<Doubles> {
+    /// Returns the nonlinear pairs of the element, if applicable.
+    pub(crate) fn get_nonlinear_pairs(&self, x_vec: &Vec<f64>) -> Option<Pairs> {
         match self {
-            Element::Diode(ele) => Some(ele.doubles(x_vec)),
+            Element::Diode(ele) => Some(ele.pairs(x_vec)),
             _ => None,
         }
     }
