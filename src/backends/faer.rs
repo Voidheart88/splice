@@ -3,7 +3,7 @@ use crate::models::{Doubles, Triples};
 use faer::sparse::SparseColMat;
 
 
-/// A backend implementation using the Nalgebra library.
+/// A backend implementation using the Faer library.
 pub(crate) struct FaerBackend {
     /// The conductance matrix `A`.
     a_mat: SparseColMat<usize,f64>,
