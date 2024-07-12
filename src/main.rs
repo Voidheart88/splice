@@ -1,20 +1,20 @@
 //#![deny(unsafe_code)]
 
-mod solver;
+mod backends;
 mod consts;
 mod frontends;
 mod models;
-mod backends;
 mod sim;
+mod solver;
 
 use clap::Parser;
 use log::info;
 use miette::{Diagnostic, Result};
 
-use solver::{FaerSolver, NalgebraSolver, RSparseSolver, Solvers};
-use frontends::*;
 use backends::*;
+use frontends::*;
 use sim::Simulator;
+use solver::{FaerSolver, NalgebraSolver, RSparseSolver, Solvers};
 use thiserror::Error;
 
 #[derive(Debug, Error, Diagnostic)]

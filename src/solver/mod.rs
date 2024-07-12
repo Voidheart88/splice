@@ -7,9 +7,9 @@ use derive_more::Deref;
 use miette::Diagnostic;
 use thiserror::Error;
 
+pub(crate) use faer::FaerSolver;
 pub(crate) use nalgebra::NalgebraSolver;
 pub(crate) use rsparse::RSparseSolver;
-pub(crate) use faer::FaerSolver;
 
 use crate::models::{Pairs, Triples};
 

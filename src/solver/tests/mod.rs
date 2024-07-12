@@ -1,3 +1,3 @@
+mod faer;
 mod nalgebra;
 mod rsparse;
-mod faer;

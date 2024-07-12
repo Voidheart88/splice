@@ -41,6 +41,27 @@ impl From<Vec<(Row, f64)>> for Pairs {
     }
 }
 
+impl From<Vec<f64>> for Pairs {
+    /// Creates a `Pairs` object from a vector of values.
+    ///
+    /// Each value is converted to a pair (row, value).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let values = vec![1.0, 2.0, 3.0];
+    /// let pairs = Pairs::from(values);
+    /// ```
+    fn from(values: Vec<f64>) -> Pairs {
+        let pairs: Vec<(Row, f64)> = values
+            .into_iter()
+            .enumerate()
+            .map(|(row_idx, value)| (Row(row_idx), value))
+            .collect();
+        Pairs::from(pairs)
+    }
+}
+
 impl FromIterator<(Row, f64)> for Pairs {
     /// Creates a `Pairs` object from an iterator of pairs.
     fn from_iter<I: IntoIterator<Item = (Row, f64)>>(iter: I) -> Self {

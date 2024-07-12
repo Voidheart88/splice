@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use crate::{
-    solver::NalgebraSolver,
     models::{ISourceBundle, ResistorBundle, Unit, VSourceBundle, Variable},
+    solver::NalgebraSolver,
 };
 
 use approx::relative_eq;

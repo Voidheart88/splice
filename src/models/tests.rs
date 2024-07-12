@@ -2,6 +2,20 @@ use super::*;
 
 // --------------------------------Triples Tests--------------------------------
 #[test]
+fn test_from_vec() {
+    let triples: Triples = vec![vec![1.0, 2.0], vec![3.0, 4.0]].into();
+
+    let exp = Triples::Vec(vec![
+        (Row(0), Col(0), 1.0),
+        (Row(0), Col(1), 2.0),
+        (Row(1), Col(0), 3.0),
+        (Row(1), Col(1), 4.0),
+    ]);
+
+    assert_eq!(triples, exp);
+}
+
+#[test]
 fn test_addition_no_overlap() {
     let triples1 = Triples::Vec(vec![(Row(1), Col(1), 1.0), (Row(2), Col(2), 2.0)]);
     let triples2 = Triples::Vec(vec![(Row(3), Col(3), 3.0), (Row(4), Col(4), 4.0)]);
@@ -135,14 +149,14 @@ fn test_pairs_addition_mixed() {
 
 #[test]
 fn test_pairs_addition_empty() {
-    let pairs1 = Pairs::from(vec![]);
+    let pairs1 = Pairs::Empty;
     let pairs2 = Pairs::from(vec![(Row(1), 1.0), (Row(2), 2.0)]);
     let expected = Pairs::from(vec![(Row(1), 1.0), (Row(2), 2.0)]);
 
     assert_eq!(pairs1 + pairs2, expected);
 
     let pairs1 = Pairs::from(vec![(Row(1), 1.0), (Row(2), 2.0)]);
-    let pairs2 = Pairs::from(vec![]);
+    let pairs2 = Pairs::Empty;
     let expected = Pairs::from(vec![(Row(1), 1.0), (Row(2), 2.0)]);
 
     assert_eq!(pairs1 + pairs2, expected);
@@ -150,9 +164,9 @@ fn test_pairs_addition_empty() {
 
 #[test]
 fn test_pairs_addition_both_empty() {
-    let pairs1 = Pairs::from(vec![]);
-    let pairs2 = Pairs::from(vec![]);
-    let expected = Pairs::from(vec![]);
+    let pairs1 = Pairs::Empty;
+    let pairs2 = Pairs::Empty;
+    let expected = Pairs::Empty;
 
     assert_eq!(pairs1 + pairs2, expected);
 }

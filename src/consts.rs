@@ -16,5 +16,5 @@ pub const UT: f64 = KB * TEMP / ELE_CHRG;
 pub const DIO_GUESS: f64 = 0.4;
 
 // Define tolerance and maximum number of iterations
-pub const VECTOL: f64 = 1e-6;
+pub const VECTOL: f64 = 1e-3;
 pub const MAXITER: usize = 1000;

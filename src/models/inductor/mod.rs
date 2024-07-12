@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use crate::solver::{Col, Row};
 use crate::consts::DEFAULT_CONDUCTANCE;
+use crate::solver::{Col, Row};
 
 use super::*;
 

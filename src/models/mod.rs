@@ -1,8 +1,8 @@
 mod capacitor;
 mod diode;
-mod pairs;
 mod inductor;
 mod isource;
+mod pairs;
 mod resistor;
 mod triples;
 mod vsource;
@@ -16,9 +16,9 @@ use derive_more::{Deref, DerefMut};
 
 pub(crate) use self::capacitor::CapacitorBundle;
 pub(crate) use self::diode::DiodeBundle;
-pub(crate) use self::pairs::Pairs; //Fixme: Find a better word for this
 pub(crate) use self::inductor::InductorBundle;
 pub(crate) use self::isource::ISourceBundle;
+pub(crate) use self::pairs::Pairs; //Fixme: Find a better word for this
 pub(crate) use self::resistor::ResistorBundle;
 pub(crate) use self::triples::Triples;
 pub(crate) use self::vsource::VSourceBundle;

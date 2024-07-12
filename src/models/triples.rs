@@ -27,6 +27,34 @@ impl From<Vec<(Row, Col, f64)>> for Triples {
     }
 }
 
+impl From<Vec<Vec<f64>>> for Triples {
+    /// Creates a `Triples` object from a 2D vector of values.
+    ///
+    /// Each non-zero value is converted to a triple (row, col, value).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let matrix = vec![
+    ///     vec![0.0, 1.0, 0.0],
+    ///     vec![0.0, 0.0, 2.0],
+    ///     vec![3.0, 0.0, 0.0],
+    /// ];
+    /// let triples = Triples::from(matrix);
+    /// ```
+    fn from(matrix: Vec<Vec<f64>>) -> Triples {
+        let mut triples = Vec::new();
+        for (row_idx, row) in matrix.iter().enumerate() {
+            for (col_idx, &value) in row.iter().enumerate() {
+                if value != 0.0 {
+                    triples.push((Row(row_idx), Col(col_idx), value));
+                }
+            }
+        }
+        Triples::from(triples)
+    }
+}
+
 impl PartialEq for Triples {
     fn eq(&self, other: &Self) -> bool {
         let self_triples: Vec<_> = match self {

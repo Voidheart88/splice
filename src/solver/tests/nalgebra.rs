@@ -4,8 +4,8 @@ use std::sync::Arc;
 /* -----------------------------------Tests---------------------------------- */
 use super::super::*;
 use crate::{
-    solver::{Col, NalgebraSolver, Row},
     models::{DiodeBundle, Unit, VSourceBundle, Variable},
+    solver::{Col, NalgebraSolver, Row},
 };
 
 #[test]

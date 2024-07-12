@@ -1,6 +1,6 @@
 #![allow(unused)]
 
-use super::{Solver, SolverError, Col, Row};
+use super::{Col, Row, Solver, SolverError};
 use crate::models::{Pairs, Triples};
 use log::trace;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};

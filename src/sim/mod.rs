@@ -10,9 +10,9 @@ use miette::Diagnostic;
 use rayon::prelude::*;
 use thiserror::Error;
 
-use crate::solver::{Solver, SolverError};
 use crate::consts::{DIO_GUESS, MAXITER, VECTOL};
-use crate::models::{Pairs, Element, Triples, Variable};
+use crate::models::{Element, Pairs, Triples, Variable};
+use crate::solver::{Solver, SolverError};
 use crate::Simulation;
 use commands::SimulationCommand;
 use simulation_result::Sim;

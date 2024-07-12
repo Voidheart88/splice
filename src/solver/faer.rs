@@ -1,8 +1,7 @@
 use super::{Solver, SolverError};
 use crate::models::{Pairs, Triples};
-use crate::BackendError;
 use faer::solvers::SpSolver;
-use faer::sparse::{LuError, SparseColMat, SparseColMatMut, SymbolicSparseColMat};
+use faer::sparse::{LuError, SparseColMat};
 use faer::Mat;
 
 /// A backend implementation using the Faer library.
@@ -17,12 +16,17 @@ pub(crate) struct FaerSolver {
 }
 
 impl FaerSolver {
-    fn set_value(&mut self, row:usize,col:usize,val:f64){
+    fn set_value(&mut self, row: usize, col: usize, val: f64) {
         //Check if value is present:
         match self.a_mat.get_mut(row, col) {
             Some(v) => *v = val,
             None => {
-                let mat = SparseColMat::try_new_from_triplets(self.a_mat.nrows(), self.a_mat.ncols(), &[(row,col,val)]).unwrap();
+                let mat = SparseColMat::try_new_from_triplets(
+                    self.a_mat.nrows(),
+                    self.a_mat.ncols(),
+                    &[(row, col, val)],
+                )
+                .unwrap();
                 self.a_mat = &self.a_mat + mat;
             }
         };
@@ -34,12 +38,12 @@ impl Solver for FaerSolver {
     where
         Self: Sized,
     {
-        let a_mat = SparseColMat::<usize,f64>::try_new_from_triplets(vars, vars, &[]).unwrap();
+        let a_mat = SparseColMat::<usize, f64>::try_new_from_triplets(vars, vars, &[]).unwrap();
 
         Ok(FaerSolver {
             a_mat,
             b_vec: Mat::full(vars, 1, 0.0),
-            x_vec: vec![0.0;vars],
+            x_vec: vec![0.0; vars],
         })
     }
 
@@ -47,21 +51,21 @@ impl Solver for FaerSolver {
         match a_mat {
             Triples::Empty => {}
             Triples::Single((row, col, val)) => {
-                self.set_value(row.0,col.0,*val);
+                self.set_value(row.0, col.0, *val);
             }
             Triples::Double(vals) => {
-                self.set_value(*vals[0].0,*vals[0].1,vals[0].2);
-                self.set_value(*vals[1].0,*vals[1].1,vals[1].2);
+                self.set_value(*vals[0].0, *vals[0].1, vals[0].2);
+                self.set_value(*vals[1].0, *vals[1].1, vals[1].2);
             }
             Triples::Quad(vals) => {
-                self.set_value(*vals[0].0,*vals[0].1,vals[0].2);
-                self.set_value(*vals[1].0,*vals[1].1,vals[1].2);
-                self.set_value(*vals[2].0,*vals[2].1,vals[2].2);
-                self.set_value(*vals[2].0,*vals[3].1,vals[3].2);
+                self.set_value(*vals[0].0, *vals[0].1, vals[0].2);
+                self.set_value(*vals[1].0, *vals[1].1, vals[1].2);
+                self.set_value(*vals[2].0, *vals[2].1, vals[2].2);
+                self.set_value(*vals[2].0, *vals[3].1, vals[3].2);
             }
             Triples::Vec(vals) => {
                 for triple in vals {
-                    self.set_value(*triple.0,*triple.1,triple.2);
+                    self.set_value(*triple.0, *triple.1, triple.2);
                 }
             }
         }
@@ -69,20 +73,19 @@ impl Solver for FaerSolver {
 
     fn set_b(&mut self, b_vec: &Pairs) {
         match b_vec {
-            Pairs::Empty => {},
+            Pairs::Empty => {}
             Pairs::Single(val) => {
-                self.b_vec.as_mut()[(*val.0,0)] = val.1;
-            },
+                self.b_vec.as_mut()[(*val.0, 0)] = val.1;
+            }
             Pairs::Double(vals) => {
-                self.b_vec[(*vals[0].0,0)] = vals[0].1;
-                self.b_vec[(*vals[1].0,0)] = vals[1].1;
-            },
+                self.b_vec[(*vals[0].0, 0)] = vals[0].1;
+                self.b_vec[(*vals[1].0, 0)] = vals[1].1;
+            }
             Pairs::Vec(vals) => {
-                self.b_vec[(*vals[0].0,0)] = vals[0].1;
-                self.b_vec[(*vals[1].0,0)] = vals[1].1;
-                self.b_vec[(*vals[2].0,0)] = vals[2].1;
-                self.b_vec[(*vals[3].0,0)] = vals[3].1;
-            },
+                for pair in vals {
+                    self.b_vec[(*pair.0, 0)] = pair.1;
+                }
+            }
         }
     }
 
@@ -90,21 +93,21 @@ impl Solver for FaerSolver {
         match a_mat {
             Triples::Empty => {}
             Triples::Single((row, col, val)) => {
-                self.a_mat.as_mut()[(row.0,col.0)] *= *val;
+                self.a_mat.as_mut()[(row.0, col.0)] += *val;
             }
             Triples::Double(vals) => {
-                self.a_mat.as_mut()[(*vals[0].0,*vals[0].1)] *= vals[0].2;
-                self.a_mat.as_mut()[(*vals[1].0,*vals[1].1)] *= vals[1].2;
+                self.a_mat.as_mut()[(*vals[0].0, *vals[0].1)] += vals[0].2;
+                self.a_mat.as_mut()[(*vals[1].0, *vals[1].1)] += vals[1].2;
             }
             Triples::Quad(vals) => {
-                self.a_mat.as_mut()[(*vals[0].0,*vals[0].1)] *= vals[0].2;
-                self.a_mat.as_mut()[(*vals[1].0,*vals[1].1)] *= vals[1].2;
-                self.a_mat.as_mut()[(*vals[2].0,*vals[2].1)] *= vals[2].2;
-                self.a_mat.as_mut()[(*vals[3].0,*vals[3].1)] *= vals[3].2;
+                self.a_mat.as_mut()[(*vals[0].0, *vals[0].1)] += vals[0].2;
+                self.a_mat.as_mut()[(*vals[1].0, *vals[1].1)] += vals[1].2;
+                self.a_mat.as_mut()[(*vals[2].0, *vals[2].1)] += vals[2].2;
+                self.a_mat.as_mut()[(*vals[3].0, *vals[3].1)] += vals[3].2;
             }
             Triples::Vec(vals) => {
                 for triple in vals {
-                    self.a_mat.as_mut()[(*triple.0,*triple.1)] *= triple.2;
+                    self.a_mat.as_mut()[(*triple.0, *triple.1)] += triple.2;
                 }
             }
         }
@@ -112,37 +115,34 @@ impl Solver for FaerSolver {
 
     fn insert_b(&mut self, b_vec: &Pairs) {
         match b_vec {
-            Pairs::Empty => {},
+            Pairs::Empty => {}
             Pairs::Single(val) => {
-                self.b_vec.as_mut()[(*val.0,0)] *= val.1;
-            },
+                self.b_vec.as_mut()[(*val.0, 0)] += val.1;
+            }
             Pairs::Double(vals) => {
-                self.b_vec[(*vals[0].0,0)] *= vals[0].1;
-                self.b_vec[(*vals[1].0,0)] *= vals[1].1;
-            },
+                self.b_vec[(*vals[0].0, 0)] += vals[0].1;
+                self.b_vec[(*vals[1].0, 0)] += vals[1].1;
+            }
             Pairs::Vec(vals) => {
-                self.b_vec[(*vals[0].0,0)] *= vals[0].1;
-                self.b_vec[(*vals[1].0,0)] *= vals[1].1;
-                self.b_vec[(*vals[2].0,0)] *= vals[2].1;
-                self.b_vec[(*vals[3].0,0)] *= vals[3].1;
-            },
+                self.b_vec[(*vals[0].0, 0)] += vals[0].1;
+                self.b_vec[(*vals[1].0, 0)] += vals[1].1;
+                self.b_vec[(*vals[2].0, 0)] += vals[2].1;
+                self.b_vec[(*vals[3].0, 0)] += vals[3].1;
+            }
         }
     }
 
     fn solve(&mut self) -> Result<&Vec<f64>, SolverError> {
-        // Cloning only the necessary matrices for LU decomposition
         let lu = match self.a_mat.sp_lu() {
             Ok(lu) => lu,
-            Err(err) => return Err(err.into()),
+            Err(_) => return Err(SolverError::MatrixNonInvertible),
         };
 
-        // Solving the equations without unnecessary cloning
         let res = lu.solve(&self.b_vec);
-        for (idx,val) in res.col_as_slice(0).iter().enumerate() {
+        for (idx, val) in res.col_as_slice(0).iter().enumerate() {
             self.x_vec[idx] = *val;
-        };
+        }
 
-        // Returning a reference to the solution vector
         Ok(&self.x_vec)
     }
 }
@@ -165,7 +165,7 @@ impl FaerSolver {
     }
 
     /// Returns a reference to the matrix `a_mat`.
-    pub fn a_mat(&self) -> &SparseColMat<usize,f64> {
+    pub fn a_mat(&self) -> &SparseColMat<usize, f64> {
         &self.a_mat
     }
 
@@ -175,9 +175,11 @@ impl FaerSolver {
     }
 }
 
-
 impl From<LuError> for SolverError {
     fn from(value: LuError) -> Self {
-        SolverError::MatrixNonInvertible
+        match value {
+            LuError::Generic(_) => SolverError::MatrixNonInvertible,
+            LuError::SymbolicSingular(_) => SolverError::MatrixNonInvertible,
+        }
     }
 }
