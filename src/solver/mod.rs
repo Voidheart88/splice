@@ -14,7 +14,7 @@ pub(crate) use faer::FaerSolver;
 use crate::models::{Pairs, Triples};
 
 /// Errors that can occur in the Solver.
-#[derive(Debug, Error, Diagnostic, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Error, Diagnostic, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum SolverError {
     /// Error indicating that the conductance matrix is not invertible.
     #[error("The conductance matrix is not invertible")]
@@ -25,9 +25,9 @@ pub enum SolverError {
     MatrixNonInvertible,
 }
 
-#[derive(Copy, Clone, ValueEnum, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Copy, Clone, ValueEnum, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Solvers {
-    RSparse,
+    Rsparse,
     Nalgebra,
     Faer,
 }
