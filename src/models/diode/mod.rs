@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use crate::consts::UT;
-use crate::solver::{Col, Row};
 
 use super::*;
 
@@ -90,19 +89,19 @@ impl DiodeBundle {
         let a_idx = if let Some(idx) = self.a_idx() {
             idx
         } else {
-            return Triples::Single((Row(self.c_idx().unwrap()), Col(self.c_idx().unwrap()), cond));
+            return Triples::Single((self.c_idx().unwrap(), self.c_idx().unwrap(), cond));
         };
         let c_idx = if let Some(idx) = self.c_idx() {
             idx
         } else {
-            return Triples::Single((Row(self.a_idx().unwrap()), Col(self.a_idx().unwrap()), cond));
+            return Triples::Single((self.a_idx().unwrap(), self.a_idx().unwrap(), cond));
         };
 
         Triples::Quad([
-            (Row(a_idx), Col(a_idx), cond),
-            (Row(c_idx), Col(c_idx), cond),
-            (Row(a_idx), Col(c_idx), -cond),
-            (Row(c_idx), Col(a_idx), -cond),
+            (a_idx, a_idx, cond),
+            (c_idx, c_idx, cond),
+            (a_idx, c_idx, -cond),
+            (c_idx, a_idx, -cond),
         ])
     }
 
@@ -128,16 +127,16 @@ impl DiodeBundle {
         let a_idx = if let Some(idx) = self.a_idx() {
             idx
         } else {
-            return Pairs::Single((Row(self.c_idx().unwrap()), cc));
+            return Pairs::Single((self.c_idx().unwrap(), cc));
         };
 
         let c_idx = if let Some(idx) = self.c_idx() {
             idx
         } else {
-            return Pairs::Single((Row(self.a_idx().unwrap()), ca));
+            return Pairs::Single((self.a_idx().unwrap(), ca));
         };
 
-        Pairs::Double([(Row(a_idx), ca), (Row(c_idx), cc)])
+        Pairs::Double([(a_idx, ca), (c_idx, cc)])
     }
 
     pub fn a_idx(&self) -> Option<usize> {

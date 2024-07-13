@@ -82,8 +82,8 @@ impl VSourceBundle {
             Some(node0_idx) => node0_idx,
             None => {
                 return Triples::Double([
-                    (Row(self.branch_idx()), Col(self.node1_idx().unwrap()), 1.0),
-                    (Row(self.node1_idx().unwrap()), Col(self.branch_idx()), 1.0),
+                    (self.branch_idx(), self.node1_idx().unwrap(), 1.0),
+                    (self.node1_idx().unwrap(), self.branch_idx(), 1.0),
                 ]);
             }
         };
@@ -91,23 +91,23 @@ impl VSourceBundle {
             Some(node1_idx) => node1_idx,
             None => {
                 return Triples::Double([
-                    (Row(self.branch_idx()), Col(self.node0_idx().unwrap()), -1.0),
-                    (Row(self.node0_idx().unwrap()), Col(self.branch_idx()), -1.0),
+                    (self.branch_idx(), self.node0_idx().unwrap(), -1.0),
+                    (self.node0_idx().unwrap(), self.branch_idx(), -1.0),
                 ])
             }
         };
 
         Triples::Quad([
-            (Row(branch_idx), Col(node0_idx), 1.0),
-            (Row(node0_idx), Col(branch_idx), 1.0),
-            (Row(branch_idx), Col(node1_idx), -1.0),
-            (Row(node1_idx), Col(branch_idx), -1.0),
+            (branch_idx, node0_idx, 1.0),
+            (node0_idx, branch_idx, 1.0),
+            (branch_idx, node1_idx, -1.0),
+            (node1_idx, branch_idx, -1.0),
         ])
     }
 
     /// Returns a reference to the pair representing vector b.
     pub fn pairs(&self) -> Pairs {
-        Pairs::Single((Row(self.branch_idx()), *self.value))
+        Pairs::Single((self.branch_idx(), *self.value))
     }
 
     pub fn set_voltage(&mut self, voltage: f64) {

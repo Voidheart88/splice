@@ -32,13 +32,13 @@ pub enum Solvers {
     Faer,
 }
 
-/// Type representing a row index.
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Ord, Eq, Deref, Hash)]
-pub struct Row(pub usize);
+// Type representing a row index.
+//#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Ord, Eq, Deref, Hash)]
+//pub struct Row(pub usize);
 
-/// Type representing a column index.
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Ord, Eq, Deref, Hash)]
-pub struct Col(pub usize);
+// Type representing a column index.
+//#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Ord, Eq, Deref, Hash)]
+//pub struct Col(pub usize);
 
 /// Trait defining the Solver interface.
 pub trait Solver {

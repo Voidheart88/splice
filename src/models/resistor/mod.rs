@@ -1,7 +1,5 @@
 use std::sync::Arc;
 
-use crate::solver::{Col, Row};
-
 use super::*;
 /// A structure representing a bundle of resistors.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
@@ -65,20 +63,20 @@ impl ResistorBundle {
             idx
         } else {
             return Triples::Single((
-                Row(self.node1_idx().unwrap()),
-                Col(self.node1_idx().unwrap()),
+                self.node1_idx().unwrap(),
+                self.node1_idx().unwrap(),
                 1.0 / (*self.value),
             ));
         };
         let Some(node1_idx) = self.node1_idx() else {
-            return Triples::Single((Row(node0_idx), Col(node0_idx), 1.0 / (*self.value)));
+            return Triples::Single((node0_idx, node0_idx, 1.0 / (*self.value)));
         };
 
         Triples::Quad([
-            (Row(node0_idx), Col(node0_idx), 1.0 / (*self.value)),
-            (Row(node1_idx), Col(node1_idx), 1.0 / (*self.value)),
-            (Row(node0_idx), Col(node1_idx), -1.0 / (*self.value)),
-            (Row(node1_idx), Col(node0_idx), -1.0 / (*self.value)),
+            (node0_idx, node0_idx, 1.0 / (*self.value)),
+            (node1_idx, node1_idx, 1.0 / (*self.value)),
+            (node0_idx, node1_idx, -1.0 / (*self.value)),
+            (node1_idx, node0_idx, -1.0 / (*self.value)),
         ])
     }
 }

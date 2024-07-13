@@ -1,4 +1,4 @@
-use super::{Col, Row, Solver, SolverError};
+use super::{Solver, SolverError};
 use crate::models::{Pairs, Triples};
 use na::LU;
 use nalgebra as na;
@@ -36,7 +36,7 @@ impl Solver for NalgebraSolver {
             Triples::Double(tr) => self.set_double(tr),
             Triples::Quad(tr) => self.set_quad(tr),
             Triples::Vec(triples) => triples.iter().for_each(|(row, col, val)| {
-                self.a_mat[(row.0, col.0)] = *val;
+                self.a_mat[(*row, *col)] = *val;
             }),
         };
     }
@@ -45,14 +45,14 @@ impl Solver for NalgebraSolver {
         match b_vec {
             Pairs::Empty => {}
             Pairs::Single((col, val)) => {
-                self.b_vec[col.0] = *val;
+                self.b_vec[*col] = *val;
             }
             Pairs::Double([(col1, val1), (col2, val2)]) => {
-                self.b_vec[col1.0] = *val1;
-                self.b_vec[col2.0] = *val2;
+                self.b_vec[*col1] = *val1;
+                self.b_vec[*col2] = *val2;
             }
             Pairs::Vec(pairs) => pairs.iter().for_each(|(col, val)| {
-                self.b_vec[col.0] = *val;
+                self.b_vec[*col] = *val;
             }),
         }
     }
@@ -104,42 +104,23 @@ impl Solver for NalgebraSolver {
 
 impl NalgebraSolver {
     /// Sets a single-valued triple into the conductance matrix.
-    fn set_single(&mut self, triple: &(Row, Col, f64)) {
-        self.a_mat[(triple.0 .0, triple.1 .0)] = triple.2;
+    fn set_single(&mut self, triple: &(usize, usize, f64)) {
+        self.a_mat[(triple.0 , triple.1 )] = triple.2;
     }
 
     /// Sets a double-valued triple into the conductance matrix.
-    fn set_double(&mut self, triple: &[(Row, Col, f64); 2]) {
-        self.a_mat[(triple[0].0 .0, triple[0].1 .0)] = triple[0].2;
-        self.a_mat[(triple[1].0 .0, triple[1].1 .0)] = triple[1].2;
+    fn set_double(&mut self, triple: &[(usize, usize, f64); 2]) {
+        self.a_mat[(triple[0].0, triple[0].1)] = triple[0].2;
+        self.a_mat[(triple[1].0, triple[1].1)] = triple[1].2;
     }
 
     /// Sets a quad-valued triple into the conductance matrix.
-    fn set_quad(&mut self, triple: &[(Row, Col, f64); 4]) {
-        self.a_mat[(triple[0].0 .0, triple[0].1 .0)] = triple[0].2;
-        self.a_mat[(triple[1].0 .0, triple[1].1 .0)] = triple[1].2;
-        self.a_mat[(triple[2].0 .0, triple[2].1 .0)] = triple[2].2;
-        self.a_mat[(triple[3].0 .0, triple[3].1 .0)] = triple[3].2;
+    fn set_quad(&mut self, triple: &[(usize, usize, f64); 4]) {
+        self.a_mat[(triple[0].0, triple[0].1)] = triple[0].2;
+        self.a_mat[(triple[1].0, triple[1].1)] = triple[1].2;
+        self.a_mat[(triple[2].0, triple[2].1)] = triple[2].2;
+        self.a_mat[(triple[3].0, triple[3].1)] = triple[3].2;
     }
-
-    // Inserts a single-valued triple into the conductance matrix.
-    //fn insert_single(&mut self, triple: &(Row, Col, f64)) {
-    //    self.a_mat[(triple.0 .0, triple.1 .0)] += triple.2;
-    //}
-
-    // Inserts a double-valued triple into the conductance matrix.
-    //fn insert_double(&mut self, triple: &[(Row, Col, f64); 2]) {
-    //    self.a_mat[(triple[0].0 .0, triple[0].1 .0)] += triple[0].2;
-    //    self.a_mat[(triple[1].0 .0, triple[1].1 .0)] += triple[1].2;
-    //}
-
-    // Inserts a quad-valued triple into the conductance matrix.
-    //fn insert_quad(&mut self, triple: &[(Row, Col, f64); 4]) {
-    //    self.a_mat[(triple[0].0 .0, triple[0].1 .0)] += triple[0].2;
-    //    self.a_mat[(triple[1].0 .0, triple[1].1 .0)] += triple[1].2;
-    //    self.a_mat[(triple[2].0 .0, triple[2].1 .0)] += triple[2].2;
-    //    self.a_mat[(triple[3].0 .0, triple[3].1 .0)] += triple[3].2;
-    //}
 }
 
 #[cfg(test)]

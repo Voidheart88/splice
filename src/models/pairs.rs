@@ -1,4 +1,3 @@
-use crate::solver::Row;
 use rayon::prelude::*;
 use std::iter::FromIterator;
 use std::ops::Add;
@@ -9,9 +8,9 @@ use std::ops::Add;
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub(crate) enum Pairs {
     Empty,
-    Single((Row, f64)),
-    Double([(Row, f64); 2]),
-    Vec(Vec<(Row, f64)>),
+    Single((usize, f64)),
+    Double([(usize, f64); 2]),
+    Vec(Vec<(usize, f64)>),
 }
 
 #[cfg(test)]
@@ -30,9 +29,9 @@ impl Pairs {
     }
 }
 
-impl From<Vec<(Row, f64)>> for Pairs {
+impl From<Vec<(usize, f64)>> for Pairs {
     /// Creates a `Pairs` object from a vector of pairs.
-    fn from(value: Vec<(Row, f64)>) -> Self {
+    fn from(value: Vec<(usize, f64)>) -> Self {
         match value.len() {
             0 => Pairs::Empty,
             1 => Pairs::Single(value[0]),
@@ -54,19 +53,19 @@ impl From<Vec<f64>> for Pairs {
     /// let pairs = Pairs::from(values);
     /// ```
     fn from(values: Vec<f64>) -> Pairs {
-        let pairs: Vec<(Row, f64)> = values
+        let pairs: Vec<(usize, f64)> = values
             .into_par_iter()
             .enumerate()
-            .map(|(row_idx, value)| (Row(row_idx), value))
+            .map(|(row_idx, value)| (row_idx, value))
             .collect();
         Pairs::from(pairs)
     }
 }
 
-impl FromIterator<(Row, f64)> for Pairs {
+impl FromIterator<(usize, f64)> for Pairs {
     /// Creates a `Pairs` object from an iterator of pairs.
-    fn from_iter<I: IntoIterator<Item = (Row, f64)>>(iter: I) -> Self {
-        let vec: Vec<(Row, f64)> = iter.into_iter().collect();
+    fn from_iter<I: IntoIterator<Item = (usize, f64)>>(iter: I) -> Self {
+        let vec: Vec<(usize, f64)> = iter.into_iter().collect();
         vec.into()
     }
 }
@@ -78,7 +77,7 @@ impl Add for Pairs {
     ///
     /// The inner data are merged, and entries with the same row are summed.
     fn add(self, other: Pairs) -> Pairs {
-        let combined: Vec<(Row, f64)> = match (self, other) {
+        let combined: Vec<(usize, f64)> = match (self, other) {
             (Pairs::Empty, other) => return other,
             (this, Pairs::Empty) => return this,
             (Pairs::Single(a), Pairs::Single(b)) => vec![a, b],
@@ -114,7 +113,7 @@ impl Add for Pairs {
         combined.par_sort_by(|a, b| a.0.cmp(&b.0));
 
         // Combine entries with the same row
-        let mut result: Vec<(Row, f64)> = Vec::new();
+        let mut result: Vec<(usize, f64)> = Vec::new();
         for (i, &(row, value)) in combined.iter().enumerate() {
             if i == 0 || result.last().unwrap().0 != row {
                 result.push((row, value));

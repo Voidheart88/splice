@@ -6,10 +6,10 @@ fn test_from_vec() {
     let triples: Triples = vec![vec![1.0, 2.0], vec![3.0, 4.0]].into();
 
     let exp = Triples::Vec(vec![
-        (Row(0), Col(0), 1.0),
-        (Row(0), Col(1), 2.0),
-        (Row(1), Col(0), 3.0),
-        (Row(1), Col(1), 4.0),
+        (0, 0, 1.0),
+        (0, 1, 2.0),
+        (1, 0, 3.0),
+        (1, 1, 4.0),
     ]);
 
     assert_eq!(triples, exp);
@@ -17,13 +17,13 @@ fn test_from_vec() {
 
 #[test]
 fn test_addition_no_overlap() {
-    let triples1 = Triples::Vec(vec![(Row(1), Col(1), 1.0), (Row(2), Col(2), 2.0)]);
-    let triples2 = Triples::Vec(vec![(Row(3), Col(3), 3.0), (Row(4), Col(4), 4.0)]);
+    let triples1 = Triples::Vec(vec![(1, 1, 1.0), (2, 2, 2.0)]);
+    let triples2 = Triples::Vec(vec![(3, 3, 3.0), (4, 4, 4.0)]);
     let expected = Triples::Vec(vec![
-        (Row(1), Col(1), 1.0),
-        (Row(2), Col(2), 2.0),
-        (Row(3), Col(3), 3.0),
-        (Row(4), Col(4), 4.0),
+        (1, 1, 1.0),
+        (2, 2, 2.0),
+        (3, 3, 3.0),
+        (4, 4, 4.0),
     ]);
 
     assert_eq!(triples1 + triples2, expected);
@@ -31,9 +31,9 @@ fn test_addition_no_overlap() {
 
 #[test]
 fn test_addition_with_overlap() {
-    let triples1 = Triples::Vec(vec![(Row(1), Col(1), 1.0), (Row(2), Col(2), 2.0)]);
-    let triples2 = Triples::Vec(vec![(Row(1), Col(1), 3.0), (Row(2), Col(2), 4.0)]);
-    let expected = Triples::Vec(vec![(Row(1), Col(1), 4.0), (Row(2), Col(2), 6.0)]);
+    let triples1 = Triples::Vec(vec![(1, 1, 1.0), (2, 2, 2.0)]);
+    let triples2 = Triples::Vec(vec![(1, 1, 3.0), (2, 2, 4.0)]);
+    let expected = Triples::Vec(vec![(1, 1, 4.0), (2, 2, 6.0)]);
 
     assert_eq!(triples1 + triples2, expected);
 }
@@ -41,20 +41,20 @@ fn test_addition_with_overlap() {
 #[test]
 fn test_addition_mixed() {
     let triples1 = Triples::Vec(vec![
-        (Row(1), Col(1), 1.0),
-        (Row(2), Col(2), 2.0),
-        (Row(3), Col(3), 3.0),
+        (1, 1, 1.0),
+        (2, 2, 2.0),
+        (3, 3, 3.0),
     ]);
     let triples2 = Triples::Vec(vec![
-        (Row(1), Col(1), 3.0),
-        (Row(4), Col(4), 4.0),
-        (Row(3), Col(3), 3.0),
+        (1, 1, 3.0),
+        (4, 4, 4.0),
+        (3, 3, 3.0),
     ]);
     let expected = Triples::Vec(vec![
-        (Row(1), Col(1), 4.0),
-        (Row(2), Col(2), 2.0),
-        (Row(3), Col(3), 6.0),
-        (Row(4), Col(4), 4.0),
+        (1, 1, 4.0),
+        (2, 2, 2.0),
+        (3, 3, 6.0),
+        (4, 4, 4.0),
     ]);
 
     assert_eq!(triples1 + triples2, expected);
@@ -63,14 +63,14 @@ fn test_addition_mixed() {
 #[test]
 fn test_addition_empty() {
     let triples1 = Triples::Vec(vec![]);
-    let triples2 = Triples::Vec(vec![(Row(1), Col(1), 1.0), (Row(2), Col(2), 2.0)]);
-    let expected = Triples::Vec(vec![(Row(1), Col(1), 1.0), (Row(2), Col(2), 2.0)]);
+    let triples2 = Triples::Vec(vec![(1, 1, 1.0), (2, 2, 2.0)]);
+    let expected = Triples::Vec(vec![(1, 1, 1.0), (2, 2, 2.0)]);
 
     assert_eq!(triples1 + triples2, expected);
 
-    let triples1 = Triples::Vec(vec![(Row(1), Col(1), 1.0), (Row(2), Col(2), 2.0)]);
+    let triples1 = Triples::Vec(vec![(1, 1, 1.0), (2, 2, 2.0)]);
     let triples2 = Triples::Vec(vec![]);
-    let expected = Triples::Vec(vec![(Row(1), Col(1), 1.0), (Row(2), Col(2), 2.0)]);
+    let expected = Triples::Vec(vec![(1, 1, 1.0), (2, 2, 2.0)]);
 
     assert_eq!(triples1 + triples2, expected);
 }
@@ -86,24 +86,24 @@ fn test_addition_both_empty() {
 
 #[test]
 fn test_len() {
-    let single = Triples::Single((Row(1), Col(1), 1.0));
+    let single = Triples::Single((1, 1, 1.0));
     assert_eq!(single.len(), 1);
 
-    let double = Triples::Double([(Row(1), Col(1), 1.0), (Row(2), Col(2), 2.0)]);
+    let double = Triples::Double([(1, 1, 1.0), (2, 2, 2.0)]);
     assert_eq!(double.len(), 2);
 
     let quad = Triples::Quad([
-        (Row(1), Col(1), 1.0),
-        (Row(2), Col(2), 2.0),
-        (Row(3), Col(3), 3.0),
-        (Row(4), Col(4), 4.0),
+        (1, 1, 1.0),
+        (2, 2, 2.0),
+        (3, 3, 3.0),
+        (4, 4, 4.0),
     ]);
     assert_eq!(quad.len(), 4);
 
     let vec_triples = Triples::Vec(vec![
-        (Row(1), Col(1), 1.0),
-        (Row(2), Col(2), 2.0),
-        (Row(3), Col(3), 3.0),
+        (1, 1, 1.0),
+        (2, 2, 2.0),
+        (3, 3, 3.0),
     ]);
     assert_eq!(vec_triples.len(), 3);
 }
@@ -112,13 +112,13 @@ fn test_len() {
 
 #[test]
 fn test_pairs_addition_no_overlap() {
-    let pairs1 = Pairs::from(vec![(Row(1), 1.0), (Row(2), 2.0)]);
-    let pairs2 = Pairs::from(vec![(Row(3), 3.0), (Row(4), 4.0)]);
+    let pairs1 = Pairs::from(vec![(1, 1.0), (2, 2.0)]);
+    let pairs2 = Pairs::from(vec![(3, 3.0), (4, 4.0)]);
     let expected = Pairs::from(vec![
-        (Row(1), 1.0),
-        (Row(2), 2.0),
-        (Row(3), 3.0),
-        (Row(4), 4.0),
+        (1, 1.0),
+        (2, 2.0),
+        (3, 3.0),
+        (4, 4.0),
     ]);
 
     assert_eq!(pairs1 + pairs2, expected);
@@ -126,22 +126,22 @@ fn test_pairs_addition_no_overlap() {
 
 #[test]
 fn test_pairs_addition_with_overlap() {
-    let pairs1 = Pairs::from(vec![(Row(1), 1.0), (Row(2), 2.0)]);
-    let pairs2 = Pairs::from(vec![(Row(1), 3.0), (Row(2), 4.0)]);
-    let expected = Pairs::from(vec![(Row(1), 4.0), (Row(2), 6.0)]);
+    let pairs1 = Pairs::from(vec![(1, 1.0), (2, 2.0)]);
+    let pairs2 = Pairs::from(vec![(1, 3.0), (2, 4.0)]);
+    let expected = Pairs::from(vec![(1, 4.0), (2, 6.0)]);
 
     assert_eq!(pairs1 + pairs2, expected);
 }
 
 #[test]
 fn test_pairs_addition_mixed() {
-    let pairs1 = Pairs::from(vec![(Row(1), 1.0), (Row(2), 2.0), (Row(3), 3.0)]);
-    let pairs2 = Pairs::from(vec![(Row(1), 3.0), (Row(4), 4.0), (Row(3), 3.0)]);
+    let pairs1 = Pairs::from(vec![(1, 1.0), (2, 2.0), (3, 3.0)]);
+    let pairs2 = Pairs::from(vec![(1, 3.0), (4, 4.0), (3, 3.0)]);
     let expected = Pairs::from(vec![
-        (Row(1), 4.0),
-        (Row(2), 2.0),
-        (Row(3), 6.0),
-        (Row(4), 4.0),
+        (1, 4.0),
+        (2, 2.0),
+        (3, 6.0),
+        (4, 4.0),
     ]);
 
     assert_eq!(pairs1 + pairs2, expected);
@@ -150,14 +150,14 @@ fn test_pairs_addition_mixed() {
 #[test]
 fn test_pairs_addition_empty() {
     let pairs1 = Pairs::Empty;
-    let pairs2 = Pairs::from(vec![(Row(1), 1.0), (Row(2), 2.0)]);
-    let expected = Pairs::from(vec![(Row(1), 1.0), (Row(2), 2.0)]);
+    let pairs2 = Pairs::from(vec![(1, 1.0), (2, 2.0)]);
+    let expected = Pairs::from(vec![(1, 1.0), (2, 2.0)]);
 
     assert_eq!(pairs1 + pairs2, expected);
 
-    let pairs1 = Pairs::from(vec![(Row(1), 1.0), (Row(2), 2.0)]);
+    let pairs1 = Pairs::from(vec![(1, 1.0), (2, 2.0)]);
     let pairs2 = Pairs::Empty;
-    let expected = Pairs::from(vec![(Row(1), 1.0), (Row(2), 2.0)]);
+    let expected = Pairs::from(vec![(1, 1.0), (2, 2.0)]);
 
     assert_eq!(pairs1 + pairs2, expected);
 }

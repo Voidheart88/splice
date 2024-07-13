@@ -47,11 +47,11 @@ impl ISourceBundle {
     pub fn pairs(&self) -> Pairs {
         match (&self.node0, &self.node1) {
             (None, None) => Pairs::Empty,
-            (Some(node0), None) => Pairs::Single((Row(node0.idx()), -*self.value)),
-            (None, Some(node1)) => Pairs::Single((Row(node1.idx()), *self.value)),
+            (Some(node0), None) => Pairs::Single((node0.idx(), -*self.value)),
+            (None, Some(node1)) => Pairs::Single((node1.idx(), *self.value)),
             (Some(node0), Some(node1)) => Pairs::Double([
-                (Row(node0.idx()), -*self.value),
-                (Row(node1.idx()), *self.value),
+                (node0.idx(), -*self.value),
+                (node1.idx(), *self.value),
             ]),
         }
     }

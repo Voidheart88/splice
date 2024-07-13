@@ -1,4 +1,4 @@
-use crate::solver::{Col, Row};
+
 use rayon::prelude::*;
 use std::{cmp::Ordering, fmt, ops::Add};
 
@@ -9,13 +9,13 @@ use std::{cmp::Ordering, fmt, ops::Add};
 pub(crate) enum Triples {
     #[allow(unused)]
     Empty,
-    Single((Row, Col, f64)),
-    Double([(Row, Col, f64); 2]),
-    Quad([(Row, Col, f64); 4]),
-    Vec(Vec<(Row, Col, f64)>),
+    Single((usize, usize, f64)),
+    Double([(usize, usize, f64); 2]),
+    Quad([(usize, usize, f64); 4]),
+    Vec(Vec<(usize, usize, f64)>),
 }
 
-impl From<Vec<(Row, Col, f64)>> for Triples {
+impl From<Vec<(usize, usize, f64)>> for Triples {
     /// Creates a `Triples` object from a vector of triples.
     ///
     /// # Examples
@@ -23,7 +23,7 @@ impl From<Vec<(Row, Col, f64)>> for Triples {
     /// ```
     /// let triples = Triples::from(vec![(1, 2, 3.0), (4, 5, 6.0)]);
     /// ```
-    fn from(value: Vec<(Row, Col, f64)>) -> Triples {
+    fn from(value: Vec<(usize, usize, f64)>) -> Triples {
         Triples::Vec(value)
     }
 }
@@ -48,7 +48,7 @@ impl From<Vec<Vec<f64>>> for Triples {
         for (row_idx, row) in matrix.iter().enumerate() {
             for (col_idx, &value) in row.iter().enumerate() {
                 if value != 0.0 {
-                    triples.push((Row(row_idx), Col(col_idx), value));
+                    triples.push((row_idx, col_idx, value));
                 }
             }
         }
@@ -118,8 +118,8 @@ impl fmt::Debug for Triples {
     }
 }
 
-impl FromIterator<(Row, Col, f64)> for Triples {
-    fn from_iter<I: IntoIterator<Item = (Row, Col, f64)>>(iter: I) -> Self {
+impl FromIterator<(usize, usize, f64)> for Triples {
+    fn from_iter<I: IntoIterator<Item = (usize, usize, f64)>>(iter: I) -> Self {
         let vec: Vec<_> = iter.into_iter().collect();
         match vec.len() {
             1 => Triples::Single(vec[0]),
@@ -133,7 +133,7 @@ impl Add for Triples {
     type Output = Triples;
 
     fn add(self, other: Triples) -> Triples {
-        let mut combined: Vec<(Row, Col, f64)> = match self {
+        let mut combined: Vec<(usize, usize, f64)> = match self {
             Triples::Empty => vec![],
             Triples::Single(triple) => vec![triple],
             Triples::Double(triples) => triples.to_vec(),
@@ -151,7 +151,7 @@ impl Add for Triples {
 
         combined.par_sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
 
-        let mut result: Vec<(Row, Col, f64)> = Vec::new();
+        let mut result: Vec<(usize, usize, f64)> = Vec::new();
 
         for (i, &(row, col, value)) in combined.iter().enumerate() {
             if i == 0 || result.last().unwrap().0 != row || result.last().unwrap().1 != col {

@@ -6,7 +6,7 @@ use assert_float_eq::*;
 /* -----------------------------------Tests---------------------------------- */
 use super::super::*;
 use crate::models::{DiodeBundle, Unit, VSourceBundle, Variable};
-use crate::solver::{Col, FaerSolver, Row};
+use crate::solver::FaerSolver;
 
 #[test]
 fn test_new() {
@@ -23,9 +23,9 @@ fn test_set_a() {
     let mut solver = FaerSolver::new(3).unwrap();
 
     let triples = Triples::Vec(vec![
-        (Row(0), Col(0), 1.0),
-        (Row(1), Col(1), 2.0),
-        (Row(2), Col(2), 3.0),
+        (0, 0, 1.0),
+        (1, 1, 2.0),
+        (2, 2, 3.0),
     ]);
     solver.set_a(&triples);
 
@@ -60,7 +60,7 @@ fn test_set_a2() {
 #[test]
 fn test_set_b1() {
     let mut solver = FaerSolver::new(2).unwrap();
-    let pairs = Pairs::Double([(Row(0), 3.0), (Row(1), 4.0)]);
+    let pairs = Pairs::Double([(0, 3.0), (1, 4.0)]);
     solver.set_b(&pairs);
 
     assert_eq!(solver.b_vec()[(0, 0)], 3.0);
@@ -83,8 +83,8 @@ fn test_set_b2() {
 fn test_solve1() {
     // Solvable system
     let mut solver = FaerSolver::new(2).unwrap();
-    let triples = Triples::Vec(vec![(Row(0), Col(0), 1.0), (Row(1), Col(1), 1.0)]);
-    let pairs = Pairs::Double([(Row(0), 3.0), (Row(1), 4.0)]);
+    let triples = Triples::Vec(vec![(0, 0, 1.0), (1, 1, 1.0)]);
+    let pairs = Pairs::Double([(0, 3.0), (1, 4.0)]);
     solver.set_a(&triples);
     solver.set_b(&pairs);
 
@@ -96,8 +96,8 @@ fn test_solve1() {
 fn test_solve2() {
     // Singular system
     let mut solver = FaerSolver::new(2).unwrap();
-    let triples = Triples::Vec(vec![(Row(0), Col(0), 1.0), (Row(0), Col(1), 1.0)]);
-    let pairs = Pairs::Double([(Row(0), 3.0), (Row(1), 4.0)]);
+    let triples = Triples::Vec(vec![(0, 0, 1.0), (0, 1, 1.0)]);
+    let pairs = Pairs::Double([(0, 3.0), (1, 4.0)]);
     solver.set_a(&triples);
     solver.set_b(&pairs);
 

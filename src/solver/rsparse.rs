@@ -1,6 +1,6 @@
 #![allow(unused)]
 
-use super::{Col, Row, Solver, SolverError};
+use super::{Solver, SolverError};
 use crate::models::{Pairs, Triples};
 use log::trace;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
@@ -33,20 +33,20 @@ impl Solver for RSparseSolver {
         let mut new_a = Trpl::new();
         match a_mat {
             Triples::Empty => {}
-            Triples::Single(tr) => new_a.append(tr.0 .0, tr.1 .0, tr.2),
+            Triples::Single(tr) => new_a.append(tr.0, tr.1, tr.2),
             Triples::Double(tr) => {
-                new_a.append(tr[0].0 .0, tr[0].1 .0, tr[0].2);
-                new_a.append(tr[1].0 .0, tr[1].1 .0, tr[1].2);
+                new_a.append(tr[0].0, tr[0].1, tr[0].2);
+                new_a.append(tr[1].0, tr[1].1, tr[1].2);
             }
             Triples::Quad(tr) => {
-                new_a.append(tr[0].0 .0, tr[0].1 .0, tr[0].2);
-                new_a.append(tr[1].0 .0, tr[1].1 .0, tr[1].2);
-                new_a.append(tr[2].0 .0, tr[2].1 .0, tr[2].2);
-                new_a.append(tr[3].0 .0, tr[3].1 .0, tr[3].2);
+                new_a.append(tr[0].0, tr[0].1, tr[0].2);
+                new_a.append(tr[1].0, tr[1].1, tr[1].2);
+                new_a.append(tr[2].0, tr[2].1, tr[2].2);
+                new_a.append(tr[3].0, tr[3].1, tr[3].2);
             }
             Triples::Vec(triples) => {
-                for (r, c, v) in triples.iter() {
-                    new_a.append(r.0, c.0, *v);
+                for (row, col, v) in triples.iter() {
+                    new_a.append(*row, *col, *v);
                 }
             }
         }
@@ -58,57 +58,16 @@ impl Solver for RSparseSolver {
         self.b = vec![0.0; self.b.capacity()];
         match b_vec {
             Pairs::Empty => {}
-            Pairs::Single((col, val)) => self.b[col.0] = *val,
+            Pairs::Single((col, val)) => self.b[*col] = *val,
             Pairs::Double([(col1, val1), (col2, val2)]) => {
-                self.b[col1.0] = *val1;
-                self.b[col2.0] = *val2;
+                self.b[*col1] = *val1;
+                self.b[*col2] = *val2;
             }
             Pairs::Vec(pairs) => pairs.iter().for_each(|(col, val)| {
-                self.b[col.0] = *val;
+                self.b[*col] = *val;
             }),
         }
     }
-
-    /// Inserts the conductance matrix (`a_mat`) into the Solver.
-    //fn insert_a(&mut self, a_mat: &Triples) {
-    //    match a_mat {
-    //        Triples::Empty => {}
-    //        Triples::Single(tr) => self.a.append(tr.0 .0, tr.1 .0, tr.2),
-    //        Triples::Double(tr) => {
-    //            self.a.append(tr[0].0 .0, tr[0].1 .0, tr[0].2);
-    //            self.a.append(tr[1].0 .0, tr[1].1 .0, tr[1].2);
-    //        }
-    //        Triples::Quad(tr) => {
-    //            self.a.append(tr[0].0 .0, tr[0].1 .0, tr[0].2);
-    //            self.a.append(tr[1].0 .0, tr[1].1 .0, tr[1].2);
-    //            self.a.append(tr[2].0 .0, tr[2].1 .0, tr[2].2);
-    //            self.a.append(tr[3].0 .0, tr[3].1 .0, tr[3].2);
-    //        }
-    //        Triples::Vec(triples) => {
-    //            for (r, c, v) in triples.iter() {
-    //                self.a.append(r.0, c.0, *v);
-    //            }
-    //        }
-    //    }
-    //}
-
-    /// Inserts the known values vector (`b_vec`) into the Solver.
-    //fn insert_b(&mut self, b_vec: &Pairs) {
-    //    match b_vec {
-    //        Pairs::Empty => {}
-    //        Pairs::Single((col, val)) => self.b[col.0] += *val,
-    //        Pairs::Double([(col1, val1), (col2, val2)]) => {
-    //            self.b[col1.0] += *val1;
-    //            self.b[col2.0] += *val2;
-    //        }
-    //        Pairs::Vec(pairs) => {
-    //            for (col, val) in pairs.iter() {
-    //                self.b[col.0] += *val;
-    //            }
-    //        }
-    //    }
-    //}
-
     /// Solves the system of equations (Ax = B for x) and returns a reference to the solution.
     fn solve(&mut self) -> Result<&Vec<f64>, SolverError> {
         // Convert the triplet matrix to a sparse matrix

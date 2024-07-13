@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use crate::consts::DEFAULT_CONDUCTANCE;
-use crate::solver::{Col, Row};
 
 use super::*;
 
@@ -52,8 +51,8 @@ impl InductorBundle {
             node.idx()
         } else {
             return Triples::Single((
-                Row(self.node1.as_ref().unwrap().idx()),
-                Col(self.node1.as_ref().unwrap().idx()),
+                self.node1.as_ref().unwrap().idx(),
+                self.node1.as_ref().unwrap().idx(),
                 DEFAULT_CONDUCTANCE,
             ));
         };
@@ -61,14 +60,14 @@ impl InductorBundle {
         let node1_idx = if let Some(node) = &self.node1 {
             node.idx()
         } else {
-            return Triples::Single((Row(node0_idx), Col(node0_idx), DEFAULT_CONDUCTANCE));
+            return Triples::Single((node0_idx, node0_idx, DEFAULT_CONDUCTANCE));
         };
 
         Triples::Quad([
-            (Row(node0_idx), Col(node0_idx), DEFAULT_CONDUCTANCE),
-            (Row(node1_idx), Col(node1_idx), DEFAULT_CONDUCTANCE),
-            (Row(node0_idx), Col(node1_idx), DEFAULT_CONDUCTANCE),
-            (Row(node1_idx), Col(node0_idx), DEFAULT_CONDUCTANCE),
+            (node0_idx, node0_idx, DEFAULT_CONDUCTANCE),
+            (node1_idx, node1_idx, DEFAULT_CONDUCTANCE),
+            (node0_idx, node1_idx, DEFAULT_CONDUCTANCE),
+            (node1_idx, node0_idx, DEFAULT_CONDUCTANCE),
         ])
     }
 }

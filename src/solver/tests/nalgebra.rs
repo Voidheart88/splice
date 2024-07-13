@@ -5,7 +5,7 @@ use std::sync::Arc;
 use super::super::*;
 use crate::{
     models::{DiodeBundle, Unit, VSourceBundle, Variable},
-    solver::{Col, NalgebraSolver, Row},
+    solver::NalgebraSolver,
 };
 
 #[test]
@@ -19,7 +19,7 @@ fn test_new() {
 #[test]
 fn test_set_a() {
     let mut solver = NalgebraSolver::new(2).unwrap();
-    let triples = Triples::Vec(vec![(Row(0), Col(0), 1.0), (Row(1), Col(1), 2.0)]);
+    let triples = Triples::Vec(vec![(0, 0, 1.0), (1, 1, 2.0)]);
     solver.set_a(&triples);
 
     assert_eq!(solver.a_mat()[(0, 0)], 1.0);
@@ -29,7 +29,7 @@ fn test_set_a() {
 #[test]
 fn test_set_b() {
     let mut solver = NalgebraSolver::new(2).unwrap();
-    let pairs = Pairs::Double([(Row(0), 3.0), (Row(1), 4.0)]);
+    let pairs = Pairs::Double([(0, 3.0), (1, 4.0)]);
     solver.set_b(&pairs);
 
     assert_eq!(solver.b_vec()[0], 3.0);
@@ -40,8 +40,8 @@ fn test_set_b() {
 fn test_solve() {
     // Solvable system
     let mut solver = NalgebraSolver::new(2).unwrap();
-    let triples = Triples::Vec(vec![(Row(0), Col(0), 1.0), (Row(1), Col(1), 2.0)]);
-    let pairs = Pairs::Double([(Row(0), 3.0), (Row(1), 4.0)]);
+    let triples = Triples::Vec(vec![(0, 0, 1.0), (1, 1, 2.0)]);
+    let pairs = Pairs::Double([(0, 3.0), (1, 4.0)]);
     solver.set_a(&triples);
     solver.set_b(&pairs);
 
@@ -50,8 +50,8 @@ fn test_solve() {
 
     // Singular system
     let mut solver = NalgebraSolver::new(2).unwrap();
-    let triples = Triples::Vec(vec![(Row(0), Col(0), 1.0), (Row(0), Col(1), 1.0)]);
-    let pairs = Pairs::Double([(Row(0), 3.0), (Row(1), 4.0)]);
+    let triples = Triples::Vec(vec![(0, 0, 1.0), (0, 1, 1.0)]);
+    let pairs = Pairs::Double([(0, 3.0), (1, 4.0)]);
     solver.set_a(&triples);
     solver.set_b(&pairs);
 

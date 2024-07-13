@@ -43,10 +43,10 @@ fn test_triples() {
     assert_eq!(
         resistor_bundle.triples(),
         Triples::Quad([
-            (Row(0), Col(0), 0.1),
-            (Row(1), Col(1), 0.1),
-            (Row(0), Col(1), -0.1),
-            (Row(1), Col(0), -0.1),
+            (0, 0, 0.1),
+            (1, 1, 0.1),
+            (0, 1, -0.1),
+            (1, 0, -0.1),
         ])
     );
 }

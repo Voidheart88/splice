@@ -42,21 +42,21 @@ impl Solver for FaerSolver {
         match a_mat {
             Triples::Empty => {}
             Triples::Single((row, col, val)) => {
-                self.set_value(row.0, col.0, *val);
+                self.set_value(*row, *col, *val);
             }
             Triples::Double(vals) => {
-                self.set_value(*vals[0].0, *vals[0].1, vals[0].2);
-                self.set_value(*vals[1].0, *vals[1].1, vals[1].2);
+                self.set_value(vals[0].0, vals[0].1, vals[0].2);
+                self.set_value(vals[1].0, vals[1].1, vals[1].2);
             }
             Triples::Quad(vals) => {
-                self.set_value(*vals[0].0, *vals[0].1, vals[0].2);
-                self.set_value(*vals[1].0, *vals[1].1, vals[1].2);
-                self.set_value(*vals[2].0, *vals[2].1, vals[2].2);
-                self.set_value(*vals[2].0, *vals[3].1, vals[3].2);
+                self.set_value(vals[0].0, vals[0].1, vals[0].2);
+                self.set_value(vals[1].0, vals[1].1, vals[1].2);
+                self.set_value(vals[2].0, vals[2].1, vals[2].2);
+                self.set_value(vals[2].0, vals[3].1, vals[3].2);
             }
             Triples::Vec(vals) => {
                 for triple in vals {
-                    self.set_value(*triple.0, *triple.1, triple.2);
+                    self.set_value(triple.0, triple.1, triple.2);
                 }
             }
         }
@@ -66,15 +66,15 @@ impl Solver for FaerSolver {
         match b_vec {
             Pairs::Empty => {}
             Pairs::Single(val) => {
-                self.b_vec.as_mut()[(*val.0, 0)] = val.1;
+                self.b_vec.as_mut()[(val.0, 0)] = val.1;
             }
             Pairs::Double(vals) => {
-                self.b_vec[(*vals[0].0, 0)] = vals[0].1;
-                self.b_vec[(*vals[1].0, 0)] = vals[1].1;
+                self.b_vec[(vals[0].0, 0)] = vals[0].1;
+                self.b_vec[(vals[1].0, 0)] = vals[1].1;
             }
             Pairs::Vec(vals) => {
                 for pair in vals {
-                    self.b_vec[(*pair.0, 0)] = pair.1;
+                    self.b_vec[(pair.0, 0)] = pair.1;
                 }
             }
         }

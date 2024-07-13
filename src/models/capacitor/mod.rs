@@ -1,7 +1,5 @@
 use std::sync::Arc;
 
-use crate::solver::{Col, Row};
-
 use super::*;
 
 /// A structure representing a bundle of capacitors.
@@ -70,8 +68,8 @@ impl CapacitorBundle {
         } else {
             return Triples::Single(
                 (
-                    Row(self.node1_idx().unwrap()),
-                    Col(self.node1_idx().unwrap()),
+                    self.node1_idx().unwrap(),
+                    self.node1_idx().unwrap(),
                     0.0,
                 )
                     .into(),
@@ -80,14 +78,14 @@ impl CapacitorBundle {
         let node1_idx = if let Some(idx) = self.node1_idx() {
             idx
         } else {
-            return Triples::Single((Row(node0_idx), Col(node0_idx), 0.0));
+            return Triples::Single((node0_idx, node0_idx, 0.0));
         };
 
         Triples::Quad([
-            (Row(node0_idx), Col(node0_idx), 0.0),
-            (Row(node1_idx), Col(node1_idx), 0.0),
-            (Row(node0_idx), Col(node1_idx), 0.0),
-            (Row(node1_idx), Col(node0_idx), 0.0),
+            (node0_idx, node0_idx, 0.0),
+            (node1_idx, node1_idx, 0.0),
+            (node0_idx, node1_idx, 0.0),
+            (node1_idx, node0_idx, 0.0),
         ])
     }
 }
