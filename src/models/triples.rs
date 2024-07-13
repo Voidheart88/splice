@@ -1,4 +1,5 @@
 use crate::solver::{Col, Row};
+use rayon::prelude::*;
 use std::{cmp::Ordering, fmt, ops::Add};
 
 /// A structure representing the triples of an element.
@@ -75,14 +76,14 @@ impl PartialEq for Triples {
 
         // Sort both vectors before comparing
         let mut self_triples_sorted = self_triples.clone();
-        self_triples_sorted.sort_by(|a, b| {
+        self_triples_sorted.par_sort_by(|a, b| {
             a.0.cmp(&b.0)
                 .then_with(|| a.1.cmp(&b.1))
                 .then_with(|| a.2.partial_cmp(&b.2).unwrap_or(Ordering::Equal))
         });
 
         let mut other_triples_sorted = other_triples.clone();
-        other_triples_sorted.sort_by(|a, b| {
+        other_triples_sorted.par_sort_by(|a, b| {
             a.0.cmp(&b.0)
                 .then_with(|| a.1.cmp(&b.1))
                 .then_with(|| a.2.partial_cmp(&b.2).unwrap_or(Ordering::Equal))
@@ -102,7 +103,7 @@ impl fmt::Debug for Triples {
             Triples::Vec(triples) => triples.clone(),
         };
 
-        sorted_triples.sort_by(|(row1, col1, _), (row2, col2, _)| {
+        sorted_triples.par_sort_by(|(row1, col1, _), (row2, col2, _)| {
             row1.cmp(row2).then_with(|| col1.cmp(col2))
         });
 
@@ -148,9 +149,10 @@ impl Add for Triples {
             Triples::Vec(triples) => triples,
         });
 
-        combined.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
+        combined.par_sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
 
         let mut result: Vec<(Row, Col, f64)> = Vec::new();
+
         for (i, &(row, col, value)) in combined.iter().enumerate() {
             if i == 0 || result.last().unwrap().0 != row || result.last().unwrap().1 != col {
                 result.push((row, col, value));

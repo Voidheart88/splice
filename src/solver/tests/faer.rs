@@ -29,9 +29,9 @@ fn test_set_a() {
     ]);
     solver.set_a(&triples);
 
-    assert_eq!(solver.a_mat()[(0, 0)], 1.0);
-    assert_eq!(solver.a_mat()[(1, 1)], 2.0);
-    assert_eq!(solver.a_mat()[(2, 2)], 3.0);
+    assert_eq!(solver.a_mat()[&(0, 0)], 1.0);
+    assert_eq!(solver.a_mat()[&(1, 1)], 2.0);
+    assert_eq!(solver.a_mat()[&(2, 2)], 3.0);
 }
 
 #[test]
@@ -50,44 +50,8 @@ fn test_set_a2() {
     solver.set_a(&a_mat);
     for row in 0..7 {
         for col in 0..7 {
-            let val = solver.a_mat()[(row, col)];
+            let val = solver.a_mat()[&(row, col)];
             let exp = row as f64 * 10.0 + col as f64 + 1.0;
-            assert_f64_near!(val, exp)
-        }
-    }
-}
-
-#[test]
-fn test_insert_a() {
-    let a_mat = vec![
-        vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
-        vec![11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0],
-        vec![21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0],
-        vec![31.0, 32.0, 33.0, 34.0, 35.0, 36.0, 37.0],
-        vec![41.0, 42.0, 43.0, 44.0, 45.0, 46.0, 47.0],
-        vec![51.0, 52.0, 53.0, 54.0, 55.0, 56.0, 57.0],
-        vec![61.0, 62.0, 63.0, 64.0, 65.0, 66.0, 67.0],
-    ]
-    .into();
-    let mut solver = FaerSolver::new(7).unwrap();
-    solver.set_a(&a_mat);
-
-    let a_1 = vec![
-        vec![1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-        vec![1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-        vec![1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-        vec![1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-        vec![1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-        vec![1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-        vec![1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-    ]
-    .into();
-    solver.insert_a(&a_1);
-
-    for row in 0..7 {
-        for col in 0..7 {
-            let val = solver.a_mat()[(row, col)];
-            let exp = (row as f64 * 10.0 + col as f64 + 1.0) + 1.0;
             assert_f64_near!(val, exp)
         }
     }

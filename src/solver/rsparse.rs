@@ -70,44 +70,44 @@ impl Solver for RSparseSolver {
     }
 
     /// Inserts the conductance matrix (`a_mat`) into the Solver.
-    fn insert_a(&mut self, a_mat: &Triples) {
-        match a_mat {
-            Triples::Empty => {}
-            Triples::Single(tr) => self.a.append(tr.0 .0, tr.1 .0, tr.2),
-            Triples::Double(tr) => {
-                self.a.append(tr[0].0 .0, tr[0].1 .0, tr[0].2);
-                self.a.append(tr[1].0 .0, tr[1].1 .0, tr[1].2);
-            }
-            Triples::Quad(tr) => {
-                self.a.append(tr[0].0 .0, tr[0].1 .0, tr[0].2);
-                self.a.append(tr[1].0 .0, tr[1].1 .0, tr[1].2);
-                self.a.append(tr[2].0 .0, tr[2].1 .0, tr[2].2);
-                self.a.append(tr[3].0 .0, tr[3].1 .0, tr[3].2);
-            }
-            Triples::Vec(triples) => {
-                for (r, c, v) in triples.iter() {
-                    self.a.append(r.0, c.0, *v);
-                }
-            }
-        }
-    }
+    //fn insert_a(&mut self, a_mat: &Triples) {
+    //    match a_mat {
+    //        Triples::Empty => {}
+    //        Triples::Single(tr) => self.a.append(tr.0 .0, tr.1 .0, tr.2),
+    //        Triples::Double(tr) => {
+    //            self.a.append(tr[0].0 .0, tr[0].1 .0, tr[0].2);
+    //            self.a.append(tr[1].0 .0, tr[1].1 .0, tr[1].2);
+    //        }
+    //        Triples::Quad(tr) => {
+    //            self.a.append(tr[0].0 .0, tr[0].1 .0, tr[0].2);
+    //            self.a.append(tr[1].0 .0, tr[1].1 .0, tr[1].2);
+    //            self.a.append(tr[2].0 .0, tr[2].1 .0, tr[2].2);
+    //            self.a.append(tr[3].0 .0, tr[3].1 .0, tr[3].2);
+    //        }
+    //        Triples::Vec(triples) => {
+    //            for (r, c, v) in triples.iter() {
+    //                self.a.append(r.0, c.0, *v);
+    //            }
+    //        }
+    //    }
+    //}
 
     /// Inserts the known values vector (`b_vec`) into the Solver.
-    fn insert_b(&mut self, b_vec: &Pairs) {
-        match b_vec {
-            Pairs::Empty => {}
-            Pairs::Single((col, val)) => self.b[col.0] += *val,
-            Pairs::Double([(col1, val1), (col2, val2)]) => {
-                self.b[col1.0] += *val1;
-                self.b[col2.0] += *val2;
-            }
-            Pairs::Vec(pairs) => {
-                for (col, val) in pairs.iter() {
-                    self.b[col.0] += *val;
-                }
-            }
-        }
-    }
+    //fn insert_b(&mut self, b_vec: &Pairs) {
+    //    match b_vec {
+    //        Pairs::Empty => {}
+    //        Pairs::Single((col, val)) => self.b[col.0] += *val,
+    //        Pairs::Double([(col1, val1), (col2, val2)]) => {
+    //            self.b[col1.0] += *val1;
+    //            self.b[col2.0] += *val2;
+    //        }
+    //        Pairs::Vec(pairs) => {
+    //            for (col, val) in pairs.iter() {
+    //                self.b[col.0] += *val;
+    //            }
+    //        }
+    //    }
+    //}
 
     /// Solves the system of equations (Ax = B for x) and returns a reference to the solution.
     fn solve(&mut self) -> Result<&Vec<f64>, SolverError> {

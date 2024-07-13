@@ -1,4 +1,5 @@
 use crate::solver::Row;
+use rayon::prelude::*;
 use std::iter::FromIterator;
 use std::ops::Add;
 
@@ -54,7 +55,7 @@ impl From<Vec<f64>> for Pairs {
     /// ```
     fn from(values: Vec<f64>) -> Pairs {
         let pairs: Vec<(Row, f64)> = values
-            .into_iter()
+            .into_par_iter()
             .enumerate()
             .map(|(row_idx, value)| (Row(row_idx), value))
             .collect();
@@ -110,7 +111,7 @@ impl Add for Pairs {
 
         // Sort by row
         let mut combined = combined;
-        combined.sort_by(|a, b| a.0.cmp(&b.0));
+        combined.par_sort_by(|a, b| a.0.cmp(&b.0));
 
         // Combine entries with the same row
         let mut result: Vec<(Row, f64)> = Vec::new();

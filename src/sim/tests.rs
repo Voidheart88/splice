@@ -28,9 +28,9 @@ impl Solver for MockBackend {
         Err(SolverError::MatrixNonInvertible)
     }
 
-    fn insert_a(&mut self, _: &Triples) {}
+    //fn insert_a(&mut self, _: &Triples) {}
 
-    fn insert_b(&mut self, _: &Pairs) {}
+    //fn insert_b(&mut self, _: &Pairs) {}
 }
 
 fn create_mock_elements(vars: &Vec<Variable>) -> Vec<Element> {
