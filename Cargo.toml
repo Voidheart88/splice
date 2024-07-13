@@ -10,7 +10,6 @@ derive_more = "0.99.17"
 itertools = "0.13.0"
 rayon = "1.10.0"
 approx = "0.5.1"
-assert_float_eq = "1.1.3"
 
 # Cli
 clap = { version = "4.5.4", features = ["cargo","derive"] }
@@ -26,6 +25,10 @@ faer = "0.19.1"
 
 # Outputs
 plotters = "0.3.6"
+
+[dev-dependencies]
+criterion = { version = "0.5.1", features = ["html_reports"] }
+assert_float_eq = "1.1.3"
 
 [profile.release]
 opt-level = 3

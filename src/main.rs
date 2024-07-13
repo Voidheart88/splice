@@ -1,4 +1,4 @@
-//#![deny(unsafe_code)]
+#![deny(unsafe_code)]
 
 mod backends;
 mod consts;
