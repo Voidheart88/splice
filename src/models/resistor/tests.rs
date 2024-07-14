@@ -42,11 +42,6 @@ fn test_triples() {
     assert_eq!(resistor_bundle.triples().len(), 4);
     assert_eq!(
         resistor_bundle.triples(),
-        Triples::Quad([
-            (0, 0, 0.1),
-            (1, 1, 0.1),
-            (0, 1, -0.1),
-            (1, 0, -0.1),
-        ])
+        Triples::Quad([(0, 0, 0.1), (1, 1, 0.1), (0, 1, -0.1), (1, 0, -0.1),])
     );
 }

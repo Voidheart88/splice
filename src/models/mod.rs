@@ -1,4 +1,5 @@
 mod capacitor;
+mod complex_triples;
 mod diode;
 mod inductor;
 mod isource;
@@ -13,6 +14,7 @@ use std::sync::Arc;
 use derive_more::{Deref, DerefMut};
 
 pub(crate) use self::capacitor::CapacitorBundle;
+pub(crate) use self::complex_triples::ComplexTriples;
 pub(crate) use self::diode::DiodeBundle;
 pub(crate) use self::inductor::InductorBundle;
 pub(crate) use self::isource::ISourceBundle;

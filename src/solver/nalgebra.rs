@@ -105,7 +105,7 @@ impl Solver for NalgebraSolver {
 impl NalgebraSolver {
     /// Sets a single-valued triple into the conductance matrix.
     fn set_single(&mut self, triple: &(usize, usize, f64)) {
-        self.a_mat[(triple.0 , triple.1 )] = triple.2;
+        self.a_mat[(triple.0, triple.1)] = triple.2;
     }
 
     /// Sets a double-valued triple into the conductance matrix.

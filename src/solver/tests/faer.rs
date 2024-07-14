@@ -22,11 +22,7 @@ fn test_new() {
 fn test_set_a() {
     let mut solver = FaerSolver::new(3).unwrap();
 
-    let triples = Triples::Vec(vec![
-        (0, 0, 1.0),
-        (1, 1, 2.0),
-        (2, 2, 3.0),
-    ]);
+    let triples = Triples::Vec(vec![(0, 0, 1.0), (1, 1, 2.0), (2, 2, 3.0)]);
     solver.set_a(&triples);
 
     assert_eq!(solver.a_mat()[&(0, 0)], 1.0);

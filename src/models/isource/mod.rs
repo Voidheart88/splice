@@ -49,10 +49,9 @@ impl ISourceBundle {
             (None, None) => Pairs::Empty,
             (Some(node0), None) => Pairs::Single((node0.idx(), -*self.value)),
             (None, Some(node1)) => Pairs::Single((node1.idx(), *self.value)),
-            (Some(node0), Some(node1)) => Pairs::Double([
-                (node0.idx(), -*self.value),
-                (node1.idx(), *self.value),
-            ]),
+            (Some(node0), Some(node1)) => {
+                Pairs::Double([(node0.idx(), -*self.value), (node1.idx(), *self.value)])
+            }
         }
     }
 }

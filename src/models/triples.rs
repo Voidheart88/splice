@@ -1,4 +1,3 @@
-
 use rayon::prelude::*;
 use std::{cmp::Ordering, fmt, ops::Add};
 

@@ -25,6 +25,7 @@ faer = "0.19.1"
 
 # Outputs
 plotters = "0.3.6"
+num = "0.4.3"
 
 [dev-dependencies]
 criterion = { version = "0.5.1", features = ["html_reports"] }

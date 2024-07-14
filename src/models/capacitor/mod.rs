@@ -67,12 +67,7 @@ impl CapacitorBundle {
             idx
         } else {
             return Triples::Single(
-                (
-                    self.node1_idx().unwrap(),
-                    self.node1_idx().unwrap(),
-                    0.0,
-                )
-                    .into(),
+                (self.node1_idx().unwrap(), self.node1_idx().unwrap(), 0.0).into(),
             );
         };
         let node1_idx = if let Some(idx) = self.node1_idx() {
