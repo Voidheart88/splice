@@ -135,16 +135,16 @@ fn test_pairs_addition_both_empty() {
 #[test]
 fn test_cplx_from_vec() {
     let triples: ComplexTriples = vec![
-        vec![Complex::new(1.0, 0.0), Complex::new(2.0, 0.0)],
-        vec![Complex::new(3.0, 0.0), Complex::new(4.0, 0.0)],
+        vec![Complex::new(1.0, 1.0), Complex::new(2.0, 2.0)],
+        vec![Complex::new(3.0, 3.0), Complex::new(4.0, 4.0)],
     ]
     .into();
 
     let exp = ComplexTriples::Vec(vec![
-        (0, 0, Complex::new(1.0, 0.0)),
-        (0, 1, Complex::new(2.0, 0.0)),
-        (1, 0, Complex::new(3.0, 0.0)),
-        (1, 1, Complex::new(4.0, 0.0)),
+        (0, 0, Complex::new(1.0, 1.0)),
+        (0, 1, Complex::new(2.0, 2.0)),
+        (1, 0, Complex::new(3.0, 3.0)),
+        (1, 1, Complex::new(4.0, 4.0)),
     ]);
 
     assert_eq!(triples, exp);
@@ -153,18 +153,18 @@ fn test_cplx_from_vec() {
 #[test]
 fn test_cplx_addition_no_overlap() {
     let triples1 = ComplexTriples::Vec(vec![
-        (1, 1, Complex::new(1.0, 0.0)),
-        (2, 2, Complex::new(2.0, 0.0)),
+        (1, 1, Complex::new(1.0, 1.0)),
+        (2, 2, Complex::new(2.0, 2.0)),
     ]);
     let triples2 = ComplexTriples::Vec(vec![
-        (3, 3, Complex::new(3.0, 0.0)),
-        (4, 4, Complex::new(4.0, 0.0)),
+        (3, 3, Complex::new(3.0, 3.0)),
+        (4, 4, Complex::new(4.0, 4.0)),
     ]);
     let expected = ComplexTriples::Vec(vec![
-        (1, 1, Complex::new(1.0, 0.0)),
-        (2, 2, Complex::new(2.0, 0.0)),
-        (3, 3, Complex::new(3.0, 0.0)),
-        (4, 4, Complex::new(4.0, 0.0)),
+        (1, 1, Complex::new(1.0, 1.0)),
+        (2, 2, Complex::new(2.0, 2.0)),
+        (3, 3, Complex::new(3.0, 3.0)),
+        (4, 4, Complex::new(4.0, 4.0)),
     ]);
 
     assert_eq!(triples1 + triples2, expected);
@@ -173,16 +173,16 @@ fn test_cplx_addition_no_overlap() {
 #[test]
 fn test_cplx_addition_with_overlap() {
     let triples1 = ComplexTriples::Vec(vec![
-        (1, 1, Complex::new(1.0, 0.0)),
-        (2, 2, Complex::new(2.0, 0.0)),
+        (1, 1, Complex::new(1.0, 1.0)),
+        (2, 2, Complex::new(2.0, 2.0)),
     ]);
     let triples2 = ComplexTriples::Vec(vec![
-        (1, 1, Complex::new(3.0, 0.0)),
-        (2, 2, Complex::new(4.0, 0.0)),
+        (1, 1, Complex::new(3.0, 3.0)),
+        (2, 2, Complex::new(4.0, 4.0)),
     ]);
     let expected = ComplexTriples::Vec(vec![
-        (1, 1, Complex::new(4.0, 0.0)),
-        (2, 2, Complex::new(6.0, 0.0)),
+        (1, 1, Complex::new(4.0, 4.0)),
+        (2, 2, Complex::new(6.0, 6.0)),
     ]);
 
     assert_eq!(triples1 + triples2, expected);

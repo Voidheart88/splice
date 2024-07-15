@@ -1,6 +1,7 @@
 use std::{collections::HashSet, fs::File, io::Read, path::Path, sync::Arc};
 
 use itertools::Itertools;
+use log::trace;
 
 use crate::{sim::commands::SimulationCommand, FrontendError, Simulation};
 
@@ -32,12 +33,14 @@ impl Frontend for SpiceFrontend {
 
         // Preprocess the circuit description
         let current_path = Path::new(&self.pth).parent().unwrap();
+        trace!("Preprocess file");
         let preprocessed = self.preprocess(circuit_string, current_path)?;
 
         let mut variables = Vec::new();
         let mut commands = Vec::new();
         let mut elements = Vec::new();
 
+        trace!("Process lines");
         for line in preprocessed.lines() {
             match line.trim().chars().next() {
                 Some('.') => commands.push(self.process_command(line)?),
@@ -57,6 +60,7 @@ impl Frontend for SpiceFrontend {
             };
         }
 
+        trace!("Check Schematic!");
         // Ensure all element names are unique
         let mut names = HashSet::new();
         for ele in &elements {
