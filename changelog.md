@@ -1,3 +1,15 @@
+## 0.3.2
+Cangelog:
+  - added Faer backend
+  - added isource
+  - Arc<String> -> Arc<str>
+
+Roadmap:
+  - faster parsing
+  - AC Simulation
+  - BJT model
+  - FET model
+
 ## 0.3.1
 Cangelog:
   - added dc output for csv output module
