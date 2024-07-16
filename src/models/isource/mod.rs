@@ -5,7 +5,7 @@ use super::*;
 /// A structure representing a bundle of current sources.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub(crate) struct ISourceBundle {
-    name: Arc<String>,
+    name: Arc<str>,
     node0: Option<Variable>,
     node1: Option<Variable>,
     value: Value,
@@ -25,7 +25,7 @@ impl ISourceBundle {
     ///
     /// A new `CurrentSourceBundle` object.
     pub fn new(
-        name: Arc<String>,
+        name: Arc<str>,
         node0: Option<Variable>,
         node1: Option<Variable>,
         value: f64,
@@ -39,7 +39,7 @@ impl ISourceBundle {
     }
 
     /// Returns the name of the current source bundle.
-    pub fn name(&self) -> Arc<String> {
+    pub fn name(&self) -> Arc<str> {
         self.name.clone()
     }
 

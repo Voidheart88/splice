@@ -224,16 +224,16 @@ fn test_newton() {
     let mut solver = FaerSolver::new(2).unwrap();
 
     let diode = DiodeBundle::new(
-        Arc::new("d1".into()),
-        Some(Variable::new(Arc::new("1".into()), Unit::Volt, 0)),
+        Arc::from("d1"),
+        Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
         None,
         None,
     );
     let vsource = VSourceBundle::new(
-        Arc::new("v1".into()),
-        Variable::new(Arc::new("v1#branch".into()), Unit::Ampere, 1),
+        Arc::from("v1"),
+        Variable::new(Arc::from("v1#branch"), Unit::Ampere, 1),
         None,
-        Some(Variable::new(Arc::new("1".into()), Unit::Volt, 0)),
+        Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
         0.7,
     );
 
@@ -264,16 +264,16 @@ fn test_newton2() {
     let mut solver = FaerSolver::new(2).unwrap();
 
     let diode = DiodeBundle::new(
-        Arc::new("d1".into()),
-        Some(Variable::new(Arc::new("1".into()), Unit::Volt, 0)),
+        Arc::from("d1"),
+        Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
         None,
         None,
     );
     let vsource = VSourceBundle::new(
-        Arc::new("v1".into()),
-        Variable::new(Arc::new("v1#branch".into()), Unit::Ampere, 1),
+        Arc::from("v1"),
+        Variable::new(Arc::from("v1#branch"), Unit::Ampere, 1),
         None,
-        Some(Variable::new(Arc::new("1".into()), Unit::Volt, 0)),
+        Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
         0.8,
     );
 

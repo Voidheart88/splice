@@ -11,10 +11,10 @@ pub(crate) enum SimulationCommand {
     Ac,
     /// Represents a DC analysis command.
     Dc(
-        Arc<String>,
+        Arc<str>,
         f64,
         f64,
         f64,
-        Option<(Arc<String>, f64, f64, f64)>,
+        Option<(Arc<str>, f64, f64, f64)>,
     ),
 }

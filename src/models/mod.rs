@@ -41,7 +41,7 @@ impl Display for Unit {
 
 /// A structure representing the name of an element.
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
-pub(crate) struct Variable(Arc<String>, Unit, usize);
+pub(crate) struct Variable(Arc<str>, Unit, usize);
 
 impl Variable {
     /// Creates a new `Variable` object.
@@ -55,11 +55,11 @@ impl Variable {
     /// # Returns
     ///
     /// A new `Variable` object.
-    pub fn new(name: Arc<String>, unit: Unit, index: usize) -> Self {
+    pub fn new(name: Arc<str>, unit: Unit, index: usize) -> Self {
         Variable(name, unit, index)
     }
 
-    pub fn name(&self) -> Arc<String> {
+    pub fn name(&self) -> Arc<str> {
         return self.0.clone();
     }
 
@@ -72,8 +72,8 @@ impl Variable {
     }
 }
 
-impl From<(Arc<String>, Unit, usize)> for Variable {
-    fn from(value: (Arc<String>, Unit, usize)) -> Self {
+impl From<(Arc<str>, Unit, usize)> for Variable {
+    fn from(value: (Arc<str>, Unit, usize)) -> Self {
         let name = value.0;
         let unit = value.1;
         let idx = value.2;
@@ -184,7 +184,7 @@ impl Element {
     }
 
     /// Returns the name of the element.
-    pub(crate) fn name(&self) -> Arc<String> {
+    pub(crate) fn name(&self) -> Arc<str> {
         match self {
             Element::Capacitor(ele) => ele.name(),
             Element::Inductor(ele) => ele.name(),

@@ -31,9 +31,9 @@ fn parse_resistor1() {
     };
 
     let expected = ResistorBundle::new(
-        Arc::new("r1".into()),
+        Arc::from("r1"),
         None,
-        Some(Variable::new(Arc::new("1".into()), Unit::Volt, 0)),
+        Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
         20.0,
     );
 
@@ -71,15 +71,15 @@ fn parse_resistor2() {
         crate::frontends::Element::ISource(_) => todo!(),
     };
     let expected1 = ResistorBundle::new(
-        Arc::new("r1".into()),
+        Arc::from("r1"),
         None,
-        Some(Variable::new(Arc::new("1".into()), Unit::Volt, 0)),
+        Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
         20.0,
     );
     let expected2 = ResistorBundle::new(
-        Arc::new("r2".into()),
-        Some(Variable::new(Arc::new("1".into()), Unit::Volt, 0)),
-        Some(Variable::new(Arc::new("2".into()), Unit::Volt, 1)),
+        Arc::from("r2"),
+        Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
+        Some(Variable::new(Arc::from("2"), Unit::Volt, 1)),
         20.0,
     );
     assert_eq!(res1, &expected1);
@@ -110,10 +110,10 @@ fn parse_vsource1() {
     };
 
     let expected1 = VSourceBundle::new(
-        Arc::new("v1".into()),
-        Variable::new(Arc::new("v1#branch".into()), Unit::Ampere, 0),
+        Arc::from("v1"),
+        Variable::new(Arc::from("v1#branch"), Unit::Ampere, 0),
         None,
-        Some(Variable::new(Arc::new("1".into()), Unit::Volt, 1)),
+        Some(Variable::new(Arc::from("1"), Unit::Volt, 1)),
         10.0,
     );
 
@@ -152,18 +152,18 @@ fn parse_vsource2() {
     };
 
     let expected1 = VSourceBundle::new(
-        Arc::new("v1".into()),
-        Variable::new(Arc::new("v1#branch".into()), Unit::Ampere, 0),
+        Arc::from("v1"),
+        Variable::new(Arc::from("v1#branch"), Unit::Ampere, 0),
         None,
-        Some(Variable::new(Arc::new("1".into()), Unit::Volt, 1)),
+        Some(Variable::new(Arc::from("1"), Unit::Volt, 1)),
         10.0,
     );
 
     let expected2 = VSourceBundle::new(
-        Arc::new("v2".into()),
-        Variable::new(Arc::new("v2#branch".into()), Unit::Ampere, 2),
+        Arc::from("v2"),
+        Variable::new(Arc::from("v2#branch"), Unit::Ampere, 2),
         None,
-        Some(Variable::new(Arc::new("2".into()), Unit::Volt, 3)),
+        Some(Variable::new(Arc::from("2"), Unit::Volt, 3)),
         20.0,
     );
 
@@ -204,15 +204,15 @@ fn parse_vr() {
         crate::frontends::Element::ISource(_) => todo!(),
     };
     let expected1 = VSourceBundle::new(
-        Arc::new("v1".into()),
-        Variable::new(Arc::new("v1#branch".into()), Unit::Ampere, 0),
+        Arc::from("v1"),
+        Variable::new(Arc::from("v1#branch"), Unit::Ampere, 0),
         None,
-        Some(Variable::new(Arc::new("1".into()), Unit::Volt, 1)),
+        Some(Variable::new(Arc::from("1"), Unit::Volt, 1)),
         10.0,
     );
     let expected2 = ResistorBundle::new(
-        Arc::new("r1".into()),
-        Some(Variable::new(Arc::new("1".into()), Unit::Volt, 1)),
+        Arc::from("r1"),
+        Some(Variable::new(Arc::from("1"), Unit::Volt, 1)),
         None,
         20.0,
     );
@@ -258,9 +258,9 @@ fn parse_diode1() {
     };
 
     let expected = DiodeBundle::new(
-        Arc::new("d1".into()),
+        Arc::from("d1"),
         None,
-        Some(Variable::new(Arc::new("1".into()), Unit::Volt, 0)),
+        Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
         None,
     );
 
@@ -297,15 +297,15 @@ fn parse_diode2() {
         crate::frontends::Element::ISource(_) => todo!(),
     };
     let expected1 = DiodeBundle::new(
-        Arc::new("d1".into()),
+        Arc::from("d1"),
         None,
-        Some(Variable::new(Arc::new("1".into()), Unit::Volt, 0)),
+        Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
         None,
     );
     let expected2 = DiodeBundle::new(
-        Arc::new("d2".into()),
-        Some(Variable::new(Arc::new("1".into()), Unit::Volt, 0)),
-        Some(Variable::new(Arc::new("2".into()), Unit::Volt, 1)),
+        Arc::from("d2"),
+        Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
+        Some(Variable::new(Arc::from("2"), Unit::Volt, 1)),
         None,
     );
     assert_eq!(res1, &expected1);
@@ -352,9 +352,9 @@ fn parse_isource1() {
     };
 
     let expected1 = ISourceBundle::new(
-        Arc::new("i1".into()),
+        Arc::from("i1"),
         None,
-        Some(Variable::new(Arc::new("1".into()), Unit::Volt, 0)),
+        Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
         5.0,
     );
 
@@ -385,9 +385,9 @@ fn parse_isource2() {
     };
 
     let expected1 = ISourceBundle::new(
-        Arc::new("i1".into()),
+        Arc::from("i1"),
         None,
-        Some(Variable::new(Arc::new("1".into()), Unit::Volt, 0)),
+        Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
         3.5,
     );
 
@@ -401,8 +401,8 @@ fn parse_isource2() {
     };
 
     let expected2 = ResistorBundle::new(
-        Arc::new("r1".into()),
-        Some(Variable::new(Arc::new("1".into()), Unit::Volt, 0)),
+        Arc::from("r1"),
+        Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
         None,
         10.0,
     );
@@ -440,9 +440,9 @@ fn parse_with_include() {
     };
 
     let expected1 = ISourceBundle::new(
-        Arc::new("i1".into()),
+        Arc::from("i1"),
         None,
-        Some(Variable::new(Arc::new("1".into()), Unit::Volt, 0)),
+        Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
         3.5,
     );
 
@@ -459,8 +459,8 @@ fn parse_with_include() {
     };
 
     let expected2 = ResistorBundle::new(
-        Arc::new("r1".into()),
-        Some(Variable::new(Arc::new("1".into()), Unit::Volt, 0)),
+        Arc::from("r1"),
+        Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
         None,
         10.0,
     );

@@ -3,7 +3,6 @@ pub(crate) mod nalgebra;
 pub(crate) mod rsparse;
 
 use clap::ValueEnum;
-use derive_more::Deref;
 use miette::Diagnostic;
 use thiserror::Error;
 

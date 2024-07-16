@@ -170,7 +170,7 @@ impl SpiceFrontend {
                     "Not enough tokens to parse".into(),
                 ));
             }
-            let srcnam = Arc::new(tokens[1].into());
+            let srcnam = Arc::from(tokens[1]);
             let vstart = tokens[2].parse::<f64>()?;
             let vstop = tokens[3].parse::<f64>()?;
             let vincr = tokens[4].parse::<f64>()?;
@@ -190,7 +190,7 @@ impl SpiceFrontend {
         variables: &mut Vec<Variable>,
     ) -> Result<Element, FrontendError> {
         let token: Vec<&str> = input.split_whitespace().collect();
-        let name = Arc::new(token[0].into());
+        let name = Arc::from(token[0]);
 
         let branch = Self::add_variable(&format!("{name}#branch"), Unit::Ampere, variables);
 
@@ -221,7 +221,7 @@ impl SpiceFrontend {
         variables: &mut Vec<Variable>,
     ) -> Result<Element, FrontendError> {
         let token = input.split(" ").collect_vec();
-        let name = Arc::new(token[0].into());
+        let name = Arc::from(token[0]);
         let node0 = Self::add_variable(token[1], Unit::Volt, variables);
         let node1 = Self::add_variable(token[2], Unit::Volt, variables);
         let value = match token[3].parse::<f64>() {
@@ -244,7 +244,7 @@ impl SpiceFrontend {
         variables: &mut Vec<Variable>,
     ) -> Result<Element, FrontendError> {
         let token = input.split(" ").collect_vec();
-        let name = Arc::new(token[0].into());
+        let name = Arc::from(token[0]);
         let node0 = Self::add_variable(token[1], Unit::Volt, variables);
         let node1 = Self::add_variable(token[2], Unit::Volt, variables);
         let value = match token[3].parse::<f64>() {
@@ -267,7 +267,7 @@ impl SpiceFrontend {
         variables: &mut Vec<Variable>,
     ) -> Result<Element, FrontendError> {
         let token = input.split(" ").collect_vec();
-        let name = Arc::new(token[0].into());
+        let name = Arc::from(token[0]);
         let node0 = Self::add_variable(token[1], Unit::Volt, variables);
         let node1 = Self::add_variable(token[2], Unit::Volt, variables);
         let value = match token[3].parse::<f64>() {
@@ -290,7 +290,7 @@ impl SpiceFrontend {
         variables: &mut Vec<Variable>,
     ) -> Result<Element, FrontendError> {
         let token = input.split(" ").collect_vec();
-        let name = Arc::new(token[0].into());
+        let name = Arc::from(token[0]);
         let node0 = Self::add_variable(token[1], Unit::Volt, variables);
         let node1 = Self::add_variable(token[2], Unit::Volt, variables);
 
@@ -303,7 +303,7 @@ impl SpiceFrontend {
         variables: &mut Vec<Variable>,
     ) -> Result<Element, FrontendError> {
         let token = input.split_whitespace().collect_vec();
-        let name = Arc::new(token[0].into());
+        let name = Arc::from(token[0]);
         let node0 = Self::add_variable(token[1], Unit::Volt, variables);
         let node1 = Self::add_variable(token[2], Unit::Volt, variables);
         let value = match token[3].parse::<f64>() {
@@ -325,7 +325,7 @@ impl SpiceFrontend {
             return None;
         }
 
-        let inp_rc = Arc::new(inp.to_string()); // Umwandlung von &str in Rc<String>
+        let inp_rc = Arc::from(inp.to_string()); // Umwandlung von &str in Rc<String>
 
         for variable in variables.iter() {
             if variable.name() == inp_rc {

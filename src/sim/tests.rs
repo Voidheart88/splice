@@ -35,14 +35,14 @@ impl Solver for MockBackend {
 
 fn create_mock_elements(vars: &Vec<Variable>) -> Vec<Element> {
     let res = Element::Resistor(ResistorBundle::new(
-        Arc::new("r1".into()),
+        Arc::from("r1"),
         None,
         Some(vars[1].clone()),
         10.0,
     ));
 
     let vol = Element::VSource(VSourceBundle::new(
-        Arc::new("v1".into()),
+        Arc::from("v1"),
         vars[0].clone(),
         None,
         Some(vars[1].clone()),
@@ -54,7 +54,7 @@ fn create_mock_elements(vars: &Vec<Variable>) -> Vec<Element> {
 
 fn create_mock_elements2(vars: &Vec<Variable>) -> Vec<Element> {
     let vol = Element::VSource(VSourceBundle::new(
-        Arc::new("v1".into()),
+        Arc::from("v1"),
         vars[0].clone(),
         None,
         Some(vars[1].clone()),
@@ -62,14 +62,14 @@ fn create_mock_elements2(vars: &Vec<Variable>) -> Vec<Element> {
     ));
 
     let res1 = Element::Resistor(ResistorBundle::new(
-        Arc::new("r1".into()),
+        Arc::from("r1"),
         Some(vars[1].clone()),
         Some(vars[2].clone()),
         10.0,
     ));
 
     let res2 = Element::Resistor(ResistorBundle::new(
-        Arc::new("r2".into()),
+        Arc::from("r2"),
         Some(vars[2].clone()),
         None,
         10.0,
@@ -79,38 +79,38 @@ fn create_mock_elements2(vars: &Vec<Variable>) -> Vec<Element> {
 }
 fn create_mock_elements3() -> Vec<Element> {
     let vol1 = Element::VSource(VSourceBundle::new(
-        Arc::new("v1".into()),
-        Variable::new(Arc::new("v1#branch".into()), Unit::Volt, 0),
+        Arc::from("v1"),
+        Variable::new(Arc::from("v1#branch"), Unit::Volt, 0),
         None,
-        Some(Variable::new(Arc::new("1".into()), Unit::Volt, 1)),
+        Some(Variable::new(Arc::from("1"), Unit::Volt, 1)),
         10.0,
     ));
 
     let vol2 = Element::VSource(VSourceBundle::new(
-        Arc::new("v2".into()),
-        Variable::new(Arc::new("v2#branch".into()), Unit::Volt, 2),
+        Arc::from("v2"),
+        Variable::new(Arc::from("v2#branch"), Unit::Volt, 2),
         None,
-        Some(Variable::new(Arc::new("3".into()), Unit::Volt, 3)),
+        Some(Variable::new(Arc::from("3"), Unit::Volt, 3)),
         10.0,
     ));
 
     let res1 = Element::Resistor(ResistorBundle::new(
-        Arc::new("r1".into()),
-        Some(Variable::new(Arc::new("1".into()), Unit::Volt, 1)),
-        Some(Variable::new(Arc::new("2".into()), Unit::Volt, 4)),
+        Arc::from("r1"),
+        Some(Variable::new(Arc::from("1"), Unit::Volt, 1)),
+        Some(Variable::new(Arc::from("2"), Unit::Volt, 4)),
         10.0,
     ));
 
     let res2 = Element::Resistor(ResistorBundle::new(
-        Arc::new("r2".into()),
-        Some(Variable::new(Arc::new("2".into()), Unit::Volt, 4)),
-        Some(Variable::new(Arc::new("3".into()), Unit::Volt, 3)),
+        Arc::from("r2"),
+        Some(Variable::new(Arc::from("2"), Unit::Volt, 4)),
+        Some(Variable::new(Arc::from("3"), Unit::Volt, 3)),
         10.0,
     ));
 
     let res3 = Element::Resistor(ResistorBundle::new(
-        Arc::new("r2".into()),
-        Some(Variable::new(Arc::new("2".into()), Unit::Volt, 4)),
+        Arc::from("r2"),
+        Some(Variable::new(Arc::from("2"), Unit::Volt, 4)),
         None,
         10.0,
     ));
@@ -119,14 +119,14 @@ fn create_mock_elements3() -> Vec<Element> {
 
 fn create_mock_elements4(vars: &Vec<Variable>) -> Vec<Element> {
     let res = Element::Resistor(ResistorBundle::new(
-        Arc::new("r1".into()),
+        Arc::from("r1"),
         None,
         Some(vars[0].clone()),
         10.0,
     ));
 
     let vol = Element::ISource(ISourceBundle::new(
-        Arc::new("i1".into()),
+        Arc::from("i1"),
         None,
         Some(vars[0].clone()),
         1.0,
@@ -138,8 +138,8 @@ fn create_mock_elements4(vars: &Vec<Variable>) -> Vec<Element> {
 #[test]
 fn test_from_simulation() {
     let variables = vec![
-        Variable::new(Arc::new("1".into()), Unit::Volt, 0),
-        Variable::new(Arc::new("v1#branch".into()), Unit::Ampere, 0),
+        Variable::new(Arc::from("1"), Unit::Volt, 0),
+        Variable::new(Arc::from("v1#branch"), Unit::Ampere, 0),
     ];
     let elements = create_mock_elements(&variables);
     let commands = vec![SimulationCommand::Op];
@@ -159,8 +159,8 @@ fn test_from_simulation() {
 #[test]
 fn test_run_simulation() {
     let variables = vec![
-        Variable::new(Arc::new("v1#branch".into()), Unit::Ampere, 0),
-        Variable::new(Arc::new("1".into()), Unit::Volt, 1),
+        Variable::new(Arc::from("v1#branch"), Unit::Ampere, 0),
+        Variable::new(Arc::from("1"), Unit::Volt, 1),
     ];
     let elements = create_mock_elements(&variables);
     let commands = vec![SimulationCommand::Op];
@@ -178,11 +178,11 @@ fn test_run_simulation() {
         Sim::Dc(_) => unimplemented!(),
     };
     let node1_volt = res[0].clone();
-    let exp_node1_volt = Variable::new(Arc::new("v1#branch".into()), Unit::Ampere, 0);
+    let exp_node1_volt = Variable::new(Arc::from("v1#branch"), Unit::Ampere, 0);
     assert_eq!(node1_volt.0, exp_node1_volt);
 
     let branch_curr = res[1].clone();
-    let exp_branch_curr = Variable::new(Arc::new("1".into()), Unit::Volt, 1);
+    let exp_branch_curr = Variable::new(Arc::from("1"), Unit::Volt, 1);
     assert_eq!(branch_curr.0, exp_branch_curr);
 }
 
@@ -193,9 +193,9 @@ fn test_run_simulation() {
 #[test]
 fn test_run_simulation2() {
     let variables = vec![
-        Variable::new(Arc::new("v1#branch".into()), Unit::Ampere, 0),
-        Variable::new(Arc::new("1".into()), Unit::Volt, 1),
-        Variable::new(Arc::new("2".into()), Unit::Volt, 2),
+        Variable::new(Arc::from("v1#branch"), Unit::Ampere, 0),
+        Variable::new(Arc::from("1"), Unit::Volt, 1),
+        Variable::new(Arc::from("2"), Unit::Volt, 2),
     ];
     let elements = create_mock_elements2(&variables);
     let commands = vec![SimulationCommand::Op];
@@ -232,11 +232,11 @@ fn test_run_simulation2() {
 #[test]
 fn test_run_simulation3() {
     let variables = vec![
-        Variable::new(Arc::new("v1#branch".into()), Unit::Ampere, 0),
-        Variable::new(Arc::new("1".into()), Unit::Volt, 1),
-        Variable::new(Arc::new("v2#branch".into()), Unit::Ampere, 2),
-        Variable::new(Arc::new("2".into()), Unit::Volt, 3),
-        Variable::new(Arc::new("3".into()), Unit::Volt, 4),
+        Variable::new(Arc::from("v1#branch"), Unit::Ampere, 0),
+        Variable::new(Arc::from("1"), Unit::Volt, 1),
+        Variable::new(Arc::from("v2#branch"), Unit::Ampere, 2),
+        Variable::new(Arc::from("2"), Unit::Volt, 3),
+        Variable::new(Arc::from("3"), Unit::Volt, 4),
     ];
     let elements = create_mock_elements3();
     let commands = vec![SimulationCommand::Op];
@@ -272,15 +272,15 @@ fn test_run_simulation3() {
     assert_eq!(var, exp);
 
     let var = res[4].clone();
-    let exp: (String, f64) = ("3".into(), 6.6666666666666666);
-    assert_eq!(*var.0.name(), exp.0);
+    let exp: (&str, f64) = ("3", 6.6666666666666666);
+    assert_eq!(*var.0.name(),* exp.0);
     assert!(relative_eq!(var.1, exp.1, epsilon = f64::EPSILON));
 }
 
 /// Test to ensure the consistency of results in witch current sources.
 #[test]
 fn test_run_simulation4() {
-    let variables = vec![Variable::new(Arc::new("1".into()), Unit::Volt, 0)];
+    let variables = vec![Variable::new(Arc::from("1"), Unit::Volt, 0)];
     let elements = create_mock_elements4(&variables);
     let commands = vec![SimulationCommand::Op];
     let sim = Simulation {
@@ -304,8 +304,8 @@ fn test_run_simulation4() {
 #[test]
 fn test_build_constant_a_mat() {
     let variables = vec![
-        Variable::new(Arc::new("1".into()), Unit::Volt, 1),
-        Variable::new(Arc::new("1".into()), Unit::Volt, 1),
+        Variable::new(Arc::from("1"), Unit::Volt, 1),
+        Variable::new(Arc::from("1"), Unit::Volt, 1),
     ];
     let elements = create_mock_elements(&variables);
     let simulator = Simulator {
@@ -334,8 +334,8 @@ fn test_build_constant_a_mat_empty() {
 #[test]
 fn test_build_constant_b_vec() {
     let variables = vec![
-        Variable::new(Arc::new("1".into()), Unit::Volt, 1),
-        Variable::new(Arc::new("v1#branch".into()), Unit::Ampere, 1),
+        Variable::new(Arc::from("1"), Unit::Volt, 1),
+        Variable::new(Arc::from("v1#branch"), Unit::Ampere, 1),
     ];
     let elements = create_mock_elements(&variables);
     let simulator = Simulator {
@@ -364,8 +364,8 @@ fn test_build_constant_b_vec_empty() {
 #[test]
 fn test_build_time_variant_b_vec() {
     let variables = vec![
-        Variable::new(Arc::new("1".into()), Unit::Volt, 1),
-        Variable::new(Arc::new("v1#branch".into()), Unit::Ampere, 1),
+        Variable::new(Arc::from("1"), Unit::Volt, 1),
+        Variable::new(Arc::from("v1#branch"), Unit::Ampere, 1),
     ];
     let elements = create_mock_elements(&variables);
     let simulator = Simulator {
@@ -393,8 +393,8 @@ fn test_build_time_variant_b_vec_empty() {
 #[test]
 fn test_build_nonlinear_b_vec() {
     let variables = vec![
-        Variable::new(Arc::new("1".into()), Unit::Volt, 1),
-        Variable::new(Arc::new("v1#branch".into()), Unit::Ampere, 1),
+        Variable::new(Arc::from("1"), Unit::Volt, 1),
+        Variable::new(Arc::from("v1#branch"), Unit::Ampere, 1),
     ];
     let x_vec = vec![1.0, 2.0];
     let elements = create_mock_elements(&variables);

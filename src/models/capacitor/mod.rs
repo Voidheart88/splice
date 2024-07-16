@@ -5,7 +5,7 @@ use super::*;
 /// A structure representing a bundle of capacitors.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub(crate) struct CapacitorBundle {
-    name: Arc<String>,
+    name: Arc<str>,
     node0: Option<Variable>,
     node1: Option<Variable>,
     value: Value,
@@ -27,7 +27,7 @@ impl CapacitorBundle {
     ///
     /// A new `CapacitorBundle` object.
     pub fn new(
-        name: Arc<String>,
+        name: Arc<str>,
         node0: Option<Variable>,
         node1: Option<Variable>,
         value: f64,
@@ -41,7 +41,7 @@ impl CapacitorBundle {
     }
 
     /// Returns the name of the capacitor bundle.
-    pub fn name(&self) -> Arc<String> {
+    pub fn name(&self) -> Arc<str> {
         self.name.clone()
     }
 

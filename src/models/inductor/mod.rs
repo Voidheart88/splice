@@ -7,7 +7,7 @@ use super::*;
 /// A structure representing a bundle of inductors.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub(crate) struct InductorBundle {
-    name: Arc<String>,
+    name: Arc<str>,
     node0: Option<Variable>,
     node1: Option<Variable>,
     value: Value,
@@ -27,7 +27,7 @@ impl InductorBundle {
     ///
     /// A new `InductorBundle` object.
     pub fn new(
-        name: Arc<String>,
+        name: Arc<str>,
         node0: Option<Variable>,
         node1: Option<Variable>,
         value: f64,
@@ -41,7 +41,7 @@ impl InductorBundle {
     }
 
     /// Returns the name of the inductor bundle.
-    pub fn name(&self) -> Arc<String> {
+    pub fn name(&self) -> Arc<str> {
         self.name.clone()
     }
 

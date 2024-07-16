@@ -4,7 +4,7 @@ use super::*;
 /// A structure representing a bundle of resistors.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub(crate) struct ResistorBundle {
-    name: Arc<String>,
+    name: Arc<str>,
     node0: Option<Variable>,
     node1: Option<Variable>,
     value: Value,
@@ -24,7 +24,7 @@ impl ResistorBundle {
     ///
     /// A new `ResistorBundle` object.
     pub fn new(
-        name: Arc<String>,
+        name: Arc<str>,
         node0: Option<Variable>,
         node1: Option<Variable>,
         value: f64,
@@ -38,7 +38,7 @@ impl ResistorBundle {
     }
 
     /// Returns the name of the resistor bundle.
-    pub fn name(&self) -> Arc<String> {
+    pub fn name(&self) -> Arc<str> {
         self.name.clone()
     }
     /// Returns the index of node0 if it exists.

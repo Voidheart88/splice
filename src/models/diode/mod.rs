@@ -7,7 +7,7 @@ use super::*;
 /// A structure representing a bundle of diodes.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub(crate) struct DiodeBundle {
-    name: Arc<String>,
+    name: Arc<str>,
     anode: Option<Variable>,
     cathode: Option<Variable>,
     value: DiodeOptions,
@@ -47,7 +47,7 @@ impl DiodeBundle {
     ///
     /// A new `DiodeBundle` object.
     pub fn new(
-        name: Arc<String>,
+        name: Arc<str>,
         anode: Option<Variable>,
         cathode: Option<Variable>,
         value: Option<DiodeOptions>,
@@ -66,7 +66,7 @@ impl DiodeBundle {
     }
 
     /// Returns the name of the diode bundle.
-    pub fn name(&self) -> Arc<String> {
+    pub fn name(&self) -> Arc<str> {
         self.name.clone()
     }
 

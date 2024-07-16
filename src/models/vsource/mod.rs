@@ -5,7 +5,7 @@ use super::*;
 /// A structure representing a bundle of voltage sources.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub(crate) struct VSourceBundle {
-    name: Arc<String>,
+    name: Arc<str>,
     branch: Variable,
     node0: Option<Variable>,
     node1: Option<Variable>,
@@ -29,7 +29,7 @@ impl VSourceBundle {
     ///
     /// A new `VSourceBundle` object.
     pub fn new(
-        name: Arc<String>,
+        name: Arc<str>,
         branch: Variable,
         node0: Option<Variable>,
         node1: Option<Variable>,
@@ -45,7 +45,7 @@ impl VSourceBundle {
     }
 
     /// Returns the name of the voltage source bundle.
-    pub fn name(&self) -> Arc<String> {
+    pub fn name(&self) -> Arc<str> {
         self.name.clone()
     }
 

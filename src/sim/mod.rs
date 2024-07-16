@@ -210,7 +210,7 @@ impl<BE: Solver> Simulator<BE> {
     /// This method performs a DC analysis.
     fn run_dc(
         &mut self,
-        srcnam: &Arc<String>,
+        srcnam: &Arc<str>,
         vstart: &f64,
         vstop: &f64,
         vstep: &f64,
