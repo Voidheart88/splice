@@ -55,3 +55,6 @@ impl ISourceBundle {
         }
     }
 }
+
+#[cfg(test)]
+mod tests;
