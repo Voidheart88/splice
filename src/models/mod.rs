@@ -39,7 +39,7 @@ impl Display for Unit {
     }
 }
 
-/// A structure representing the name of an element.
+/// A structure representing the name and position of a Variable.
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub(crate) struct Variable(Arc<str>, Unit, usize);
 
