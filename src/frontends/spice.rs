@@ -1,4 +1,4 @@
-use std::{collections::{HashMap, HashSet}, fmt::format, fs::File, io::Read, path::Path, sync::Arc};
+use std::{collections::{HashMap, HashSet}, fs::File, io::Read, path::Path, sync::Arc};
 
 use itertools::Itertools;
 use log::trace;

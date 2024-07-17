@@ -1,9 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    frontends::{DiodeBundle, ResistorBundle, VSourceBundle},
-    models::{ISourceBundle, Unit, Variable},
-    Frontend, Simulation,
+    frontends::{DiodeBundle, ResistorBundle, VSourceBundle}, models::{Element, ISourceBundle, Unit, Variable}, sim::commands::{ACMode, SimulationCommand}, Frontend, Simulation
 };
 
 use super::super::spice::*;
@@ -483,5 +481,82 @@ fn parse_ac() {
         commands,
     } = parser.simulation().unwrap();
 
-    todo!()
+    assert_eq!(variables[0], Variable::new(Arc::from("v1#branch"), Unit::Ampere, 0));
+    assert_eq!(variables[1], Variable::new(Arc::from("1"), Unit::Volt, 1));
+    assert_eq!(variables[2], Variable::new(Arc::from("2"), Unit::Volt, 2));
+
+    assert_eq!(*elements[0].name(), *"v1");
+    assert_eq!(*elements[1].name(), *"r1");
+    assert_eq!(*elements[2].name(), *"c1");
+
+    assert_eq!(commands[0],SimulationCommand::Ac(1.0,1000.0,10,ACMode::Lin))
+}
+
+#[test]
+fn parse_ac_lin() {
+    let main_path = "src/frontends/tests/spice_files/parse_ac_lin.cir";
+
+    let parser = SpiceFrontend::new(main_path.to_string());
+
+    let Simulation {
+        variables,
+        elements,
+        commands,
+    } = parser.simulation().unwrap();
+
+    assert_eq!(variables[0], Variable::new(Arc::from("v1#branch"), Unit::Ampere, 0));
+    assert_eq!(variables[1], Variable::new(Arc::from("1"), Unit::Volt, 1));
+    assert_eq!(variables[2], Variable::new(Arc::from("2"), Unit::Volt, 2));
+
+    assert_eq!(*elements[0].name(), *"v1");
+    assert_eq!(*elements[1].name(), *"r1");
+    assert_eq!(*elements[2].name(), *"c1");
+
+    assert_eq!(commands[0],SimulationCommand::Ac(1.0,1000.0,10,ACMode::Lin))
+}
+
+#[test]
+fn parse_ac_dec() {
+    let main_path = "src/frontends/tests/spice_files/parse_ac_dec.cir";
+
+    let parser = SpiceFrontend::new(main_path.to_string());
+
+    let Simulation {
+        variables,
+        elements,
+        commands,
+    } = parser.simulation().unwrap();
+
+    assert_eq!(variables[0], Variable::new(Arc::from("v1#branch"), Unit::Ampere, 0));
+    assert_eq!(variables[1], Variable::new(Arc::from("1"), Unit::Volt, 1));
+    assert_eq!(variables[2], Variable::new(Arc::from("2"), Unit::Volt, 2));
+
+    assert_eq!(*elements[0].name(), *"v1");
+    assert_eq!(*elements[1].name(), *"r1");
+    assert_eq!(*elements[2].name(), *"c1");
+
+    assert_eq!(commands[0],SimulationCommand::Ac(1.0,1000.0,10,ACMode::Dec))
+}
+
+#[test]
+fn parse_ac_oct() {
+    let main_path = "src/frontends/tests/spice_files/parse_ac_oct.cir";
+
+    let parser = SpiceFrontend::new(main_path.to_string());
+
+    let Simulation {
+        variables,
+        elements,
+        commands,
+    } = parser.simulation().unwrap();
+
+    assert_eq!(variables[0], Variable::new(Arc::from("v1#branch"), Unit::Ampere, 0));
+    assert_eq!(variables[1], Variable::new(Arc::from("1"), Unit::Volt, 1));
+    assert_eq!(variables[2], Variable::new(Arc::from("2"), Unit::Volt, 2));
+
+    assert_eq!(*elements[0].name(), *"v1");
+    assert_eq!(*elements[1].name(), *"r1");
+    assert_eq!(*elements[2].name(), *"c1");
+
+    assert_eq!(commands[0],SimulationCommand::Ac(1.0,1000.0,10,ACMode::Oct))
 }
