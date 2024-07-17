@@ -10,6 +10,7 @@ pub(crate) struct VSourceBundle {
     node0: Option<Variable>,
     node1: Option<Variable>,
     value: f64,
+    ac_value: Option<f64>,
 }
 
 impl VSourceBundle {
@@ -34,13 +35,15 @@ impl VSourceBundle {
         node0: Option<Variable>,
         node1: Option<Variable>,
         value: f64,
+        ac_value: Option<f64>,
     ) -> Self {
         VSourceBundle {
             name,
             branch,
             node0,
             node1,
-            value: value,
+            value,
+            ac_value,
         }
     }
 

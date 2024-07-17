@@ -77,6 +77,7 @@ fn test_newton() {
         None,
         Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
         0.7,
+        None,
     );
 
     let x = vec![0.6, 0.0];
@@ -117,6 +118,7 @@ fn test_newton2() {
         None,
         Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
         0.8,
+        None,
     );
 
     let x = vec![0.5, 0.0];

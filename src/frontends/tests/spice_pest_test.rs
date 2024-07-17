@@ -116,6 +116,7 @@ fn parse_vsource1() {
         None,
         Some(Variable::new(Arc::from("1"), Unit::Volt, 1)),
         10.0,
+        None,
     );
 
     assert_eq!(vsource, &expected1);
@@ -158,6 +159,7 @@ fn parse_vsource2() {
         None,
         Some(Variable::new(Arc::from("1"), Unit::Volt, 1)),
         10.0,
+        None,
     );
 
     let expected2 = VSourceBundle::new(
@@ -166,6 +168,7 @@ fn parse_vsource2() {
         None,
         Some(Variable::new(Arc::from("2"), Unit::Volt, 3)),
         20.0,
+        None,
     );
 
     assert_eq!(vsource1, &expected1);
@@ -210,6 +213,7 @@ fn parse_vr() {
         None,
         Some(Variable::new(Arc::from("1"), Unit::Volt, 1)),
         10.0,
+        None,
     );
     let expected2 = ResistorBundle::new(
         Arc::from("r1"),

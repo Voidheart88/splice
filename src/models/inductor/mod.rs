@@ -1,4 +1,6 @@
-use std::sync::Arc;
+use std::{f64::consts::PI, sync::Arc};
+
+use num::Complex;
 
 use crate::consts::DEFAULT_CONDUCTANCE;
 
@@ -68,6 +70,32 @@ impl InductorBundle {
             (node1_idx, node1_idx, DEFAULT_CONDUCTANCE),
             (node0_idx, node1_idx, DEFAULT_CONDUCTANCE),
             (node1_idx, node0_idx, DEFAULT_CONDUCTANCE),
+        ])
+    }
+
+    /// Returns the triples representing the inductor's contribution to matrix A.
+    pub fn ac_triples(&self, freq: f64) -> ComplexTriples {
+        let node0_idx = if let Some(node) = &self.node0 {
+            node.idx()
+        } else {
+            return ComplexTriples::Single((
+                self.node1.as_ref().unwrap().idx(),
+                self.node1.as_ref().unwrap().idx(),
+                Complex{re: 0.0 ,im:1.0/(2.0*PI*freq*self.value)},
+            ));
+        };
+
+        let node1_idx = if let Some(node) = &self.node1 {
+            node.idx()
+        } else {
+            return ComplexTriples::Single((node0_idx, node0_idx, Complex{re: 0.0 ,im:1.0/(2.0*PI*freq*self.value)}));
+        };
+
+        ComplexTriples::Quad([
+            (node0_idx, node0_idx, Complex{re: 0.0 ,im:1.0/(2.0*PI*freq*self.value)}),
+            (node1_idx, node1_idx, Complex{re: 0.0 ,im:1.0/(2.0*PI*freq*self.value)}),
+            (node0_idx, node1_idx, - Complex{re: 0.0 ,im:1.0/(2.0*PI*freq*self.value)}),
+            (node1_idx, node0_idx, - Complex{re: 0.0 ,im:1.0/(2.0*PI*freq*self.value)}),
         ])
     }
 }

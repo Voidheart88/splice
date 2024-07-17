@@ -11,7 +11,7 @@ use rayon::prelude::*;
 use thiserror::Error;
 
 use crate::consts::{DIO_GUESS, MAXITER, VECTOL};
-use crate::models::{Element, Pairs, Triples, Variable};
+use crate::models::{ComplexPairs, ComplexTriples, Element, Pairs, Triples, Variable};
 use crate::solver::{Solver, SolverError};
 use crate::Simulation;
 use commands::{ACMode, SimulationCommand};
@@ -241,6 +241,11 @@ impl<BE: Solver> Simulator<BE> {
                     .collect()
             }
         };
+
+        for freq in freqs {
+            let _a_mat = self.build_ac_a_mat(freq)?;
+            let _b_vec = self.build_ac_b_vec(freq)?;
+        }
 
         Err(SimulatorError::Unimplemented)
     }
@@ -546,6 +551,50 @@ impl<BE: Solver> Simulator<BE> {
             .par_iter()
             .zip(x_new.par_iter())
             .all(|(&old, &new)| (old - new).abs() < tolerance)
+    }
+
+    /// Builds a ac matrix 'A' from the elements.
+    ///
+    /// This method iterates over the elements and collects their ac triples.
+    /// If any elements provide ac triples, they are summed together.
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(Triples)` - The combined ac triples.
+    /// * `Err(SimulatorError::ConstantMatrixEmpty)` - If no ac triples are found.
+    fn build_ac_a_mat(&self,freq:f64) -> Result<ComplexTriples, SimulatorError> {
+        let a_mat = self
+            .elements
+            .par_iter()
+            .filter_map(|ele| ele.get_ac_triples(freq))
+            .reduce(|| ComplexTriples::Empty, |acc, ele| acc + ele);
+        if a_mat == ComplexTriples::Empty {
+            Err(SimulatorError::ConstantMatrixEmpty)
+        } else {
+            Ok(a_mat)
+        }
+    }
+
+    /// Builds a ac vector 'b' from the elements.
+    ///
+    /// This method iterates over the elements and collects their ac pairs.
+    /// If any elements provide ac pairs, they are summed together.
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(pairs)` - The combined ac pairs.
+    /// * `Err(SimulatorError::ConstantVectorEmpty)` - If no ac pairs are found.
+    fn build_ac_b_vec(&self,freq:f64) -> Result<ComplexPairs, SimulatorError> {
+        let b_vec = self
+            .elements
+            .par_iter()
+            .filter_map(|ele| ele.get_ac_pairs(freq))
+            .reduce(|| ComplexPairs::Empty, |acc, ele| acc + ele);
+        if b_vec == ComplexPairs::Empty {
+            Err(SimulatorError::ConstantVectorEmpty)
+        } else {
+            Ok(b_vec)
+        }
     }
 }
 

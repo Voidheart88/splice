@@ -1,4 +1,4 @@
-use std::{fs::File, io::Read, sync::Arc};
+use std::{collections::HashMap, fs::File, io::Read, sync::Arc};
 
 use pest::{iterators::Pair, Parser};
 use pest_derive::Parser;
@@ -8,7 +8,7 @@ use crate::{
     Frontend, FrontendError, Simulation,
 };
 
-use super::{Element, Variable};
+use super::{Element, Unit, Variable};
 
 #[derive(Parser)]
 #[grammar = "frontends/pest/spice.pest"]
@@ -32,11 +32,12 @@ impl Frontend for SpicePestFrontend {
         let mut variables = Vec::new();
         let mut elements = Vec::new();
         let mut commands = Vec::new();
+        let mut ele_map =  HashMap::new();
 
         for pair in parse_result.into_inner() {
             match pair.as_rule() {
                 Rule::DIRECTIVE => {
-                    self.process_directive(pair, &mut variables, &mut elements, &mut commands)
+                    self.process_directive(pair, &mut variables, &mut elements, &mut commands, &mut ele_map)
                 }
                 _ => {}
             }
@@ -61,10 +62,11 @@ impl SpicePestFrontend {
         variables: &mut Vec<Variable>,
         elements: &mut Vec<Element>,
         commands: &mut Vec<SimulationCommand>,
+        ele_map: &mut HashMap<Arc<str>,usize>,
     ) {
         for inner in directive.into_inner() {
             match inner.as_rule() {
-                Rule::ELE => self.process_element(inner, variables, elements),
+                Rule::ELE => self.process_element(inner, variables, elements,ele_map),
                 Rule::COMMAND => self.process_command(inner, commands),
                 _ => {}
             }
@@ -118,14 +120,15 @@ impl SpicePestFrontend {
         element: Pair<Rule>,
         variables: &mut Vec<Variable>,
         elements: &mut Vec<Element>,
+        ele_map: &mut HashMap<Arc<str>,usize>,
     ) {
         let element = element.into_inner().nth(0).unwrap();
         match element.as_rule() {
-            Rule::ELE_VSOURCE => self.process_vsource(element, variables, elements),
-            Rule::ELE_RESISTOR => self.process_resistor(element, variables, elements),
-            Rule::ELE_CAPACITOR => self.process_capacitor(element, variables, elements),
-            Rule::ELE_INDUCTOR => self.process_inductor(element, variables, elements),
-            Rule::ELE_DIODE => self.process_diode(element, variables, elements),
+            Rule::ELE_VSOURCE => self.process_vsource(element, variables, elements, ele_map),
+            Rule::ELE_RESISTOR => self.process_resistor(element, variables, elements, ele_map),
+            Rule::ELE_CAPACITOR => self.process_capacitor(element, variables, elements, ele_map),
+            Rule::ELE_INDUCTOR => self.process_inductor(element, variables, elements, ele_map),
+            Rule::ELE_DIODE => self.process_diode(element, variables, elements, ele_map),
             _ => {}
         }
     }
@@ -135,6 +138,7 @@ impl SpicePestFrontend {
         element: Pair<Rule>,
         variables: &mut Vec<Variable>,
         elements: &mut Vec<Element>,
+        ele_map: &mut HashMap<Arc<str>,usize>,
     ) {
         todo!()
     }
@@ -144,6 +148,7 @@ impl SpicePestFrontend {
         element: Pair<Rule>,
         variables: &mut Vec<Variable>,
         elements: &mut Vec<Element>,
+        ele_map: &mut HashMap<Arc<str>,usize>,
     ) {
         todo!()
     }
@@ -153,6 +158,7 @@ impl SpicePestFrontend {
         element: Pair<Rule>,
         variables: &mut Vec<Variable>,
         elements: &mut Vec<Element>,
+        ele_map: &mut HashMap<Arc<str>,usize>,
     ) {
         todo!()
     }
@@ -162,6 +168,7 @@ impl SpicePestFrontend {
         element: Pair<Rule>,
         variables: &mut Vec<Variable>,
         elements: &mut Vec<Element>,
+        ele_map: &mut HashMap<Arc<str>,usize>,
     ) {
         todo!()
     }
@@ -171,8 +178,32 @@ impl SpicePestFrontend {
         element: Pair<Rule>,
         variables: &mut Vec<Variable>,
         elements: &mut Vec<Element>,
+        ele_map: &mut HashMap<Arc<str>,usize>,
     ) {
         todo!()
+    }
+
+    fn add_variable(
+        inp: &str,
+        unit: Unit,
+        variables: &mut Vec<Variable>,
+        var_map: &mut HashMap<Arc<str>, usize>,
+    ) -> Option<Variable> {
+        if inp == "0" {
+            return None;
+        }
+
+        let inp_arc = Arc::from(inp);
+
+        if let Some(&index) = var_map.get(&inp_arc) {
+            return Some(variables[index].clone());
+        }
+
+        let new_variable = Variable::new(inp_arc.clone(), unit, variables.len());
+        var_map.insert(inp_arc, variables.len());
+        variables.push(new_variable.clone());
+
+        Some(new_variable)
     }
 }
 

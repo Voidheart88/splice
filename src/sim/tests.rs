@@ -47,6 +47,7 @@ fn create_mock_elements(vars: &Vec<Variable>) -> Vec<Element> {
         None,
         Some(vars[1].clone()),
         10.0,
+        None,
     ));
 
     vec![res, vol]
@@ -59,6 +60,7 @@ fn create_mock_elements2(vars: &Vec<Variable>) -> Vec<Element> {
         None,
         Some(vars[1].clone()),
         10.0,
+        None,
     ));
 
     let res1 = Element::Resistor(ResistorBundle::new(
@@ -84,6 +86,7 @@ fn create_mock_elements3() -> Vec<Element> {
         None,
         Some(Variable::new(Arc::from("1"), Unit::Volt, 1)),
         10.0,
+        None,
     ));
 
     let vol2 = Element::VSource(VSourceBundle::new(
@@ -92,6 +95,7 @@ fn create_mock_elements3() -> Vec<Element> {
         None,
         Some(Variable::new(Arc::from("3"), Unit::Volt, 3)),
         10.0,
+        None,
     ));
 
     let res1 = Element::Resistor(ResistorBundle::new(

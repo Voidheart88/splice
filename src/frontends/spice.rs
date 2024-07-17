@@ -200,12 +200,19 @@ impl SpiceFrontend {
             }
         };
 
+        let ac_value = if token.len() >= 5 {
+            Some(token[4].parse()?)
+        } else {
+            None
+        };
+
         Ok(Element::VSource(VSourceBundle::new(
             name,
             branch.unwrap(),
             node0,
             node1,
             value,
+            ac_value,
         )))
     }
 

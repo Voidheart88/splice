@@ -12,6 +12,7 @@ fn test_new_vsource_bundle() {
         Some(create_variable("Node0", Unit::Volt, 1)),
         Some(create_variable("Node1", Unit::Volt, 2)),
         5.0,
+        None,
     );
 
     assert_eq!(*vsource_bundle.name(), *"VSourceBundle1");
@@ -28,6 +29,7 @@ fn test_name() {
         Some(create_variable("Node0", Unit::Volt, 1)),
         Some(create_variable("Node1", Unit::Volt, 2)),
         0.0,
+        None,
     );
 
     assert_eq!(*vsource_bundle.name(), *"VSourceBundle2");
@@ -41,6 +43,7 @@ fn test_triples() {
         Some(create_variable("Node0", Unit::Volt, 1)),
         Some(create_variable("Node1", Unit::Volt, 2)),
         10.0,
+        None,
     );
 
     assert_eq!(vsource_bundle.triples().len(), 4);
@@ -54,6 +57,7 @@ fn test_pairs() {
         Some(create_variable("Node0", Unit::Volt, 1)),
         Some(create_variable("Node1", Unit::Volt, 2)),
         0.0,
+        None,
     );
 
     assert_eq!(vsource_bundle.pairs().len(), 1);
