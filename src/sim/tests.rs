@@ -273,7 +273,7 @@ fn test_run_simulation3() {
 
     let var = res[4].clone();
     let exp: (&str, f64) = ("3", 6.6666666666666666);
-    assert_eq!(*var.0.name(),* exp.0);
+    assert_eq!(*var.0.name(), *exp.0);
     assert!(relative_eq!(var.1, exp.1, epsilon = f64::EPSILON));
 }
 

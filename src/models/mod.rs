@@ -14,6 +14,7 @@ use std::sync::Arc;
 use derive_more::{Deref, DerefMut};
 
 pub(crate) use self::capacitor::CapacitorBundle;
+#[cfg(test)]
 pub(crate) use self::complex_triples::ComplexTriples;
 pub(crate) use self::diode::DiodeBundle;
 pub(crate) use self::inductor::InductorBundle;

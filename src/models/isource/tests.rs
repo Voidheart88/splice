@@ -47,8 +47,8 @@ fn test_pairs_with_both_nodes() {
         Pairs::Double(v) => v,
         Pairs::Vec(_) => todo!(),
     };
-    assert_eq!(pairs[0],(0,-5.0));
-    assert_eq!(pairs[1],(0,0.0));
+    assert_eq!(pairs[0], (0, -5.0));
+    assert_eq!(pairs[1], (0, 0.0));
 }
 
 #[test]
@@ -66,12 +66,7 @@ fn test_pairs_with_one_node() {
 
 #[test]
 fn test_pairs_with_no_nodes() {
-    let isource_bundle = ISourceBundle::new(
-        Arc::from("ISourceBundle"),
-        None,
-        None,
-        5.0,
-    );
+    let isource_bundle = ISourceBundle::new(Arc::from("ISourceBundle"), None, None, 5.0);
 
     let pairs = isource_bundle.pairs();
     assert_eq!(pairs.len(), 0);

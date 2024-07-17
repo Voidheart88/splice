@@ -1,4 +1,4 @@
-use std::{collections::HashSet, fs::File, io::Read, path::Path, sync::Arc};
+use std::{collections::{HashMap, HashSet}, fs::File, io::Read, path::Path, sync::Arc};
 
 use itertools::Itertools;
 use log::trace;
@@ -37,21 +37,23 @@ impl Frontend for SpiceFrontend {
         let preprocessed = self.preprocess(circuit_string, current_path)?;
 
         let mut variables = Vec::new();
+        let mut var_map = HashMap::new();
         let mut commands = Vec::new();
         let mut elements = Vec::new();
 
         trace!("Process lines");
+
         for line in preprocessed.lines() {
             match line.trim().chars().next() {
                 Some('.') => commands.push(self.process_command(line)?),
                 Some(ch) => {
                     let element = match ch {
-                        'r' => self.process_resistor(line, &mut variables)?,
-                        'c' => self.process_capacitor(line, &mut variables)?,
-                        'l' => self.process_inductor(line, &mut variables)?,
-                        'd' => self.process_diode(line, &mut variables)?,
-                        'v' => self.process_vsource(line, &mut variables)?,
-                        'i' => self.process_isource(line, &mut variables)?,
+                        'r' => self.process_resistor(line, &mut variables, &mut var_map)?,
+                        'c' => self.process_capacitor(line, &mut variables, &mut var_map)?,
+                        'l' => self.process_inductor(line, &mut variables, &mut var_map)?,
+                        'd' => self.process_diode(line, &mut variables, &mut var_map)?,
+                        'v' => self.process_vsource(line, &mut variables, &mut var_map)?,
+                        'i' => self.process_isource(line, &mut variables, &mut var_map)?,
                         _ => continue,
                     };
                     elements.push(element);
@@ -83,19 +85,6 @@ impl SpiceFrontend {
         SpiceFrontend { pth }
     }
 
-    /// Preprocesses the input string.
-    ///
-    /// This method removes unnecessary characters, concatenates lines that start with '+',
-    /// and processes `.include` directives to include external files.
-    ///
-    /// # Arguments
-    ///
-    /// * `input` - The input string to be preprocessed.
-    ///
-    /// # Returns
-    ///
-    /// The preprocessed string.
-    ///
     fn preprocess(&self, input: String, current_path: &Path) -> Result<String, FrontendError> {
         let mut result = String::new();
         let mut lines = input.lines();
@@ -140,25 +129,6 @@ impl SpiceFrontend {
         Ok(content)
     }
 
-    /// Processes a line of input to determine the simulation command.
-    ///
-    /// The function checks the input string for specific keywords (".op", ".dc", ".ac", ".tran")
-    /// and returns the corresponding `SimulationCommand`. If no keyword is found, it defaults to ".op".
-    ///
-    /// # Arguments
-    ///
-    /// * `input` - A reference to the input string.
-    ///
-    /// # Returns
-    ///
-    /// Returns a `SimulationCommand` enum representing the simulation command.
-    ///
-    /// Possible Commands:
-    /// .op
-    /// .dc srcnam vstart vstop vincr [src2 start2 stop2 incr2]
-    ///
-    /// Example:
-    /// .dc v1 0 1 0.1
     fn process_command(&self, input: &str) -> Result<SimulationCommand, FrontendError> {
         let tokens: Vec<&str> = input.split_whitespace().collect();
 
@@ -188,14 +158,15 @@ impl SpiceFrontend {
         &self,
         input: &str,
         variables: &mut Vec<Variable>,
+        var_map: &mut HashMap<Arc<str>,usize>,
     ) -> Result<Element, FrontendError> {
         let token: Vec<&str> = input.split_whitespace().collect();
         let name = Arc::from(token[0]);
 
-        let branch = Self::add_variable(&format!("{name}#branch"), Unit::Ampere, variables);
+        let branch = Self::add_variable(&format!("{name}#branch"), Unit::Ampere, variables, var_map);
 
-        let node0 = Self::add_variable(token[1], Unit::Volt, variables);
-        let node1 = Self::add_variable(token[2], Unit::Volt, variables);
+        let node0 = Self::add_variable(token[1], Unit::Volt, variables, var_map);
+        let node1 = Self::add_variable(token[2], Unit::Volt, variables, var_map);
 
         let value = match token[3].parse::<f64>() {
             Ok(v) => v,
@@ -219,11 +190,12 @@ impl SpiceFrontend {
         &self,
         input: &str,
         variables: &mut Vec<Variable>,
+        var_map: &mut HashMap<Arc<str>,usize>,
     ) -> Result<Element, FrontendError> {
         let token = input.split(" ").collect_vec();
         let name = Arc::from(token[0]);
-        let node0 = Self::add_variable(token[1], Unit::Volt, variables);
-        let node1 = Self::add_variable(token[2], Unit::Volt, variables);
+        let node0 = Self::add_variable(token[1], Unit::Volt, variables, var_map);
+        let node1 = Self::add_variable(token[2], Unit::Volt, variables, var_map);
         let value = match token[3].parse::<f64>() {
             Ok(v) => v,
             Err(_) => {
@@ -242,11 +214,12 @@ impl SpiceFrontend {
         &self,
         input: &str,
         variables: &mut Vec<Variable>,
+        var_map: &mut HashMap<Arc<str>,usize>,
     ) -> Result<Element, FrontendError> {
         let token = input.split(" ").collect_vec();
         let name = Arc::from(token[0]);
-        let node0 = Self::add_variable(token[1], Unit::Volt, variables);
-        let node1 = Self::add_variable(token[2], Unit::Volt, variables);
+        let node0 = Self::add_variable(token[1], Unit::Volt, variables, var_map);
+        let node1 = Self::add_variable(token[2], Unit::Volt, variables, var_map);
         let value = match token[3].parse::<f64>() {
             Ok(v) => v,
             Err(_) => {
@@ -265,11 +238,12 @@ impl SpiceFrontend {
         &self,
         input: &str,
         variables: &mut Vec<Variable>,
+        var_map: &mut HashMap<Arc<str>,usize>,
     ) -> Result<Element, FrontendError> {
         let token = input.split(" ").collect_vec();
         let name = Arc::from(token[0]);
-        let node0 = Self::add_variable(token[1], Unit::Volt, variables);
-        let node1 = Self::add_variable(token[2], Unit::Volt, variables);
+        let node0 = Self::add_variable(token[1], Unit::Volt, variables, var_map);
+        let node1 = Self::add_variable(token[2], Unit::Volt, variables, var_map);
         let value = match token[3].parse::<f64>() {
             Ok(v) => v,
             Err(_) => {
@@ -288,11 +262,12 @@ impl SpiceFrontend {
         &self,
         input: &str,
         variables: &mut Vec<Variable>,
+        var_map: &mut HashMap<Arc<str>,usize>,
     ) -> Result<Element, FrontendError> {
         let token = input.split(" ").collect_vec();
         let name = Arc::from(token[0]);
-        let node0 = Self::add_variable(token[1], Unit::Volt, variables);
-        let node1 = Self::add_variable(token[2], Unit::Volt, variables);
+        let node0 = Self::add_variable(token[1], Unit::Volt, variables, var_map);
+        let node1 = Self::add_variable(token[2], Unit::Volt, variables, var_map);
 
         Ok(Element::Diode(DiodeBundle::new(name, node0, node1, None)))
     }
@@ -301,11 +276,12 @@ impl SpiceFrontend {
         &self,
         input: &str,
         variables: &mut Vec<Variable>,
+        var_map: &mut HashMap<Arc<str>,usize>,
     ) -> Result<Element, FrontendError> {
         let token = input.split_whitespace().collect_vec();
         let name = Arc::from(token[0]);
-        let node0 = Self::add_variable(token[1], Unit::Volt, variables);
-        let node1 = Self::add_variable(token[2], Unit::Volt, variables);
+        let node0 = Self::add_variable(token[1], Unit::Volt, variables, var_map);
+        let node1 = Self::add_variable(token[2], Unit::Volt, variables, var_map);
         let value = match token[3].parse::<f64>() {
             Ok(v) => v,
             Err(_) => {
@@ -320,20 +296,19 @@ impl SpiceFrontend {
         )))
     }
 
-    fn add_variable(inp: &str, unit: Unit, variables: &mut Vec<Variable>) -> Option<Variable> {
+    fn add_variable(inp: &str, unit: Unit, variables: &mut Vec<Variable>, var_map: &mut HashMap<Arc<str>,usize>) -> Option<Variable> {
         if inp == "0" {
             return None;
         }
 
-        let inp_rc = Arc::from(inp.to_string()); // Umwandlung von &str in Rc<String>
+        let inp_arc = Arc::from(inp);
 
-        for variable in variables.iter() {
-            if variable.name() == inp_rc {
-                return Some(variable.clone());
-            }
+        if let Some(&index) = var_map.get(&inp_arc) {
+            return Some(variables[index].clone());
         }
 
-        let new_variable = Variable::new(inp_rc.clone(), unit, variables.len());
+        let new_variable = Variable::new(inp_arc.clone(), unit, variables.len());
+        var_map.insert(inp_arc,variables.len());
         variables.push(new_variable.clone());
 
         Some(new_variable)
