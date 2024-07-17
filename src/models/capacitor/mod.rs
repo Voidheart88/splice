@@ -88,25 +88,68 @@ impl CapacitorBundle {
     }
 
     /// Returns a reference to the triples representing matrix A.
-    pub fn ac_triples(&self,freq: f64) -> ComplexTriples {
+    pub fn ac_triples(&self, freq: f64) -> ComplexTriples {
         let node0_idx = if let Some(idx) = self.node0_idx() {
             idx
         } else {
             return ComplexTriples::Single(
-                (self.node1_idx().unwrap(), self.node1_idx().unwrap(), Complex{ re: 0.0, im: - 2.0*PI*freq*self.value}).into(),
+                (
+                    self.node1_idx().unwrap(),
+                    self.node1_idx().unwrap(),
+                    Complex {
+                        re: 0.0,
+                        im: -2.0 * PI * freq * self.value,
+                    },
+                )
+                    .into(),
             );
         };
         let node1_idx = if let Some(idx) = self.node1_idx() {
             idx
         } else {
-            return ComplexTriples::Single((node0_idx, node0_idx, Complex{ re: 0.0, im: - 2.0*PI*freq*self.value}));
+            return ComplexTriples::Single((
+                node0_idx,
+                node0_idx,
+                Complex {
+                    re: 0.0,
+                    im: -2.0 * PI * freq * self.value,
+                },
+            ));
         };
 
         ComplexTriples::Quad([
-            (node0_idx, node0_idx, Complex{ re: 0.0, im: - 2.0*PI*freq*self.value}),
-            (node1_idx, node1_idx, Complex{ re: 0.0, im: - 2.0*PI*freq*self.value}),
-            (node0_idx, node1_idx, - Complex{ re: 0.0, im: - 2.0*PI*freq*self.value}),
-            (node1_idx, node0_idx, - Complex{ re: 0.0, im: - 2.0*PI*freq*self.value}),
+            (
+                node0_idx,
+                node0_idx,
+                Complex {
+                    re: 0.0,
+                    im: -2.0 * PI * freq * self.value,
+                },
+            ),
+            (
+                node1_idx,
+                node1_idx,
+                Complex {
+                    re: 0.0,
+                    im: -2.0 * PI * freq * self.value,
+                },
+            ),
+            (
+                node0_idx,
+                node1_idx,
+                -Complex {
+                    re: 0.0,
+                    im: -2.0 * PI * freq * self.value,
+                },
+            ),
+            (
+                node1_idx,
+                node0_idx,
+                -Complex {
+                    re: 0.0,
+                    im: -2.0 * PI * freq * self.value,
+                },
+            ),
         ])
     }
 }

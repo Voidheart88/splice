@@ -562,7 +562,7 @@ impl<BE: Solver> Simulator<BE> {
     ///
     /// * `Ok(Triples)` - The combined ac triples.
     /// * `Err(SimulatorError::ConstantMatrixEmpty)` - If no ac triples are found.
-    fn build_ac_a_mat(&self,freq:f64) -> Result<ComplexTriples, SimulatorError> {
+    fn build_ac_a_mat(&self, freq: f64) -> Result<ComplexTriples, SimulatorError> {
         let a_mat = self
             .elements
             .par_iter()
@@ -584,7 +584,7 @@ impl<BE: Solver> Simulator<BE> {
     ///
     /// * `Ok(pairs)` - The combined ac pairs.
     /// * `Err(SimulatorError::ConstantVectorEmpty)` - If no ac pairs are found.
-    fn build_ac_b_vec(&self,freq:f64) -> Result<ComplexPairs, SimulatorError> {
+    fn build_ac_b_vec(&self, freq: f64) -> Result<ComplexPairs, SimulatorError> {
         let b_vec = self
             .elements
             .par_iter()

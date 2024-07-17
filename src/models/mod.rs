@@ -1,4 +1,6 @@
 mod capacitor;
+mod complex_pairs;
+mod complex_triples;
 mod diode;
 mod inductor;
 mod isource;
@@ -6,13 +8,13 @@ mod pairs;
 mod resistor;
 mod triples;
 mod vsource;
-mod complex_pairs;
-mod complex_triples;
 
 use core::fmt::Display;
 use std::sync::Arc;
 
 pub(crate) use self::capacitor::CapacitorBundle;
+pub(crate) use self::complex_pairs::ComplexPairs;
+pub(crate) use self::complex_triples::ComplexTriples;
 pub(crate) use self::diode::DiodeBundle;
 pub(crate) use self::inductor::InductorBundle;
 pub(crate) use self::isource::ISourceBundle;
@@ -20,8 +22,6 @@ pub(crate) use self::pairs::Pairs; //Fixme: Find a better word for this
 pub(crate) use self::resistor::ResistorBundle;
 pub(crate) use self::triples::Triples;
 pub(crate) use self::vsource::VSourceBundle;
-pub(crate) use self::complex_triples::ComplexTriples;
-pub(crate) use self::complex_pairs::ComplexPairs;
 
 /// An Enum representing the Unit of the Value - Nessecary for
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]

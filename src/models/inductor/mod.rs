@@ -81,21 +81,59 @@ impl InductorBundle {
             return ComplexTriples::Single((
                 self.node1.as_ref().unwrap().idx(),
                 self.node1.as_ref().unwrap().idx(),
-                Complex{re: 0.0 ,im:1.0/(2.0*PI*freq*self.value)},
+                Complex {
+                    re: 0.0,
+                    im: 1.0 / (2.0 * PI * freq * self.value),
+                },
             ));
         };
 
         let node1_idx = if let Some(node) = &self.node1 {
             node.idx()
         } else {
-            return ComplexTriples::Single((node0_idx, node0_idx, Complex{re: 0.0 ,im:1.0/(2.0*PI*freq*self.value)}));
+            return ComplexTriples::Single((
+                node0_idx,
+                node0_idx,
+                Complex {
+                    re: 0.0,
+                    im: 1.0 / (2.0 * PI * freq * self.value),
+                },
+            ));
         };
 
         ComplexTriples::Quad([
-            (node0_idx, node0_idx, Complex{re: 0.0 ,im:1.0/(2.0*PI*freq*self.value)}),
-            (node1_idx, node1_idx, Complex{re: 0.0 ,im:1.0/(2.0*PI*freq*self.value)}),
-            (node0_idx, node1_idx, - Complex{re: 0.0 ,im:1.0/(2.0*PI*freq*self.value)}),
-            (node1_idx, node0_idx, - Complex{re: 0.0 ,im:1.0/(2.0*PI*freq*self.value)}),
+            (
+                node0_idx,
+                node0_idx,
+                Complex {
+                    re: 0.0,
+                    im: 1.0 / (2.0 * PI * freq * self.value),
+                },
+            ),
+            (
+                node1_idx,
+                node1_idx,
+                Complex {
+                    re: 0.0,
+                    im: 1.0 / (2.0 * PI * freq * self.value),
+                },
+            ),
+            (
+                node0_idx,
+                node1_idx,
+                -Complex {
+                    re: 0.0,
+                    im: 1.0 / (2.0 * PI * freq * self.value),
+                },
+            ),
+            (
+                node1_idx,
+                node0_idx,
+                -Complex {
+                    re: 0.0,
+                    im: 1.0 / (2.0 * PI * freq * self.value),
+                },
+            ),
         ])
     }
 }

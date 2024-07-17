@@ -274,27 +274,60 @@ fn test_cplx_len() {
 
 #[test]
 fn test_cplx_pairs_addition_no_overlap() {
-    let pairs1 = ComplexPairs::from(vec![(1, Complex{re:0.0 ,im:1.0}), (2, Complex{re:0.0 ,im:2.0})]);
-    let pairs2 = ComplexPairs::from(vec![(3, Complex{re:0.0 ,im:3.0}), (4, Complex{re:0.0 ,im:4.0})]);
-    let expected = ComplexPairs::from(vec![(1, Complex{re:0.0 ,im:1.0}), (2, Complex{re:0.0 ,im:2.0}), (3, Complex{re:0.0 ,im:3.0}), (4, Complex{re:0.0 ,im:4.0})]);
+    let pairs1 = ComplexPairs::from(vec![
+        (1, Complex { re: 0.0, im: 1.0 }),
+        (2, Complex { re: 0.0, im: 2.0 }),
+    ]);
+    let pairs2 = ComplexPairs::from(vec![
+        (3, Complex { re: 0.0, im: 3.0 }),
+        (4, Complex { re: 0.0, im: 4.0 }),
+    ]);
+    let expected = ComplexPairs::from(vec![
+        (1, Complex { re: 0.0, im: 1.0 }),
+        (2, Complex { re: 0.0, im: 2.0 }),
+        (3, Complex { re: 0.0, im: 3.0 }),
+        (4, Complex { re: 0.0, im: 4.0 }),
+    ]);
 
     assert_eq!(pairs1 + pairs2, expected);
 }
 
 #[test]
 fn test_cplx_pairs_addition_with_overlap() {
-    let pairs1 = ComplexPairs::from(vec![(1, Complex{re:1.0,im:0.0}), (2, Complex{re:2.0,im:0.0})]);
-    let pairs2 = ComplexPairs::from(vec![(1, Complex{re:3.0,im:0.0}), (2, Complex{re:4.0,im:0.0})]);
-    let expected = ComplexPairs::from(vec![(1, Complex{re:4.0,im:0.0}), (2, Complex{re:6.0,im:0.0})]);
+    let pairs1 = ComplexPairs::from(vec![
+        (1, Complex { re: 1.0, im: 0.0 }),
+        (2, Complex { re: 2.0, im: 0.0 }),
+    ]);
+    let pairs2 = ComplexPairs::from(vec![
+        (1, Complex { re: 3.0, im: 0.0 }),
+        (2, Complex { re: 4.0, im: 0.0 }),
+    ]);
+    let expected = ComplexPairs::from(vec![
+        (1, Complex { re: 4.0, im: 0.0 }),
+        (2, Complex { re: 6.0, im: 0.0 }),
+    ]);
 
     assert_eq!(pairs1 + pairs2, expected);
 }
 
 #[test]
 fn test_cplx_pairs_addition_mixed() {
-    let pairs1 = ComplexPairs::from(vec![(1, Complex{re:1.0,im:0.0}), (2, Complex{re:2.0,im:0.0}), (3, Complex{re:3.0,im:0.0})]);
-    let pairs2 = ComplexPairs::from(vec![(1, Complex{re:3.0,im:0.0}), (4, Complex{re:4.0,im:0.0}), (3, Complex{re:3.0,im:0.0})]);
-    let expected = ComplexPairs::from(vec![(1, Complex{re:4.0,im:0.0}), (2, Complex{re:2.0,im:0.0}), (3, Complex{re:6.0,im:0.0}), (4, Complex{re:4.0,im:0.0})]);
+    let pairs1 = ComplexPairs::from(vec![
+        (1, Complex { re: 1.0, im: 0.0 }),
+        (2, Complex { re: 2.0, im: 0.0 }),
+        (3, Complex { re: 3.0, im: 0.0 }),
+    ]);
+    let pairs2 = ComplexPairs::from(vec![
+        (1, Complex { re: 3.0, im: 0.0 }),
+        (4, Complex { re: 4.0, im: 0.0 }),
+        (3, Complex { re: 3.0, im: 0.0 }),
+    ]);
+    let expected = ComplexPairs::from(vec![
+        (1, Complex { re: 4.0, im: 0.0 }),
+        (2, Complex { re: 2.0, im: 0.0 }),
+        (3, Complex { re: 6.0, im: 0.0 }),
+        (4, Complex { re: 4.0, im: 0.0 }),
+    ]);
 
     assert_eq!(pairs1 + pairs2, expected);
 }
@@ -302,14 +335,26 @@ fn test_cplx_pairs_addition_mixed() {
 #[test]
 fn test_cplx_pairs_addition_empty() {
     let pairs1 = ComplexPairs::Empty;
-    let pairs2 = ComplexPairs::from(vec![(1, Complex{re:1.0,im:0.0}), (2, Complex{re:2.0,im:0.0})]);
-    let expected = ComplexPairs::from(vec![(1, Complex{re:1.0,im:0.0}), (2, Complex{re:2.0,im:0.0})]);
+    let pairs2 = ComplexPairs::from(vec![
+        (1, Complex { re: 1.0, im: 0.0 }),
+        (2, Complex { re: 2.0, im: 0.0 }),
+    ]);
+    let expected = ComplexPairs::from(vec![
+        (1, Complex { re: 1.0, im: 0.0 }),
+        (2, Complex { re: 2.0, im: 0.0 }),
+    ]);
 
     assert_eq!(pairs1 + pairs2, expected);
 
-    let pairs1 = ComplexPairs::from(vec![(1, Complex{re:1.0,im:0.0}), (2, Complex{re:2.0,im:0.0})]);
+    let pairs1 = ComplexPairs::from(vec![
+        (1, Complex { re: 1.0, im: 0.0 }),
+        (2, Complex { re: 2.0, im: 0.0 }),
+    ]);
     let pairs2 = ComplexPairs::Empty;
-    let expected = ComplexPairs::from(vec![(1, Complex{re:1.0,im:0.0}), (2, Complex{re:2.0,im:0.0})]);
+    let expected = ComplexPairs::from(vec![
+        (1, Complex { re: 1.0, im: 0.0 }),
+        (2, Complex { re: 2.0, im: 0.0 }),
+    ]);
 
     assert_eq!(pairs1 + pairs2, expected);
 }

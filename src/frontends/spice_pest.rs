@@ -8,7 +8,7 @@ use crate::{
     Frontend, FrontendError, Simulation,
 };
 
-use super::{Element, Unit, Variable};
+use super::{Element, Unit, VSourceBundle, Variable};
 
 #[derive(Parser)]
 #[grammar = "frontends/pest/spice.pest"]
@@ -133,6 +133,8 @@ impl SpicePestFrontend {
         }
     }
 
+    /// Vsource
+    /// vx node0 node1 value 
     fn process_vsource(
         &self,
         element: Pair<Rule>,
@@ -140,7 +142,10 @@ impl SpicePestFrontend {
         elements: &mut Vec<Element>,
         ele_map: &mut HashMap<Arc<str>,usize>,
     ) {
+        let mut inner = element.into_inner();
         todo!()
+        //elements.push(Element::VSource());
+
     }
 
     fn process_resistor(
