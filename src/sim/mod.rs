@@ -204,7 +204,7 @@ impl<BE: Solver> Simulator<BE> {
     fn run_ac(&mut self,fstart:&f64,fend:&f64,steps:&usize,ac_option:&ACMode) -> Result<Sim, SimulatorError> {
         info!("Run ac analysis");
         info!("Find operating point");
-        let op = self.find_op()?;
+        self.find_op()?;
 
         //Calculate frequencies in the range from [fstart;fend]
         let freqs: Vec<f64> = match ac_option {
@@ -225,8 +225,6 @@ impl<BE: Solver> Simulator<BE> {
                 (0..=*steps).map(|i| 2f64.powf(oct_fstart + i as f64 * step_size)).collect()
             }
         };
-
-
 
         Err(SimulatorError::Unimplemented)
     }

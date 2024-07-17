@@ -1,0 +1,1 @@
+= Arbeitspunktanalyse (.op)
