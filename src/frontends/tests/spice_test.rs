@@ -470,3 +470,18 @@ fn parse_with_include() {
     assert_eq!(variables.len(), 1);
     assert_eq!(*variables[0].name(), String::from("1"));
 }
+
+#[test]
+fn parse_ac() {
+    let main_path = "src/frontends/tests/spice_files/parse_ac.cir";
+
+    let parser = SpiceFrontend::new(main_path.to_string());
+
+    let Simulation {
+        variables,
+        elements,
+        commands,
+    } = parser.simulation().unwrap();
+
+    todo!()
+}

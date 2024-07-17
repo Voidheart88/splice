@@ -67,6 +67,11 @@ impl From<std::num::ParseFloatError> for FrontendError {
     }
 }
 
+impl From<std::num::ParseIntError> for FrontendError {
+    fn from(error: std::num::ParseIntError) -> Self {
+        FrontendError::ParseCommandError(format!("{}", error))
+    }
+}
 pub struct SelectFrontend {}
 
 impl SelectFrontend {

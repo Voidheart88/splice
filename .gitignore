@@ -1,3 +1,6 @@
+*.svg
 Cargo.lock
 target
 heaptrack.*
+perf.data
+perf.data.old

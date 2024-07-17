@@ -1,9 +1,9 @@
-use std::{collections::{HashMap, HashSet}, fs::File, io::Read, path::Path, sync::Arc};
+use std::{collections::{HashMap, HashSet}, fmt::format, fs::File, io::Read, path::Path, sync::Arc};
 
 use itertools::Itertools;
 use log::trace;
 
-use crate::{sim::commands::SimulationCommand, FrontendError, Simulation};
+use crate::{sim::commands::{ACMode, SimulationCommand}, FrontendError, Simulation};
 
 use super::{
     CapacitorBundle, DiodeBundle, Element, Frontend, ISourceBundle, InductorBundle, ResistorBundle,
@@ -137,7 +137,7 @@ impl SpiceFrontend {
         } else if input.contains(".dc") {
             if tokens.len() < 5 {
                 return Err(FrontendError::ParseCommandError(
-                    "Not enough tokens to parse".into(),
+                    "Not enough tokens in DC command".into(),
                 ));
             }
             let srcnam = Arc::from(tokens[1]);
@@ -146,7 +146,20 @@ impl SpiceFrontend {
             let vincr = tokens[4].parse::<f64>()?;
             Ok(SimulationCommand::Dc(srcnam, vstart, vstop, vincr, None))
         } else if input.contains(".ac") {
-            Ok(SimulationCommand::Ac)
+            if tokens.len() < 3 {
+                return Err(FrontendError::ParseCommandError(
+                    "Not enough tokens in AC command".into(),
+                ));
+            }
+            let ac_mode = if tokens.len() > 4 {
+                tokens[4].try_into()?
+            } else {
+                ACMode::default()
+            };
+            let fstart = tokens[1].parse::<f64>()?;
+            let fstop = tokens[2].parse::<f64>()?;
+            let steps = tokens[3].parse::<usize>()?;
+            Ok(SimulationCommand::Ac(fstart,fstop,steps,ac_mode))
         } else if input.contains(".tran") {
             Ok(SimulationCommand::Tran)
         } else {
@@ -312,5 +325,18 @@ impl SpiceFrontend {
         variables.push(new_variable.clone());
 
         Some(new_variable)
+    }
+}
+
+impl TryFrom<&str> for ACMode {
+    type Error = FrontendError;
+
+    fn try_from(value: &str) -> Result<Self, FrontendError> {
+        match value.to_lowercase().as_str(){
+            "dec" => Ok(ACMode::Dec),
+            "lin" => Ok(ACMode::Lin),
+            "oct" => Ok(ACMode::Oct),
+            _ => Err(FrontendError::ParseError(value.into())),
+        }
     }
 }

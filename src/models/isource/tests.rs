@@ -48,7 +48,7 @@ fn test_pairs_with_both_nodes() {
         Pairs::Vec(_) => todo!(),
     };
     assert_eq!(pairs[0], (0, -5.0));
-    assert_eq!(pairs[1], (0, 0.0));
+    assert_eq!(pairs[1], (1, 5.0));
 }
 
 #[test]
