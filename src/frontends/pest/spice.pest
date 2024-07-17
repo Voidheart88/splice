@@ -1,0 +1,39 @@
+// Spice Grammar
+
+// This grammar defines the syntax of the Spice language.
+
+// A spice file is a series of spice directives separated by newlines
+// It begins with a SOI and ends with an EOI.
+// spice files are case insensitive
+SPICE = { SOI ~ NEWLINE* ~ (DIRECTIVE | COMMENT)* ~ NEWLINE* ~ WHITE_SPACE* ~ EOI }
+
+// A directive can be an Element or a command
+DIRECTIVE = { (ELE ~ NEWLINE*) | (COMMAND ~ NEWLINE*) }
+
+// A comment starts with a Asterisk followed by an Arbitrary number of Alphanumerics
+COMMENT = { "*" ~ ASCII_ALPHANUMERIC* ~ NEWLINE* }
+
+// An Element could be a VSource, a resistor, or a diode
+ELE = { ELE_VSOURCE | ELE_RESISTOR | ELE_DIODE | ELE_CAPACITOR | ELE_INDUCTOR}
+ELE_VSOURCE = { ^"v" ~ ASCII_ALPHANUMERIC* ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ (WHITE_SPACE+ ~ VALUE)? }
+ELE_RESISTOR = { ^"r" ~ ASCII_ALPHANUMERIC* ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ (WHITE_SPACE+ ~ VALUE)? }
+ELE_CAPACITOR = { ^"c" ~ ASCII_ALPHANUMERIC* ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ (WHITE_SPACE+ ~ VALUE)? }
+ELE_INDUCTOR = { ^"i" ~ ASCII_ALPHANUMERIC* ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ (WHITE_SPACE+ ~ VALUE)? }
+
+ELE_DIODE = { ^"d" ~ ASCII_ALPHANUMERIC* ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ (WHITE_SPACE+ ~ DIODE_MODEL? )? }
+DIODE_MODEL = { ^"d" ~ WHITE_SPACE* ~ (DIODE_PAR_BV)* }
+DIODE_PAR_BV = {^"bv" ~ WHITE_SPACE* ~ "=" ~ WHITE_SPACE* ~ VALUE}
+
+// A command can be OP, DC, AC, or Tran
+COMMAND = { CMD_OP | CMD_DC | CMD_AC | CMD_TRAN }
+
+CMD_OP = { ^".op" ~ WHITE_SPACE* }
+CMD_DC = { ^".dc" ~ WHITE_SPACE+ ~ ASCII_ALPHANUMERIC+ ~ WHITE_SPACE+ ~ VALUE ~ WHITE_SPACE+ ~ VALUE ~ WHITE_SPACE+ ~ VALUE }
+CMD_AC = { ^".ac" ~ WHITE_SPACE+ ~ VALUE ~ WHITE_SPACE+ ~ VALUE ~ WHITE_SPACE+ ~ VALUE ~ (WHITE_SPACE+ ~ AC_OPTION? )?}
+CMD_TRAN = { ^".tran" ~ WHITE_SPACE+ ~ VALUE ~ WHITE_SPACE+ ~ VALUE ~ WHITE_SPACE*}
+
+AC_OPTION = {^"lin" | ^"dec" | ^"oct"}
+// Definitions for common elements
+NODE = { ASCII_ALPHANUMERIC+ }
+VALUE = { ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? ~ (^"e" ~ ("+" | "-")? ~ ASCII_DIGIT+)? }
+

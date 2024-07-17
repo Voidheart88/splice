@@ -93,7 +93,9 @@ impl<BE: Solver> Simulator<BE> {
         let res = match comm {
             SimulationCommand::Op => self.run_op()?,
             SimulationCommand::Tran => self.run_tran()?,
-            SimulationCommand::Ac(fstart,fend,steps,options) => self.run_ac(fstart,fend,steps,options)?,
+            SimulationCommand::Ac(fstart, fend, steps, options) => {
+                self.run_ac(fstart, fend, steps, options)?
+            }
             SimulationCommand::Dc(vs, vstart, vstop, vstep, _) => {
                 self.run_dc(vs, vstart, vstop, vstep)?
             }
@@ -168,7 +170,9 @@ impl<BE: Solver> Simulator<BE> {
 
     /// Checks if the circuit contains any nonlinear elements.
     fn has_nonlinear_elements(&self) -> bool {
-        self.elements.par_iter().any(|element| element.is_nonlinear())
+        self.elements
+            .par_iter()
+            .any(|element| element.is_nonlinear())
     }
 
     /// Adds variable names to the solution vector.
@@ -201,7 +205,13 @@ impl<BE: Solver> Simulator<BE> {
     ///
     /// This method performs an AC analysis. It does not currently perform any calculations
     /// but returns `Err(SimulatorError::Unimplemented)` to indicate NYI.
-    fn run_ac(&mut self,fstart:&f64,fend:&f64,steps:&usize,ac_option:&ACMode) -> Result<Sim, SimulatorError> {
+    fn run_ac(
+        &mut self,
+        fstart: &f64,
+        fend: &f64,
+        steps: &usize,
+        ac_option: &ACMode,
+    ) -> Result<Sim, SimulatorError> {
         info!("Run ac analysis");
         info!("Find operating point");
         self.find_op()?;
@@ -210,19 +220,25 @@ impl<BE: Solver> Simulator<BE> {
         let freqs: Vec<f64> = match ac_option {
             ACMode::Lin => {
                 let step_size = (fend - fstart) / (*steps as f64);
-                (0..=*steps).map(|i| fstart + i as f64 * step_size).collect()
+                (0..=*steps)
+                    .map(|i| fstart + i as f64 * step_size)
+                    .collect()
             }
             ACMode::Dec => {
                 let log_fstart = fstart.log10();
                 let log_fend = fend.log10();
                 let step_size = (log_fend - log_fstart) / (*steps as f64);
-                (0..=*steps).map(|i| 10f64.powf(log_fstart + i as f64 * step_size)).collect()
+                (0..=*steps)
+                    .map(|i| 10f64.powf(log_fstart + i as f64 * step_size))
+                    .collect()
             }
             ACMode::Oct => {
                 let oct_fstart = fstart.log2();
                 let oct_fend = fend.log2();
                 let step_size = (oct_fend - oct_fstart) / (*steps as f64);
-                (0..=*steps).map(|i| 2f64.powf(oct_fstart + i as f64 * step_size)).collect()
+                (0..=*steps)
+                    .map(|i| 2f64.powf(oct_fstart + i as f64 * step_size))
+                    .collect()
             }
         };
 

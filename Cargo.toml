@@ -18,14 +18,17 @@ thiserror = "1.0.61"
 log = "0.4.21"
 simple_logger = "5.0.0"
 
-# Backends
+# Frontends/Backends
+pest_derive = "2.7.11"
+pest = "2.7.11"
+plotters = "0.3.6"
+num = "0.4.3"
+
+# Solver
 nalgebra = "0.33.0"
 rsparse = "1.0.0"
 faer = "0.19.1"
 
-# Outputs
-plotters = "0.3.6"
-num = "0.4.3"
 
 [dev-dependencies]
 criterion = { version = "0.5.1", features = ["html_reports"] }

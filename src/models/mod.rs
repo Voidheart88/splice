@@ -92,7 +92,7 @@ impl From<f64> for Value {
 }
 
 /// An enum representing different types of circuit elements.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Element {
     Capacitor(CapacitorBundle),
     Inductor(InductorBundle),

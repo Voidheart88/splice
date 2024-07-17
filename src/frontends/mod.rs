@@ -2,6 +2,7 @@ pub(crate) mod json;
 pub(crate) mod kicad;
 pub(crate) mod network;
 pub(crate) mod spice;
+pub(crate) mod spice_pest;
 pub(crate) mod yml;
 
 use std::io;
@@ -11,16 +12,18 @@ use miette::Diagnostic;
 use thiserror::Error;
 
 use crate::models::*;
-use crate::sim::commands::SimulationCommand;
+use crate::sim::commands::{ACMode, SimulationCommand};
 pub(crate) use json::JsonFrontend;
 pub(crate) use kicad::KicadFrontend;
 pub(crate) use network::NetworkFrontend;
 pub(crate) use spice::SpiceFrontend;
+pub(crate) use spice_pest::SpicePestFrontend;
 pub(crate) use yml::YmlFrontend;
 
 #[derive(Copy, Clone, ValueEnum, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Frontends {
     Spice,
+    SpicePest,
     Yml,
     Json,
     Network,
@@ -45,6 +48,10 @@ pub enum FrontendError {
     #[error("IO Error: {0}")]
     #[diagnostic(help("Check the path"))]
     IoError(String),
+
+    #[error("Parse Error \n{0}")]
+    #[diagnostic(help("Check Element"))]
+    PestError(String),
 
     #[error("Parse Error")]
     #[diagnostic(help("Check Element"))]
@@ -104,6 +111,19 @@ pub(crate) trait Frontend {
     /// a circuit.
     /// This Simulation consists of a vector with CircuitElements and a vector of commands
     fn simulation(&self) -> Result<Simulation, FrontendError>;
+}
+
+impl TryFrom<&str> for ACMode {
+    type Error = FrontendError;
+
+    fn try_from(value: &str) -> Result<Self, FrontendError> {
+        match value.to_lowercase().as_str() {
+            "dec" => Ok(ACMode::Dec),
+            "lin" => Ok(ACMode::Lin),
+            "oct" => Ok(ACMode::Oct),
+            _ => Err(FrontendError::ParseError(value.into())),
+        }
+    }
 }
 
 #[cfg(test)]

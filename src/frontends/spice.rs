@@ -1,9 +1,18 @@
-use std::{collections::{HashMap, HashSet}, fs::File, io::Read, path::Path, sync::Arc};
+use std::{
+    collections::{HashMap, HashSet},
+    fs::File,
+    io::Read,
+    path::Path,
+    sync::Arc,
+};
 
 use itertools::Itertools;
 use log::trace;
 
-use crate::{sim::commands::{ACMode, SimulationCommand}, FrontendError, Simulation};
+use crate::{
+    sim::commands::{ACMode, SimulationCommand},
+    FrontendError, Simulation,
+};
 
 use super::{
     CapacitorBundle, DiodeBundle, Element, Frontend, ISourceBundle, InductorBundle, ResistorBundle,
@@ -159,7 +168,7 @@ impl SpiceFrontend {
             let fstart = tokens[1].parse::<f64>()?;
             let fstop = tokens[2].parse::<f64>()?;
             let steps = tokens[3].parse::<usize>()?;
-            Ok(SimulationCommand::Ac(fstart,fstop,steps,ac_mode))
+            Ok(SimulationCommand::Ac(fstart, fstop, steps, ac_mode))
         } else if input.contains(".tran") {
             Ok(SimulationCommand::Tran)
         } else {
@@ -171,12 +180,13 @@ impl SpiceFrontend {
         &self,
         input: &str,
         variables: &mut Vec<Variable>,
-        var_map: &mut HashMap<Arc<str>,usize>,
+        var_map: &mut HashMap<Arc<str>, usize>,
     ) -> Result<Element, FrontendError> {
         let token: Vec<&str> = input.split_whitespace().collect();
         let name = Arc::from(token[0]);
 
-        let branch = Self::add_variable(&format!("{name}#branch"), Unit::Ampere, variables, var_map);
+        let branch =
+            Self::add_variable(&format!("{name}#branch"), Unit::Ampere, variables, var_map);
 
         let node0 = Self::add_variable(token[1], Unit::Volt, variables, var_map);
         let node1 = Self::add_variable(token[2], Unit::Volt, variables, var_map);
@@ -203,7 +213,7 @@ impl SpiceFrontend {
         &self,
         input: &str,
         variables: &mut Vec<Variable>,
-        var_map: &mut HashMap<Arc<str>,usize>,
+        var_map: &mut HashMap<Arc<str>, usize>,
     ) -> Result<Element, FrontendError> {
         let token = input.split(" ").collect_vec();
         let name = Arc::from(token[0]);
@@ -227,7 +237,7 @@ impl SpiceFrontend {
         &self,
         input: &str,
         variables: &mut Vec<Variable>,
-        var_map: &mut HashMap<Arc<str>,usize>,
+        var_map: &mut HashMap<Arc<str>, usize>,
     ) -> Result<Element, FrontendError> {
         let token = input.split(" ").collect_vec();
         let name = Arc::from(token[0]);
@@ -251,7 +261,7 @@ impl SpiceFrontend {
         &self,
         input: &str,
         variables: &mut Vec<Variable>,
-        var_map: &mut HashMap<Arc<str>,usize>,
+        var_map: &mut HashMap<Arc<str>, usize>,
     ) -> Result<Element, FrontendError> {
         let token = input.split(" ").collect_vec();
         let name = Arc::from(token[0]);
@@ -275,7 +285,7 @@ impl SpiceFrontend {
         &self,
         input: &str,
         variables: &mut Vec<Variable>,
-        var_map: &mut HashMap<Arc<str>,usize>,
+        var_map: &mut HashMap<Arc<str>, usize>,
     ) -> Result<Element, FrontendError> {
         let token = input.split(" ").collect_vec();
         let name = Arc::from(token[0]);
@@ -289,7 +299,7 @@ impl SpiceFrontend {
         &self,
         input: &str,
         variables: &mut Vec<Variable>,
-        var_map: &mut HashMap<Arc<str>,usize>,
+        var_map: &mut HashMap<Arc<str>, usize>,
     ) -> Result<Element, FrontendError> {
         let token = input.split_whitespace().collect_vec();
         let name = Arc::from(token[0]);
@@ -309,7 +319,12 @@ impl SpiceFrontend {
         )))
     }
 
-    fn add_variable(inp: &str, unit: Unit, variables: &mut Vec<Variable>, var_map: &mut HashMap<Arc<str>,usize>) -> Option<Variable> {
+    fn add_variable(
+        inp: &str,
+        unit: Unit,
+        variables: &mut Vec<Variable>,
+        var_map: &mut HashMap<Arc<str>, usize>,
+    ) -> Option<Variable> {
         if inp == "0" {
             return None;
         }
@@ -321,22 +336,9 @@ impl SpiceFrontend {
         }
 
         let new_variable = Variable::new(inp_arc.clone(), unit, variables.len());
-        var_map.insert(inp_arc,variables.len());
+        var_map.insert(inp_arc, variables.len());
         variables.push(new_variable.clone());
 
         Some(new_variable)
-    }
-}
-
-impl TryFrom<&str> for ACMode {
-    type Error = FrontendError;
-
-    fn try_from(value: &str) -> Result<Self, FrontendError> {
-        match value.to_lowercase().as_str(){
-            "dec" => Ok(ACMode::Dec),
-            "lin" => Ok(ACMode::Lin),
-            "oct" => Ok(ACMode::Oct),
-            _ => Err(FrontendError::ParseError(value.into())),
-        }
     }
 }

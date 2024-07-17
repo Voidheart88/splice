@@ -7,12 +7,12 @@ use crate::{
     Frontend, Simulation,
 };
 
-use super::super::spice::*;
+use super::super::spice_pest::*;
 
 #[test]
 fn parse_resistor1() {
     let parser =
-        SpiceFrontend::new("src/frontends/tests/spice_files/parse_resistor1.cir".to_string());
+        SpicePestFrontend::new("src/frontends/tests/spice_files/parse_resistor1.cir".to_string());
 
     let Simulation {
         variables,
@@ -45,7 +45,7 @@ fn parse_resistor1() {
 #[test]
 fn parse_resistor2() {
     let parser =
-        SpiceFrontend::new("src/frontends/tests/spice_files/parse_resistor2.cir".to_string());
+        SpicePestFrontend::new("src/frontends/tests/spice_files/parse_resistor2.cir".to_string());
 
     let Simulation {
         variables,
@@ -91,7 +91,7 @@ fn parse_resistor2() {
 #[test]
 fn parse_vsource1() {
     let parser =
-        SpiceFrontend::new("src/frontends/tests/spice_files/parse_vsource1.cir".to_string());
+        SpicePestFrontend::new("src/frontends/tests/spice_files/parse_vsource1.cir".to_string());
 
     let Simulation {
         variables,
@@ -125,7 +125,7 @@ fn parse_vsource1() {
 #[test]
 fn parse_vsource2() {
     let parser =
-        SpiceFrontend::new("src/frontends/tests/spice_files/parse_vsource2.cir".to_string());
+        SpicePestFrontend::new("src/frontends/tests/spice_files/parse_vsource2.cir".to_string());
 
     let Simulation {
         variables,
@@ -178,7 +178,7 @@ fn parse_vsource2() {
 
 #[test]
 fn parse_vr() {
-    let parser = SpiceFrontend::new("src/frontends/tests/spice_files/parse_vr.cir".to_string());
+    let parser = SpicePestFrontend::new("src/frontends/tests/spice_files/parse_vr.cir".to_string());
 
     let Simulation {
         variables,
@@ -227,7 +227,8 @@ fn parse_vr() {
 #[test]
 #[should_panic]
 fn parse_wrong1() {
-    let parser = SpiceFrontend::new("src/frontends/tests/spice_files/parse_wrong1.cir".to_string());
+    let parser =
+        SpicePestFrontend::new("src/frontends/tests/spice_files/parse_wrong1.cir".to_string());
     let Simulation {
         variables: _,
         elements,
@@ -239,7 +240,8 @@ fn parse_wrong1() {
 
 #[test]
 fn parse_diode1() {
-    let parser = SpiceFrontend::new("src/frontends/tests/spice_files/parse_diode1.cir".to_string());
+    let parser =
+        SpicePestFrontend::new("src/frontends/tests/spice_files/parse_diode1.cir".to_string());
 
     let Simulation {
         variables,
@@ -271,7 +273,8 @@ fn parse_diode1() {
 
 #[test]
 fn parse_diode2() {
-    let parser = SpiceFrontend::new("src/frontends/tests/spice_files/parse_diode2.cir".to_string());
+    let parser =
+        SpicePestFrontend::new("src/frontends/tests/spice_files/parse_diode2.cir".to_string());
 
     let Simulation {
         variables,
@@ -317,7 +320,8 @@ fn parse_diode2() {
 
 #[test]
 fn parse_regression1() {
-    let parser = SpiceFrontend::new("src/frontends/tests/spice_files/regression1.cir".to_string());
+    let parser =
+        SpicePestFrontend::new("src/frontends/tests/spice_files/regression1.cir".to_string());
 
     let Simulation {
         variables,
@@ -333,7 +337,7 @@ fn parse_regression1() {
 #[test]
 fn parse_isource1() {
     let parser =
-        SpiceFrontend::new("src/frontends/tests/spice_files/parse_isource1.cir".to_string());
+        SpicePestFrontend::new("src/frontends/tests/spice_files/parse_isource1.cir".to_string());
 
     let Simulation {
         variables,
@@ -366,7 +370,7 @@ fn parse_isource1() {
 #[test]
 fn parse_isource2() {
     let parser =
-        SpiceFrontend::new("src/frontends/tests/spice_files/parse_isource2.cir".to_string());
+        SpicePestFrontend::new("src/frontends/tests/spice_files/parse_isource2.cir".to_string());
 
     let Simulation {
         variables,
@@ -418,7 +422,7 @@ fn parse_isource2() {
 fn parse_with_include() {
     let main_path = "src/frontends/tests/spice_files/parse_include.cir";
 
-    let parser = SpiceFrontend::new(main_path.to_string());
+    let parser = SpicePestFrontend::new(main_path.to_string());
 
     let Simulation {
         variables,
@@ -476,7 +480,7 @@ fn parse_with_include() {
 fn parse_ac() {
     let main_path = "src/frontends/tests/spice_files/parse_ac.cir";
 
-    let parser = SpiceFrontend::new(main_path.to_string());
+    let parser = SpicePestFrontend::new(main_path.to_string());
 
     let Simulation {
         variables,
@@ -505,7 +509,7 @@ fn parse_ac() {
 fn parse_ac_lin() {
     let main_path = "src/frontends/tests/spice_files/parse_ac_lin.cir";
 
-    let parser = SpiceFrontend::new(main_path.to_string());
+    let parser = SpicePestFrontend::new(main_path.to_string());
 
     let Simulation {
         variables,
@@ -534,7 +538,7 @@ fn parse_ac_lin() {
 fn parse_ac_dec() {
     let main_path = "src/frontends/tests/spice_files/parse_ac_dec.cir";
 
-    let parser = SpiceFrontend::new(main_path.to_string());
+    let parser = SpicePestFrontend::new(main_path.to_string());
 
     let Simulation {
         variables,
@@ -563,7 +567,7 @@ fn parse_ac_dec() {
 fn parse_ac_oct() {
     let main_path = "src/frontends/tests/spice_files/parse_ac_oct.cir";
 
-    let parser = SpiceFrontend::new(main_path.to_string());
+    let parser = SpicePestFrontend::new(main_path.to_string());
 
     let Simulation {
         variables,
