@@ -1,3 +1,7 @@
+## 0.3.3
+Cangelog:
+  - greatly improved parser performance
+
 ## 0.3.2
 Cangelog:
   - added Faer backend
