@@ -15,7 +15,7 @@ fn test_new_isource_bundle() {
 
     assert_eq!(*isource_bundle.name(), *"ISourceBundle1");
     assert_eq!(isource_bundle.pairs().len(), 2);
-    assert_eq!(isource_bundle.value, Value(5.0));
+    assert_eq!(isource_bundle.value, 5.0);
 }
 
 #[test]

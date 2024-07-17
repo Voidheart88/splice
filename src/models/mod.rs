@@ -82,15 +82,6 @@ impl From<(Arc<str>, Unit, usize)> for Variable {
     }
 }
 
-/// A structure representing the value of an element.
-#[derive(DerefMut, Deref, Debug, PartialEq, PartialOrd, Clone, Copy)]
-pub(crate) struct Value(pub f64);
-impl From<f64> for Value {
-    fn from(value: f64) -> Self {
-        Self(value)
-    }
-}
-
 /// An enum representing different types of circuit elements.
 #[derive(Debug, Clone)]
 pub enum Element {

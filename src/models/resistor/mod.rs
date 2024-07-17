@@ -7,7 +7,7 @@ pub(crate) struct ResistorBundle {
     name: Arc<str>,
     node0: Option<Variable>,
     node1: Option<Variable>,
-    value: Value,
+    value: f64,
 }
 
 impl ResistorBundle {
@@ -65,18 +65,18 @@ impl ResistorBundle {
             return Triples::Single((
                 self.node1_idx().unwrap(),
                 self.node1_idx().unwrap(),
-                1.0 / (*self.value),
+                1.0 / self.value,
             ));
         };
         let Some(node1_idx) = self.node1_idx() else {
-            return Triples::Single((node0_idx, node0_idx, 1.0 / (*self.value)));
+            return Triples::Single((node0_idx, node0_idx, 1.0 / self.value));
         };
 
         Triples::Quad([
-            (node0_idx, node0_idx, 1.0 / (*self.value)),
-            (node1_idx, node1_idx, 1.0 / (*self.value)),
-            (node0_idx, node1_idx, -1.0 / (*self.value)),
-            (node1_idx, node0_idx, -1.0 / (*self.value)),
+            (node0_idx, node0_idx, 1.0 / self.value),
+            (node1_idx, node1_idx, 1.0 / self.value),
+            (node0_idx, node1_idx, -1.0 / self.value),
+            (node1_idx, node0_idx, -1.0 / self.value),
         ])
     }
 }

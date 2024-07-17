@@ -8,7 +8,7 @@ pub(crate) struct ISourceBundle {
     name: Arc<str>,
     node0: Option<Variable>,
     node1: Option<Variable>,
-    value: Value,
+    value: f64,
 }
 
 impl ISourceBundle {
@@ -34,7 +34,7 @@ impl ISourceBundle {
             name,
             node0,
             node1,
-            value: Value(value),
+            value: value,
         }
     }
 
@@ -47,10 +47,10 @@ impl ISourceBundle {
     pub fn pairs(&self) -> Pairs {
         match (&self.node0, &self.node1) {
             (None, None) => Pairs::Empty,
-            (Some(node0), None) => Pairs::Single((node0.idx(), -*self.value)),
-            (None, Some(node1)) => Pairs::Single((node1.idx(), *self.value)),
+            (Some(node0), None) => Pairs::Single((node0.idx(), -self.value)),
+            (None, Some(node1)) => Pairs::Single((node1.idx(), self.value)),
             (Some(node0), Some(node1)) => {
-                Pairs::Double([(node0.idx(), -*self.value), (node1.idx(), *self.value)])
+                Pairs::Double([(node0.idx(), -self.value), (node1.idx(), self.value)])
             }
         }
     }

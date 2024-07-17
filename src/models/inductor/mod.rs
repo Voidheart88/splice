@@ -10,7 +10,7 @@ pub(crate) struct InductorBundle {
     name: Arc<str>,
     node0: Option<Variable>,
     node1: Option<Variable>,
-    value: Value,
+    value: f64,
 }
 
 impl InductorBundle {
@@ -36,7 +36,7 @@ impl InductorBundle {
             name,
             node0,
             node1,
-            value: value.into(),
+            value: value,
         }
     }
 

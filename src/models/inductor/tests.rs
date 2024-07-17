@@ -13,7 +13,7 @@ fn test_new_inductor_bundle() {
     } else {
         panic!("Expected Quad tuples");
     }
-    assert_eq!(inductor_bundle.value, Value(5.0));
+    assert_eq!(inductor_bundle.value, 5.0);
 }
 
 #[test]

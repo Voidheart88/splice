@@ -9,7 +9,7 @@ pub(crate) struct VSourceBundle {
     branch: Variable,
     node0: Option<Variable>,
     node1: Option<Variable>,
-    value: Value,
+    value: f64,
 }
 
 impl VSourceBundle {
@@ -40,7 +40,7 @@ impl VSourceBundle {
             branch,
             node0,
             node1,
-            value: Value(value),
+            value: value,
         }
     }
 
@@ -72,7 +72,7 @@ impl VSourceBundle {
 
     /// Returns the value of the voltage source.
     pub fn value(&self) -> f64 {
-        self.value.0
+        self.value
     }
 
     /// Returns a reference to the triples representing matrix A.
@@ -107,11 +107,11 @@ impl VSourceBundle {
 
     /// Returns a reference to the pair representing vector b.
     pub fn pairs(&self) -> Pairs {
-        Pairs::Single((self.branch_idx(), *self.value))
+        Pairs::Single((self.branch_idx(), self.value))
     }
 
     pub fn set_voltage(&mut self, voltage: f64) {
-        self.value = Value(voltage);
+        self.value = voltage;
     }
 }
 

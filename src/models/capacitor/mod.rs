@@ -8,7 +8,7 @@ pub(crate) struct CapacitorBundle {
     name: Arc<str>,
     node0: Option<Variable>,
     node1: Option<Variable>,
-    value: Value,
+    value: f64,
 }
 
 impl CapacitorBundle {

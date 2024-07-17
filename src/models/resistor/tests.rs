@@ -15,7 +15,7 @@ fn test_new_resistor_bundle() {
 
     assert_eq!(*resistor_bundle.name(), *"ResistorBundle1");
     assert_eq!(resistor_bundle.triples().len(), 4);
-    assert_eq!(resistor_bundle.value, Value(5.0));
+    assert_eq!(resistor_bundle.value, 5.0);
 }
 
 #[test]
