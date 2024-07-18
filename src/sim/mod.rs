@@ -7,6 +7,7 @@ use std::sync::Arc;
 use itertools::Itertools;
 use log::{info, trace};
 use miette::Diagnostic;
+use num::Complex;
 use rayon::prelude::*;
 use thiserror::Error;
 
@@ -181,12 +182,24 @@ impl<BE: Solver> Simulator<BE> {
     /// based on the order of variables stored in the `vars` field of the `Simulator`.
     /// It returns a vector of tuples, where each tuple contains a variable name and its corresponding value.
     fn add_var_name(&self, solution: Vec<f64>) -> Vec<(Variable, f64)> {
-        let sol = solution
+        solution
             .into_iter()
             .enumerate()
             .map(|(idx, var)| (self.vars[idx].clone(), var))
-            .collect_vec();
-        sol
+            .collect_vec()
+    }
+
+    /// Adds variable names to the solution vector.
+    ///
+    /// This method takes a solution vector and adds variable names to each value,
+    /// based on the order of variables stored in the `vars` field of the `Simulator`.
+    /// It returns a vector of tuples, where each tuple contains a variable name and its corresponding value.
+    fn add_complex_var_name(&self, solution: Vec<Complex<f64>>) -> Vec<(Variable, Complex<f64>)> {
+        solution
+            .into_iter()
+            .enumerate()
+            .map(|(idx, var)| (self.vars[idx].clone(), var))
+            .collect_vec()
     }
 
     /// Executes a transient analysis.
@@ -246,10 +259,20 @@ impl<BE: Solver> Simulator<BE> {
         let _const_b_vec = self.build_constant_b_vec()?;
         let mut results = Vec::new();
         for freq in freqs {
-            let _a_mat = self.build_ac_a_mat(freq);
-            let _b_vec = self.build_ac_b_vec(freq);
+            let cplx_a_mat = self.build_ac_a_mat(freq);
+            let cplx_b_vec = self.build_ac_b_vec(freq);
 
-            results.push((freq, vec![]))
+            self.backend.set_cplx_a(&cplx_a_mat);
+            self.backend.set_cplx_b(&cplx_b_vec);
+
+            let x_new = match self.backend.solve_cplx().cloned() {
+                Ok(solution) => solution,
+                Err(err) => return Err(err.into()),
+            };
+
+            let x_new = self.add_complex_var_name(x_new);
+
+            results.push((freq, x_new))
         }
 
         Ok(Sim::Ac(results))
