@@ -5,6 +5,7 @@ use crate::models::{Pairs, Triples};
 use faer::solvers::SpSolver;
 use faer::sparse::{LuError, SparseColMat};
 use faer::Mat;
+use num::Complex;
 
 /// A backend implementation using the Faer library.
 pub(crate) struct FaerSolver {
@@ -16,6 +17,15 @@ pub(crate) struct FaerSolver {
 
     /// The Solution vector
     x_vec: Vec<f64>,
+
+    /// The conductance matrix `A`.
+    cplx_a_mat: HashMap<(usize, usize), Complex<f64>>,
+
+    /// The vector `b`.
+    cplx_b_vec: Mat<Complex<f64>>,
+    
+    /// The Solution vector
+    cplx_x_vec: Vec<Complex<f64>>,
 }
 
 impl FaerSolver {
@@ -30,11 +40,15 @@ impl Solver for FaerSolver {
         Self: Sized,
     {
         let a_mat = HashMap::new();
+        let cplx_a_mat = HashMap::new();
 
         Ok(FaerSolver {
             a_mat,
             b_vec: Mat::full(vars, 1, 0.0),
             x_vec: vec![0.0; vars],
+            cplx_a_mat,
+            cplx_b_vec: Mat::full(vars, 1, Complex{re:0.0,im:0.0}),
+            cplx_x_vec: vec![Complex{re:0.0,im:0.0}; vars],
         })
     }
 

@@ -244,12 +244,15 @@ impl<BE: Solver> Simulator<BE> {
         info!("Run ac analysis");
         let _const_a_mat = self.build_constant_a_mat()?;
         let _const_b_vec = self.build_constant_b_vec()?;
+        let mut results = Vec::new();
         for freq in freqs {
             let _a_mat = self.build_ac_a_mat(freq);
             let _b_vec = self.build_ac_b_vec(freq);
+
+            results.push((freq,vec![]))
         }
 
-        Err(SimulatorError::Unimplemented)
+        Ok(Sim::Ac(results))
     }
 
     /// Executes a DC analysis.

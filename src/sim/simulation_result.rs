@@ -10,5 +10,5 @@ pub(crate) struct SimulationResults(pub Vec<Sim>);
 pub(crate) enum Sim {
     Op(Vec<(Variable, f64)>),
     Dc(Vec<Vec<(Variable, f64)>>),
-    Ac(Vec<Vec<(Variable, Complex<f64>)>>),
+    Ac(Vec<(f64,Vec<(Variable, Complex<f64>)>)>),
 }
