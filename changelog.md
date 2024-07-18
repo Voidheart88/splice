@@ -1,3 +1,13 @@
+## 0.4.0
+Cangelog:
+  - added pest parser
+  - added ac simulation
+
+Roadmap:
+  - BJT model
+  - FET model
+
+
 ## 0.3.3
 Cangelog:
   - greatly improved parser performance
