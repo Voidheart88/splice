@@ -180,6 +180,7 @@ fn test_run_simulation() {
     let res = match res {
         Sim::Op(res) => res,
         Sim::Dc(_) => unimplemented!(),
+        Sim::Ac(_) => unimplemented!(),
     };
     let node1_volt = res[0].clone();
     let exp_node1_volt = Variable::new(Arc::from("v1#branch"), Unit::Ampere, 0);
@@ -215,6 +216,7 @@ fn test_run_simulation2() {
     let res = match res {
         Sim::Op(res) => res,
         Sim::Dc(_) => unimplemented!(),
+        Sim::Ac(_) => unimplemented!(),
     };
     let branch_curr = res[0].clone();
     let exp_branch_curr = -0.5;
@@ -257,6 +259,7 @@ fn test_run_simulation3() {
     let res = match res {
         Sim::Op(res) => res,
         Sim::Dc(_) => unimplemented!(),
+        Sim::Ac(_) => unimplemented!(),
     };
 
     let var = res[0].clone();
@@ -299,6 +302,7 @@ fn test_run_simulation4() {
     let res = match res {
         Sim::Op(res) => res,
         Sim::Dc(_) => unimplemented!(),
+        Sim::Ac(_) => unimplemented!(),
     };
     let node1_volt = res[0].clone();
     let exp_node1_volt = 10.0;

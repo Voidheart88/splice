@@ -71,19 +71,18 @@ fn main() -> Result<()> {
     let results = match cli.solver {
         Solvers::Rsparse => {
             let mut sim: Simulator<RSparseSolver> = Simulator::from(sim);
-            sim.run()
+            sim.run()?
         }
         Solvers::Nalgebra => {
             let mut sim: Simulator<NalgebraSolver> = Simulator::from(sim);
-            sim.run()
+            sim.run()?
         }
         Solvers::Faer => {
             let mut sim: Simulator<FaerSolver> = Simulator::from(sim);
-            sim.run()
+            sim.run()?
         }
     };
 
-    info!("Output Data");
     let out: Box<dyn Backend> = match cli.backend {
         Backends::Csv => Box::new(CsvBackend::new()),
         Backends::Raw => Box::new(RawBackend::new()),
@@ -91,7 +90,9 @@ fn main() -> Result<()> {
         Backends::Network => Box::new(NetworkBackend::new()),
     };
 
-    out.output(results?)?;
+    info!("Output Data");
+    out.output(results)?;
 
+    info!("Finished without Errors");
     Ok(())
 }

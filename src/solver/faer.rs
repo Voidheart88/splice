@@ -80,49 +80,6 @@ impl Solver for FaerSolver {
         }
     }
 
-    //fn insert_a(&mut self, a_mat: &Triples) {
-    //    match a_mat {
-    //        Triples::Empty => {}
-    //        Triples::Single((row, col, val)) => {
-    //            self.a_mat.as_mut()[(row.0, col.0)] += *val;
-    //        }
-    //        Triples::Double(vals) => {
-    //            self.a_mat.as_mut()[(*vals[0].0, *vals[0].1)] += vals[0].2;
-    //            self.a_mat.as_mut()[(*vals[1].0, *vals[1].1)] += vals[1].2;
-    //        }
-    //        Triples::Quad(vals) => {
-    //            self.a_mat.as_mut()[(*vals[0].0, *vals[0].1)] += vals[0].2;
-    //            self.a_mat.as_mut()[(*vals[1].0, *vals[1].1)] += vals[1].2;
-    //            self.a_mat.as_mut()[(*vals[2].0, *vals[2].1)] += vals[2].2;
-    //            self.a_mat.as_mut()[(*vals[3].0, *vals[3].1)] += vals[3].2;
-    //        }
-    //        Triples::Vec(vals) => {
-    //            for triple in vals {
-    //                self.a_mat.as_mut()[(*triple.0, *triple.1)] += triple.2;
-    //            }
-    //        }
-    //    }
-    //}
-
-    //fn insert_b(&mut self, b_vec: &Pairs) {
-    //    match b_vec {
-    //        Pairs::Empty => {}
-    //        Pairs::Single(val) => {
-    //            self.b_vec.as_mut()[(*val.0, 0)] += val.1;
-    //        }
-    //        Pairs::Double(vals) => {
-    //            self.b_vec[(*vals[0].0, 0)] += vals[0].1;
-    //            self.b_vec[(*vals[1].0, 0)] += vals[1].1;
-    //        }
-    //        Pairs::Vec(vals) => {
-    //            self.b_vec[(*vals[0].0, 0)] += vals[0].1;
-    //            self.b_vec[(*vals[1].0, 0)] += vals[1].1;
-    //            self.b_vec[(*vals[2].0, 0)] += vals[2].1;
-    //            self.b_vec[(*vals[3].0, 0)] += vals[3].1;
-    //        }
-    //    }
-    //}
-
     fn solve(&mut self) -> Result<&Vec<f64>, SolverError> {
         let triples: Vec<(usize, usize, f64)> = self
             .a_mat

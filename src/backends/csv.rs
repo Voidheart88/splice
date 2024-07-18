@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::sync::Arc;
 
 use super::Backend;
 use crate::models::Variable;
@@ -10,14 +11,6 @@ pub struct CsvBackend {}
 
 /// Implementation of the `Output` trait for `CsvOutput`.
 /// This implementation defines how the simulation results are output as CSV.
-///
-/// # Example
-///
-/// ```
-/// let csv_output = CsvOutput::new();
-/// let results = SimulationResult::new();
-/// csv_output.output(results)?;
-/// ```
 impl Backend for CsvBackend {
     /// Outputs the simulation results in CSV format.
     ///
@@ -33,9 +26,9 @@ impl Backend for CsvBackend {
             match res {
                 Sim::Op(res) => Self::output_op(res),
                 Sim::Dc(res) => Self::output_dc(res),
+                Sim::Ac(_res) => return Err(BackendError::Unimplemented),
             }
         }
-
         Ok(())
     }
 }
@@ -46,12 +39,6 @@ impl CsvBackend {
     /// # Returns
     ///
     /// A new `CsvOutput` instance.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// let csv_output = CsvBackend::new();
-    /// ```
     pub fn new() -> Self {
         CsvBackend {}
     }
@@ -61,13 +48,6 @@ impl CsvBackend {
     /// # Parameters
     ///
     /// - `results`: A reference to a vector of tuples where each tuple contains a `String` and a `f64`.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// let results = vec![("voltage".to_string(), 5.0), ("current".to_string(), 1.0)];
-    /// CsvBackend::output_op(&results);
-    /// ```
     fn output_op(results: &Vec<(Variable, f64)>) {
         for res in results {
             println!("{},{},{}", res.0.name(), res.1, res.0.unit())
@@ -75,23 +55,20 @@ impl CsvBackend {
     }
 
     fn output_dc(data: &Vec<Vec<(Variable, f64)>>) {
-        // Find all unique variables and print header
-        let mut headers: HashSet<String> = HashSet::new();
+        let mut headers: HashSet<Arc<str>> = HashSet::new();
         for step_data in data {
             for (var, _) in step_data {
-                headers.insert(var.name().to_string());
+                headers.insert(var.name());
             }
         }
         let headers: Vec<_> = headers.into_iter().collect();
-        println!("Step,{}", headers.join(","));
 
-        // Print each step's data
         for (step_idx, step_data) in data.iter().enumerate() {
             let mut values = vec![format!("{}", step_idx)];
             for header in &headers {
                 let mut value_str = String::new();
                 for (var, val) in step_data {
-                    if &var.name().to_string() == header {
+                    if &var.name() == header {
                         value_str = format!("{}", val);
                         break;
                     }

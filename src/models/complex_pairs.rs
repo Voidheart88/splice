@@ -3,6 +3,8 @@ use rayon::prelude::*;
 use std::iter::FromIterator;
 use std::ops::Add;
 
+use super::Pairs;
+
 /// A structure representing the Pairs of an element.
 ///
 /// Each double consists of a row and a value of type `f64`.
@@ -116,5 +118,16 @@ impl Add for ComplexPairs {
         }
 
         result.into()
+    }
+}
+
+impl From<Pairs> for ComplexPairs {
+    fn from(value: Pairs) -> Self {
+        match value{
+            Pairs::Empty => ComplexPairs::Empty,
+            Pairs::Single((idx,val)) => ComplexPairs::Single((idx,Complex{re:val,im:0.0})),
+            Pairs::Double(pairs) => ComplexPairs::Double([(pairs[0].0,Complex{re:pairs[0].1,im:0.0}),(pairs[1].0,Complex{re:pairs[1].1,im:0.0})]),
+            Pairs::Vec(pairs) => pairs.iter().map(|(idx,val)| (*idx,Complex{re:*val,im:0.0})).collect(),
+        }
     }
 }

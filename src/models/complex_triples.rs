@@ -2,14 +2,16 @@ use num::Complex;
 use rayon::prelude::*;
 use std::{fmt, ops::Add};
 
+use super::Triples;
+
 /// A structure representing the triples of an element.
 ///
 /// Each triple consists of a row, a column, and a value of type `Complex<f64>`.
 #[derive(Clone)]
 pub(crate) enum ComplexTriples {
-    #[allow(unused)]
     Empty,
     Single((usize, usize, Complex<f64>)),
+    Double([(usize, usize, Complex<f64>); 2]),
     Quad([(usize, usize, Complex<f64>); 4]),
     Vec(Vec<(usize, usize, Complex<f64>)>),
 }
@@ -60,6 +62,7 @@ impl PartialEq for ComplexTriples {
         let self_triples: Vec<_> = match self {
             ComplexTriples::Empty => vec![],
             ComplexTriples::Single(triple) => vec![*triple],
+            ComplexTriples::Double(triples) => triples.to_vec(),
             ComplexTriples::Quad(triples) => triples.to_vec(),
             ComplexTriples::Vec(triples) => triples.clone(),
         };
@@ -67,6 +70,7 @@ impl PartialEq for ComplexTriples {
         let other_triples: Vec<_> = match other {
             ComplexTriples::Empty => vec![],
             ComplexTriples::Single(triple) => vec![*triple],
+            ComplexTriples::Double(triples) => triples.to_vec(),
             ComplexTriples::Quad(triples) => triples.to_vec(),
             ComplexTriples::Vec(triples) => triples.clone(),
         };
@@ -87,6 +91,7 @@ impl fmt::Debug for ComplexTriples {
         let mut sorted_triples: Vec<_> = match self {
             ComplexTriples::Empty => vec![],
             ComplexTriples::Single(triple) => vec![*triple],
+            ComplexTriples::Double(triples) => triples.to_vec(),
             ComplexTriples::Quad(triples) => triples.to_vec(),
             ComplexTriples::Vec(triples) => triples.clone(),
         };
@@ -124,6 +129,7 @@ impl Add for ComplexTriples {
         let mut combined: Vec<(usize, usize, Complex<f64>)> = match self {
             ComplexTriples::Empty => vec![],
             ComplexTriples::Single(triple) => vec![triple],
+            ComplexTriples::Double(triples) => triples.to_vec(),
             ComplexTriples::Quad(triples) => triples.to_vec(),
             ComplexTriples::Vec(triples) => triples,
         };
@@ -131,6 +137,7 @@ impl Add for ComplexTriples {
         combined.extend(match other {
             ComplexTriples::Empty => vec![],
             ComplexTriples::Single(triple) => vec![triple],
+            ComplexTriples::Double(triples) => triples.to_vec(),
             ComplexTriples::Quad(triples) => triples.to_vec(),
             ComplexTriples::Vec(triples) => triples,
         });
@@ -156,12 +163,25 @@ impl Add for ComplexTriples {
     }
 }
 
+impl From<Triples> for ComplexTriples{
+    fn from(value: Triples) -> Self {
+        match value {
+            Triples::Empty => ComplexTriples::Empty,
+            Triples::Single((row,col,val)) => ComplexTriples::Single((row,col,Complex{re:val,im:0.0})),
+            Triples::Double(triples) => ComplexTriples::Double([(triples[0].0,triples[0].1,Complex{re:triples[0].2,im:0.0}),(triples[1].0,triples[1].1,Complex{re:triples[1].2,im:0.0})]),
+            Triples::Quad(triples) => ComplexTriples::Quad([(triples[0].0,triples[0].1,Complex{re:triples[0].2,im:0.0}),(triples[1].0,triples[1].1,Complex{re:triples[1].2,im:0.0}),(triples[2].0,triples[2].1,Complex{re:triples[2].2,im:0.0}),(triples[3].0,triples[3].1,Complex{re:triples[3].2,im:0.0})]),
+            Triples::Vec(triples) => triples.iter().map(|(row,col,val)|(*row,*col,Complex{re:*val,im:0.0})).collect(),
+        }
+    }
+}
+
+#[cfg(test)]
 impl ComplexTriples {
-    #[cfg(test)]
     pub fn len(&self) -> usize {
         match self {
             ComplexTriples::Empty => 0,
             ComplexTriples::Single(_) => 1,
+            ComplexTriples::Double(_) => 2,
             ComplexTriples::Quad(_) => 4,
             ComplexTriples::Vec(v) => v.len(),
         }

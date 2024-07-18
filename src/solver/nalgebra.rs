@@ -57,36 +57,6 @@ impl Solver for NalgebraSolver {
         }
     }
 
-    /// Inserts the conductance matrix (`a_mat`) and the vector (`b_vec`) into the Solver.
-    /// It can be used to change only the necessary changes.
-    //fn insert_a(&mut self, a_mat: &Triples) {
-    //    match a_mat {
-    //        Triples::Empty => {}
-    //        Triples::Single(tr) => self.insert_single(tr),
-    //        Triples::Double(tr) => self.insert_double(tr),
-    //        Triples::Quad(tr) => self.insert_quad(tr),
-    //        Triples::Vec(triples) => triples.iter().for_each(|(row, col, val)| {
-    //            self.a_mat[(row.0, col.0)] += *val;
-    //        }),
-    //    };
-    //}
-
-    //fn insert_b(&mut self, b_vec: &Pairs) {
-    //    match b_vec {
-    //        Pairs::Empty => {}
-    //        Pairs::Single((col, val)) => {
-    //            self.b_vec[col.0] += *val;
-    //        }
-    //        Pairs::Double([(col1, val1), (col2, val2)]) => {
-    //            self.b_vec[col1.0] += *val1;
-    //            self.b_vec[col2.0] += *val2;
-    //        }
-    //        Pairs::Vec(pairs) => pairs.iter().for_each(|(col, val)| {
-    //            self.b_vec[col.0] += *val;
-    //        }),
-    //    }
-    //}
-
     fn solve(&mut self) -> Result<&Vec<f64>, SolverError> {
         // Cloning only the necessary matrices for LU decomposition
         let lu = LU::new(self.a_mat.clone());

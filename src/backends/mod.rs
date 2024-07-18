@@ -38,8 +38,6 @@ impl From<DrawingAreaErrorKind<std::io::Error>> for BackendError {
     }
 }
 
-// the trait `From<fn(std::string::String) -> outputs::BackendError {outputs::BackendError::PlotError}>` is not implemented for `outputs::BackendError`
-
 /// Enum for selecting different output options.
 #[derive(Copy, Clone, ValueEnum, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Backends {

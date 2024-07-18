@@ -1,12 +1,14 @@
 use derive_more::Deref;
+use num::Complex;
 
 use crate::models::Variable;
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deref)]
+#[derive(Debug, Clone, PartialEq, Deref)]
 pub(crate) struct SimulationResults(pub Vec<Sim>);
 
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) enum Sim {
     Op(Vec<(Variable, f64)>),
     Dc(Vec<Vec<(Variable, f64)>>),
+    Ac(Vec<Vec<(Variable, Complex<f64>)>>),
 }

@@ -64,6 +64,7 @@ impl PlotBackend {
         match sim {
             Sim::Op(data) => self.plot_op(data)?,
             Sim::Dc(data) => self.plot_dc(data)?,
+            Sim::Ac(_data) => return Err(BackendError::Unimplemented),
         }
         Ok(())
     }
