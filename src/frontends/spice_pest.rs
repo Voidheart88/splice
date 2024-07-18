@@ -243,7 +243,6 @@ impl SpicePestFrontend {
         } else {
             None
         };
-        println!("{:?}", ac_value);
 
         let src = VSourceBundle::new(
             Arc::from(name),

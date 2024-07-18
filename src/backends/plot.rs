@@ -230,7 +230,8 @@ impl PlotBackend {
             (Some(v1), Some(v2)) => (v1, v2),
         };
 
-        let frequencies = data.len() as u32;
+        let fmin = data.iter().map(|(freq,_)| *freq as u32).min().unwrap();
+        let fmax = data.iter().map(|(freq,_)| *freq as u32).max().unwrap();
 
         let (upper, lower) = root.split_vertically(450);
 
@@ -242,7 +243,7 @@ impl PlotBackend {
                 "AC Analysis Results (Gain)",
                 ("sans-serif", 50.0).into_font().color(&WHITE),
             )
-            .build_cartesian_2d(0u32..frequencies, min_gain..max_gain)?;
+            .build_cartesian_2d(fmin..fmax, min_gain..max_gain)?;
 
         chart_gain
             .configure_mesh()
@@ -263,7 +264,7 @@ impl PlotBackend {
                 "AC Analysis Results (Phase)",
                 ("sans-serif", 50.0).into_font().color(&WHITE),
             )
-            .build_cartesian_2d(0u32..frequencies, min_phase..max_phase)?;
+            .build_cartesian_2d(fmin..fmax, min_phase..max_phase)?;
 
         chart_phase
             .configure_mesh()

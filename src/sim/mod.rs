@@ -56,7 +56,7 @@ impl From<SolverError> for SimulatorError {
 /// This struct represents a simulator used for analyzing electrical circuits.
 /// It contains the circuit elements, simulation commands, variables, backend,
 /// and results of the simulation.
-pub(super) struct Simulator<BE: Solver> {
+pub(super) struct Simulator<SO: Solver> {
     /// The elements in the circuit.
     elements: Vec<Element>,
     /// The simulation commands to be executed.
@@ -64,10 +64,10 @@ pub(super) struct Simulator<BE: Solver> {
     /// The variables used in the simulation.
     vars: Vec<Variable>,
     /// The backend used for solving the circuit equations.
-    backend: BE,
+    solver: SO,
 }
 
-impl<BE: Solver> Simulator<BE> {
+impl<SO: Solver> Simulator<SO> {
     /// Executes the simulation commands and returns the simulation results.
     ///
     /// This method iterates through the simulation commands, executes each one, and collects
@@ -115,9 +115,9 @@ impl<BE: Solver> Simulator<BE> {
         let const_b_vec = self.build_constant_b_vec()?;
         if !self.has_nonlinear_elements() {
             // Build the constant matrix
-            self.backend.set_a(&const_a_mat);
-            self.backend.set_b(&const_b_vec);
-            let x_vec = self.backend.solve()?.clone();
+            self.solver.set_a(&const_a_mat);
+            self.solver.set_b(&const_b_vec);
+            let x_vec = self.solver.solve()?.clone();
             let res = self.add_var_name(x_vec);
             return Ok(Sim::Op(res));
         }
@@ -135,12 +135,12 @@ impl<BE: Solver> Simulator<BE> {
 
                 trace!("Set matrix");
                 // Populate matrices
-                self.backend.set_a(&a_mat);
-                self.backend.set_b(&b_vec);
+                self.solver.set_a(&a_mat);
+                self.solver.set_b(&b_vec);
 
                 trace!("Solve matrix");
                 // Solve for the new x
-                let x_new = match self.backend.solve().cloned() {
+                let x_new = match self.solver.solve().cloned() {
                     Ok(solution) => solution,
                     Err(err) => return Some(Err(err.into())),
                 };
@@ -254,7 +254,7 @@ impl<BE: Solver> Simulator<BE> {
             }
         };
 
-        info!("Run ac analysis");
+        info!("Run analysis");
         let _const_a_mat = self.build_constant_a_mat()?;
         let _const_b_vec = self.build_constant_b_vec()?;
         let mut results = Vec::new();
@@ -262,10 +262,10 @@ impl<BE: Solver> Simulator<BE> {
             let cplx_a_mat = self.build_ac_a_mat(freq);
             let cplx_b_vec = self.build_ac_b_vec(freq);
 
-            self.backend.set_cplx_a(&cplx_a_mat);
-            self.backend.set_cplx_b(&cplx_b_vec);
+            self.solver.set_cplx_a(&cplx_a_mat);
+            self.solver.set_cplx_b(&cplx_b_vec);
 
-            let x_new = match self.backend.solve_cplx().cloned() {
+            let x_new = match self.solver.solve_cplx().cloned() {
                 Ok(solution) => solution,
                 Err(err) => return Err(err.into()),
             };
@@ -356,9 +356,9 @@ impl<BE: Solver> Simulator<BE> {
 
         if !self.has_nonlinear_elements() {
             // Build the constant matrix
-            self.backend.set_a(&const_a_mat);
-            self.backend.set_b(&const_b_vec);
-            let x_vec = self.backend.solve()?.clone();
+            self.solver.set_a(&const_a_mat);
+            self.solver.set_b(&const_b_vec);
+            let x_vec = self.solver.solve()?.clone();
             let res = self.add_var_name(x_vec);
             return Ok(res);
         }
@@ -370,11 +370,11 @@ impl<BE: Solver> Simulator<BE> {
             let b_vec = self.build_nonlinear_b_vec(&x) + const_b_vec.clone();
 
             // Populate matrices
-            self.backend.set_a(&a_mat);
-            self.backend.set_b(&b_vec);
+            self.solver.set_a(&a_mat);
+            self.solver.set_b(&b_vec);
 
             // Solve for the new x
-            let x_new = self.backend.solve()?.clone();
+            let x_new = self.solver.solve()?.clone();
 
             // Check for convergence
             if self.has_converged(&x, &x_new, VECTOL) {
@@ -623,7 +623,7 @@ impl<BE: Solver> Simulator<BE> {
 /// let sim = Simulator::<NalgebraBackend>::from(simulation);
 /// println!("{:?}", sim);
 /// ```
-impl<BE: Solver> Debug for Simulator<BE> {
+impl<SO: Solver> Debug for Simulator<SO> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Simulator").finish()
     }
@@ -650,7 +650,7 @@ impl<BE: Solver> Debug for Simulator<BE> {
 /// };
 /// let simulator: Simulator<NalgebraBackend> = Simulator::from(simulation);
 /// ```
-impl<BE: Solver> From<Simulation> for Simulator<BE> {
+impl<SO: Solver> From<Simulation> for Simulator<SO> {
     fn from(sim: Simulation) -> Self {
         let Simulation {
             variables,
@@ -658,12 +658,12 @@ impl<BE: Solver> From<Simulation> for Simulator<BE> {
             commands,
         } = sim;
 
-        let backend = BE::new(variables.len()).unwrap();
+        let backend = SO::new(variables.len()).unwrap();
 
         Simulator {
             elements,
             commands,
-            backend,
+            solver: backend,
             vars: variables,
         }
     }
