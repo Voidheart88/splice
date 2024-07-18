@@ -1,5 +1,9 @@
 use std::{
-    collections::{HashMap, HashSet}, fs::File, io::Read, path::Path, sync::Arc
+    collections::{HashMap, HashSet},
+    fs::File,
+    io::Read,
+    path::Path,
+    sync::Arc,
 };
 
 use log::trace;
@@ -131,20 +135,22 @@ impl SpicePestFrontend {
         let path = current_path.join(path);
         let mut circuit_string = String::new();
 
-        File::open(path).unwrap().read_to_string(&mut circuit_string).unwrap();
+        File::open(path)
+            .unwrap()
+            .read_to_string(&mut circuit_string)
+            .unwrap();
 
         trace!("Parse Schematic!");
-        let parse_result = SpiceParser::parse(Rule::SPICE, &circuit_string).unwrap().next().unwrap();
+        let parse_result = SpiceParser::parse(Rule::SPICE, &circuit_string)
+            .unwrap()
+            .next()
+            .unwrap();
 
         for pair in parse_result.into_inner() {
             match pair.as_rule() {
-                Rule::DIRECTIVE => self.process_directive(
-                    pair,
-                    variables,
-                    elements,
-                    commands,
-                    var_map,
-                ),
+                Rule::DIRECTIVE => {
+                    self.process_directive(pair, variables, elements, commands, var_map)
+                }
                 _ => {}
             }
         }
