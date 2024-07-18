@@ -249,7 +249,7 @@ impl<BE: Solver> Simulator<BE> {
             let _a_mat = self.build_ac_a_mat(freq);
             let _b_vec = self.build_ac_b_vec(freq);
 
-            results.push((freq,vec![]))
+            results.push((freq, vec![]))
         }
 
         Ok(Sim::Ac(results))

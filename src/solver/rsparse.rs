@@ -16,6 +16,13 @@ pub(crate) struct RSparseSolver {
     b: Vec<f64>,
     /// The Solution vector `x`.
     x: Vec<f64>,
+
+    /// The conductance matrix `A` as a sparse matrix.
+    cplx_a: Trpl,
+    /// The vector `b` as a dense vector.
+    cplx_b: Vec<f64>,
+    /// The Solution vector `x`.
+    cplx_x: Vec<f64>,
 }
 
 impl Solver for RSparseSolver {
@@ -25,7 +32,18 @@ impl Solver for RSparseSolver {
         let b = Vec::with_capacity(vars);
         let x = Vec::with_capacity(vars);
 
-        Ok(Self { a, b, x })
+        let cplx_a = Trpl::new();
+        let cplx_b = Vec::with_capacity(2 * vars);
+        let cplx_x = Vec::with_capacity(2 * vars);
+
+        Ok(Self {
+            a,
+            b,
+            x,
+            cplx_a,
+            cplx_b,
+            cplx_x,
+        })
     }
 
     /// Sets the conductance matrix (`a_mat`) into the Solver.
@@ -76,6 +94,18 @@ impl Solver for RSparseSolver {
         rsparse::lusol(&sprs, &mut self.b, 1, 1e-6);
 
         Ok(&self.b)
+    }
+
+    fn set_cplx_a(&mut self, a_mat: &crate::models::ComplexTriples) {
+        todo!()
+    }
+
+    fn set_cplx_b(&mut self, b_vec: &crate::models::ComplexPairs) {
+        todo!()
+    }
+
+    fn solve_cplx(&mut self) -> Result<&Vec<num::Complex<f64>>, SolverError> {
+        todo!()
     }
 }
 

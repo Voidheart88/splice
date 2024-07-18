@@ -1,7 +1,8 @@
 use super::{Solver, SolverError};
-use crate::models::{Pairs, Triples};
+use crate::models::{ComplexPairs, ComplexTriples, Pairs, Triples};
 use na::LU;
 use nalgebra as na;
+use num::Complex;
 
 /// A Solver implementation using the Nalgebra library.
 pub(crate) struct NalgebraSolver {
@@ -11,19 +12,32 @@ pub(crate) struct NalgebraSolver {
     b_vec: na::DVector<f64>,
     /// The Solution vector
     x_vec: na::DVector<f64>,
+    /// The conductance matrix `A`.
+    cplx_a_mat: na::DMatrix<Complex<f64>>,
+    /// The vector `b`.
+    cplx_b_vec: na::DVector<Complex<f64>>,
+    /// The Solution vector
+    cplx_x_vec: na::DVector<Complex<f64>>,
 }
 
 impl Solver for NalgebraSolver {
     /// Creates a new instance of the Nalgebra Solver with the given number of variables.
     fn new(vars: usize) -> Result<NalgebraSolver, SolverError> {
-        let a_mat = na::DMatrix::zeros(vars, vars);
-        let b_vec = na::DVector::zeros(vars);
-        let x1 = na::DVector::zeros(vars);
+        let a = na::DMatrix::zeros(vars, vars);
+        let b = na::DVector::zeros(vars);
+        let x = na::DVector::zeros(vars);
+
+        let cplx_a = na::DMatrix::zeros(vars, vars);
+        let cplx_b = na::DVector::zeros(vars);
+        let cplx_x = na::DVector::zeros(vars);
 
         Ok(Self {
-            a_mat,
-            b_vec,
-            x_vec: x1,
+            a_mat: a,
+            b_vec: b,
+            x_vec: x,
+            cplx_a_mat: cplx_a,
+            cplx_b_vec: cplx_b,
+            cplx_x_vec: cplx_x,
         })
     }
 
@@ -70,6 +84,48 @@ impl Solver for NalgebraSolver {
         // Returning a reference to the solution vector
         Ok(&self.x_vec.data.as_vec())
     }
+
+    fn set_cplx_a(&mut self, a_mat: &crate::models::ComplexTriples) {
+        match a_mat {
+            ComplexTriples::Empty => {}
+            ComplexTriples::Single(tr) => self.set_cplx_single(tr),
+            ComplexTriples::Double(tr) => self.set_cplx_double(tr),
+            ComplexTriples::Quad(tr) => self.set_cplx_quad(tr),
+            ComplexTriples::Vec(triples) => triples.iter().for_each(|(row, col, val)| {
+                self.cplx_a_mat[(*row, *col)] = *val;
+            }),
+        };
+    }
+
+    fn set_cplx_b(&mut self, b_vec: &crate::models::ComplexPairs) {
+        match b_vec {
+            ComplexPairs::Empty => {}
+            ComplexPairs::Single((col, val)) => {
+                self.cplx_b_vec[*col] = *val;
+            }
+            ComplexPairs::Double([(col1, val1), (col2, val2)]) => {
+                self.cplx_b_vec[*col1] = *val1;
+                self.cplx_b_vec[*col2] = *val2;
+            }
+            ComplexPairs::Vec(pairs) => pairs.iter().for_each(|(col, val)| {
+                self.cplx_b_vec[*col] = *val;
+            }),
+        }
+    }
+
+    fn solve_cplx(&mut self) -> Result<&Vec<num::Complex<f64>>, SolverError> {
+        // Cloning only the necessary matrices for LU decomposition
+        let lu = LU::new(self.cplx_a_mat.clone());
+
+        // Solving the equations without unnecessary cloning
+        self.cplx_x_vec = match lu.solve(&self.cplx_b_vec) {
+            Some(v) => v,
+            None => return Err(SolverError::MatrixNonInvertible),
+        };
+
+        // Returning a reference to the solution vector
+        Ok(&self.cplx_x_vec.data.as_vec())
+    }
 }
 
 impl NalgebraSolver {
@@ -90,6 +146,25 @@ impl NalgebraSolver {
         self.a_mat[(triple[1].0, triple[1].1)] = triple[1].2;
         self.a_mat[(triple[2].0, triple[2].1)] = triple[2].2;
         self.a_mat[(triple[3].0, triple[3].1)] = triple[3].2;
+    }
+
+    /// Sets a single-valued triple into the conductance matrix.
+    fn set_cplx_single(&mut self, triple: &(usize, usize, Complex<f64>)) {
+        self.cplx_a_mat[(triple.0, triple.1)] = triple.2;
+    }
+
+    /// Sets a double-valued triple into the conductance matrix.
+    fn set_cplx_double(&mut self, triple: &[(usize, usize, Complex<f64>); 2]) {
+        self.cplx_a_mat[(triple[0].0, triple[0].1)] = triple[0].2;
+        self.cplx_a_mat[(triple[1].0, triple[1].1)] = triple[1].2;
+    }
+
+    /// Sets a quad-valued triple into the conductance matrix.
+    fn set_cplx_quad(&mut self, triple: &[(usize, usize, Complex<f64>); 4]) {
+        self.cplx_a_mat[(triple[0].0, triple[0].1)] = triple[0].2;
+        self.cplx_a_mat[(triple[1].0, triple[1].1)] = triple[1].2;
+        self.cplx_a_mat[(triple[2].0, triple[2].1)] = triple[2].2;
+        self.cplx_a_mat[(triple[3].0, triple[3].1)] = triple[3].2;
     }
 }
 

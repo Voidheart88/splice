@@ -1,4 +1,4 @@
-use std:: sync::Arc;
+use std::sync::Arc;
 
 use crate::{
     frontends::{DiodeBundle, ResistorBundle, VSourceBundle},
@@ -620,8 +620,15 @@ fn parse_vsource_ac_option() {
     assert_eq!(*elements[2].name(), *"R2");
 
     let ele = elements[0].clone();
-    let exp =  Element::VSource(VSourceBundle::new(Arc::from("V1"), Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0), None, Some(Variable::new(Arc::from("1"), Unit::Volt, 1)), 10.0, Some(1.0)));
-    assert_eq!(ele,exp);
+    let exp = Element::VSource(VSourceBundle::new(
+        Arc::from("V1"),
+        Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0),
+        None,
+        Some(Variable::new(Arc::from("1"), Unit::Volt, 1)),
+        10.0,
+        Some(1.0),
+    ));
+    assert_eq!(ele, exp);
     assert_eq!(
         commands[0],
         SimulationCommand::Ac(1.0, 1000.0, 10, ACMode::Lin)

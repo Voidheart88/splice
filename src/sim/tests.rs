@@ -28,9 +28,13 @@ impl Solver for MockBackend {
         Err(SolverError::MatrixNonInvertible)
     }
 
-    //fn insert_a(&mut self, _: &Triples) {}
+    fn set_cplx_a(&mut self, _: &ComplexTriples) {}
 
-    //fn insert_b(&mut self, _: &Pairs) {}
+    fn set_cplx_b(&mut self, _: &ComplexPairs) {}
+
+    fn solve_cplx(&mut self) -> Result<&Vec<num::Complex<f64>>, SolverError> {
+        Err(SolverError::MatrixNonInvertible)
+    }
 }
 
 fn create_mock_elements(vars: &Vec<Variable>) -> Vec<Element> {

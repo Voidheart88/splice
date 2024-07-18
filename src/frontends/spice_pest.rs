@@ -236,15 +236,14 @@ impl SpicePestFrontend {
             .parse::<f64>()
             .unwrap();
 
-        let ac_value  = if let Some(val) = inner.next() {
+        let ac_value = if let Some(val) = inner.next() {
             let val = val.as_str().split(" ").nth(1).unwrap();
             let val = val.parse().unwrap();
             Some(val)
         } else {
             None
         };
-        println!("{:?}",ac_value);
-        
+        println!("{:?}", ac_value);
 
         let src = VSourceBundle::new(
             Arc::from(name),

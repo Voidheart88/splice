@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
 use super::{Solver, SolverError};
-use crate::models::{Pairs, Triples};
+use crate::models::{ComplexPairs, ComplexTriples, Pairs, Triples};
+use faer::complex_native::c64;
 use faer::solvers::SpSolver;
 use faer::sparse::{LuError, SparseColMat};
 use faer::Mat;
-use num::Complex;
 
 /// A backend implementation using the Faer library.
 pub(crate) struct FaerSolver {
@@ -19,18 +19,21 @@ pub(crate) struct FaerSolver {
     x_vec: Vec<f64>,
 
     /// The conductance matrix `A`.
-    cplx_a_mat: HashMap<(usize, usize), Complex<f64>>,
+    cplx_a_mat: HashMap<(usize, usize), c64>,
 
     /// The vector `b`.
-    cplx_b_vec: Mat<Complex<f64>>,
-    
+    cplx_b_vec: Mat<c64>,
+
     /// The Solution vector
-    cplx_x_vec: Vec<Complex<f64>>,
+    cplx_x_vec: Vec<num::Complex<f64>>,
 }
 
 impl FaerSolver {
     fn set_value(&mut self, row: usize, col: usize, val: f64) {
         self.a_mat.insert((row, col), val);
+    }
+    fn set_cplx_value(&mut self, row: usize, col: usize, val: c64) {
+        self.cplx_a_mat.insert((row, col), val);
     }
 }
 
@@ -39,16 +42,13 @@ impl Solver for FaerSolver {
     where
         Self: Sized,
     {
-        let a_mat = HashMap::new();
-        let cplx_a_mat = HashMap::new();
-
         Ok(FaerSolver {
-            a_mat,
+            a_mat: HashMap::new(),
             b_vec: Mat::full(vars, 1, 0.0),
             x_vec: vec![0.0; vars],
-            cplx_a_mat,
-            cplx_b_vec: Mat::full(vars, 1, Complex{re:0.0,im:0.0}),
-            cplx_x_vec: vec![Complex{re:0.0,im:0.0}; vars],
+            cplx_a_mat: HashMap::new(),
+            cplx_b_vec: Mat::full(vars, 1, c64 { re: 0.0, im: 0.0 }),
+            cplx_x_vec: vec![num::Complex { re: 0.0, im: 0.0 }; vars],
         })
     }
 
@@ -116,6 +116,74 @@ impl Solver for FaerSolver {
 
         Ok(&self.x_vec)
     }
+
+    fn set_cplx_a(&mut self, a_mat: &crate::models::ComplexTriples) {
+        match a_mat {
+            ComplexTriples::Empty => {}
+            ComplexTriples::Single((row, col, val)) => {
+                self.set_cplx_value(*row, *col, into_c64(*val));
+            }
+            ComplexTriples::Double(vals) => {
+                self.set_cplx_value(vals[0].0, vals[0].1, into_c64(vals[0].2));
+                self.set_cplx_value(vals[1].0, vals[1].1, into_c64(vals[1].2));
+            }
+            ComplexTriples::Quad(vals) => {
+                self.set_cplx_value(vals[0].0, vals[0].1, into_c64(vals[0].2));
+                self.set_cplx_value(vals[1].0, vals[1].1, into_c64(vals[1].2));
+                self.set_cplx_value(vals[2].0, vals[2].1, into_c64(vals[2].2));
+                self.set_cplx_value(vals[2].0, vals[3].1, into_c64(vals[3].2));
+            }
+            ComplexTriples::Vec(vals) => {
+                for triple in vals {
+                    self.set_cplx_value(triple.0, triple.1, into_c64(triple.2));
+                }
+            }
+        }
+    }
+
+    fn set_cplx_b(&mut self, b_vec: &crate::models::ComplexPairs) {
+        match b_vec {
+            ComplexPairs::Empty => {}
+            ComplexPairs::Single(val) => {
+                self.cplx_b_vec.as_mut()[(val.0, 0)] = into_c64(val.1);
+            }
+            ComplexPairs::Double(vals) => {
+                self.cplx_b_vec[(vals[0].0, 0)] = into_c64(vals[0].1);
+                self.cplx_b_vec[(vals[1].0, 0)] = into_c64(vals[1].1);
+            }
+            ComplexPairs::Vec(vals) => {
+                for pair in vals {
+                    self.cplx_b_vec[(pair.0, 0)] = into_c64(pair.1);
+                }
+            }
+        }
+    }
+
+    fn solve_cplx(&mut self) -> Result<&Vec<num::Complex<f64>>, SolverError> {
+        let triples: Vec<(usize, usize, c64)> = self
+            .cplx_a_mat
+            .iter()
+            .map(|((row, col), val)| (*row, *col, *val))
+            .collect();
+        let cplx_a_mat = SparseColMat::try_new_from_triplets(
+            self.cplx_x_vec.len(),
+            self.cplx_x_vec.len(),
+            &triples,
+        )
+        .unwrap();
+
+        let lu = match cplx_a_mat.sp_lu() {
+            Ok(lu) => lu,
+            Err(_) => return Err(SolverError::MatrixNonInvertible),
+        };
+
+        let res = lu.solve(&self.cplx_b_vec);
+        for (idx, val) in res.col_as_slice(0).iter().enumerate() {
+            self.cplx_x_vec[idx] = into_complex(*val);
+        }
+
+        Ok(&self.cplx_x_vec)
+    }
 }
 
 #[cfg(test)]
@@ -152,5 +220,19 @@ impl From<LuError> for SolverError {
             LuError::Generic(_) => SolverError::MatrixNonInvertible,
             LuError::SymbolicSingular(_) => SolverError::MatrixNonInvertible,
         }
+    }
+}
+
+fn into_c64(val: num::Complex<f64>) -> c64 {
+    c64 {
+        re: val.re,
+        im: val.im,
+    }
+}
+
+fn into_complex(val: c64) -> num::Complex<f64> {
+    num::Complex {
+        re: val.re,
+        im: val.im,
     }
 }
