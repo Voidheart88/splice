@@ -82,7 +82,7 @@ impl From<(Arc<str>, Unit, usize)> for Variable {
 }
 
 /// An enum representing different types of circuit elements.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Element {
     Capacitor(CapacitorBundle),
     Inductor(InductorBundle),

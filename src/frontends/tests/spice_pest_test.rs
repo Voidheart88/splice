@@ -1,8 +1,8 @@
-use std::sync::Arc;
+use std::{any::Any, sync::Arc};
 
 use crate::{
     frontends::{DiodeBundle, ResistorBundle, VSourceBundle},
-    models::{ISourceBundle, Unit, Variable},
+    models::{Element, ISourceBundle, Unit, Variable},
     sim::commands::{ACMode, SimulationCommand},
     Frontend, Simulation,
 };
@@ -593,5 +593,37 @@ fn parse_ac_oct() {
     assert_eq!(
         commands[0],
         SimulationCommand::Ac(1.0, 1000.0, 10, ACMode::Oct)
+    )
+}
+
+#[test]
+fn parse_vsource_ac_option() {
+    let main_path = "src/frontends/tests/spice_files/parse_vsource_ac.cir";
+
+    let parser = SpicePestFrontend::new(main_path.to_string());
+
+    let Simulation {
+        variables,
+        elements,
+        commands,
+    } = parser.simulation().unwrap();
+
+    assert_eq!(
+        variables[0],
+        Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0)
+    );
+    assert_eq!(variables[1], Variable::new(Arc::from("1"), Unit::Volt, 1));
+    assert_eq!(variables[2], Variable::new(Arc::from("2"), Unit::Volt, 2));
+
+    assert_eq!(*elements[0].name(), *"V1");
+    assert_eq!(*elements[1].name(), *"R1");
+    assert_eq!(*elements[2].name(), *"R2");
+
+    let ele = elements[0].clone();
+    let exp =  Element::VSource(VSourceBundle::new(Arc::from("V1"), Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0), None, Some(Variable::new(Arc::from("1"), Unit::Volt, 1)), 10.0, Some(1.0)));
+    assert_eq!(ele,exp);
+    assert_eq!(
+        commands[0],
+        SimulationCommand::Ac(1.0, 1000.0, 10, ACMode::Lin)
     )
 }

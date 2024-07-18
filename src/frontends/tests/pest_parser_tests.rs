@@ -186,3 +186,12 @@ fn process_include() {
         .next()
         .unwrap();
 }
+
+#[test]
+fn process_ac_vsource() {
+    let input = "V1 0 1 10 AC 1";
+    SpiceParser::parse(Rule::SPICE, input)
+        .expect("unsuccessful parse")
+        .next()
+        .unwrap();
+}
