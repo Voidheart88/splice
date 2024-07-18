@@ -32,7 +32,7 @@ fn parse_resistor1() {
     };
 
     let expected = ResistorBundle::new(
-        Arc::from("r1"),
+        Arc::from("R1"),
         None,
         Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
         20.0,
@@ -72,13 +72,13 @@ fn parse_resistor2() {
         crate::frontends::Element::ISource(_) => todo!(),
     };
     let expected1 = ResistorBundle::new(
-        Arc::from("r1"),
+        Arc::from("R1"),
         None,
         Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
         20.0,
     );
     let expected2 = ResistorBundle::new(
-        Arc::from("r2"),
+        Arc::from("R2"),
         Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
         Some(Variable::new(Arc::from("2"), Unit::Volt, 1)),
         20.0,
@@ -111,8 +111,8 @@ fn parse_vsource1() {
     };
 
     let expected1 = VSourceBundle::new(
-        Arc::from("v1"),
-        Variable::new(Arc::from("v1#branch"), Unit::Ampere, 0),
+        Arc::from("V1"),
+        Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0),
         None,
         Some(Variable::new(Arc::from("1"), Unit::Volt, 1)),
         10.0,
@@ -120,7 +120,7 @@ fn parse_vsource1() {
     );
 
     assert_eq!(vsource, &expected1);
-    assert_eq!(*variables[0].name(), String::from("v1#branch"));
+    assert_eq!(*variables[0].name(), String::from("V1#branch"));
     assert_eq!(*variables[1].name(), String::from("1"));
 }
 #[test]
@@ -154,8 +154,8 @@ fn parse_vsource2() {
     };
 
     let expected1 = VSourceBundle::new(
-        Arc::from("v1"),
-        Variable::new(Arc::from("v1#branch"), Unit::Ampere, 0),
+        Arc::from("V1"),
+        Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0),
         None,
         Some(Variable::new(Arc::from("1"), Unit::Volt, 1)),
         10.0,
@@ -163,8 +163,8 @@ fn parse_vsource2() {
     );
 
     let expected2 = VSourceBundle::new(
-        Arc::from("v2"),
-        Variable::new(Arc::from("v2#branch"), Unit::Ampere, 2),
+        Arc::from("V2"),
+        Variable::new(Arc::from("V2#branch"), Unit::Ampere, 2),
         None,
         Some(Variable::new(Arc::from("2"), Unit::Volt, 3)),
         20.0,
@@ -173,9 +173,9 @@ fn parse_vsource2() {
 
     assert_eq!(vsource1, &expected1);
     assert_eq!(vsource2, &expected2);
-    assert_eq!(*variables[0].name(), String::from("v1#branch"));
+    assert_eq!(*variables[0].name(), String::from("V1#branch"));
     assert_eq!(*variables[1].name(), String::from("1"));
-    assert_eq!(*variables[2].name(), String::from("v2#branch"));
+    assert_eq!(*variables[2].name(), String::from("V2#branch"));
     assert_eq!(*variables[3].name(), String::from("2"));
 }
 
@@ -208,22 +208,22 @@ fn parse_vr() {
         crate::frontends::Element::ISource(_) => todo!(),
     };
     let expected1 = VSourceBundle::new(
-        Arc::from("v1"),
-        Variable::new(Arc::from("v1#branch"), Unit::Ampere, 0),
+        Arc::from("V1"),
+        Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0),
         None,
         Some(Variable::new(Arc::from("1"), Unit::Volt, 1)),
         10.0,
         None,
     );
     let expected2 = ResistorBundle::new(
-        Arc::from("r1"),
+        Arc::from("R1"),
         Some(Variable::new(Arc::from("1"), Unit::Volt, 1)),
         None,
         20.0,
     );
     assert_eq!(vsource, &expected1);
     assert_eq!(res, &expected2);
-    assert_eq!(*variables[0].name(), String::from("v1#branch"));
+    assert_eq!(*variables[0].name(), String::from("V1#branch"));
     assert_eq!(*variables[1].name(), String::from("1"));
     assert_eq!(variables.len(), 2);
 }
@@ -265,7 +265,7 @@ fn parse_diode1() {
     };
 
     let expected = DiodeBundle::new(
-        Arc::from("d1"),
+        Arc::from("D1"),
         None,
         Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
         None,
@@ -305,13 +305,13 @@ fn parse_diode2() {
         crate::frontends::Element::ISource(_) => todo!(),
     };
     let expected1 = DiodeBundle::new(
-        Arc::from("d1"),
+        Arc::from("D1"),
         None,
         Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
         None,
     );
     let expected2 = DiodeBundle::new(
-        Arc::from("d2"),
+        Arc::from("D2"),
         Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
         Some(Variable::new(Arc::from("2"), Unit::Volt, 1)),
         None,
@@ -361,7 +361,7 @@ fn parse_isource1() {
     };
 
     let expected1 = ISourceBundle::new(
-        Arc::from("i1"),
+        Arc::from("I1"),
         None,
         Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
         5.0,
@@ -394,7 +394,7 @@ fn parse_isource2() {
     };
 
     let expected1 = ISourceBundle::new(
-        Arc::from("i1"),
+        Arc::from("I1"),
         None,
         Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
         3.5,
@@ -410,7 +410,7 @@ fn parse_isource2() {
     };
 
     let expected2 = ResistorBundle::new(
-        Arc::from("r1"),
+        Arc::from("R1"),
         Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
         None,
         10.0,
@@ -419,7 +419,7 @@ fn parse_isource2() {
     assert_eq!(isource, &expected1);
     assert_eq!(resistor, &expected2);
     assert_eq!(variables.len(), 1);
-    assert_eq!(*variables[0].name(), String::from("1"));
+    assert_eq!(*variables[0].name(), *"1");
 }
 
 #[test]
@@ -449,7 +449,7 @@ fn parse_with_include() {
     };
 
     let expected1 = ISourceBundle::new(
-        Arc::from("i1"),
+        Arc::from("I1"),
         None,
         Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
         3.5,
@@ -468,7 +468,7 @@ fn parse_with_include() {
     };
 
     let expected2 = ResistorBundle::new(
-        Arc::from("r1"),
+        Arc::from("R1"),
         Some(Variable::new(Arc::from("1"), Unit::Volt, 0)),
         None,
         10.0,
@@ -494,14 +494,14 @@ fn parse_ac() {
 
     assert_eq!(
         variables[0],
-        Variable::new(Arc::from("v1#branch"), Unit::Ampere, 0)
+        Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0)
     );
     assert_eq!(variables[1], Variable::new(Arc::from("1"), Unit::Volt, 1));
     assert_eq!(variables[2], Variable::new(Arc::from("2"), Unit::Volt, 2));
 
-    assert_eq!(*elements[0].name(), *"v1");
-    assert_eq!(*elements[1].name(), *"r1");
-    assert_eq!(*elements[2].name(), *"c1");
+    assert_eq!(*elements[0].name(), *"V1");
+    assert_eq!(*elements[1].name(), *"R1");
+    assert_eq!(*elements[2].name(), *"C1");
 
     assert_eq!(
         commands[0],
@@ -523,14 +523,14 @@ fn parse_ac_lin() {
 
     assert_eq!(
         variables[0],
-        Variable::new(Arc::from("v1#branch"), Unit::Ampere, 0)
+        Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0)
     );
     assert_eq!(variables[1], Variable::new(Arc::from("1"), Unit::Volt, 1));
     assert_eq!(variables[2], Variable::new(Arc::from("2"), Unit::Volt, 2));
 
-    assert_eq!(*elements[0].name(), *"v1");
-    assert_eq!(*elements[1].name(), *"r1");
-    assert_eq!(*elements[2].name(), *"c1");
+    assert_eq!(*elements[0].name(), *"V1");
+    assert_eq!(*elements[1].name(), *"R1");
+    assert_eq!(*elements[2].name(), *"C1");
 
     assert_eq!(
         commands[0],
@@ -552,14 +552,14 @@ fn parse_ac_dec() {
 
     assert_eq!(
         variables[0],
-        Variable::new(Arc::from("v1#branch"), Unit::Ampere, 0)
+        Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0)
     );
     assert_eq!(variables[1], Variable::new(Arc::from("1"), Unit::Volt, 1));
     assert_eq!(variables[2], Variable::new(Arc::from("2"), Unit::Volt, 2));
 
-    assert_eq!(*elements[0].name(), *"v1");
-    assert_eq!(*elements[1].name(), *"r1");
-    assert_eq!(*elements[2].name(), *"c1");
+    assert_eq!(*elements[0].name(), *"V1");
+    assert_eq!(*elements[1].name(), *"R1");
+    assert_eq!(*elements[2].name(), *"C1");
 
     assert_eq!(
         commands[0],
@@ -581,14 +581,14 @@ fn parse_ac_oct() {
 
     assert_eq!(
         variables[0],
-        Variable::new(Arc::from("v1#branch"), Unit::Ampere, 0)
+        Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0)
     );
     assert_eq!(variables[1], Variable::new(Arc::from("1"), Unit::Volt, 1));
     assert_eq!(variables[2], Variable::new(Arc::from("2"), Unit::Volt, 2));
 
-    assert_eq!(*elements[0].name(), *"v1");
-    assert_eq!(*elements[1].name(), *"r1");
-    assert_eq!(*elements[2].name(), *"c1");
+    assert_eq!(*elements[0].name(), *"V1");
+    assert_eq!(*elements[1].name(), *"R1");
+    assert_eq!(*elements[2].name(), *"C1");
 
     assert_eq!(
         commands[0],

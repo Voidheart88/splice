@@ -7,37 +7,41 @@
 // spice files are case insensitive
 SPICE = { SOI ~ NEWLINE* ~ (DIRECTIVE | COMMENT)* ~ NEWLINE* ~ WHITE_SPACE* ~ EOI }
 
-// A directive can be an Element or a command
+// A directive can be an element or a command
 DIRECTIVE = { (ELE ~ NEWLINE*) | (COMMAND ~ NEWLINE*) }
 
 // A comment starts with a Asterisk followed by an Arbitrary number of Alphanumerics
 COMMENT = { "*" ~ ASCII_ALPHANUMERIC* ~ NEWLINE* }
 
-// An Element could be a VSource, a resistor, or a diode
-// An Element could be a VSource, a resistor, a diode, a capacitor, or an inductor
-ELE = { ELE_VSOURCE | ELE_RESISTOR | ELE_DIODE | ELE_CAPACITOR | ELE_INDUCTOR }
+// An element could be a VSource, a resistor, or a diode
+// An element could be a VSource, a resistor, a diode, a capacitor, or an inductor
+ELE = { ELE_VSOURCE | ELE_ISOURCE | ELE_RESISTOR | ELE_DIODE | ELE_CAPACITOR | ELE_INDUCTOR }
 
-ELE_VSOURCE = { ^"v" ~ ELEMENT_NAME ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ (WHITE_SPACE+ ~ VALUE)? }
-ELE_RESISTOR = { ^"r" ~ ELEMENT_NAME ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ (WHITE_SPACE+ ~ VALUE)? }
-ELE_CAPACITOR = { ^"c" ~ ELEMENT_NAME ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ (WHITE_SPACE+ ~ VALUE)? }
-ELE_INDUCTOR = { ^"i" ~ ELEMENT_NAME ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ (WHITE_SPACE+ ~ VALUE)? }
-ELE_DIODE = { ^"d" ~ ELEMENT_NAME ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ (WHITE_SPACE+ ~ DIODE_MODEL? )? }
+ELE_VSOURCE = { ^"v" ~ ELEMENT_NAME ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ VALUE }
+ELE_ISOURCE = { ^"i" ~ ELEMENT_NAME ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ VALUE }
+ELE_RESISTOR = { ^"r" ~ ELEMENT_NAME ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ VALUE }
+ELE_CAPACITOR = { ^"c" ~ ELEMENT_NAME ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ VALUE }
+ELE_INDUCTOR = { ^"l" ~ ELEMENT_NAME ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ VALUE }
+ELE_DIODE = { ^"d" ~ ELEMENT_NAME ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ (WHITE_SPACE+ ~ DIODE_MODEL)? ~ WHITE_SPACE*}
 
 ELEMENT_NAME = { ASCII_ALPHANUMERIC* }
 
-DIODE_MODEL = { ^"d" ~ WHITE_SPACE* ~ (DIODE_PAR_BV)* }
-DIODE_PAR_BV = {^"bv" ~ WHITE_SPACE* ~ "=" ~ WHITE_SPACE* ~ VALUE}
+DIODE_MODEL = { ^"d" ~ WHITE_SPACE* ~ DIODE_PAR_BV }
+DIODE_PAR_BV = { ^"bv" ~ WHITE_SPACE* ~ "=" ~ WHITE_SPACE* ~ VALUE }
 
 // A command can be OP, DC, AC, or Tran
-COMMAND = { CMD_OP | CMD_DC | CMD_AC | CMD_TRAN }
+COMMAND = { CMD_OP | CMD_DC | CMD_AC | CMD_TRAN | CMD_INCLUDE }
 
+// Simulation commands
 CMD_OP = { ^".op" ~ WHITE_SPACE* }
 CMD_DC = { ^".dc" ~ WHITE_SPACE+ ~ ASCII_ALPHANUMERIC+ ~ WHITE_SPACE+ ~ VALUE ~ WHITE_SPACE+ ~ VALUE ~ WHITE_SPACE+ ~ VALUE }
-CMD_AC = { ^".ac" ~ WHITE_SPACE+ ~ VALUE ~ WHITE_SPACE+ ~ VALUE ~ WHITE_SPACE+ ~ VALUE ~ (WHITE_SPACE+ ~ AC_OPTION? )?}
-CMD_TRAN = { ^".tran" ~ WHITE_SPACE+ ~ VALUE ~ WHITE_SPACE+ ~ VALUE ~ WHITE_SPACE*}
+CMD_AC = { ^".ac" ~ WHITE_SPACE+ ~ VALUE ~ WHITE_SPACE+ ~ VALUE ~ WHITE_SPACE+ ~ VALUE ~ (WHITE_SPACE+ ~ AC_OPTION? )? }
+CMD_TRAN = { ^".tran" ~ WHITE_SPACE+ ~ VALUE ~ WHITE_SPACE+ ~ VALUE }
 
-AC_OPTION = {^"lin" | ^"dec" | ^"oct"}
+// Misc commands
+CMD_INCLUDE = {^".include" ~ WHITE_SPACE+ ~ (ASCII_ALPHANUMERIC | ".")+}
+
+AC_OPTION = { ^"lin" | ^"dec" | ^"oct" }
 // Definitions for common elements
 NODE = { ASCII_ALPHANUMERIC+ }
 VALUE = { ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? ~ (^"e" ~ ("+" | "-")? ~ ASCII_DIGIT+)? }
-

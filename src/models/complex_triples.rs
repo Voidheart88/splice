@@ -163,14 +163,69 @@ impl Add for ComplexTriples {
     }
 }
 
-impl From<Triples> for ComplexTriples{
+impl From<Triples> for ComplexTriples {
     fn from(value: Triples) -> Self {
         match value {
             Triples::Empty => ComplexTriples::Empty,
-            Triples::Single((row,col,val)) => ComplexTriples::Single((row,col,Complex{re:val,im:0.0})),
-            Triples::Double(triples) => ComplexTriples::Double([(triples[0].0,triples[0].1,Complex{re:triples[0].2,im:0.0}),(triples[1].0,triples[1].1,Complex{re:triples[1].2,im:0.0})]),
-            Triples::Quad(triples) => ComplexTriples::Quad([(triples[0].0,triples[0].1,Complex{re:triples[0].2,im:0.0}),(triples[1].0,triples[1].1,Complex{re:triples[1].2,im:0.0}),(triples[2].0,triples[2].1,Complex{re:triples[2].2,im:0.0}),(triples[3].0,triples[3].1,Complex{re:triples[3].2,im:0.0})]),
-            Triples::Vec(triples) => triples.iter().map(|(row,col,val)|(*row,*col,Complex{re:*val,im:0.0})).collect(),
+            Triples::Single((row, col, val)) => {
+                ComplexTriples::Single((row, col, Complex { re: val, im: 0.0 }))
+            }
+            Triples::Double(triples) => ComplexTriples::Double([
+                (
+                    triples[0].0,
+                    triples[0].1,
+                    Complex {
+                        re: triples[0].2,
+                        im: 0.0,
+                    },
+                ),
+                (
+                    triples[1].0,
+                    triples[1].1,
+                    Complex {
+                        re: triples[1].2,
+                        im: 0.0,
+                    },
+                ),
+            ]),
+            Triples::Quad(triples) => ComplexTriples::Quad([
+                (
+                    triples[0].0,
+                    triples[0].1,
+                    Complex {
+                        re: triples[0].2,
+                        im: 0.0,
+                    },
+                ),
+                (
+                    triples[1].0,
+                    triples[1].1,
+                    Complex {
+                        re: triples[1].2,
+                        im: 0.0,
+                    },
+                ),
+                (
+                    triples[2].0,
+                    triples[2].1,
+                    Complex {
+                        re: triples[2].2,
+                        im: 0.0,
+                    },
+                ),
+                (
+                    triples[3].0,
+                    triples[3].1,
+                    Complex {
+                        re: triples[3].2,
+                        im: 0.0,
+                    },
+                ),
+            ]),
+            Triples::Vec(triples) => triples
+                .iter()
+                .map(|(row, col, val)| (*row, *col, Complex { re: *val, im: 0.0 }))
+                .collect(),
         }
     }
 }

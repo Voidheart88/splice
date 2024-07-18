@@ -123,11 +123,29 @@ impl Add for ComplexPairs {
 
 impl From<Pairs> for ComplexPairs {
     fn from(value: Pairs) -> Self {
-        match value{
+        match value {
             Pairs::Empty => ComplexPairs::Empty,
-            Pairs::Single((idx,val)) => ComplexPairs::Single((idx,Complex{re:val,im:0.0})),
-            Pairs::Double(pairs) => ComplexPairs::Double([(pairs[0].0,Complex{re:pairs[0].1,im:0.0}),(pairs[1].0,Complex{re:pairs[1].1,im:0.0})]),
-            Pairs::Vec(pairs) => pairs.iter().map(|(idx,val)| (*idx,Complex{re:*val,im:0.0})).collect(),
+            Pairs::Single((idx, val)) => ComplexPairs::Single((idx, Complex { re: val, im: 0.0 })),
+            Pairs::Double(pairs) => ComplexPairs::Double([
+                (
+                    pairs[0].0,
+                    Complex {
+                        re: pairs[0].1,
+                        im: 0.0,
+                    },
+                ),
+                (
+                    pairs[1].0,
+                    Complex {
+                        re: pairs[1].1,
+                        im: 0.0,
+                    },
+                ),
+            ]),
+            Pairs::Vec(pairs) => pairs
+                .iter()
+                .map(|(idx, val)| (*idx, Complex { re: *val, im: 0.0 }))
+                .collect(),
         }
     }
 }

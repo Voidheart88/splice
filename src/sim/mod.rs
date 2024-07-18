@@ -90,7 +90,6 @@ impl<BE: Solver> Simulator<BE> {
     /// This method executes the given simulation command by calling the corresponding
     /// method for that command. If an error occurs during execution, it returns an error.
     fn execute_command(&mut self, comm: &SimulationCommand) -> Result<Sim, SimulatorError> {
-
         let res = match comm {
             SimulationCommand::Op => self.run_op()?,
             SimulationCommand::Tran => self.run_tran()?,
@@ -243,13 +242,12 @@ impl<BE: Solver> Simulator<BE> {
         };
 
         info!("Run ac analysis");
-        let const_a_mat = self.build_constant_a_mat()?;
-        let const_b_vec = self.build_constant_b_vec()?;
+        let _const_a_mat = self.build_constant_a_mat()?;
+        let _const_b_vec = self.build_constant_b_vec()?;
         for freq in freqs {
-            let _a_mat = self.build_ac_a_mat(freq)?;
-            let _b_vec = self.build_ac_b_vec(freq)?;
+            let _a_mat = self.build_ac_a_mat(freq);
+            let _b_vec = self.build_ac_b_vec(freq);
         }
-
 
         Err(SimulatorError::Unimplemented)
     }
@@ -566,11 +564,8 @@ impl<BE: Solver> Simulator<BE> {
     ///
     /// * `Ok(Triples)` - The combined ac triples.
     /// * `Err(SimulatorError::ConstantMatrixEmpty)` - If no ac triples are found.
-    fn build_ac_a_mat(&self,freq:f64) -> ComplexTriples {
-        self
-    fn build_ac_a_mat(&self, freq: f64) -> Result<ComplexTriples, SimulatorError> {
-        let a_mat = self
-            .elements
+    fn build_ac_a_mat(&self, freq: f64) -> ComplexTriples {
+        self.elements
             .par_iter()
             .filter_map(|ele| ele.get_ac_triples(freq))
             .reduce(|| ComplexTriples::Empty, |acc, ele| acc + ele)
@@ -585,11 +580,8 @@ impl<BE: Solver> Simulator<BE> {
     ///
     /// * `Ok(pairs)` - The combined ac pairs.
     /// * `Err(SimulatorError::ConstantVectorEmpty)` - If no ac pairs are found.
-    fn build_ac_b_vec(&self,freq:f64) -> ComplexPairs {
-        self
-    fn build_ac_b_vec(&self, freq: f64) -> Result<ComplexPairs, SimulatorError> {
-        let b_vec = self
-            .elements
+    fn build_ac_b_vec(&self, freq: f64) -> ComplexPairs {
+        self.elements
             .par_iter()
             .filter_map(|ele| ele.get_ac_pairs(freq))
             .reduce(|| ComplexPairs::Empty, |acc, ele| acc + ele)

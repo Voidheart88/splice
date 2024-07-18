@@ -168,3 +168,21 @@ fn process_comment() {
         .next()
         .unwrap();
 }
+
+#[test]
+fn process_diode_regression1() {
+    let input = "D1 0 1\nD2 1 2";
+    SpiceParser::parse(Rule::SPICE, input)
+        .expect("unsuccessful parse")
+        .next()
+        .unwrap();
+}
+
+#[test]
+fn process_include() {
+    let input = ".include included.cir";
+    SpiceParser::parse(Rule::SPICE, input)
+        .expect("unsuccessful parse")
+        .next()
+        .unwrap();
+}
