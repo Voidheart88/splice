@@ -1,6 +1,8 @@
 use std::collections::HashSet;
 use std::sync::Arc;
 
+use num::Complex;
+
 use super::Backend;
 use crate::models::Variable;
 use crate::sim::simulation_result::Sim;
@@ -26,7 +28,7 @@ impl Backend for CsvBackend {
             match res {
                 Sim::Op(res) => Self::output_op(res),
                 Sim::Dc(res) => Self::output_dc(res),
-                Sim::Ac(_res) => return Err(BackendError::Unimplemented),
+                Sim::Ac(res) => Self::output_ac(res),
             }
         }
         Ok(())
@@ -74,6 +76,43 @@ impl CsvBackend {
                     }
                 }
                 values.push(value_str);
+            }
+            println!("{}", values.join(","));
+        }
+    }
+
+    fn output_ac(data: &Vec<(f64, Vec<(Variable, Complex<f64>)>)>) {
+        let mut headers: HashSet<Arc<str>> = HashSet::new();
+        for (_, step_data) in data {
+            for (var, _) in step_data {
+                headers.insert(var.name());
+            }
+        }
+        let mut headers: Vec<_> = headers.into_iter().collect();
+        headers.sort(); // Optional: sort headers for consistent order
+
+        // Print headers
+        let mut header_row = vec!["Step".to_string()];
+        for header in &headers {
+            header_row.push(format!("{} (Real)", header));
+            header_row.push(format!("{} (Imag)", header));
+        }
+        println!("{}", header_row.join(","));
+
+        for (step_time, step_data) in data.iter() {
+            let mut values = vec![format!("{}", step_time)];
+            for header in &headers {
+                let mut value_str_real = String::new();
+                let mut value_str_imag = String::new();
+                for (var, val) in step_data {
+                    if &var.name() == header {
+                        value_str_real = format!("{}", val.re);
+                        value_str_imag = format!("{}", val.im);
+                        break;
+                    }
+                }
+                values.push(value_str_real);
+                values.push(value_str_imag);
             }
             println!("{}", values.join(","));
         }

@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use num::Complex;
+
 use super::*;
 /// A structure representing a bundle of resistors.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
@@ -77,6 +79,67 @@ impl ResistorBundle {
             (node1_idx, node1_idx, 1.0 / self.value),
             (node0_idx, node1_idx, -1.0 / self.value),
             (node1_idx, node0_idx, -1.0 / self.value),
+        ])
+    }
+
+    /// Returns triples representing this elements contribution to the a matrix
+    pub fn ac_triples(&self) -> ComplexTriples {
+        let node0_idx = if let Some(idx) = self.node0_idx() {
+            idx
+        } else {
+            return ComplexTriples::Single((
+                self.node1_idx().unwrap(),
+                self.node1_idx().unwrap(),
+                Complex {
+                    re: 1.0 / self.value,
+                    im: 0.0,
+                },
+            ));
+        };
+        let Some(node1_idx) = self.node1_idx() else {
+            return ComplexTriples::Single((
+                node0_idx,
+                node0_idx,
+                Complex {
+                    re: 1.0 / self.value,
+                    im: 0.0,
+                },
+            ));
+        };
+
+        ComplexTriples::Quad([
+            (
+                node0_idx,
+                node0_idx,
+                Complex {
+                    re: 1.0 / self.value,
+                    im: 0.0,
+                },
+            ),
+            (
+                node1_idx,
+                node1_idx,
+                Complex {
+                    re: 1.0 / self.value,
+                    im: 0.0,
+                },
+            ),
+            (
+                node0_idx,
+                node1_idx,
+                Complex {
+                    re: -1.0 / self.value,
+                    im: 0.0,
+                },
+            ),
+            (
+                node1_idx,
+                node0_idx,
+                Complex {
+                    re: -1.0 / self.value,
+                    im: 0.0,
+                },
+            ),
         ])
     }
 }

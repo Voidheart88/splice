@@ -180,8 +180,8 @@ impl Element {
             Element::Diode(_) => None,
             Element::Capacitor(cap) => Some(cap.ac_triples(freq)),
             Element::Inductor(ind) => Some(ind.ac_triples(freq)),
-            Element::Resistor(_) => None,
-            Element::VSource(_) => None,
+            Element::Resistor(red) => Some(red.ac_triples()),
+            Element::VSource(vsource) => Some(vsource.ac_triples()),
             Element::ISource(_) => None,
         }
     }
@@ -193,7 +193,7 @@ impl Element {
             Element::Capacitor(_) => None,
             Element::Inductor(_) => None,
             Element::Resistor(_) => None,
-            Element::VSource(_) => None,
+            Element::VSource(ele) => Some(ele.ac_pairs()),
             Element::ISource(_) => None,
         }
     }

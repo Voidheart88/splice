@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use num::Complex;
+
 use super::*;
 
 /// A structure representing a bundle of voltage sources.
@@ -108,9 +110,69 @@ impl VSourceBundle {
         ])
     }
 
+    /// Returns a reference to the triples representing matrix A.
+    pub fn ac_triples(&self) -> ComplexTriples {
+        let branch_idx = self.branch_idx();
+        let node0_idx = match self.node0_idx() {
+            Some(node0_idx) => node0_idx,
+            None => {
+                return ComplexTriples::Double([
+                    (
+                        self.branch_idx(),
+                        self.node1_idx().unwrap(),
+                        Complex { re: 1.0, im: 0.0 },
+                    ),
+                    (
+                        self.node1_idx().unwrap(),
+                        self.branch_idx(),
+                        Complex { re: 1.0, im: 0.0 },
+                    ),
+                ]);
+            }
+        };
+        let node1_idx = match self.node1_idx() {
+            Some(node1_idx) => node1_idx,
+            None => {
+                return ComplexTriples::Double([
+                    (
+                        self.branch_idx(),
+                        self.node0_idx().unwrap(),
+                        Complex { re: -1.0, im: 0.0 },
+                    ),
+                    (
+                        self.node0_idx().unwrap(),
+                        self.branch_idx(),
+                        Complex { re: -1.0, im: 0.0 },
+                    ),
+                ])
+            }
+        };
+
+        ComplexTriples::Quad([
+            (branch_idx, node0_idx, Complex { re: 1.0, im: 0.0 }),
+            (node0_idx, branch_idx, Complex { re: 1.0, im: 0.0 }),
+            (branch_idx, node1_idx, Complex { re: -1.0, im: 0.0 }),
+            (node1_idx, branch_idx, Complex { re: -1.0, im: 0.0 }),
+        ])
+    }
+
     /// Returns a reference to the pair representing vector b.
     pub fn pairs(&self) -> Pairs {
         Pairs::Single((self.branch_idx(), self.value))
+    }
+
+    /// Returns a reference to the pair representing vector b.
+    pub fn ac_pairs(&self) -> ComplexPairs {
+        match self.ac_value {
+            Some(ac_val) => ComplexPairs::Single((
+                self.branch_idx(),
+                Complex {
+                    re: ac_val,
+                    im: 0.0,
+                },
+            )),
+            None => ComplexPairs::Empty,
+        }
     }
 
     pub fn set_voltage(&mut self, voltage: f64) {
