@@ -1,5 +1,7 @@
-https://github.com/knowm/jspice
-https://github.com/SpiceSharp/SpiceSharp
+https://github.com/knowm/jspice          - Java Spice
+https://github.com/SpiceSharp/SpiceSharp - CSharp Spice
+https://github.com/ahkab/ahkab           - Python Spice
+https://analog-electronics.tudelft.nl/slicap/SLiCAP_python/docs/html/introduction/SLiCAPwhatWhyHow.html
 
 Current Rust Spice implementations:
 https://github.com/dan-fritchman/Spice21

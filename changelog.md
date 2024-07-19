@@ -1,12 +1,20 @@
+## 0.4.1
+Cangelog:
+  - added ac simulation to nalgebra and rsparse
+
+Roadmap:
+  - BJT model
+  - MOSFET model
+  - JFET model
+
 ## 0.4.0
 Cangelog:
   - added pest parser
-  - added ac simulation
+  - added ac simulation to faer
 
 Roadmap:
   - BJT model
   - FET model
-
 
 ## 0.3.3
 Cangelog:

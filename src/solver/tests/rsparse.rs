@@ -255,3 +255,70 @@ fn test_newton2() {
     assert_eq!(x[0], 0.8);
     assert!(relative_eq!(x[1], -0.566820436, epsilon = 1e-8));
 }
+
+#[test]
+fn test_complex_triples_conversion_single() {
+    let triple1 = ComplexTriples::Single((0, 0, Complex { re: 1.0, im: 2.0 }));
+    let triple2 = ComplexTriples::Single((1, 1, Complex { re: 3.0, im: 4.0 }));
+
+    let solver = RSparseSolver::new(2).unwrap();
+
+    let exp1 = Triples::Quad([(0, 0, 1.0), (0, 2, -2.0), (2, 0, 2.0), (2, 2, 1.0)]);
+    let res1 = solver.cplx_triple_to_triple(&triple1);
+    assert_eq!(res1, exp1);
+
+    let exp2 = Triples::Quad([(1, 1, 3.0), (1, 3, -4.0), (3, 1, 4.0), (3, 3, 3.0)]);
+    let res2 = solver.cplx_triple_to_triple(&triple2);
+    assert_eq!(res2, exp2);
+}
+
+#[test]
+fn test_complex_triples_conversion_double() {
+    let triples = ComplexTriples::Double([
+        (0, 0, Complex { re: 1.0, im: 2.0 }),
+        (1, 1, Complex { re: 3.0, im: 4.0 }),
+    ]);
+
+    let solver = RSparseSolver::new(2).unwrap();
+
+    let exp = Triples::Vec(vec![
+        (0, 0, 1.0),
+        (0, 2, -2.0),
+        (2, 0, 2.0),
+        (2, 2, 1.0),
+        (1, 1, 3.0),
+        (1, 3, -4.0),
+        (3, 1, 4.0),
+        (3, 3, 3.0),
+    ]);
+    let res1 = solver.cplx_triple_to_triple(&triples);
+    assert_eq!(res1, exp);
+}
+
+#[test]
+fn test_complex_triples_conversion_vec() {
+    let triples = ComplexTriples::Vec(vec![
+        (0, 0, Complex { re: 1.0, im: 2.0 }),
+        (1, 1, Complex { re: 3.0, im: 4.0 }),
+        (2, 2, Complex { re: 5.0, im: 6.0 }),
+    ]);
+
+    let solver = RSparseSolver::new(3).unwrap();
+
+    let exp = Triples::Vec(vec![
+        (0, 0, 1.0),
+        (0, 3, -2.0),
+        (3, 0, 2.0),
+        (3, 3, 1.0),
+        (1, 1, 3.0),
+        (1, 4, -4.0),
+        (4, 1, 4.0),
+        (4, 4, 3.0),
+        (2, 2, 5.0),
+        (2, 5, -6.0),
+        (5, 2, 6.0),
+        (5, 5, 5.0),
+    ]);
+    let res1 = solver.cplx_triple_to_triple(&triples);
+    assert_eq!(res1, exp);
+}

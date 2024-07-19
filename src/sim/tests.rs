@@ -2,7 +2,8 @@ use std::sync::Arc;
 
 use crate::{
     models::{CapacitorBundle, ISourceBundle, ResistorBundle, Unit, VSourceBundle, Variable},
-    solver::{FaerSolver, NalgebraSolver, RSparseSolver}, Backends,
+    solver::{FaerSolver, NalgebraSolver, RSparseSolver},
+    Backends,
 };
 
 use approx::relative_eq;
@@ -450,16 +451,16 @@ fn test_ac_sim() {
         10.0,
     ));
 
-    let elements = vec![vol,res1,res2];
-    let sim = Simulation{ 
-        variables, 
-        elements, 
-        commands: vec![SimulationCommand::Ac(1.0, 1000.0, 100, ACMode::Lin)]
+    let elements = vec![vol, res1, res2];
+    let sim = Simulation {
+        variables,
+        elements,
+        commands: vec![SimulationCommand::Ac(1.0, 1000.0, 100, ACMode::Lin)],
     };
     let mut simulator: Simulator<FaerSolver> = Simulator::from(sim);
 
     let res = simulator.run().unwrap();
-    println!("{:?}",res);
+    println!("{:?}", res);
 }
 
 #[test]
@@ -492,14 +493,14 @@ fn test_ac_sim2() {
         1e-6,
     ));
 
-    let elements = vec![vol,res1,res2];
-    let sim = Simulation{ 
-        variables, 
-        elements, 
-        commands: vec![SimulationCommand::Ac(1.0, 1000.0, 100, ACMode::Lin)]
+    let elements = vec![vol, res1, res2];
+    let sim = Simulation {
+        variables,
+        elements,
+        commands: vec![SimulationCommand::Ac(1.0, 1000.0, 100, ACMode::Lin)],
     };
     let mut simulator: Simulator<FaerSolver> = Simulator::from(sim);
 
     let res = simulator.run().unwrap();
-    println!("{:?}",res);
+    println!("{:?}", res);
 }

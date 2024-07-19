@@ -207,14 +207,17 @@ impl PlotBackend {
                 let phase = val.arg().to_degrees();
                 (gain, phase)
             })
-            .fold((None, None, None, None), |(max_g, min_g, max_p, min_p), (gain, phase)| {
-                (
-                    Some(max_g.map_or(gain, |y| gain.max(y))),
-                    Some(min_g.map_or(gain, |y| gain.min(y))),
-                    Some(max_p.map_or(phase, |y| phase.max(y))),
-                    Some(min_p.map_or(phase, |y| phase.min(y))),
-                )
-            });
+            .fold(
+                (None, None, None, None),
+                |(max_g, min_g, max_p, min_p), (gain, phase)| {
+                    (
+                        Some(max_g.map_or(gain, |y| gain.max(y))),
+                        Some(min_g.map_or(gain, |y| gain.min(y))),
+                        Some(max_p.map_or(phase, |y| phase.max(y))),
+                        Some(min_p.map_or(phase, |y| phase.min(y))),
+                    )
+                },
+            );
 
         let (max_gain, min_gain) = match (max_gain, min_gain) {
             (None, None) => return Err(BackendError::PlotError("Plot empty".into())),
@@ -230,8 +233,8 @@ impl PlotBackend {
             (Some(v1), Some(v2)) => (v1, v2),
         };
 
-        let fmin = data.iter().map(|(freq,_)| *freq as u32).min().unwrap();
-        let fmax = data.iter().map(|(freq,_)| *freq as u32).max().unwrap();
+        let fmin = data.iter().map(|(freq, _)| *freq as u32).min().unwrap();
+        let fmax = data.iter().map(|(freq, _)| *freq as u32).max().unwrap();
 
         let (upper, lower) = root.split_vertically(450);
 
