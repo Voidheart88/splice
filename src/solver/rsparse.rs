@@ -90,6 +90,7 @@ impl Solver for RSparseSolver {
             }),
         }
     }
+
     /// Solves the system of equations (Ax = B for x) and returns a reference to the solution.
     fn solve(&mut self) -> Result<&Vec<f64>, SolverError> {
         // Convert the triplet matrix to a sparse matrix

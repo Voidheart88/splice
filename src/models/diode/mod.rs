@@ -4,7 +4,7 @@ use crate::consts::UT;
 
 use super::*;
 
-/// A structure representing a bundle of diodes.
+/// A structure representing a Diode with all their options.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub(crate) struct DiodeBundle {
     name: Arc<str>,
@@ -13,7 +13,7 @@ pub(crate) struct DiodeBundle {
     value: DiodeOptions,
 }
 
-/// An enum representing possible Diode options.
+/// An struct representing possible Diode options.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub(crate) struct DiodeOptions {
     is: f64,

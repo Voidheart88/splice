@@ -2,6 +2,7 @@ mod capacitor;
 mod complex_pairs;
 mod complex_triples;
 mod diode;
+mod bjt;
 mod inductor;
 mod isource;
 mod pairs;

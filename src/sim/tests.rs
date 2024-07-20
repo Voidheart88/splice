@@ -3,7 +3,6 @@ use std::sync::Arc;
 use crate::{
     models::{CapacitorBundle, ISourceBundle, ResistorBundle, Unit, VSourceBundle, Variable},
     solver::{FaerSolver, NalgebraSolver, RSparseSolver},
-    Backends,
 };
 
 use approx::relative_eq;
@@ -422,7 +421,7 @@ fn test_build_nonlinear_b_vec() {
 }
 
 #[test]
-fn test_ac_sim() {
+fn test_ac_sim_faer() {
     let variables = vec![
         Variable::new(Arc::from("v1#branch"), Unit::Ampere, 0),
         Variable::new(Arc::from("1"), Unit::Volt, 1),
@@ -464,7 +463,7 @@ fn test_ac_sim() {
 }
 
 #[test]
-fn test_ac_sim2() {
+fn test_ac_sim2_faer() {
     let variables = vec![
         Variable::new(Arc::from("v1#branch"), Unit::Ampere, 0),
         Variable::new(Arc::from("1"), Unit::Volt, 1),
@@ -500,6 +499,48 @@ fn test_ac_sim2() {
         commands: vec![SimulationCommand::Ac(1.0, 1000.0, 100, ACMode::Lin)],
     };
     let mut simulator: Simulator<FaerSolver> = Simulator::from(sim);
+
+    let res = simulator.run().unwrap();
+    println!("{:?}", res);
+}
+
+#[test]
+fn test_ac_sim_rsparse() {
+    let variables = vec![
+        Variable::new(Arc::from("v1#branch"), Unit::Ampere, 0),
+        Variable::new(Arc::from("1"), Unit::Volt, 1),
+        Variable::new(Arc::from("2"), Unit::Volt, 2),
+    ];
+    let vol = Element::VSource(VSourceBundle::new(
+        Arc::from("v1"),
+        variables[0].clone(),
+        None,
+        Some(variables[1].clone()),
+        10.0,
+        Some(1.0),
+    ));
+
+    let res1 = Element::Resistor(ResistorBundle::new(
+        Arc::from("r1"),
+        Some(variables[1].clone()),
+        Some(variables[2].clone()),
+        10.0,
+    ));
+
+    let res2 = Element::Resistor(ResistorBundle::new(
+        Arc::from("r2"),
+        Some(variables[2].clone()),
+        None,
+        10.0,
+    ));
+
+    let elements = vec![vol, res1, res2];
+    let sim = Simulation {
+        variables,
+        elements,
+        commands: vec![SimulationCommand::Ac(1.0, 1000.0, 100, ACMode::Lin)],
+    };
+    let mut simulator: Simulator<RSparseSolver> = Simulator::from(sim);
 
     let res = simulator.run().unwrap();
     println!("{:?}", res);

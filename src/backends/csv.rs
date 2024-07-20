@@ -8,21 +8,19 @@ use crate::models::Variable;
 use crate::sim::simulation_result::Sim;
 use crate::{sim::simulation_result::SimulationResults, BackendError};
 
-/// A struct for handling CSV output of simulation results.
+/// A backend for outputting simulation results as CSV.
 pub struct CsvBackend {}
 
-/// Implementation of the `Output` trait for `CsvOutput`.
-/// This implementation defines how the simulation results are output as CSV.
 impl Backend for CsvBackend {
     /// Outputs the simulation results in CSV format.
     ///
-    /// # Parameters
+    /// # Arguments
     ///
-    /// - `results`: The `SimulationResult` to be output.
+    /// * `results` - A collection of simulation results to output.
     ///
-    /// # Returns
+    /// # Errors
     ///
-    /// A `Result` which is `Ok` if the output operation succeeds, or an `BackendError` if it fails.
+    /// Returns a `BackendError` if there is a problem with the output.
     fn output(&self, results: SimulationResults) -> Result<(), BackendError> {
         for res in results.iter() {
             match res {
@@ -36,26 +34,31 @@ impl Backend for CsvBackend {
 }
 
 impl CsvBackend {
-    /// Creates a new `CsvOutput` instance.
+    /// Creates a new `CsvBackend` instance.
     ///
     /// # Returns
     ///
-    /// A new `CsvOutput` instance.
+    /// A new instance of `CsvBackend`.
     pub fn new() -> Self {
         CsvBackend {}
     }
 
-    /// Outputs the operational simulation results in CSV format.
+    /// Outputs operating point simulation results in CSV format.
     ///
-    /// # Parameters
+    /// # Arguments
     ///
-    /// - `results`: A reference to a vector of tuples where each tuple contains a `String` and a `f64`.
+    /// * `results` - A vector of tuples containing variables and their corresponding values.
     fn output_op(results: &Vec<(Variable, f64)>) {
         for res in results {
             println!("{},{},{}", res.0.name(), res.1, res.0.unit())
         }
     }
 
+    /// Outputs DC sweep simulation results in CSV format.
+    ///
+    /// # Arguments
+    ///
+    /// * `data` - A vector of vectors, where each inner vector contains tuples of variables and their values for each step.
     fn output_dc(data: &Vec<Vec<(Variable, f64)>>) {
         let mut headers: HashSet<Arc<str>> = HashSet::new();
         for step_data in data {
@@ -81,6 +84,11 @@ impl CsvBackend {
         }
     }
 
+    /// Outputs AC sweep simulation results in CSV format.
+    ///
+    /// # Arguments
+    ///
+    /// * `data` - A vector of tuples, where each tuple contains a frequency and a vector of tuples with variables and their complex values.
     fn output_ac(data: &Vec<(f64, Vec<(Variable, Complex<f64>)>)>) {
         let mut headers: HashSet<Arc<str>> = HashSet::new();
         for (_, step_data) in data {
@@ -89,10 +97,9 @@ impl CsvBackend {
             }
         }
         let mut headers: Vec<_> = headers.into_iter().collect();
-        headers.sort(); // Optional: sort headers for consistent order
+        headers.sort();
 
-        // Print headers
-        let mut header_row = vec!["Step".to_string()];
+        let mut header_row = vec!["Frequency".to_string()];
         for header in &headers {
             header_row.push(format!("{} (Real)", header));
             header_row.push(format!("{} (Imag)", header));
