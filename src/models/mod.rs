@@ -1,10 +1,11 @@
+mod bjt;
 mod capacitor;
 mod complex_pairs;
 mod complex_triples;
 mod diode;
-mod bjt;
 mod inductor;
 mod isource;
+mod mosfet;
 mod pairs;
 mod resistor;
 mod triples;
@@ -19,6 +20,7 @@ pub(crate) use self::complex_triples::ComplexTriples;
 pub(crate) use self::diode::DiodeBundle;
 pub(crate) use self::inductor::InductorBundle;
 pub(crate) use self::isource::ISourceBundle;
+pub(crate) use self::mosfet::Mos0Bundle;
 pub(crate) use self::pairs::Pairs; //Fixme: Find a better word for this
 pub(crate) use self::resistor::ResistorBundle;
 pub(crate) use self::triples::Triples;
