@@ -161,14 +161,53 @@ impl SpicePestFrontend {
     }
 
     fn process_dc(&self, command: Pair<Rule>, commands: &mut Vec<SimulationCommand>) {
-        let mut values = command.into_inner();
+        let mut inner = command.into_inner();
 
-        let source = Arc::from("");
-        let vstart = values.next().unwrap().as_str().parse().unwrap();
-        let vend = values.next().unwrap().as_str().parse().unwrap();
-        let vstep = values.next().unwrap().as_str().parse().unwrap();
+        //extract Name
+        let source = inner.next().unwrap().as_str();
 
-        commands.push(SimulationCommand::Dc(source, vstart, vend, vstep, None))
+        //extract vstart
+        let vstart = inner.next().unwrap().as_str().parse::<f64>().unwrap();
+
+        //extract vend
+        let vend = inner.next().unwrap().as_str().parse::<f64>().unwrap();
+
+        //extract vstep
+        let vstep = inner.next().unwrap().as_str().parse::<f64>().unwrap();
+
+        let src2 = inner.next();
+        let src2 = if src2.is_none() {
+            commands.push(SimulationCommand::Dc(
+                Arc::from(source),
+                vstart,
+                vend,
+                vstep,
+                None,
+            ));
+            return;
+        } else {
+            src2.unwrap()
+        };
+
+        let mut src2 = src2.into_inner();
+
+        //extract Name
+        let source2 = src2.next().unwrap().as_str();
+
+        //extract Name
+        let vstart2 = src2.next().unwrap().as_str().parse::<f64>().unwrap();
+        //extract Name
+        let vend2 = src2.next().unwrap().as_str().parse::<f64>().unwrap();
+        //extract Name
+        let vstep2 = src2.next().unwrap().as_str().parse::<f64>().unwrap();
+
+        commands.push(SimulationCommand::Dc(
+            Arc::from(source),
+            vstart,
+            vend,
+            vstep,
+            Some((Arc::from(source2), vstart2, vend2, vstep2)),
+        ));
     }
 
     fn process_ac(&self, command: Pair<Rule>, commands: &mut Vec<SimulationCommand>) {

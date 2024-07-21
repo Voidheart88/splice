@@ -634,3 +634,74 @@ fn parse_vsource_ac_option() {
         SimulationCommand::Ac(1.0, 1000.0, 10, ACMode::Lin)
     )
 }
+
+#[test]
+fn parse_dc_single() {
+    let main_path = "src/frontends/tests/spice_files/parse_dc_0.cir";
+
+    let parser = SpicePestFrontend::new(main_path.to_string());
+
+    let Simulation {
+        variables,
+        elements,
+        commands,
+    } = parser.simulation().unwrap();
+
+    assert_eq!(
+        variables[0],
+        Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0)
+    );
+    assert_eq!(variables[1], Variable::new(Arc::from("1"), Unit::Volt, 1));
+    assert_eq!(variables[2], Variable::new(Arc::from("2"), Unit::Volt, 2));
+
+    assert_eq!(*elements[0].name(), *"V1");
+    assert_eq!(*elements[1].name(), *"R1");
+    assert_eq!(*elements[2].name(), *"R2");
+
+    assert_eq!(
+        commands[0],
+        SimulationCommand::Dc(Arc::from("V1"), 1.0, 10.0, 0.1, None)
+    )
+}
+
+#[test]
+fn parse_dc_double() {
+    let main_path = "src/frontends/tests/spice_files/parse_dc_1.cir";
+
+    let parser = SpicePestFrontend::new(main_path.to_string());
+
+    let Simulation {
+        variables,
+        elements,
+        commands,
+    } = parser.simulation().unwrap();
+
+    assert_eq!(
+        variables[0],
+        Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0)
+    );
+    assert_eq!(variables[1], Variable::new(Arc::from("1"), Unit::Volt, 1));
+    assert_eq!(
+        variables[2],
+        Variable::new(Arc::from("V2#branch"), Unit::Ampere, 2)
+    );
+    assert_eq!(variables[3], Variable::new(Arc::from("3"), Unit::Volt, 3));
+    assert_eq!(variables[4], Variable::new(Arc::from("2"), Unit::Volt, 4));
+
+    assert_eq!(*elements[0].name(), *"V1");
+    assert_eq!(*elements[1].name(), *"V2");
+    assert_eq!(*elements[2].name(), *"R1");
+    assert_eq!(*elements[3].name(), *"R2");
+    assert_eq!(*elements[4].name(), *"R3");
+
+    assert_eq!(
+        commands[0],
+        SimulationCommand::Dc(
+            Arc::from("V1"),
+            1.0,
+            10.0,
+            0.1,
+            Some((Arc::from("V2"), 1.0, 10.0, 0.1))
+        )
+    )
+}
