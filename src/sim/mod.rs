@@ -12,7 +12,7 @@ use rayon::prelude::*;
 use thiserror::Error;
 
 use crate::consts::{DIO_GUESS, MAXITER, VECTOL};
-use crate::models::{self, ComplexPairs, ComplexTriples, Element, Pairs, Triples, Variable};
+use crate::models::{ComplexPairs, ComplexTriples, Element, Pairs, Triples, Variable};
 use crate::solver::{Solver, SolverError};
 use crate::Simulation;
 use commands::{ACMode, SimulationCommand};
@@ -312,37 +312,20 @@ impl<SO: Solver> Simulator<SO> {
         // Iterate over the voltage range
         let mut voltage = *vstart;
 
-        let num_of_steps = get_num_steps(*vstart, *vstop, *vstep);
-        let res = (0..num_of_steps)
-            .into_iter()
-            .map(|step| vstart+vstep*step as f64)
-            .map(|vol| -> Result<Vec<(Variable, f64)>,SimulatorError>{
-                {
-                    // Set the voltage source to the current value
-                    let source = match &mut self.elements[vsource1_idx] {
-                        Element::VSource(ref mut vs) => vs,
-                        _ => unreachable!(),
-                    };
-                    source.set_voltage(vol);
-                }
-                Ok(self.find_op()?)
-            })
-            .collect();
-
-        //while voltage <= *vstop {
-        //    {
-        //        // Set the voltage source to the current value
-        //        let source = match &mut self.elements[vsource1_idx] {
-        //            Element::VSource(ref mut vs) => vs,
-        //            _ => unreachable!(),
-        //        };
-        //        source.set_voltage(voltage);
-        //    }
-        //    // Perform the operating point analysis
-        //    dc_results.push(self.find_op()?);
-        //    // Increment the voltage
-        //    voltage += vstep;
-        //}
+        while voltage <= *vstop {
+            {
+                // Set the voltage source to the current value
+                let source = match &mut self.elements[vsource1_idx] {
+                    Element::VSource(ref mut vs) => vs,
+                    _ => unreachable!(),
+                };
+                source.set_voltage(voltage);
+            }
+            // Perform the operating point analysis
+            dc_results.push(self.find_op()?);
+            // Increment the voltage
+            voltage += vstep;
+        }
 
         {
             // Restore the original voltage
@@ -353,7 +336,7 @@ impl<SO: Solver> Simulator<SO> {
             source.set_voltage(voltage_0);
         }
 
-        Ok(Sim::Dc(res))
+        Ok(Sim::Dc(dc_results))
     }
 
     /// Executes a single operating point analysis for dc analysis
@@ -694,14 +677,6 @@ fn get_vsource_value(element: &mut Element) -> Option<f64> {
     } else {
         None
     }
-}
-
-fn get_num_steps(start:f64, end:f64, steps:f64) -> i64 {
-    if end > start {
-        return 0
-    }
-    let range = end-start;
-    return (range/steps) as i64;
 }
 
 #[cfg(test)]

@@ -160,6 +160,7 @@ impl Element {
     pub(crate) fn get_nonlinear_triples(&self, x_vec: &Vec<f64>) -> Option<Triples> {
         match self {
             Element::Diode(ele) => Some(ele.triples(x_vec)),
+            Element::Mos0(ele) => Some(ele.triples(x_vec)),
             _ => None,
         }
     }
@@ -168,6 +169,7 @@ impl Element {
     pub(crate) fn get_nonlinear_pairs(&self, x_vec: &Vec<f64>) -> Option<Pairs> {
         match self {
             Element::Diode(ele) => Some(ele.pairs(x_vec)),
+            Element::Mos0(ele) => Some(ele.pairs(x_vec)),
             _ => None,
         }
     }
@@ -176,6 +178,7 @@ impl Element {
     pub(crate) fn is_nonlinear(&self) -> bool {
         match self {
             Element::Diode(_) => true,
+            Element::Mos0(_) => true,
             _ => false,
         }
     }

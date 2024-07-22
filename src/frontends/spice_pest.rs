@@ -17,8 +17,7 @@ use crate::{
 };
 
 use super::{
-    CapacitorBundle, DiodeBundle, Element, ISourceBundle, InductorBundle, ResistorBundle, Unit,
-    Variable,
+    CapacitorBundle, DiodeBundle, Element, ISourceBundle, InductorBundle, Mos0Bundle, ResistorBundle, Unit, Variable
 };
 
 #[derive(Parser)]
@@ -241,6 +240,7 @@ impl SpicePestFrontend {
             Rule::ELE_CAPACITOR => self.process_capacitor(element, variables, elements, var_map),
             Rule::ELE_INDUCTOR => self.process_inductor(element, variables, elements, var_map),
             Rule::ELE_DIODE => self.process_diode(element, variables, elements, var_map),
+            Rule::ELE_MOSFET => self.process_mosfet(element, variables, elements, var_map),
             _ => {}
         }
     }
@@ -476,6 +476,42 @@ impl SpicePestFrontend {
             None,
         );
         elements.push(Element::Diode(dio));
+    }
+
+    fn process_mosfet(
+        &self,
+        element: Pair<Rule>,
+        variables: &mut Vec<Variable>,
+        elements: &mut Vec<Element>,
+        var_map: &mut HashMap<Arc<str>, usize>,
+    ) {
+        let ele = element.as_str();
+        let offset = element.as_span().start();
+        let mut inner = element.into_inner();
+        //extract Name
+        let name = inner.next().unwrap().as_span().end() - offset;
+        let name = &ele[0..name];
+
+        //extract gate node
+        let gate_node = inner.next().unwrap().as_span();
+        let gate_node = &ele[gate_node.start() - offset..gate_node.end() - offset];
+
+        //extract drain node
+        let drain_node = inner.next().unwrap().as_span();
+        let drain_node = &ele[drain_node.start() - offset..drain_node.end() - offset];
+
+        //extract drain node
+        let source_node = inner.next().unwrap().as_span();
+        let source_node = &ele[source_node.start() - offset..source_node.end() - offset];
+
+        let mosfet = Mos0Bundle::new(
+            Arc::from(name), 
+            Self::get_variable(gate_node, Unit::Volt, variables, var_map), 
+            Self::get_variable(drain_node, Unit::Volt, variables, var_map), 
+            Self::get_variable(source_node, Unit::Volt, variables, var_map), 
+            None
+        );
+        elements.push(Element::Mos0(mosfet));
     }
 
     fn get_variable(

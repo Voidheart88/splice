@@ -24,8 +24,8 @@ pub(crate) struct Mos0Options {
 impl Default for Mos0Options {
     fn default() -> Self {
         Self {
-            vt0: 1.0,
-            kp: 2.0e-5,
+            vt0: 0.43,
+            kp: 118e-6,
         }
     }
 }

@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    models::{CapacitorBundle, ISourceBundle, ResistorBundle, Unit, VSourceBundle, Variable},
+    models::{CapacitorBundle, ISourceBundle, Mos0Bundle, ResistorBundle, Unit, VSourceBundle, Variable},
     solver::{FaerSolver, NalgebraSolver, RSparseSolver},
 };
 
@@ -542,6 +542,51 @@ fn test_ac_sim_rsparse() {
     };
     let mut simulator: Simulator<RSparseSolver> = Simulator::from(sim);
 
+    let res = simulator.run().unwrap();
+    println!("{:?}", res);
+}
+
+#[test]
+fn test_op_mosfet() {
+    let variables = vec![
+        Variable::new(Arc::from("v1#branch"), Unit::Ampere, 0),
+        Variable::new(Arc::from("v2#branch"), Unit::Ampere, 1),
+        Variable::new(Arc::from("1"), Unit::Volt, 2),
+        Variable::new(Arc::from("2"), Unit::Volt, 3),
+    ];
+    let vol1 = Element::VSource(VSourceBundle::new(
+        Arc::from("v1"),
+        variables[0].clone(),
+        None,
+        Some(variables[2].clone()),
+        1.5,
+        None
+    ));
+    let vol2 = Element::VSource(VSourceBundle::new(
+        Arc::from("v2"),
+        variables[1].clone(),
+        None,
+        Some(variables[3].clone()),
+        10.0,
+        None,
+    ));
+
+    let fet = Element::Mos0(Mos0Bundle::new(
+        Arc::from("m0"),
+        Some(variables[2].clone()),
+        Some(variables[3].clone()),
+        Some(variables[3].clone()),
+        None
+    ));
+
+    let elements = vec![vol1, vol2, fet];
+    let sim = Simulation {
+        variables,
+        elements,
+        commands: vec![SimulationCommand::Op],
+    };
+
+    let mut simulator: Simulator<RSparseSolver> = Simulator::from(sim);
     let res = simulator.run().unwrap();
     println!("{:?}", res);
 }

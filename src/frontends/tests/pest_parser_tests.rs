@@ -195,3 +195,12 @@ fn process_ac_vsource() {
         .next()
         .unwrap();
 }
+
+#[test]
+fn process_mos0() {
+    let input = "M0 1 2 3";
+    SpiceParser::parse(Rule::SPICE, input)
+        .expect("unsuccessful parse")
+        .next()
+        .unwrap();
+}

@@ -721,3 +721,42 @@ fn parse_dc_double() {
         )
     )
 }
+
+#[test]
+fn parse_mosfet() {
+    let main_path = "src/frontends/tests/spice_files/parse_mosfet.cir";
+
+    let parser = SpicePestFrontend::new(main_path.to_string());
+
+    let Simulation {
+        variables,
+        elements,
+        commands,
+    } = parser.simulation().unwrap();
+
+    assert_eq!(
+        variables[0],
+        Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0)
+    );
+    assert_eq!(variables[1], Variable::new(Arc::from("1"), Unit::Volt, 1));
+    assert_eq!(
+        variables[2],
+        Variable::new(Arc::from("V2#branch"), Unit::Ampere, 2)
+    );
+    assert_eq!(variables[3], Variable::new(Arc::from("2"), Unit::Volt, 3));
+
+    assert_eq!(*elements[0].name(), *"V1");
+    assert_eq!(*elements[1].name(), *"V2");
+    assert_eq!(*elements[2].name(), *"M1");
+
+    assert_eq!(
+        commands[0],
+        SimulationCommand::Dc(
+            Arc::from("V0"),
+            0.0,
+            5.0,
+            0.1,
+            None
+        )
+    )
+}
