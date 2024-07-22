@@ -12,7 +12,7 @@ use rayon::prelude::*;
 use thiserror::Error;
 
 use crate::consts::{DIO_GUESS, MAXITER, VECTOL};
-use crate::models::{ComplexPairs, ComplexTriples, Element, Pairs, Triples, Variable};
+use crate::models::{self, ComplexPairs, ComplexTriples, Element, Pairs, Triples, Variable};
 use crate::solver::{Solver, SolverError};
 use crate::Simulation;
 use commands::{ACMode, SimulationCommand};
@@ -97,8 +97,8 @@ impl<SO: Solver> Simulator<SO> {
             SimulationCommand::Ac(fstart, fend, steps, options) => {
                 self.run_ac(fstart, fend, steps, options)?
             }
-            SimulationCommand::Dc(vs, vstart, vstop, vstep, _) => {
-                self.run_dc(vs, vstart, vstop, vstep)?
+            SimulationCommand::Dc(vs, vstart, vstop, vstep, optional) => {
+                self.run_dc(vs, vstart, vstop, vstep, optional)?
             }
         };
         Ok(res)
@@ -287,62 +287,73 @@ impl<SO: Solver> Simulator<SO> {
         vstart: &f64,
         vstop: &f64,
         vstep: &f64,
+        _optional: &Option<(Arc<str>, f64, f64, f64)>,
     ) -> Result<Sim, SimulatorError> {
-        let mut voltage_source_index = None;
-        for (index, element) in self.elements.iter().enumerate() {
-            if let Element::VSource(ref vs) = element {
-                if vs.name() == *srcnam {
-                    voltage_source_index = Some(index);
-                    break;
-                }
-            }
-        }
+        let vsource1_idx = self
+            .elements
+            .iter()
+            .enumerate()
+            .find(|&(_, element)| is_vsource_with_name(element, srcnam))
+            .map(|(index, _)| index);
 
-        let voltage_source_index = match voltage_source_index {
+        let vsource1_idx = match vsource1_idx {
             Some(index) => index,
             None => return Err(SimulatorError::VoltageSourceNotFound(srcnam.to_string())),
         };
 
+        // Safe the original voltage for later use
+        let voltage_0 = self
+            .elements
+            .get_mut(vsource1_idx)
+            .and_then(get_vsource_value)
+            .expect("Element should be a VSource");
+
         let mut dc_results = Vec::new();
-
-        let voltage_0;
-        {
-            let source = match &mut self.elements[voltage_source_index] {
-                Element::VSource(ref mut vs) => vs,
-                _ => unreachable!(),
-            };
-            voltage_0 = source.value();
-        }
-
         // Iterate over the voltage range
         let mut voltage = *vstart;
-        while voltage <= *vstop {
-            {
-                // Set the voltage source to the current value
-                let source = match &mut self.elements[voltage_source_index] {
-                    Element::VSource(ref mut vs) => vs,
-                    _ => unreachable!(),
-                };
-                source.set_voltage(voltage);
-            }
 
-            // Perform the operating point analysis
-            dc_results.push(self.find_op()?);
+        let num_of_steps = get_num_steps(*vstart, *vstop, *vstep);
+        let res = (0..num_of_steps)
+            .into_iter()
+            .map(|step| vstart+vstep*step as f64)
+            .map(|vol| -> Result<Vec<(Variable, f64)>,SimulatorError>{
+                {
+                    // Set the voltage source to the current value
+                    let source = match &mut self.elements[vsource1_idx] {
+                        Element::VSource(ref mut vs) => vs,
+                        _ => unreachable!(),
+                    };
+                    source.set_voltage(vol);
+                }
+                Ok(self.find_op()?)
+            })
+            .collect();
 
-            // Increment the voltage
-            voltage += vstep;
-        }
+        //while voltage <= *vstop {
+        //    {
+        //        // Set the voltage source to the current value
+        //        let source = match &mut self.elements[vsource1_idx] {
+        //            Element::VSource(ref mut vs) => vs,
+        //            _ => unreachable!(),
+        //        };
+        //        source.set_voltage(voltage);
+        //    }
+        //    // Perform the operating point analysis
+        //    dc_results.push(self.find_op()?);
+        //    // Increment the voltage
+        //    voltage += vstep;
+        //}
 
         {
             // Restore the original voltage
-            let source = match &mut self.elements[voltage_source_index] {
+            let source = match &mut self.elements[vsource1_idx] {
                 Element::VSource(ref mut vs) => vs,
                 _ => unreachable!(),
             };
             source.set_voltage(voltage_0);
         }
 
-        Ok(Sim::Dc(dc_results))
+        Ok(Sim::Dc(res))
     }
 
     /// Executes a single operating point analysis for dc analysis
@@ -667,6 +678,30 @@ impl<SO: Solver> From<Simulation> for Simulator<SO> {
             vars: variables,
         }
     }
+}
+
+fn is_vsource_with_name(element: &Element, srcnam: &Arc<str>) -> bool {
+    if let Element::VSource(ref vs) = element {
+        vs.name() == *srcnam
+    } else {
+        false
+    }
+}
+
+fn get_vsource_value(element: &mut Element) -> Option<f64> {
+    if let Element::VSource(ref mut vs) = element {
+        Some(vs.value())
+    } else {
+        None
+    }
+}
+
+fn get_num_steps(start:f64, end:f64, steps:f64) -> i64 {
+    if end > start {
+        return 0
+    }
+    let range = end-start;
+    return (range/steps) as i64;
 }
 
 #[cfg(test)]
