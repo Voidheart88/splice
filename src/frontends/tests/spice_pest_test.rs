@@ -26,6 +26,7 @@ fn parse_resistor1() {
         crate::frontends::Element::Capacitor(_) => todo!(),
         crate::frontends::Element::Inductor(_) => todo!(),
         crate::frontends::Element::Resistor(ele) => ele,
+        crate::frontends::Element::Mos0(_) => todo!(),
         crate::frontends::Element::Diode(_) => todo!(),
         crate::frontends::Element::VSource(_) => todo!(),
         crate::frontends::Element::ISource(_) => todo!(),
@@ -60,6 +61,7 @@ fn parse_resistor2() {
         crate::frontends::Element::Inductor(_) => todo!(),
         crate::frontends::Element::Resistor(ele) => ele,
         crate::frontends::Element::Diode(_) => todo!(),
+        crate::frontends::Element::Mos0(_) => todo!(),
         crate::frontends::Element::VSource(_) => todo!(),
         crate::frontends::Element::ISource(_) => todo!(),
     };
@@ -68,6 +70,7 @@ fn parse_resistor2() {
         crate::frontends::Element::Inductor(_) => todo!(),
         crate::frontends::Element::Resistor(ele) => ele,
         crate::frontends::Element::Diode(_) => todo!(),
+        crate::frontends::Element::Mos0(_) => todo!(),
         crate::frontends::Element::VSource(_) => todo!(),
         crate::frontends::Element::ISource(_) => todo!(),
     };
@@ -106,6 +109,7 @@ fn parse_vsource1() {
         crate::frontends::Element::Inductor(_) => panic!(),
         crate::frontends::Element::Resistor(_) => panic!(),
         crate::frontends::Element::Diode(_) => panic!(),
+        crate::frontends::Element::Mos0(_) => todo!(),
         crate::frontends::Element::VSource(ele) => ele,
         crate::frontends::Element::ISource(_) => todo!(),
     };
@@ -141,6 +145,7 @@ fn parse_vsource2() {
         crate::frontends::Element::Inductor(_) => panic!(),
         crate::frontends::Element::Resistor(_) => panic!(),
         crate::frontends::Element::Diode(_) => panic!(),
+        crate::frontends::Element::Mos0(_) => todo!(),
         crate::frontends::Element::VSource(ele) => ele,
         crate::frontends::Element::ISource(_) => todo!(),
     };
@@ -149,6 +154,7 @@ fn parse_vsource2() {
         crate::frontends::Element::Inductor(_) => panic!(),
         crate::frontends::Element::Resistor(_) => panic!(),
         crate::frontends::Element::Diode(_) => panic!(),
+        crate::frontends::Element::Mos0(_) => todo!(),
         crate::frontends::Element::VSource(ele) => ele,
         crate::frontends::Element::ISource(_) => todo!(),
     };
@@ -196,6 +202,7 @@ fn parse_vr() {
         crate::frontends::Element::Inductor(_) => panic!(),
         crate::frontends::Element::Resistor(_) => panic!(),
         crate::frontends::Element::Diode(_) => panic!(),
+        crate::frontends::Element::Mos0(_) => todo!(),
         crate::frontends::Element::VSource(ele) => ele,
         crate::frontends::Element::ISource(_) => todo!(),
     };
@@ -204,6 +211,7 @@ fn parse_vr() {
         crate::frontends::Element::Inductor(_) => panic!(),
         crate::frontends::Element::Resistor(ele) => ele,
         crate::frontends::Element::Diode(_) => panic!(),
+        crate::frontends::Element::Mos0(_) => todo!(),
         crate::frontends::Element::VSource(_) => panic!(),
         crate::frontends::Element::ISource(_) => todo!(),
     };
@@ -260,6 +268,7 @@ fn parse_diode1() {
         crate::frontends::Element::Inductor(_) => panic!(),
         crate::frontends::Element::Resistor(_) => panic!(),
         crate::frontends::Element::Diode(ele) => ele,
+        crate::frontends::Element::Mos0(_) => todo!(),
         crate::frontends::Element::VSource(_) => panic!(),
         crate::frontends::Element::ISource(_) => todo!(),
     };
@@ -293,6 +302,7 @@ fn parse_diode2() {
         crate::frontends::Element::Inductor(_) => panic!(),
         crate::frontends::Element::Resistor(_) => panic!(),
         crate::frontends::Element::Diode(ele) => ele,
+        crate::frontends::Element::Mos0(_) => todo!(),
         crate::frontends::Element::VSource(_) => panic!(),
         crate::frontends::Element::ISource(_) => todo!(),
     };
@@ -301,6 +311,7 @@ fn parse_diode2() {
         crate::frontends::Element::Inductor(_) => panic!(),
         crate::frontends::Element::Resistor(_) => panic!(),
         crate::frontends::Element::Diode(ele) => ele,
+        crate::frontends::Element::Mos0(_) => todo!(),
         crate::frontends::Element::VSource(_) => panic!(),
         crate::frontends::Element::ISource(_) => todo!(),
     };
@@ -356,6 +367,7 @@ fn parse_isource1() {
         crate::frontends::Element::Inductor(_) => panic!(),
         crate::frontends::Element::Resistor(_) => panic!(),
         crate::frontends::Element::Diode(_) => panic!(),
+        crate::frontends::Element::Mos0(_) => todo!(),
         crate::frontends::Element::VSource(_) => panic!(),
         crate::frontends::Element::ISource(ele) => ele,
     };
@@ -389,6 +401,7 @@ fn parse_isource2() {
         crate::frontends::Element::Inductor(_) => panic!(),
         crate::frontends::Element::Resistor(_) => panic!(),
         crate::frontends::Element::Diode(_) => panic!(),
+        crate::frontends::Element::Mos0(_) => todo!(),
         crate::frontends::Element::VSource(_) => panic!(),
         crate::frontends::Element::ISource(ele) => ele,
     };
@@ -405,6 +418,7 @@ fn parse_isource2() {
         crate::frontends::Element::Inductor(_) => panic!(),
         crate::frontends::Element::Resistor(ele) => ele,
         crate::frontends::Element::Diode(_) => panic!(),
+        crate::frontends::Element::Mos0(_) => todo!(),
         crate::frontends::Element::VSource(_) => panic!(),
         crate::frontends::Element::ISource(_) => panic!(),
     };
@@ -444,6 +458,7 @@ fn parse_with_include() {
         crate::frontends::Element::Inductor(_) => panic!(),
         crate::frontends::Element::Resistor(_) => panic!(),
         crate::frontends::Element::Diode(_) => panic!(),
+        crate::frontends::Element::Mos0(_) => todo!(),
         crate::frontends::Element::VSource(_) => panic!(),
         crate::frontends::Element::ISource(ele) => ele,
     };
@@ -463,6 +478,7 @@ fn parse_with_include() {
         crate::frontends::Element::Inductor(_) => panic!(),
         crate::frontends::Element::Resistor(ele) => ele,
         crate::frontends::Element::Diode(_) => panic!(),
+        crate::frontends::Element::Mos0(_) => todo!(),
         crate::frontends::Element::VSource(_) => panic!(),
         crate::frontends::Element::ISource(_) => panic!(),
     };

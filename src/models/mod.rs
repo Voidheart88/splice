@@ -91,6 +91,7 @@ pub enum Element {
     Inductor(InductorBundle),
     Resistor(ResistorBundle),
     Diode(DiodeBundle),
+    Mos0(Mos0Bundle),
     VSource(VSourceBundle),
     ISource(ISourceBundle),
 }
@@ -105,6 +106,7 @@ impl Element {
             Element::Capacitor(ele) => Some(ele.triples()),
             Element::Inductor(ele) => Some(ele.triples()),
             Element::Diode(ele) => Some(ele.triples(x_vec)),
+            Element::Mos0(ele) => Some(ele.triples(x_vec)),
             Element::ISource(_) => None,
         }
     }
@@ -114,6 +116,7 @@ impl Element {
     pub(crate) fn get_pairs(&self, x_vec: &Vec<f64>) -> Option<Pairs> {
         match self {
             Element::Diode(ele) => Some(ele.pairs(x_vec)),
+            Element::Mos0(ele) => Some(ele.pairs(x_vec)),
             Element::VSource(ele) => Some(ele.pairs()),
             Element::ISource(ele) => Some(ele.pairs()),
             _ => None,
@@ -181,6 +184,7 @@ impl Element {
     pub(crate) fn get_ac_triples(&self, freq: f64) -> Option<ComplexTriples> {
         match self {
             Element::Diode(_) => None,
+            Element::Mos0(_) => None,
             Element::Capacitor(cap) => Some(cap.ac_triples(freq)),
             Element::Inductor(ind) => Some(ind.ac_triples(freq)),
             Element::Resistor(red) => Some(red.ac_triples()),
@@ -193,6 +197,7 @@ impl Element {
     pub(crate) fn get_ac_pairs(&self, _freq: f64) -> Option<ComplexPairs> {
         match self {
             Element::Diode(_) => None,
+            Element::Mos0(_) => None,
             Element::Capacitor(_) => None,
             Element::Inductor(_) => None,
             Element::Resistor(_) => None,
@@ -208,6 +213,7 @@ impl Element {
             Element::Inductor(ele) => ele.name(),
             Element::Resistor(ele) => ele.name(),
             Element::Diode(ele) => ele.name(),
+            Element::Mos0(ele) => ele.name(),
             Element::VSource(ele) => ele.name(),
             Element::ISource(ele) => ele.name(),
         }

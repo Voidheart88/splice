@@ -1,4 +1,3 @@
-#![allow(unused)]
 use std::sync::Arc;
 
 use crate::consts::UT;
