@@ -65,10 +65,6 @@ impl Mos0Bundle {
             Some(idx) => x_vec[idx],
             None => 0.0,
         };
-        let d_voltage = match self.d_idx() {
-            Some(idx) => x_vec[idx],
-            None => 0.0,
-        };
         let s_voltage = match self.s_idx() {
             Some(idx) => x_vec[idx],
             None => 0.0,
@@ -96,10 +92,6 @@ impl Mos0Bundle {
         let kp= self.options.kp;
         let vt0 = self.options.vt0;
         let g_voltage = match self.g_idx() {
-            Some(idx) => x_vec[idx],
-            None => 0.0,
-        };
-        let d_voltage = match self.d_idx() {
             Some(idx) => x_vec[idx],
             None => 0.0,
         };
