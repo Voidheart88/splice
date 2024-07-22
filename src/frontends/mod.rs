@@ -90,8 +90,8 @@ impl SelectFrontend {
             "yaml" => Err(FrontendError::Unimplemented),
             "json" => Err(FrontendError::Unimplemented),
             "kicad_sch" => Err(FrontendError::Unimplemented),
-            "cir" => Ok(Box::new(SpiceFrontend::new(pth))),
-            "lib" => Ok(Box::new(SpiceFrontend::new(pth))),
+            "cir" => Ok(Box::new(SpicePestFrontend::new(pth))),
+            "lib" => Ok(Box::new(SpicePestFrontend::new(pth))),
             _ => Err(FrontendError::FrontendNotFound),
         }
     }
