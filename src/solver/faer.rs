@@ -80,7 +80,7 @@ impl Solver for FaerSolver {
         match b_vec {
             Pairs::Empty => {}
             Pairs::Single(val) => {
-                self.b_vec.as_mut()[(val.0, 0)] = val.1;
+                self.b_vec[(val.0, 0)] = val.1;
             }
             Pairs::Double(vals) => {
                 self.b_vec[(vals[0].0, 0)] = vals[0].1;
@@ -145,7 +145,7 @@ impl Solver for FaerSolver {
         match b_vec {
             ComplexPairs::Empty => {}
             ComplexPairs::Single(val) => {
-                self.cplx_b_vec.as_mut()[(val.0, 0)] = into_c64(val.1);
+                self.cplx_b_vec[(val.0, 0)] = into_c64(val.1);
             }
             ComplexPairs::Double(vals) => {
                 self.cplx_b_vec[(vals[0].0, 0)] = into_c64(vals[0].1);
