@@ -1,7 +1,5 @@
 use std::sync::Arc;
 
-use crate::consts::UT;
-
 use super::super::*;
 
 /// A structure representing a Mos0 Mosfet.
