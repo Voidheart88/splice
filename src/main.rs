@@ -55,7 +55,6 @@ fn main() -> Result<()> {
 
     info!("Read schematic");
     let frontend: Box<dyn Frontend> = match cli.frontend {
-        Frontends::Spice => Box::new(SpiceFrontend::new(pth.clone())),
         Frontends::SpicePest => Box::new(SpicePestFrontend::new(pth.clone())),
         Frontends::Yml => Box::new(YmlFrontend::new(pth.clone())),
         Frontends::Json => Box::new(JsonFrontend::new(pth.clone())),

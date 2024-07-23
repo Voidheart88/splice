@@ -1,7 +1,6 @@
 pub(crate) mod json;
 pub(crate) mod kicad;
 pub(crate) mod network;
-pub(crate) mod spice;
 pub(crate) mod spice_pest;
 pub(crate) mod yml;
 
@@ -16,13 +15,11 @@ use crate::sim::commands::{ACMode, SimulationCommand};
 pub(crate) use json::JsonFrontend;
 pub(crate) use kicad::KicadFrontend;
 pub(crate) use network::NetworkFrontend;
-pub(crate) use spice::SpiceFrontend;
 pub(crate) use spice_pest::SpicePestFrontend;
 pub(crate) use yml::YmlFrontend;
 
 #[derive(Copy, Clone, ValueEnum, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Frontends {
-    Spice,
     SpicePest,
     Yml,
     Json,
