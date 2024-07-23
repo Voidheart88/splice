@@ -40,7 +40,7 @@ The goal of Splice is to provide a better simulation experience.
   - Build controlled sources
 
 ### Features:
-  - Allow the annotation of nodes and branches with physical quantities such as current density or revolutions per minute for a better simulation experience with things like an electrical motor. Explicitly helps a lot here!
+  - Allow the annotation of nodes and branches with physical quantities such as current density or revolutions per minute for a better simulation experience with things like an electrical motor. Explicity helps a lot here!
   - Implement an AC simulation
   - Implement a transient simulation
   - Implement an intelligent solving strategy finder (maybe an AI thingy?)
