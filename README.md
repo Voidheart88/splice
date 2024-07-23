@@ -10,8 +10,11 @@ The goal of Splice is to provide a better simulation experience.
 ## Features
   - Working .dc simulation
   - Working .op simulation
+  - Working .ac simulation
   - Working V,I,R device models
   - Minimal diode model
+  - Minimal mosfet model
+  - Capacitors and inductors work in .ac simulation
 
 ## Todos/Roadmap:
 ### Frontends:
@@ -21,7 +24,7 @@ The goal of Splice is to provide a better simulation experience.
   - Build a KiCad frontend
   - Improve the Spice frontend
 
-### Backends:
+### Solver:
   - Build a CUDA/OpenCL backend
   - Build an FPGA backend (should be a lot of fun)
 
