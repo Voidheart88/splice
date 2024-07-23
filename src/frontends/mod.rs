@@ -1,7 +1,7 @@
 pub(crate) mod json;
 pub(crate) mod kicad;
 pub(crate) mod network;
-pub(crate) mod spice_pest;
+pub(crate) mod spice;
 pub(crate) mod yml;
 
 use std::io;
@@ -12,15 +12,16 @@ use thiserror::Error;
 
 use crate::models::*;
 use crate::sim::commands::{ACMode, SimulationCommand};
+use crate::sim::options::SimulationOption;
 pub(crate) use json::JsonFrontend;
 pub(crate) use kicad::KicadFrontend;
 pub(crate) use network::NetworkFrontend;
-pub(crate) use spice_pest::SpicePestFrontend;
+pub(crate) use spice::SpiceFrontend;
 pub(crate) use yml::YmlFrontend;
 
 #[derive(Copy, Clone, ValueEnum, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Frontends {
-    SpicePest,
+    Spice,
     Yml,
     Json,
     Network,
@@ -87,8 +88,8 @@ impl SelectFrontend {
             "yaml" => Err(FrontendError::Unimplemented),
             "json" => Err(FrontendError::Unimplemented),
             "kicad_sch" => Err(FrontendError::Unimplemented),
-            "cir" => Ok(Box::new(SpicePestFrontend::new(pth))),
-            "lib" => Ok(Box::new(SpicePestFrontend::new(pth))),
+            "cir" => Ok(Box::new(SpiceFrontend::new(pth))),
+            "lib" => Ok(Box::new(SpiceFrontend::new(pth))),
             _ => Err(FrontendError::FrontendNotFound),
         }
     }
@@ -96,9 +97,10 @@ impl SelectFrontend {
 
 #[derive(Debug)]
 pub(crate) struct Simulation {
-    pub variables: Vec<Variable>,
-    pub elements: Vec<Element>,
     pub commands: Vec<SimulationCommand>,
+    pub options: Vec<SimulationOption>,
+    pub elements: Vec<Element>,
+    pub variables: Vec<Variable>,
 }
 
 /// The Frontend trait defines the interface between the choosen frontend

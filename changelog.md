@@ -1,3 +1,12 @@
+## 0.4.2
+Cangelog:
+  - added options
+  - added mosfet lvl0 model - not ready for use
+
+Roadmap:
+  - BJT model
+  - JFET model
+
 ## 0.4.1
 Cangelog:
   - added ac simulation to nalgebra and rsparse

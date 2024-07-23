@@ -1,6 +1,6 @@
 use pest::Parser;
 
-use super::super::spice_pest::*;
+use super::super::spice::*;
 
 #[test]
 fn process_minimal_vsource() {
@@ -199,6 +199,33 @@ fn process_ac_vsource() {
 #[test]
 fn process_mos0() {
     let input = "M0 1 2 3";
+    SpiceParser::parse(Rule::SPICE, input)
+        .expect("unsuccessful parse")
+        .next()
+        .unwrap();
+}
+
+#[test]
+fn process_out_option1() {
+    let input = ".out 1";
+    SpiceParser::parse(Rule::SPICE, input)
+        .expect("unsuccessful parse")
+        .next()
+        .unwrap();
+}
+
+#[test]
+fn process_out_option2() {
+    let input = ".out 1 2 3 4";
+    SpiceParser::parse(Rule::SPICE, input)
+        .expect("unsuccessful parse")
+        .next()
+        .unwrap();
+}
+
+#[test]
+fn process_out_option3() {
+    let input = ".out 1 2 3 4\n";
     SpiceParser::parse(Rule::SPICE, input)
         .expect("unsuccessful parse")
         .next()

@@ -152,9 +152,10 @@ fn test_from_simulation() {
     let elements = create_mock_elements(&variables);
     let commands = vec![SimulationCommand::Op];
     let sim = Simulation {
-        variables,
-        elements,
         commands,
+        options:vec![],
+        elements,
+        variables: variables.clone(),
     };
 
     let _: Simulator<NalgebraSolver> = Simulator::from(sim);
@@ -173,14 +174,15 @@ fn test_run_simulation() {
     let elements = create_mock_elements(&variables);
     let commands = vec![SimulationCommand::Op];
     let sim = Simulation {
-        variables,
-        elements,
         commands,
+        options:vec![],
+        elements,
+        variables: variables.clone(),
     };
 
     let mut sim: Simulator<NalgebraSolver> = Simulator::from(sim);
 
-    let res = sim.run().unwrap().0[0].clone();
+    let res = sim.run().unwrap().results[0].clone();
     let res = match res {
         Sim::Op(res) => res,
         Sim::Dc(_) => unimplemented!(),
@@ -209,14 +211,15 @@ fn test_run_simulation2() {
     let elements = create_mock_elements2(&variables);
     let commands = vec![SimulationCommand::Op];
     let sim = Simulation {
-        variables,
-        elements,
         commands,
+        options:vec![],
+        elements,
+        variables: variables.clone(),
     };
 
     let mut sim: Simulator<NalgebraSolver> = Simulator::from(sim);
 
-    let res = sim.run().unwrap().0[0].clone();
+    let res = sim.run().unwrap().results[0].clone();
     let res = match res {
         Sim::Op(res) => res,
         Sim::Dc(_) => unimplemented!(),
@@ -251,15 +254,16 @@ fn test_run_simulation3() {
     let elements = create_mock_elements3();
     let commands = vec![SimulationCommand::Op];
     let sim = Simulation {
-        variables: variables.clone(),
-        elements,
         commands,
+        options:vec![],
+        elements,
+        variables: variables.clone(),
     };
 
     let mut sim: Simulator<NalgebraSolver> = Simulator::from(sim);
     println!("Vars: {:?}", sim.vars);
 
-    let res = sim.run().unwrap().0[0].clone();
+    let res = sim.run().unwrap().results[0].clone();
     let res = match res {
         Sim::Op(res) => res,
         Sim::Dc(_) => unimplemented!(),
@@ -295,14 +299,15 @@ fn test_run_simulation4() {
     let elements = create_mock_elements4(&variables);
     let commands = vec![SimulationCommand::Op];
     let sim = Simulation {
-        variables,
-        elements,
         commands,
+        options:vec![],
+        elements,
+        variables: variables.clone(),
     };
 
     let mut sim: Simulator<NalgebraSolver> = Simulator::from(sim);
 
-    let res = sim.run().unwrap().0[0].clone();
+    let res = sim.run().unwrap().results[0].clone();
     let res = match res {
         Sim::Op(res) => res,
         Sim::Dc(_) => unimplemented!(),
@@ -320,9 +325,11 @@ fn test_build_constant_a_mat() {
         Variable::new(Arc::from("1"), Unit::Volt, 1),
     ];
     let elements = create_mock_elements(&variables);
+    let options = Vec::new();
     let simulator = Simulator {
         elements,
         commands: vec![],
+        options,
         vars: variables,
         solver: MockBackend,
     };
@@ -336,6 +343,7 @@ fn test_build_constant_a_mat_empty() {
     let simulator = Simulator {
         elements: vec![],
         commands: vec![],
+        options: vec![],
         vars: vec![],
         solver: MockBackend,
     };
@@ -353,6 +361,7 @@ fn test_build_constant_b_vec() {
     let simulator = Simulator {
         elements,
         commands: vec![],
+        options: vec![],
         vars: variables,
         solver: MockBackend,
     };
@@ -366,6 +375,7 @@ fn test_build_constant_b_vec_empty() {
     let simulator = Simulator {
         elements: vec![],
         commands: vec![],
+        options: vec![],
         vars: vec![],
         solver: MockBackend,
     };
@@ -383,6 +393,7 @@ fn test_build_time_variant_b_vec() {
     let simulator = Simulator {
         elements,
         commands: vec![],
+        options: vec![],
         vars: variables,
         solver: MockBackend,
     };
@@ -395,6 +406,7 @@ fn test_build_time_variant_b_vec_empty() {
     let simulator = Simulator {
         elements: vec![],
         commands: vec![],
+        options: vec![],
         vars: vec![],
         solver: MockBackend,
     };
@@ -413,6 +425,7 @@ fn test_build_nonlinear_b_vec() {
     let simulator = Simulator {
         elements,
         commands: vec![],
+        options: vec![],
         vars: variables,
         solver: MockBackend,
     };
@@ -452,9 +465,10 @@ fn test_ac_sim_faer() {
 
     let elements = vec![vol, res1, res2];
     let sim = Simulation {
-        variables,
-        elements,
         commands: vec![SimulationCommand::Ac(1.0, 1000.0, 100, ACMode::Lin)],
+        options: vec![],
+        elements,
+        variables,
     };
     let mut simulator: Simulator<FaerSolver> = Simulator::from(sim);
 
@@ -494,9 +508,10 @@ fn test_ac_sim2_faer() {
 
     let elements = vec![vol, res1, res2];
     let sim = Simulation {
-        variables,
-        elements,
         commands: vec![SimulationCommand::Ac(1.0, 1000.0, 100, ACMode::Lin)],
+        options: vec![],
+        elements,
+        variables,
     };
     let mut simulator: Simulator<FaerSolver> = Simulator::from(sim);
 
@@ -536,9 +551,10 @@ fn test_ac_sim_rsparse() {
 
     let elements = vec![vol, res1, res2];
     let sim = Simulation {
-        variables,
-        elements,
         commands: vec![SimulationCommand::Ac(1.0, 1000.0, 100, ACMode::Lin)],
+        options: vec![],
+        elements,
+        variables,
     };
     let mut simulator: Simulator<RSparseSolver> = Simulator::from(sim);
 
@@ -581,9 +597,10 @@ fn test_op_mosfet() {
 
     let elements = vec![vol1, vol2, fet];
     let sim = Simulation {
-        variables,
-        elements,
         commands: vec![SimulationCommand::Op],
+        variables,
+        options: vec![],
+        elements,
     };
 
     let mut simulator: Simulator<RSparseSolver> = Simulator::from(sim);

@@ -35,7 +35,7 @@ DIODE_MODEL = { ^"d" ~ WHITE_SPACE* ~ DIODE_PAR_BV }
 DIODE_PAR_BV = { ^"bv" ~ WHITE_SPACE* ~ "=" ~ WHITE_SPACE* ~ VALUE }
 
 // A command can be OP, DC, AC, or Tran
-COMMAND = { CMD_OP | CMD_DC | CMD_AC | CMD_TRAN | CMD_INCLUDE }
+COMMAND = { CMD_OP | CMD_DC | CMD_AC | CMD_TRAN | CMD_INCLUDE | CMD_OUT}
 
 // Simulation commands
 CMD_OP = { ^".op" ~ WHITE_SPACE* }
@@ -54,6 +54,7 @@ CMD_TRAN = { ^".tran" ~ WHITE_SPACE+ ~ VALUE ~ WHITE_SPACE+ ~ VALUE }
 
 // Misc commands
 CMD_INCLUDE = {^".include" ~ WHITE_SPACE+ ~ (ASCII_ALPHANUMERIC | ".")+ }
+CMD_OUT = {^".out" ~ WHITE_SPACE+ ~ NODE+ ~ ((WHITE_SPACE+ ~ NODE+)+ | WHITE_SPACE*)}
 
 // Definitions for common elements
 NODE = { ASCII_ALPHANUMERIC+ }

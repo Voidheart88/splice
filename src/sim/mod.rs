@@ -1,5 +1,6 @@
 pub(crate) mod commands;
 pub(crate) mod simulation_result;
+pub(crate) mod options;
 
 use std::fmt::{self, Debug};
 use std::sync::Arc;
@@ -8,6 +9,7 @@ use itertools::Itertools;
 use log::{info, trace};
 use miette::Diagnostic;
 use num::Complex;
+use options::SimulationOption;
 use rayon::prelude::*;
 use thiserror::Error;
 
@@ -61,6 +63,8 @@ pub(super) struct Simulator<SO: Solver> {
     elements: Vec<Element>,
     /// The simulation commands to be executed.
     commands: Vec<SimulationCommand>,
+    /// The simulation commands to be executed.
+    options: Vec<SimulationOption>,
     /// The variables used in the simulation.
     vars: Vec<Variable>,
     /// The backend used for solving the circuit equations.
@@ -74,11 +78,12 @@ impl<SO: Solver> Simulator<SO> {
     /// the results. If an error occurs during execution, it returns an error.
     pub fn run(&mut self) -> Result<SimulationResults, SimulatorError> {
         let commands = self.commands.clone();
-        let mut results = SimulationResults(Vec::new());
+        let mut results = SimulationResults::default();
+        results.options = self.options.clone();
         for com in commands {
             let error = self.execute_command(&com);
             match error {
-                Ok(res) => results.0.push(res),
+                Ok(res) => results.results.push(res),
                 Err(err) => return Err(err),
             }
         }
@@ -647,9 +652,10 @@ impl<SO: Solver> Debug for Simulator<SO> {
 impl<SO: Solver> From<Simulation> for Simulator<SO> {
     fn from(sim: Simulation) -> Self {
         let Simulation {
-            variables,
-            elements,
             commands,
+            options,
+            elements,
+            variables,
         } = sim;
 
         let backend = SO::new(variables.len()).unwrap();
@@ -657,6 +663,7 @@ impl<SO: Solver> From<Simulation> for Simulator<SO> {
         Simulator {
             elements,
             commands,
+            options,
             solver: backend,
             vars: variables,
         }

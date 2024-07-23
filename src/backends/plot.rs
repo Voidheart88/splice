@@ -29,7 +29,7 @@ impl Backend for PlotBackend {
     ///
     /// A `Result` which is `Ok` if the output operation succeeds, or an `BackendError` if it fails.
     fn output(&self, res: SimulationResults) -> Result<(), BackendError> {
-        for sim in res.0.iter() {
+        for sim in res.results.iter() {
             self.select_output(sim)?;
         }
 

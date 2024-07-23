@@ -12,7 +12,7 @@ use pest_derive::Parser;
 
 use crate::{
     models::VSourceBundle,
-    sim::commands::{ACMode, SimulationCommand},
+    sim::{commands::{ACMode, SimulationCommand}, options::SimulationOption},
     Frontend, FrontendError, Simulation,
 };
 
@@ -24,15 +24,14 @@ use super::{
 #[grammar = "frontends/pest/spice.pest"]
 pub struct SpiceParser;
 
-pub struct SpicePestFrontend {
+pub struct SpiceFrontend {
     pth: String,
 }
 
-impl Frontend for SpicePestFrontend {
+impl Frontend for SpiceFrontend {
     fn simulation(&self) -> Result<Simulation, FrontendError> {
         let mut circuit_string = String::new();
         File::open(&self.pth)?.read_to_string(&mut circuit_string)?;
-
         trace!("Parse Schematic!");
         let parse_result = SpiceParser::parse(Rule::SPICE, &circuit_string)?.next();
         let parse_result = match parse_result {
@@ -40,18 +39,20 @@ impl Frontend for SpicePestFrontend {
             None => return Err(FrontendError::ParseError("unexpected file end".into())),
         };
 
-        let mut variables = Vec::new();
-        let mut elements = Vec::new();
         let mut commands = Vec::new();
+        let mut options = Vec::new();
+        let mut elements = Vec::new();
+        let mut variables = Vec::new();
         let mut var_map = HashMap::new();
 
         for pair in parse_result.into_inner() {
             match pair.as_rule() {
                 Rule::DIRECTIVE => self.process_directive(
                     pair,
-                    &mut variables,
-                    &mut elements,
                     &mut commands,
+                    &mut options,
+                    &mut elements,
+                    &mut variables,
                     &mut var_map,
                 ),
                 _ => {}
@@ -69,31 +70,33 @@ impl Frontend for SpicePestFrontend {
         }
 
         Ok(Simulation {
-            variables,
-            elements,
             commands,
+            options,
+            elements,
+            variables,
         })
     }
 }
 
-impl SpicePestFrontend {
+impl SpiceFrontend {
     pub fn new(pth: String) -> Self {
-        SpicePestFrontend { pth }
+        SpiceFrontend { pth }
     }
 
     fn process_directive(
         &self,
         directive: Pair<Rule>,
-        variables: &mut Vec<Variable>,
-        elements: &mut Vec<Element>,
         commands: &mut Vec<SimulationCommand>,
+        options: &mut Vec<SimulationOption>,
+        elements: &mut Vec<Element>,
+        variables: &mut Vec<Variable>,
         var_map: &mut HashMap<Arc<str>, usize>,
     ) {
         for inner in directive.into_inner() {
             match inner.as_rule() {
                 Rule::ELE => self.process_element(inner, variables, elements, var_map),
                 Rule::COMMAND => {
-                    self.process_command(inner, commands, variables, elements, var_map)
+                    self.process_command(inner, commands, options, elements, variables, var_map)
                 }
                 _ => {}
             }
@@ -104,8 +107,9 @@ impl SpicePestFrontend {
         &self,
         command: Pair<Rule>,
         commands: &mut Vec<SimulationCommand>,
-        variables: &mut Vec<Variable>,
+        options: &mut Vec<SimulationOption>,
         elements: &mut Vec<Element>,
+        variables: &mut Vec<Variable>,
         var_map: &mut HashMap<Arc<str>, usize>,
     ) {
         let command = command.into_inner().nth(0).unwrap();
@@ -115,8 +119,9 @@ impl SpicePestFrontend {
             Rule::CMD_AC => self.process_ac(command, commands),
             Rule::CMD_TRAN => self.process_tran(command, commands),
             Rule::CMD_INCLUDE => {
-                self.process_include(command, commands, variables, elements, var_map)
+                self.process_include(command, commands,options,  elements, variables, var_map)
             }
+            Rule::CMD_OUT => {self.process_out(command, options)}
             _ => {}
         }
     }
@@ -125,8 +130,9 @@ impl SpicePestFrontend {
         &self,
         command: Pair<Rule>,
         commands: &mut Vec<SimulationCommand>,
-        variables: &mut Vec<Variable>,
+        options: &mut Vec<SimulationOption>,
         elements: &mut Vec<Element>,
+        variables: &mut Vec<Variable>,
         var_map: &mut HashMap<Arc<str>, usize>,
     ) {
         let current_path = Path::new(&self.pth).parent().unwrap();
@@ -148,7 +154,7 @@ impl SpicePestFrontend {
         for pair in parse_result.into_inner() {
             match pair.as_rule() {
                 Rule::DIRECTIVE => {
-                    self.process_directive(pair, variables, elements, commands, var_map)
+                    self.process_directive(pair,   commands,options,elements,variables, var_map)
                 }
                 _ => {}
             }
@@ -223,6 +229,13 @@ impl SpicePestFrontend {
 
     fn process_tran(&self, _: Pair<Rule>, commands: &mut Vec<SimulationCommand>) {
         commands.push(SimulationCommand::Tran)
+    }
+
+    fn process_out(&self, option: Pair<Rule>, options: &mut Vec<SimulationOption>) {
+        let nodes: Vec<Arc<str>> = option.into_inner()
+            .map(|inner| Arc::from(inner.as_str()))
+            .collect();
+        options.push(SimulationOption::Out(nodes));
     }
 
     fn process_element(

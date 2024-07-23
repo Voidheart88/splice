@@ -7,17 +7,18 @@ use crate::{
     Frontend, Simulation,
 };
 
-use super::super::spice_pest::*;
+use super::super::spice::*;
 
 #[test]
 fn parse_resistor1() {
     let parser =
-        SpicePestFrontend::new("src/frontends/tests/spice_files/parse_resistor1.cir".to_string());
+        SpiceFrontend::new("src/frontends/tests/spice_files/parse_resistor1.cir".to_string());
 
     let Simulation {
-        variables,
-        elements,
         commands,
+        options: _,
+        elements,
+        variables,
     } = parser.simulation().unwrap();
 
     assert_eq!(elements.len(), 1);
@@ -46,12 +47,13 @@ fn parse_resistor1() {
 #[test]
 fn parse_resistor2() {
     let parser =
-        SpicePestFrontend::new("src/frontends/tests/spice_files/parse_resistor2.cir".to_string());
+        SpiceFrontend::new("src/frontends/tests/spice_files/parse_resistor2.cir".to_string());
 
     let Simulation {
-        variables,
-        elements,
         commands,
+        options: _,
+        elements,
+        variables,
     } = parser.simulation().unwrap();
 
     assert_eq!(elements.len(), 2);
@@ -94,12 +96,13 @@ fn parse_resistor2() {
 #[test]
 fn parse_vsource1() {
     let parser =
-        SpicePestFrontend::new("src/frontends/tests/spice_files/parse_vsource1.cir".to_string());
+        SpiceFrontend::new("src/frontends/tests/spice_files/parse_vsource1.cir".to_string());
 
     let Simulation {
-        variables,
-        elements,
         commands,
+        options: _,
+        elements,
+        variables,
     } = parser.simulation().unwrap();
 
     assert_eq!(elements.len(), 1);
@@ -130,12 +133,13 @@ fn parse_vsource1() {
 #[test]
 fn parse_vsource2() {
     let parser =
-        SpicePestFrontend::new("src/frontends/tests/spice_files/parse_vsource2.cir".to_string());
+        SpiceFrontend::new("src/frontends/tests/spice_files/parse_vsource2.cir".to_string());
 
     let Simulation {
-        variables,
-        elements,
         commands,
+        options: _,
+        elements,
+        variables,
     } = parser.simulation().unwrap();
 
     assert_eq!(elements.len(), 3);
@@ -187,12 +191,13 @@ fn parse_vsource2() {
 
 #[test]
 fn parse_vr() {
-    let parser = SpicePestFrontend::new("src/frontends/tests/spice_files/parse_vr.cir".to_string());
+    let parser = SpiceFrontend::new("src/frontends/tests/spice_files/parse_vr.cir".to_string());
 
     let Simulation {
-        variables,
-        elements,
         commands,
+        options: _,
+        elements,
+        variables,
     } = parser.simulation().unwrap();
 
     assert_eq!(elements.len(), 2);
@@ -240,11 +245,12 @@ fn parse_vr() {
 #[should_panic]
 fn parse_wrong1() {
     let parser =
-        SpicePestFrontend::new("src/frontends/tests/spice_files/parse_wrong1.cir".to_string());
+        SpiceFrontend::new("src/frontends/tests/spice_files/parse_wrong1.cir".to_string());
     let Simulation {
-        variables: _,
+        commands:_optional,
+        options: _,
         elements,
-        commands: _,
+        variables:_,
     } = parser.simulation().unwrap();
 
     println!("{elements:?}")
@@ -253,12 +259,13 @@ fn parse_wrong1() {
 #[test]
 fn parse_diode1() {
     let parser =
-        SpicePestFrontend::new("src/frontends/tests/spice_files/parse_diode1.cir".to_string());
+        SpiceFrontend::new("src/frontends/tests/spice_files/parse_diode1.cir".to_string());
 
     let Simulation {
-        variables,
-        elements,
         commands,
+        options:_,
+        elements,
+        variables,
     } = parser.simulation().unwrap();
 
     assert_eq!(elements.len(), 1);
@@ -287,12 +294,13 @@ fn parse_diode1() {
 #[test]
 fn parse_diode2() {
     let parser =
-        SpicePestFrontend::new("src/frontends/tests/spice_files/parse_diode2.cir".to_string());
+        SpiceFrontend::new("src/frontends/tests/spice_files/parse_diode2.cir".to_string());
 
     let Simulation {
-        variables,
-        elements,
         commands,
+        options:_,
+        elements,
+        variables,
     } = parser.simulation().unwrap();
 
     assert_eq!(elements.len(), 2);
@@ -336,12 +344,13 @@ fn parse_diode2() {
 #[test]
 fn parse_regression1() {
     let parser =
-        SpicePestFrontend::new("src/frontends/tests/spice_files/regression1.cir".to_string());
+        SpiceFrontend::new("src/frontends/tests/spice_files/regression1.cir".to_string());
 
     let Simulation {
-        variables,
-        elements,
         commands,
+        options:_,
+        elements,
+        variables,
     } = parser.simulation().unwrap();
 
     assert_eq!(variables.len(), 5);
@@ -352,12 +361,13 @@ fn parse_regression1() {
 #[test]
 fn parse_isource1() {
     let parser =
-        SpicePestFrontend::new("src/frontends/tests/spice_files/parse_isource1.cir".to_string());
+        SpiceFrontend::new("src/frontends/tests/spice_files/parse_isource1.cir".to_string());
 
     let Simulation {
-        variables,
-        elements,
         commands,
+        options:_,
+        elements,
+        variables,
     } = parser.simulation().unwrap();
 
     assert_eq!(elements.len(), 1);
@@ -386,12 +396,13 @@ fn parse_isource1() {
 #[test]
 fn parse_isource2() {
     let parser =
-        SpicePestFrontend::new("src/frontends/tests/spice_files/parse_isource2.cir".to_string());
+        SpiceFrontend::new("src/frontends/tests/spice_files/parse_isource2.cir".to_string());
 
     let Simulation {
-        variables,
-        elements,
         commands,
+        options:_,
+        elements,
+        variables,
     } = parser.simulation().unwrap();
 
     assert_eq!(elements.len(), 2);
@@ -440,12 +451,13 @@ fn parse_isource2() {
 fn parse_with_include() {
     let main_path = "src/frontends/tests/spice_files/parse_include.cir";
 
-    let parser = SpicePestFrontend::new(main_path.to_string());
+    let parser = SpiceFrontend::new(main_path.to_string());
 
     let Simulation {
-        variables,
-        elements,
         commands,
+        options:_,
+        elements,
+        variables,
     } = parser.simulation().unwrap();
 
     // Ensure that the included file elements are parsed correctly
@@ -500,12 +512,13 @@ fn parse_with_include() {
 fn parse_ac() {
     let main_path = "src/frontends/tests/spice_files/parse_ac.cir";
 
-    let parser = SpicePestFrontend::new(main_path.to_string());
+    let parser = SpiceFrontend::new(main_path.to_string());
 
     let Simulation {
-        variables,
-        elements,
         commands,
+        options:_,
+        elements,
+        variables,
     } = parser.simulation().unwrap();
 
     assert_eq!(
@@ -529,12 +542,13 @@ fn parse_ac() {
 fn parse_ac_lin() {
     let main_path = "src/frontends/tests/spice_files/parse_ac_lin.cir";
 
-    let parser = SpicePestFrontend::new(main_path.to_string());
+    let parser = SpiceFrontend::new(main_path.to_string());
 
     let Simulation {
-        variables,
-        elements,
         commands,
+        options:_,
+        elements,
+        variables,
     } = parser.simulation().unwrap();
 
     assert_eq!(
@@ -558,12 +572,13 @@ fn parse_ac_lin() {
 fn parse_ac_dec() {
     let main_path = "src/frontends/tests/spice_files/parse_ac_dec.cir";
 
-    let parser = SpicePestFrontend::new(main_path.to_string());
+    let parser = SpiceFrontend::new(main_path.to_string());
 
     let Simulation {
-        variables,
-        elements,
         commands,
+        options:_,
+        elements,
+        variables,
     } = parser.simulation().unwrap();
 
     assert_eq!(
@@ -587,12 +602,13 @@ fn parse_ac_dec() {
 fn parse_ac_oct() {
     let main_path = "src/frontends/tests/spice_files/parse_ac_oct.cir";
 
-    let parser = SpicePestFrontend::new(main_path.to_string());
+    let parser = SpiceFrontend::new(main_path.to_string());
 
     let Simulation {
-        variables,
-        elements,
         commands,
+        options:_,
+        elements,
+        variables,
     } = parser.simulation().unwrap();
 
     assert_eq!(
@@ -616,12 +632,13 @@ fn parse_ac_oct() {
 fn parse_vsource_ac_option() {
     let main_path = "src/frontends/tests/spice_files/parse_vsource_ac.cir";
 
-    let parser = SpicePestFrontend::new(main_path.to_string());
+    let parser = SpiceFrontend::new(main_path.to_string());
 
     let Simulation {
-        variables,
-        elements,
         commands,
+        options:_,
+        elements,
+        variables,
     } = parser.simulation().unwrap();
 
     assert_eq!(
@@ -655,12 +672,13 @@ fn parse_vsource_ac_option() {
 fn parse_dc_single() {
     let main_path = "src/frontends/tests/spice_files/parse_dc_0.cir";
 
-    let parser = SpicePestFrontend::new(main_path.to_string());
+    let parser = SpiceFrontend::new(main_path.to_string());
 
     let Simulation {
-        variables,
-        elements,
         commands,
+        options:_,
+        elements,
+        variables,
     } = parser.simulation().unwrap();
 
     assert_eq!(
@@ -684,12 +702,13 @@ fn parse_dc_single() {
 fn parse_dc_double() {
     let main_path = "src/frontends/tests/spice_files/parse_dc_1.cir";
 
-    let parser = SpicePestFrontend::new(main_path.to_string());
+    let parser = SpiceFrontend::new(main_path.to_string());
 
     let Simulation {
-        variables,
-        elements,
         commands,
+        options:_,
+        elements,
+        variables,
     } = parser.simulation().unwrap();
 
     assert_eq!(
@@ -726,12 +745,13 @@ fn parse_dc_double() {
 fn parse_mosfet() {
     let main_path = "src/frontends/tests/spice_files/parse_mosfet.cir";
 
-    let parser = SpicePestFrontend::new(main_path.to_string());
+    let parser = SpiceFrontend::new(main_path.to_string());
 
     let Simulation {
-        variables,
-        elements,
         commands,
+        options:_,
+        elements,
+        variables,
     } = parser.simulation().unwrap();
 
     assert_eq!(
@@ -759,4 +779,19 @@ fn parse_mosfet() {
             None
         )
     )
+}
+
+#[test]
+fn parse_out1() {
+    let main_path = "src/frontends/tests/spice_files/parse_out1.cir";
+
+    let parser = SpiceFrontend::new(main_path.to_string());
+
+    let Simulation {
+        commands:_,
+        options: _,
+        elements: _,
+        variables: _,
+    } = parser.simulation().unwrap();
+
 }

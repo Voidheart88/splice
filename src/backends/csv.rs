@@ -22,7 +22,7 @@ impl Backend for CsvBackend {
     ///
     /// Returns a `BackendError` if there is a problem with the output.
     fn output(&self, results: SimulationResults) -> Result<(), BackendError> {
-        for res in results.iter() {
+        for res in results.results.iter() {
             match res {
                 Sim::Op(res) => Self::output_op(res),
                 Sim::Dc(res) => Self::output_dc(res),
