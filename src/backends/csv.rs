@@ -5,6 +5,7 @@ use num::Complex;
 
 use super::Backend;
 use crate::models::Variable;
+use crate::sim::options::SimulationOption;
 use crate::sim::simulation_result::Sim;
 use crate::{sim::simulation_result::SimulationResults, BackendError};
 
@@ -22,10 +23,11 @@ impl Backend for CsvBackend {
     ///
     /// Returns a `BackendError` if there is a problem with the output.
     fn output(&self, results: SimulationResults) -> Result<(), BackendError> {
+        let options = results.options;
         for res in results.results.iter() {
             match res {
                 Sim::Op(res) => Self::output_op(res),
-                Sim::Dc(res) => Self::output_dc(res),
+                Sim::Dc(res) => Self::output_dc(res,options.clone()),
                 Sim::Ac(res) => Self::output_ac(res),
             }
         }
@@ -59,17 +61,32 @@ impl CsvBackend {
     /// # Arguments
     ///
     /// * `data` - A vector of vectors, where each inner vector contains tuples of variables and their values for each step.
-    fn output_dc(data: &Vec<Vec<(Variable, f64)>>) {
-        let mut headers: HashSet<Arc<str>> = HashSet::new();
-        for step_data in data {
-            for (var, _) in step_data {
-                headers.insert(var.name());
+    /// * `options` - A vector of Simulation options. 
+    fn output_dc(data: &Vec<Vec<(Variable, f64)>>, options: Vec<SimulationOption>) {
+        // Collect the variable names specified in the options.
+        let mut filtered_headers = HashSet::new();
+        for option in options {
+            // Directly unpack the Out variant since it's irrefutable.
+            let SimulationOption::Out(vars) = option;
+            for var in vars {
+                filtered_headers.insert(var);
             }
         }
-        let headers: Vec<_> = headers.into_iter().collect();
-
-        for (step_idx, step_data) in data.iter().enumerate() {
-            let mut values = vec![format!("{}", step_idx)];
+    
+        // If no filtering is specified, use all headers.
+        if filtered_headers.is_empty() {
+            for step_data in data {
+                for (var, _) in step_data {
+                    filtered_headers.insert(var.name());
+                }
+            }
+        }
+    
+        let headers: Vec<_> = filtered_headers.into_iter().collect();
+    
+        // Iterate over each step data and collect values based on filtered headers.
+        for step_data in data.iter() {
+            let mut values = vec![];
             for header in &headers {
                 let mut value_str = String::new();
                 for (var, val) in step_data {

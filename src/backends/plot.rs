@@ -1,11 +1,12 @@
-use std::path::{Path, PathBuf};
+use std::{collections::HashSet, path::{Path, PathBuf}};
 
 use super::Backend;
 use crate::{
     models::{Unit, Variable},
-    sim::simulation_result::{Sim, SimulationResults},
+    sim::{options::SimulationOption, simulation_result::{Sim, SimulationResults}},
     BackendError,
 };
+use full_palette::{LIGHTBLUE, RED_500};
 use num::Complex;
 use plotters::{
     backend::SVGBackend,
@@ -30,7 +31,7 @@ impl Backend for PlotBackend {
     /// A `Result` which is `Ok` if the output operation succeeds, or an `BackendError` if it fails.
     fn output(&self, res: SimulationResults) -> Result<(), BackendError> {
         for sim in res.results.iter() {
-            self.select_output(sim)?;
+            self.select_output(sim,res.options.clone())?;
         }
 
         Ok(())
@@ -61,16 +62,16 @@ impl PlotBackend {
     /// # Returns
     ///
     /// A `Result` which is `Ok` if the output operation succeeds, or an `BackendError` if it fails.
-    fn select_output(&self, sim: &Sim) -> Result<(), BackendError> {
+    fn select_output(&self, sim: &Sim, options: Vec<SimulationOption>) -> Result<(), BackendError> {
         match sim {
             Sim::Op(data) => self.plot_op(data)?,
-            Sim::Dc(data) => self.plot_dc(data)?,
+            Sim::Dc(data) => self.plot_dc(data,options)?,
             Sim::Ac(data) => self.plot_ac(data)?,
         }
         Ok(())
     }
 
-    /// Plots the DC simulation results.
+/// Plots the DC simulation results.
     ///
     /// # Parameters
     ///
@@ -79,7 +80,11 @@ impl PlotBackend {
     /// # Returns
     ///
     /// A `Result` which is `Ok` if the plotting operation succeeds, or an `BackendError` if it fails.
-    fn plot_dc(&self, data: &Vec<Vec<(Variable, f64)>>) -> Result<(), BackendError> {
+    fn plot_dc(
+        &self,
+        data: &Vec<Vec<(Variable, f64)>>,
+        options: Vec<SimulationOption>,
+    ) -> Result<(), BackendError> {
         let mut path = PathBuf::from(&self.pth);
         path.set_extension("svg");
 
@@ -92,7 +97,36 @@ impl PlotBackend {
         let root = SVGBackend::new(&path, (1440, 900)).into_drawing_area();
         root.fill(&BLACK)?;
 
-        let (max, min) = data
+        // Collect the variable names specified in the options.
+        let mut filtered_headers = HashSet::new();
+        for option in options {
+            let SimulationOption::Out(vars) = option;
+            for var in vars {
+                filtered_headers.insert(var);
+            }
+        }
+
+        // If no filtering is specified, use all headers.
+        if filtered_headers.is_empty() {
+            for step_data in data {
+                for (var, _) in step_data {
+                    filtered_headers.insert(var.name());
+                }
+            }
+        }
+
+        let filtered_data: Vec<Vec<(Variable, f64)>> = data
+            .iter()
+            .map(|step_data| {
+                step_data
+                    .iter()
+                    .filter(|(var, _)| filtered_headers.contains(&var.name()))
+                    .cloned()
+                    .collect()
+            })
+            .collect();
+
+        let (max, min) = filtered_data
             .iter()
             .flat_map(|vec| vec.iter())
             .map(|(_, val)| val)
@@ -110,7 +144,7 @@ impl PlotBackend {
             (Some(v1), Some(v2)) => (v1, v2),
         };
 
-        let voltage_steps = data.len() as u32;
+        let voltage_steps = filtered_data.len() as u32;
 
         let mut chart = ChartBuilder::on(&root)
             .x_label_area_size(35)
@@ -136,15 +170,15 @@ impl PlotBackend {
         // Create a series containing both voltage and current data
         let mut series: Vec<Vec<f64>> = Vec::new();
         let mut units: Vec<Unit> = Vec::new();
-        let var_count = data[0].len();
+        let var_count = filtered_data[0].len();
         for _ in 0..var_count {
             series.push(Vec::new());
         }
         for var in 0..var_count {
-            units.push(data[0][var].0.unit())
+            units.push(filtered_data[0][var].0.unit())
         }
         for var in 0..var_count {
-            for step_data in data.iter() {
+            for step_data in filtered_data.iter() {
                 series[var].push(step_data[var].1);
             }
         }
@@ -155,7 +189,7 @@ impl PlotBackend {
                     chart
                         .draw_series(LineSeries::new(
                             var.iter().enumerate().map(|(x, &v)| (x as u32, v)),
-                            &BLUE,
+                            &LIGHTBLUE,
                         ))?
                         .label("Voltage")
                         .legend(|(x, y)| PathElement::new(vec![(x - 10, y), (x + 10, y)], &BLUE));
@@ -164,7 +198,7 @@ impl PlotBackend {
                     chart
                         .draw_series(LineSeries::new(
                             var.iter().enumerate().map(|(x, &v)| (x as u32, -v)),
-                            &RED,
+                            &RED_500,
                         ))?
                         .label("Current")
                         .legend(|(x, y)| PathElement::new(vec![(x - 10, y), (x + 10, y)], &BLUE));
