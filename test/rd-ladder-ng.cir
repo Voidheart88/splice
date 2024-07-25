@@ -2004,6 +2004,6 @@ D1000 N1000 0 diode
 .op
 .control                                    ; begin of control section
 run                                         ; run the .tran command
-print N1000
+print N50000
 .endc 
 .end

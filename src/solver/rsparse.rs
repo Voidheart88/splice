@@ -20,6 +20,9 @@ pub(crate) struct RSparseSolver {
     /// The Solution vector `x`.
     x: Vec<f64>,
 
+    // Sparse Matrix Workspace
+    sprs: Sprs,
+
     /// The conductance matrix `A` as a sparse matrix.
     cplx_a: Trpl,
     /// The vector `b` as a dense vector.
@@ -34,6 +37,7 @@ impl Solver for RSparseSolver {
         let a = Trpl::new();
         let b = Vec::with_capacity(vars);
         let x = Vec::with_capacity(vars);
+        let sprs = Sprs::new();
 
         let cplx_a = Trpl::new();
         let cplx_b = Vec::with_capacity(2 * vars);
@@ -44,6 +48,7 @@ impl Solver for RSparseSolver {
             a,
             b,
             x,
+            sprs,
             cplx_a,
             cplx_b,
             cplx_x,
@@ -94,10 +99,8 @@ impl Solver for RSparseSolver {
     /// Solves the system of equations (Ax = B for x) and returns a reference to the solution.
     fn solve(&mut self) -> Result<&Vec<f64>, SolverError> {
         // Convert the triplet matrix to a sparse matrix
-        let mut sprs = Sprs::new_from_trpl(&self.a);
-
-        rsparse::lusol(&sprs, &mut self.b, 1, 1e-6);
-
+        self.sprs.from_trpl(&self.a);
+        rsparse::lusol(&self.sprs, &mut self.b, 1, 1e-6);
         Ok(&self.b)
     }
 

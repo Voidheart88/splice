@@ -5,16 +5,15 @@
 // A spice file is a series of spice directives separated by newlines
 // It begins with a SOI and ends with an EOI.
 // spice files are case insensitive
-SPICE = { SOI ~ NEWLINE* ~ (COMMENT | DIRECTIVE)* ~ NEWLINE* ~ WHITE_SPACE* ~ EOI }
+SPICE = { SOI ~ NEWLINE* ~ (_COMMENT | DIRECTIVE)* ~ NEWLINE* ~ WHITE_SPACE* ~ EOI }
 
 // A directive can be an element or a command
 DIRECTIVE = { (ELE ~ NEWLINE*) | (COMMAND ~ NEWLINE*) }
 
 // A comment starts with a Asterisk followed by an Arbitrary number of Alphanumerics
-COMMENT = { "*" ~ ASCII_ALPHANUMERIC* ~ NEWLINE* }
+_COMMENT = { "*" ~ ASCII_ALPHANUMERIC* ~ NEWLINE* }
 
-// An element could be a VSource, a resistor, or a diode
-// An element could be a VSource, a resistor, a diode, a capacitor, or an inductor
+// An Element:
 ELE = { ELE_VSOURCE | ELE_ISOURCE | ELE_RESISTOR | ELE_DIODE | ELE_CAPACITOR | ELE_INDUCTOR | ELE_MOSFET}
 
 ELE_VSOURCE = { ^"v" ~ ELEMENT_NAME ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ VALUE ~ (WHITE_SPACE+ ~ SOURCE_AC_OPTION)?}
@@ -24,7 +23,6 @@ ELE_CAPACITOR = { ^"c" ~ ELEMENT_NAME ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NOD
 ELE_INDUCTOR = { ^"l" ~ ELEMENT_NAME ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ VALUE }
 ELE_DIODE = { ^"d" ~ ELEMENT_NAME ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ (WHITE_SPACE+ ~ DIODE_MODEL)? ~ WHITE_SPACE*}
 ELE_MOSFET = { ^"m" ~ ELEMENT_NAME ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE}
-
 
 ELEMENT_NAME = { ASCII_ALPHANUMERIC* }
 
