@@ -1,9 +1,15 @@
-use std::{collections::HashSet, path::{Path, PathBuf}};
+use std::{
+    collections::HashSet,
+    path::{Path, PathBuf},
+};
 
 use super::Backend;
 use crate::{
     models::{Unit, Variable},
-    sim::{options::SimulationOption, simulation_result::{Sim, SimulationResults}},
+    sim::{
+        options::SimulationOption,
+        simulation_result::{Sim, SimulationResults},
+    },
     BackendError,
 };
 use full_palette::{LIGHTBLUE, RED_500};
@@ -31,7 +37,7 @@ impl Backend for PlotBackend {
     /// A `Result` which is `Ok` if the output operation succeeds, or an `BackendError` if it fails.
     fn output(&self, res: SimulationResults) -> Result<(), BackendError> {
         for sim in res.results.iter() {
-            self.select_output(sim,res.options.clone())?;
+            self.select_output(sim, res.options.clone())?;
         }
 
         Ok(())
@@ -65,13 +71,13 @@ impl PlotBackend {
     fn select_output(&self, sim: &Sim, options: Vec<SimulationOption>) -> Result<(), BackendError> {
         match sim {
             Sim::Op(data) => self.plot_op(data)?,
-            Sim::Dc(data) => self.plot_dc(data,options)?,
+            Sim::Dc(data) => self.plot_dc(data, options)?,
             Sim::Ac(data) => self.plot_ac(data)?,
         }
         Ok(())
     }
 
-/// Plots the DC simulation results.
+    /// Plots the DC simulation results.
     ///
     /// # Parameters
     ///

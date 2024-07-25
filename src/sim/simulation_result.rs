@@ -4,7 +4,6 @@ use crate::models::Variable;
 
 use super::options::SimulationOption;
 
-
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) enum Sim {
     Op(Vec<(Variable, f64)>),
@@ -13,15 +12,16 @@ pub(crate) enum Sim {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub(crate) struct SimulationResults{
+pub(crate) struct SimulationResults {
     pub options: Vec<SimulationOption>,
-    pub results: Vec<Sim>
+    pub results: Vec<Sim>,
 }
 
 impl Default for SimulationResults {
     fn default() -> Self {
-        Self { 
-            options: Default::default(), 
-            results: Default::default() }
+        Self {
+            options: Default::default(),
+            results: Default::default(),
+        }
     }
 }

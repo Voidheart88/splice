@@ -104,17 +104,16 @@ impl SpiceFrontend {
             // Check for include directive
             if line.starts_with(".include") {
                 let tokens: Vec<&str> = line.split_whitespace().collect();
-                if tokens.len() == 2 {
-                    let included_path = tokens[1];
-                    let full_included_path = current_path.join(included_path);
-                    let included_content = self.read_include(&full_included_path)?;
-                    let preprocessed_include =
-                        self.preprocess(included_content, &full_included_path.parent().unwrap())?;
-                    result.push_str("\n");
-                    result.push_str(&preprocessed_include);
-                } else {
+                if tokens.len() != 2 {
                     return Err(FrontendError::ParseError("Invalid .include syntax".into()));
                 }
+                let included_path = tokens[1];
+                let full_included_path = current_path.join(included_path);
+                let included_content = self.read_include(&full_included_path)?;
+                let preprocessed_include =
+                    self.preprocess(included_content, &full_included_path.parent().unwrap())?;
+                result.push_str("\n");
+                result.push_str(&preprocessed_include);
             } else if line.starts_with('+') {
                 result.push_str(" ");
                 result.push_str(&line[1..].to_lowercase());
@@ -200,10 +199,9 @@ impl SpiceFrontend {
             }
         };
 
-        let ac_value = if token.len() >= 5 {
-            Some(token[4].parse()?)
-        } else {
-            None
+        let ac_value = match token.len() >= 5 {
+            true => Some(token[4].parse()?),
+            false => None,
         };
 
         Ok(Element::VSource(VSourceBundle::new(

@@ -244,13 +244,12 @@ fn parse_vr() {
 #[test]
 #[should_panic]
 fn parse_wrong1() {
-    let parser =
-        SpiceFrontend::new("src/frontends/tests/spice_files/parse_wrong1.cir".to_string());
+    let parser = SpiceFrontend::new("src/frontends/tests/spice_files/parse_wrong1.cir".to_string());
     let Simulation {
-        commands:_optional,
+        commands: _optional,
         options: _,
         elements,
-        variables:_,
+        variables: _,
     } = parser.simulation().unwrap();
 
     println!("{elements:?}")
@@ -258,12 +257,11 @@ fn parse_wrong1() {
 
 #[test]
 fn parse_diode1() {
-    let parser =
-        SpiceFrontend::new("src/frontends/tests/spice_files/parse_diode1.cir".to_string());
+    let parser = SpiceFrontend::new("src/frontends/tests/spice_files/parse_diode1.cir".to_string());
 
     let Simulation {
         commands,
-        options:_,
+        options: _,
         elements,
         variables,
     } = parser.simulation().unwrap();
@@ -293,12 +291,11 @@ fn parse_diode1() {
 
 #[test]
 fn parse_diode2() {
-    let parser =
-        SpiceFrontend::new("src/frontends/tests/spice_files/parse_diode2.cir".to_string());
+    let parser = SpiceFrontend::new("src/frontends/tests/spice_files/parse_diode2.cir".to_string());
 
     let Simulation {
         commands,
-        options:_,
+        options: _,
         elements,
         variables,
     } = parser.simulation().unwrap();
@@ -343,12 +340,11 @@ fn parse_diode2() {
 
 #[test]
 fn parse_regression1() {
-    let parser =
-        SpiceFrontend::new("src/frontends/tests/spice_files/regression1.cir".to_string());
+    let parser = SpiceFrontend::new("src/frontends/tests/spice_files/regression1.cir".to_string());
 
     let Simulation {
         commands,
-        options:_,
+        options: _,
         elements,
         variables,
     } = parser.simulation().unwrap();
@@ -365,7 +361,7 @@ fn parse_isource1() {
 
     let Simulation {
         commands,
-        options:_,
+        options: _,
         elements,
         variables,
     } = parser.simulation().unwrap();
@@ -400,7 +396,7 @@ fn parse_isource2() {
 
     let Simulation {
         commands,
-        options:_,
+        options: _,
         elements,
         variables,
     } = parser.simulation().unwrap();
@@ -455,7 +451,7 @@ fn parse_with_include() {
 
     let Simulation {
         commands,
-        options:_,
+        options: _,
         elements,
         variables,
     } = parser.simulation().unwrap();
@@ -516,7 +512,7 @@ fn parse_ac() {
 
     let Simulation {
         commands,
-        options:_,
+        options: _,
         elements,
         variables,
     } = parser.simulation().unwrap();
@@ -546,7 +542,7 @@ fn parse_ac_lin() {
 
     let Simulation {
         commands,
-        options:_,
+        options: _,
         elements,
         variables,
     } = parser.simulation().unwrap();
@@ -576,7 +572,7 @@ fn parse_ac_dec() {
 
     let Simulation {
         commands,
-        options:_,
+        options: _,
         elements,
         variables,
     } = parser.simulation().unwrap();
@@ -606,7 +602,7 @@ fn parse_ac_oct() {
 
     let Simulation {
         commands,
-        options:_,
+        options: _,
         elements,
         variables,
     } = parser.simulation().unwrap();
@@ -636,7 +632,7 @@ fn parse_vsource_ac_option() {
 
     let Simulation {
         commands,
-        options:_,
+        options: _,
         elements,
         variables,
     } = parser.simulation().unwrap();
@@ -676,7 +672,7 @@ fn parse_dc_single() {
 
     let Simulation {
         commands,
-        options:_,
+        options: _,
         elements,
         variables,
     } = parser.simulation().unwrap();
@@ -706,7 +702,7 @@ fn parse_dc_double() {
 
     let Simulation {
         commands,
-        options:_,
+        options: _,
         elements,
         variables,
     } = parser.simulation().unwrap();
@@ -749,7 +745,7 @@ fn parse_mosfet() {
 
     let Simulation {
         commands,
-        options:_,
+        options: _,
         elements,
         variables,
     } = parser.simulation().unwrap();
@@ -771,13 +767,7 @@ fn parse_mosfet() {
 
     assert_eq!(
         commands[0],
-        SimulationCommand::Dc(
-            Arc::from("V0"),
-            0.0,
-            5.0,
-            0.1,
-            None
-        )
+        SimulationCommand::Dc(Arc::from("V0"), 0.0, 5.0, 0.1, None)
     )
 }
 
@@ -788,10 +778,9 @@ fn parse_out1() {
     let parser = SpiceFrontend::new(main_path.to_string());
 
     let Simulation {
-        commands:_,
+        commands: _,
         options: _,
         elements: _,
         variables: _,
     } = parser.simulation().unwrap();
-
 }

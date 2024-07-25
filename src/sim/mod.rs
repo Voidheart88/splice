@@ -1,6 +1,6 @@
 pub(crate) mod commands;
-pub(crate) mod simulation_result;
 pub(crate) mod options;
+pub(crate) mod simulation_result;
 
 use std::fmt::{self, Debug};
 use std::sync::Arc;

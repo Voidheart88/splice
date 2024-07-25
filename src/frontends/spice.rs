@@ -12,12 +12,16 @@ use pest_derive::Parser;
 
 use crate::{
     models::VSourceBundle,
-    sim::{commands::{ACMode, SimulationCommand}, options::SimulationOption},
+    sim::{
+        commands::{ACMode, SimulationCommand},
+        options::SimulationOption,
+    },
     Frontend, FrontendError, Simulation,
 };
 
 use super::{
-    CapacitorBundle, DiodeBundle, Element, ISourceBundle, InductorBundle, Mos0Bundle, ResistorBundle, Unit, Variable
+    CapacitorBundle, DiodeBundle, Element, ISourceBundle, InductorBundle, Mos0Bundle,
+    ResistorBundle, Unit, Variable,
 };
 
 #[derive(Parser)]
@@ -119,9 +123,9 @@ impl SpiceFrontend {
             Rule::CMD_AC => self.process_ac(command, commands),
             Rule::CMD_TRAN => self.process_tran(command, commands),
             Rule::CMD_INCLUDE => {
-                self.process_include(command, commands,options,  elements, variables, var_map)
+                self.process_include(command, commands, options, elements, variables, var_map)
             }
-            Rule::CMD_OUT => {self.process_out(command, options)}
+            Rule::CMD_OUT => self.process_out(command, options),
             _ => {}
         }
     }
@@ -154,7 +158,7 @@ impl SpiceFrontend {
         for pair in parse_result.into_inner() {
             match pair.as_rule() {
                 Rule::DIRECTIVE => {
-                    self.process_directive(pair,   commands,options,elements,variables, var_map)
+                    self.process_directive(pair, commands, options, elements, variables, var_map)
                 }
                 _ => {}
             }
@@ -232,7 +236,8 @@ impl SpiceFrontend {
     }
 
     fn process_out(&self, option: Pair<Rule>, options: &mut Vec<SimulationOption>) {
-        let nodes: Vec<Arc<str>> = option.into_inner()
+        let nodes: Vec<Arc<str>> = option
+            .into_inner()
             .map(|inner| Arc::from(inner.as_str()))
             .collect();
         options.push(SimulationOption::Out(nodes));
@@ -258,8 +263,6 @@ impl SpiceFrontend {
         }
     }
 
-    /// Vsource
-    /// vx node0 node1 value
     fn process_vsource(
         &self,
         element: Pair<Rule>,
@@ -518,11 +521,11 @@ impl SpiceFrontend {
         let source_node = &ele[source_node.start() - offset..source_node.end() - offset];
 
         let mosfet = Mos0Bundle::new(
-            Arc::from(name), 
-            Self::get_variable(gate_node, Unit::Volt, variables, var_map), 
-            Self::get_variable(drain_node, Unit::Volt, variables, var_map), 
-            Self::get_variable(source_node, Unit::Volt, variables, var_map), 
-            None
+            Arc::from(name),
+            Self::get_variable(gate_node, Unit::Volt, variables, var_map),
+            Self::get_variable(drain_node, Unit::Volt, variables, var_map),
+            Self::get_variable(source_node, Unit::Volt, variables, var_map),
+            None,
         );
         elements.push(Element::Mos0(mosfet));
     }

@@ -29,6 +29,9 @@ pub(crate) struct RSparseSolver {
     cplx_b: Vec<f64>,
     /// The Solution vector `x`.
     cplx_x: Vec<Complex<f64>>,
+
+    //Complex Sparse Matrix Workspace
+    cplx_sprs: Sprs,
 }
 
 impl Solver for RSparseSolver {
@@ -42,6 +45,7 @@ impl Solver for RSparseSolver {
         let cplx_a = Trpl::new();
         let cplx_b = Vec::with_capacity(2 * vars);
         let cplx_x = Vec::with_capacity(2 * vars);
+        let cplx_sprs = Sprs::new();
 
         Ok(Self {
             vars,
@@ -52,6 +56,7 @@ impl Solver for RSparseSolver {
             cplx_a,
             cplx_b,
             cplx_x,
+            cplx_sprs,
         })
     }
 
@@ -147,8 +152,8 @@ impl Solver for RSparseSolver {
 
     fn solve_cplx(&mut self) -> Result<&Vec<num::Complex<f64>>, SolverError> {
         // Convert the triplet matrix to a sparse matrix
-        let mut sprs = Sprs::new_from_trpl(&self.cplx_a);
-        rsparse::lusol(&sprs, &mut self.cplx_b, 1, 1e-6);
+        self.cplx_sprs.from_trpl(&self.cplx_a);
+        rsparse::lusol(&self.cplx_sprs, &mut self.cplx_b, 1, 1e-6);
         self.cplx_x = self.real_vec_to_complex_vec();
 
         Ok(&self.cplx_x)

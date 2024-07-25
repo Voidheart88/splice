@@ -1,7 +1,9 @@
 use std::sync::Arc;
 
 use crate::{
-    models::{CapacitorBundle, ISourceBundle, Mos0Bundle, ResistorBundle, Unit, VSourceBundle, Variable},
+    models::{
+        CapacitorBundle, ISourceBundle, Mos0Bundle, ResistorBundle, Unit, VSourceBundle, Variable,
+    },
     solver::{FaerSolver, NalgebraSolver, RSparseSolver},
 };
 
@@ -153,7 +155,7 @@ fn test_from_simulation() {
     let commands = vec![SimulationCommand::Op];
     let sim = Simulation {
         commands,
-        options:vec![],
+        options: vec![],
         elements,
         variables: variables.clone(),
     };
@@ -175,7 +177,7 @@ fn test_run_simulation() {
     let commands = vec![SimulationCommand::Op];
     let sim = Simulation {
         commands,
-        options:vec![],
+        options: vec![],
         elements,
         variables: variables.clone(),
     };
@@ -212,7 +214,7 @@ fn test_run_simulation2() {
     let commands = vec![SimulationCommand::Op];
     let sim = Simulation {
         commands,
-        options:vec![],
+        options: vec![],
         elements,
         variables: variables.clone(),
     };
@@ -255,7 +257,7 @@ fn test_run_simulation3() {
     let commands = vec![SimulationCommand::Op];
     let sim = Simulation {
         commands,
-        options:vec![],
+        options: vec![],
         elements,
         variables: variables.clone(),
     };
@@ -300,7 +302,7 @@ fn test_run_simulation4() {
     let commands = vec![SimulationCommand::Op];
     let sim = Simulation {
         commands,
-        options:vec![],
+        options: vec![],
         elements,
         variables: variables.clone(),
     };
@@ -576,7 +578,7 @@ fn test_op_mosfet() {
         None,
         Some(variables[2].clone()),
         1.5,
-        None
+        None,
     ));
     let vol2 = Element::VSource(VSourceBundle::new(
         Arc::from("v2"),
@@ -592,7 +594,7 @@ fn test_op_mosfet() {
         Some(variables[2].clone()),
         Some(variables[3].clone()),
         Some(variables[3].clone()),
-        None
+        None,
     ));
 
     let elements = vec![vol1, vol2, fet];

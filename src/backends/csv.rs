@@ -27,7 +27,7 @@ impl Backend for CsvBackend {
         for res in results.results.iter() {
             match res {
                 Sim::Op(res) => Self::output_op(res),
-                Sim::Dc(res) => Self::output_dc(res,options.clone()),
+                Sim::Dc(res) => Self::output_dc(res, options.clone()),
                 Sim::Ac(res) => Self::output_ac(res),
             }
         }
@@ -61,7 +61,7 @@ impl CsvBackend {
     /// # Arguments
     ///
     /// * `data` - A vector of vectors, where each inner vector contains tuples of variables and their values for each step.
-    /// * `options` - A vector of Simulation options. 
+    /// * `options` - A vector of Simulation options.
     fn output_dc(data: &Vec<Vec<(Variable, f64)>>, options: Vec<SimulationOption>) {
         // Collect the variable names specified in the options.
         let mut filtered_headers = HashSet::new();
@@ -72,7 +72,7 @@ impl CsvBackend {
                 filtered_headers.insert(var);
             }
         }
-    
+
         // If no filtering is specified, use all headers.
         if filtered_headers.is_empty() {
             for step_data in data {
@@ -81,9 +81,9 @@ impl CsvBackend {
                 }
             }
         }
-    
+
         let headers: Vec<_> = filtered_headers.into_iter().collect();
-    
+
         // Iterate over each step data and collect values based on filtered headers.
         for step_data in data.iter() {
             let mut values = vec![];
