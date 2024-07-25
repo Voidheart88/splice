@@ -6,6 +6,7 @@ The goal of Splice is to provide a better simulation experience.
   - Faster! Splice uses modern mechanisms like parallel element evaluation to be as fast as possible. The code is   well-tested!
   - Extensible! The interfaces between frontend, backend, and output modules are well-defined. New models, frontends,  and backends are easy to implement.
   - Minimal! Splice is runnable on small ARM PCs as well as on your HPC rig.
+  - Useful error-messages!
 
 ## Features
   - Working .dc simulation
@@ -22,7 +23,6 @@ The goal of Splice is to provide a better simulation experience.
   - Build a YAML frontend
   - Build a network frontend - Splice should be runnable inside a container without many dependencies
   - Build a KiCad frontend
-  - Improve the Spice frontend
 
 ### Solver:
   - Build a CUDA/OpenCL backend
@@ -41,10 +41,8 @@ The goal of Splice is to provide a better simulation experience.
 
 ### Features:
   - Allow the annotation of nodes and branches with physical quantities such as current density or revolutions per minute for a better simulation experience with things like an electrical motor. Explicity helps a lot here!
-  - Implement an AC simulation
   - Implement a transient simulation
   - Implement an intelligent solving strategy finder (maybe an AI thingy?)
-  - Improve error messaging and UX design, especially in the frontend
 
 ### How to contribute:
   - Write tests for every module, the frontends, the backends, and the outputs. Tests define the expected behavior.
