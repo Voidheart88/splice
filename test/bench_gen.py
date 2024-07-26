@@ -10,7 +10,7 @@ def generate_spice_file(num_combinations, filename):
         f.write(".op")
 
 
-NUM_COMBINATIONS = 50000
-FILENAME = "rd-ladder-50k-ng.cir"
+NUM_COMBINATIONS = 20000
+FILENAME = "rd-ladder-20k.cir"
 generate_spice_file(NUM_COMBINATIONS, FILENAME)
 print(f"SPICE file '{FILENAME}' generated with {NUM_COMBINATIONS} resistor-diode combinations.")
