@@ -175,6 +175,48 @@ fn test_solve4() {
 }
 
 #[test]
+fn test_solve5() {
+    let a_mat = vec![
+        vec![1.0, -2.0, 3.0, -4.0],
+        vec![-9.0, 8.0, -7.0, 6.0],
+        vec![0.0, -10.0, 11.0, -12.0],
+        vec![-13.0, 14.0, 0.0, 16.0],
+    ]
+    .into();
+    let b_vec = vec![-1.0, 2.0, -3.0, 4.0].into();
+    let exp = vec![-2.0 / 45.0, 1.0 / 75.0, -1.0 / 25.0, 91.0 / 450.0];
+
+    let mut solver = RSparseSolver::new(4).unwrap();
+    solver.set_a(&a_mat);
+    solver.set_b(&b_vec);
+
+    let result = solver.solve().unwrap();
+    assert_f64_near!(result[0], exp[0], 36);
+    assert_f64_near!(result[1], exp[1], 36);
+    assert_f64_near!(result[2], exp[2], 36);
+    assert_f64_near!(result[3], exp[3], 36);
+
+    let a_mat = vec![
+        vec![1.0, 2.0, 3.0, 4.0],
+        vec![-5.0, -6.0, -7.0, -8.0],
+        vec![9.0, 0.0, 11.0, 12.0],
+        vec![0.0, -14.0, -15.0, -16.0],
+    ]
+    .into();
+
+    let b_vec = vec![1.0, 2.0, 3.0, 4.0].into();
+
+    solver.set_a(&a_mat);
+    solver.set_b(&b_vec);
+    let result = solver.solve().unwrap();
+    let exp = vec![-4.0 / 13.0, -4.0 / 5.0, -96.0 / 65.0, 477.0 / 260.0];
+    assert_f64_near!(result[0], exp[0], 36);
+    assert_f64_near!(result[1], exp[1], 36);
+    assert_f64_near!(result[2], exp[2], 36);
+    assert_f64_near!(result[3], exp[3], 36);
+}
+
+#[test]
 fn test_newton() {
     // Create an instance of the solver with 2 variables
     let mut solver = NalgebraSolver::new(2).unwrap();
