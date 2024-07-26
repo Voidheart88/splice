@@ -7,7 +7,7 @@ use num::complex::ComplexFloat;
 use num::Complex;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use rayon::vec;
-use rsparse::data::{Sprs, Trpl};
+use rsparse::data::{Sprs, Symb, Trpl};
 use rsparse::lusol;
 
 /// A Solver implementation using the Faer library.
@@ -22,6 +22,7 @@ pub(crate) struct RSparseSolver {
 
     // Sparse Matrix Workspace
     sprs: Sprs,
+    symb: Option<Symb>,
 
     /// The conductance matrix `A` as a sparse matrix.
     cplx_a: Trpl,
@@ -32,6 +33,7 @@ pub(crate) struct RSparseSolver {
 
     //Complex Sparse Matrix Workspace
     cplx_sprs: Sprs,
+    cplx_symb: Option<Symb>,
 }
 
 impl Solver for RSparseSolver {
@@ -39,13 +41,14 @@ impl Solver for RSparseSolver {
     fn new(vars: usize) -> Result<Self, SolverError> {
         let a = Trpl::new();
         let b = Vec::with_capacity(vars);
-        let x = Vec::with_capacity(vars);
+        let x = vec![0.; vars];
         let sprs = Sprs::new();
 
         let cplx_a = Trpl::new();
         let cplx_b = Vec::with_capacity(2 * vars);
         let cplx_x = Vec::with_capacity(2 * vars);
         let cplx_sprs = Sprs::new();
+        let cplx_symb = Symb::new();
 
         Ok(Self {
             vars,
@@ -53,10 +56,12 @@ impl Solver for RSparseSolver {
             b,
             x,
             sprs,
+            symb: None,
             cplx_a,
             cplx_b,
             cplx_x,
             cplx_sprs,
+            cplx_symb: None,
         })
     }
 
@@ -105,7 +110,18 @@ impl Solver for RSparseSolver {
     fn solve(&mut self) -> Result<&Vec<f64>, SolverError> {
         // Convert the triplet matrix to a sparse matrix
         self.sprs.from_trpl(&self.a);
-        rsparse::lusol(&self.sprs, &mut self.b, 1, 1e-6);
+        if self.symb.is_none() {
+            self.symb = Some(rsparse::sqr(&self.sprs, 1, false))
+        }
+        let mut symb = self.symb.take().unwrap();
+        let numeric = rsparse::lu(&self.sprs, &mut symb, 1e-6);
+
+        ipvec(self.sprs.n, &numeric.pinv, &self.b, &mut self.x[..]);
+        rsparse::lsolve(&numeric.l, &mut self.x);
+        rsparse::usolve(&numeric.u, &mut self.x[..]);
+        ipvec(self.sprs.n, &symb.q, &self.x[..], &mut self.b[..]);
+
+        self.symb = Some(symb);
         Ok(&self.b)
     }
 
@@ -249,6 +265,16 @@ impl RSparseSolver {
         let imag = &self.cplx_b[pivot..];
         let iter = real.iter().zip(imag.iter());
         iter.map(|(re, im)| Complex { re: *re, im: *im }).collect()
+    }
+}
+
+fn ipvec(n: usize, p: &Option<Vec<isize>>, b: &[f64], x: &mut [f64]) {
+    for k in 0..n {
+        if p.is_some() {
+            x[p.as_ref().unwrap()[k] as usize] = b[k];
+        } else {
+            x[k] = b[k];
+        }
     }
 }
 
