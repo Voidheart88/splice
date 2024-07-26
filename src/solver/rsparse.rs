@@ -40,7 +40,7 @@ impl Solver for RSparseSolver {
     /// Creates a new instance of the Faer Solver with the given number of variables.
     fn new(vars: usize) -> Result<Self, SolverError> {
         let a = Trpl::new();
-        let b = Vec::with_capacity(vars);
+        let b = vec![0.; vars];
         let x = vec![0.; vars];
         let sprs = Sprs::new();
 
@@ -92,7 +92,6 @@ impl Solver for RSparseSolver {
 
     /// Sets the known values vector (`b_vec`) into the Solver.
     fn set_b(&mut self, b_vec: &Pairs) {
-        self.b = vec![0.0; self.b.capacity()];
         match b_vec {
             Pairs::Empty => {}
             Pairs::Single((col, val)) => self.b[*col] = *val,
