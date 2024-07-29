@@ -100003,7 +100003,12 @@ R50000 N49999 N50000 10
 D50000 N50000 0 diode
 .op
 .control                                    ; begin of control section
+<<<<<<< HEAD
 run                                         ; run the .tran command
+=======
+run                                         ; run the .op command
+print N0
+>>>>>>> 94f60a3 (update)
 print N50000
 .endc 
 .end
