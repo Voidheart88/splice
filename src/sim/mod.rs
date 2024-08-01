@@ -10,7 +10,6 @@ use log::{info, trace};
 use miette::Diagnostic;
 use num::Complex;
 use options::SimulationOption;
-use rayon::prelude::*;
 use thiserror::Error;
 
 use crate::consts::{DIO_GUESS, MAXITER, VECTOL};
@@ -177,7 +176,7 @@ impl<SO: Solver> Simulator<SO> {
     /// Checks if the circuit contains any nonlinear elements.
     fn has_nonlinear_elements(&self) -> bool {
         self.elements
-            .par_iter()
+            .iter()
             .any(|element| element.is_nonlinear())
     }
 
@@ -402,9 +401,10 @@ impl<SO: Solver> Simulator<SO> {
     fn build_constant_a_mat(&self) -> Result<Triples, SimulatorError> {
         let const_a_mat = self
             .elements
-            .par_iter()
+            .iter()
             .filter_map(|ele| ele.get_constant_triples())
-            .reduce(|| Triples::Empty, |acc, ele| acc + ele);
+            .reduce(|acc, ele| acc + ele)
+            .unwrap_or(Triples::Empty);
         if const_a_mat == Triples::Empty {
             Err(SimulatorError::ConstantMatrixEmpty)
         } else {
@@ -424,9 +424,10 @@ impl<SO: Solver> Simulator<SO> {
     fn build_constant_b_vec(&self) -> Result<Pairs, SimulatorError> {
         let const_b_vec = self
             .elements
-            .par_iter()
+            .iter()
             .filter_map(|ele| ele.get_constant_pairs())
-            .reduce(|| Pairs::Empty, |acc, ele| acc + ele);
+            .reduce(|acc, ele| acc + ele)
+            .unwrap_or(Pairs::Empty);
         if const_b_vec == Pairs::Empty {
             Err(SimulatorError::ConstantVectorEmpty)
         } else {
@@ -444,9 +445,10 @@ impl<SO: Solver> Simulator<SO> {
     /// * `Triples` - The combined time-variant triples, or an empty `Triples` if none are found.
     fn build_time_variant_a_mat(&self) -> Triples {
         self.elements
-            .par_iter()
+            .iter()
             .filter_map(|ele| ele.get_time_variant_triples())
-            .reduce(|| Triples::Empty, |acc, ele| acc + ele)
+            .reduce(|acc, ele| acc + ele)
+            .unwrap_or(Triples::Empty)
     }
 
     /// Builds a time-variant vector 'B' from the elements.
@@ -459,9 +461,10 @@ impl<SO: Solver> Simulator<SO> {
     /// * `pairs` - The combined time-variant pairs, or an empty `pairs` if none are found.
     fn build_time_variant_b_vec(&self) -> Pairs {
         self.elements
-            .par_iter()
+            .iter()
             .filter_map(|ele| ele.get_time_variant_pairs())
-            .reduce(|| Pairs::Empty, |acc, ele| acc + ele)
+            .reduce(|acc, ele| acc + ele)
+            .unwrap_or(Pairs::Empty)
     }
 
     /// Builds a nonlinear matrix 'A' from the elements, based on a given vector `x_vec`.
@@ -479,9 +482,10 @@ impl<SO: Solver> Simulator<SO> {
     /// * `Triples` - The combined nonlinear triples, or an empty `Triples` if none are found.
     fn build_nonlinear_a_mat(&self, x_vec: &Vec<f64>) -> Triples {
         self.elements
-            .par_iter()
+            .iter()
             .filter_map(|ele| ele.get_nonlinear_triples(x_vec))
-            .reduce(|| Triples::Empty, |acc, ele| acc + ele)
+            .reduce(|acc, ele| acc + ele)
+            .unwrap_or(Triples::Empty)
     }
 
     /// Builds a nonlinear vector 'B' from the elements.
@@ -494,9 +498,10 @@ impl<SO: Solver> Simulator<SO> {
     /// * `pairs` - The combined nonlinear pairs, or an empty `pairs` if none are found.
     fn build_nonlinear_b_vec(&self, x_vec: &Vec<f64>) -> Pairs {
         self.elements
-            .par_iter()
+            .iter()
             .filter_map(|ele| ele.get_nonlinear_pairs(x_vec))
-            .reduce(|| Pairs::Empty, |acc, ele| acc + ele)
+            .reduce(|acc, ele| acc + ele)
+            .unwrap_or(Pairs::Empty)
     }
 
     /// Generates an initial guess for the node voltages in the circuit.
@@ -509,54 +514,49 @@ impl<SO: Solver> Simulator<SO> {
     /// A vector containing the initial guess for the node voltages.
     fn generate_initial_guess(&self) -> Vec<f64> {
         let len = self.vars.len();
-        self.elements
-            .par_iter()
-            .map(|element| {
-                let mut local_guess = vec![0.0; len];
-
-                match element {
-                    Element::VSource(vsource) => {
-                        let value = vsource.value();
-                        let node0_idx: Option<usize> = vsource.node0_idx();
-                        let node1_idx = vsource.node1_idx();
-
-                        if let Some(node0_idx) = node0_idx {
-                            local_guess[node0_idx] = -value;
-                        }
-                        if let Some(node1_idx) = node1_idx {
-                            local_guess[node1_idx] = value;
-                        }
+        let mut acc = vec![0.0; len];
+    
+        for element in &self.elements {
+            let mut local_guess = vec![0.0; len];
+    
+            match element {
+                Element::VSource(vsource) => {
+                    let value = vsource.value();
+                    let node0_idx: Option<usize> = vsource.node0_idx();
+                    let node1_idx = vsource.node1_idx();
+    
+                    if let Some(node0_idx) = node0_idx {
+                        local_guess[node0_idx] = -value;
                     }
-                    Element::Diode(diode) => {
-                        let a_idx = diode.a_idx();
-                        let c_idx = diode.c_idx();
-
-                        match (a_idx, c_idx) {
-                            (None, Some(c_idx)) => local_guess[c_idx] = -DIO_GUESS / 2.0,
-                            (Some(a_idx), None) => local_guess[a_idx] = DIO_GUESS,
-                            (Some(a_idx), Some(c_idx)) => {
-                                local_guess[a_idx] = DIO_GUESS / 2.0;
-                                local_guess[c_idx] = -DIO_GUESS / 2.0;
-                            }
-                            _ => {}
-                        }
-                    }
-                    _ => {
-                        // Handle other elements if needed
+                    if let Some(node1_idx) = node1_idx {
+                        local_guess[node1_idx] = value;
                     }
                 }
-
-                local_guess
-            })
-            .reduce(
-                || vec![0.0; len],
-                |mut acc, local_guess| {
-                    for (i, &val) in local_guess.iter().enumerate() {
-                        acc[i] += val;
+                Element::Diode(diode) => {
+                    let a_idx = diode.a_idx();
+                    let c_idx = diode.c_idx();
+    
+                    match (a_idx, c_idx) {
+                        (None, Some(c_idx)) => local_guess[c_idx] = -DIO_GUESS / 2.0,
+                        (Some(a_idx), None) => local_guess[a_idx] = DIO_GUESS,
+                        (Some(a_idx), Some(c_idx)) => {
+                            local_guess[a_idx] = DIO_GUESS / 2.0;
+                            local_guess[c_idx] = -DIO_GUESS / 2.0;
+                        }
+                        _ => {}
                     }
-                    acc
-                },
-            )
+                }
+                _ => {
+                    // Handle other elements if needed
+                }
+            }
+    
+            for (i, &val) in local_guess.iter().enumerate() {
+                acc[i] += val;
+            }
+        }
+    
+        acc
     }
 
     /// Checks if two vectors have converged within a given tolerance.
@@ -575,8 +575,8 @@ impl<SO: Solver> Simulator<SO> {
     /// `true` if the vectors have converged, otherwise `false`.
     fn has_converged(&self, x_old: &Vec<f64>, x_new: &Vec<f64>, tolerance: f64) -> bool {
         x_old
-            .par_iter()
-            .zip(x_new.par_iter())
+            .iter()
+            .zip(x_new.iter())
             .all(|(&old, &new)| (old - new).abs() < tolerance)
     }
 
@@ -591,9 +591,10 @@ impl<SO: Solver> Simulator<SO> {
     /// * `Err(SimulatorError::ConstantMatrixEmpty)` - If no ac triples are found.
     fn build_ac_a_mat(&self, freq: f64) -> ComplexTriples {
         self.elements
-            .par_iter()
+            .iter()
             .filter_map(|ele| ele.get_ac_triples(freq))
-            .reduce(|| ComplexTriples::Empty, |acc, ele| acc + ele)
+            .reduce(|acc, ele| acc + ele)
+            .unwrap_or(ComplexTriples::Empty)
     }
 
     /// Builds a ac vector 'b' from the elements.
@@ -607,9 +608,10 @@ impl<SO: Solver> Simulator<SO> {
     /// * `Err(SimulatorError::ConstantVectorEmpty)` - If no ac pairs are found.
     fn build_ac_b_vec(&self, freq: f64) -> ComplexPairs {
         self.elements
-            .par_iter()
+            .iter()
             .filter_map(|ele| ele.get_ac_pairs(freq))
-            .reduce(|| ComplexPairs::Empty, |acc, ele| acc + ele)
+            .reduce(|acc, ele| acc + ele)
+            .unwrap_or(ComplexPairs::Empty)
     }
 }
 

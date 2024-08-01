@@ -1,5 +1,4 @@
 use num::Complex;
-use rayon::prelude::*;
 use std::{fmt, ops::Add};
 
 use super::Triples;
@@ -77,10 +76,10 @@ impl PartialEq for ComplexTriples {
 
         // Sort both vectors before comparing
         let mut self_triples_sorted = self_triples.clone();
-        self_triples_sorted.par_sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
+        self_triples_sorted.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
 
         let mut other_triples_sorted = other_triples.clone();
-        other_triples_sorted.par_sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
+        other_triples_sorted.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
 
         self_triples_sorted == other_triples_sorted
     }
@@ -96,7 +95,7 @@ impl fmt::Debug for ComplexTriples {
             ComplexTriples::Vec(triples) => triples.clone(),
         };
 
-        sorted_triples.par_sort_by(|(row1, col1, _), (row2, col2, _)| {
+        sorted_triples.sort_by(|(row1, col1, _), (row2, col2, _)| {
             row1.cmp(row2).then_with(|| col1.cmp(col2))
         });
 
@@ -142,7 +141,7 @@ impl Add for ComplexTriples {
             ComplexTriples::Vec(triples) => triples,
         });
 
-        combined.par_sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
+        combined.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
 
         let mut result: Vec<(usize, usize, Complex<f64>)> = Vec::new();
 

@@ -5,9 +5,7 @@ use crate::models::{ComplexPairs, ComplexTriples, Pairs, Triples};
 use log::trace;
 use num::complex::ComplexFloat;
 use num::Complex;
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
-use rayon::vec;
-use rsparse::data::{Sprs, Symb, Trpl};
+use rsparse::data::{Nmrc, Sprs, Symb, Trpl};
 use rsparse::lusol;
 
 /// A Solver implementation using the Faer library.
@@ -23,6 +21,7 @@ pub(crate) struct RSparseSolver {
     // Sparse Matrix Workspace
     sprs: Sprs,
     symb: Option<Symb>,
+    lu: Nmrc,
 
     /// The conductance matrix `A` as a sparse matrix.
     cplx_a: Trpl,
@@ -43,12 +42,12 @@ impl Solver for RSparseSolver {
         let b = vec![0.; vars];
         let x = vec![0.; vars];
         let sprs = Sprs::new();
+        let lu = Nmrc::new();
 
         let cplx_a = Trpl::new();
         let cplx_b = Vec::with_capacity(2 * vars);
         let cplx_x = Vec::with_capacity(2 * vars);
         let cplx_sprs = Sprs::new();
-        let cplx_symb = Symb::new();
 
         Ok(Self {
             vars,
@@ -57,6 +56,7 @@ impl Solver for RSparseSolver {
             x,
             sprs,
             symb: None,
+            lu,
             cplx_a,
             cplx_b,
             cplx_x,
@@ -113,11 +113,11 @@ impl Solver for RSparseSolver {
             self.symb = Some(rsparse::sqr(&self.sprs, 1, false))
         }
         let mut symb = self.symb.take().unwrap();
-        let numeric = rsparse::lu(&self.sprs, &mut symb, 1e-6);
+        self.lu = rsparse::lu(&self.sprs, &mut symb, 1e-6);
 
-        ipvec(self.sprs.n, &numeric.pinv, &self.b, &mut self.x[..]);
-        rsparse::lsolve(&numeric.l, &mut self.x);
-        rsparse::usolve(&numeric.u, &mut self.x[..]);
+        ipvec(self.sprs.n, &self.lu.pinv, &self.b, &mut self.x[..]);
+        rsparse::lsolve(&self.lu.l, &mut self.x);
+        rsparse::usolve(&self.lu.u, &mut self.x[..]);
         ipvec(self.sprs.n, &symb.q, &self.x[..], &mut self.b[..]);
 
         self.symb = Some(symb);

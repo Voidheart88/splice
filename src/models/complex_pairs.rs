@@ -1,5 +1,4 @@
 use num::Complex;
-use rayon::prelude::*;
 use std::iter::FromIterator;
 use std::ops::Add;
 
@@ -48,7 +47,7 @@ impl From<Vec<Complex<f64>>> for ComplexPairs {
     /// ```
     fn from(values: Vec<Complex<f64>>) -> ComplexPairs {
         let pairs: Vec<(usize, Complex<f64>)> = values
-            .into_par_iter()
+            .into_iter()
             .enumerate()
             .map(|(row_idx, value)| (row_idx, value))
             .collect();
@@ -104,7 +103,7 @@ impl Add for ComplexPairs {
 
         // Sort by row
         let mut combined = combined;
-        combined.par_sort_by(|a, b| a.0.cmp(&b.0));
+        combined.sort_by(|a, b| a.0.cmp(&b.0));
 
         // Combine entries with the same row
         let mut result: Vec<(usize, Complex<f64>)> = Vec::new();

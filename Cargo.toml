@@ -6,16 +6,15 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 # Tools
-derive_more = "0.99.17"
+derive_more = "0.99.18"
 itertools = "0.13.0"
-rayon = "1.10.0"
 approx = "0.5.1"
 
 # Cli
-clap = { version = "4.5.4", features = ["cargo","derive"] }
+clap = { version = "4.5.11", features = ["cargo","derive"] }
 miette = { version = "7.2.0", features = ["fancy"] }
-thiserror = "1.0.61"
-log = "0.4.21"
+thiserror = "1.0.63"
+log = "0.4.22"
 simple_logger = "5.0.0"
 
 # Frontends/Backends

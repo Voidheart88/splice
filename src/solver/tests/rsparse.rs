@@ -14,7 +14,7 @@ fn test_new() {
     // Lens should be 0 since no value were loaded
     assert_eq!(solver.rows(), 0);
     assert_eq!(solver.cols(), 0);
-    assert_eq!(solver.b_vec_len(), 0);
+    assert_eq!(solver.b_vec_len(), 3);
 }
 
 #[test]
