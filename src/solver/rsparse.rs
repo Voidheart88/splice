@@ -99,9 +99,6 @@ impl Solver for RSparseSolver {
                 self.b[*col1] = *val1;
                 self.b[*col2] = *val2;
             }
-            Pairs::Vec(pairs) => pairs.iter().for_each(|(col, val)| {
-                self.b[*col] = *val;
-            }),
         }
     }
 
@@ -159,9 +156,6 @@ impl Solver for RSparseSolver {
                 self.cplx_b[col1] = val1;
                 self.cplx_b[col2] = val2;
             }
-            Pairs::Vec(pairs) => pairs.iter().for_each(|(col, val)| {
-                self.cplx_b[*col] = *val;
-            }),
         }
     }
 
@@ -247,14 +241,7 @@ impl RSparseSolver {
             ComplexPairs::Single((index, value)) => {
                 Pairs::Double([(*index, value.re()), (pivot + index, value.im())])
             }
-            ComplexPairs::Double(pairs) => pairs
-                .iter()
-                .flat_map(|val| vec![(val.0, val.1.re()), (val.0, val.1.im())])
-                .collect(),
-            ComplexPairs::Vec(pairs) => pairs
-                .iter()
-                .flat_map(|val| vec![(val.0, val.1.re()), (val.0, val.1.im())])
-                .collect(),
+            ComplexPairs::Double(pairs) => todo!(),
         }
     }
 

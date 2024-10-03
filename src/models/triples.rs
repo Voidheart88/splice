@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, fmt, ops::Add};
+use std::{cmp::Ordering, fmt};
 
 /// A structure representing the triples of an element.
 ///
@@ -10,49 +10,8 @@ pub(crate) enum Triples {
     Single((usize, usize, f64)),
     Double([(usize, usize, f64); 2]),
     Quad([(usize, usize, f64); 4]),
-    Vec(Vec<(usize, usize, f64)>),
 }
 
-impl From<Vec<(usize, usize, f64)>> for Triples {
-    /// Creates a `Triples` object from a vector of triples.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let triples = Triples::from(vec![(1, 2, 3.0), (4, 5, 6.0)]);
-    /// ```
-    fn from(value: Vec<(usize, usize, f64)>) -> Triples {
-        Triples::Vec(value)
-    }
-}
-
-impl From<Vec<Vec<f64>>> for Triples {
-    /// Creates a `Triples` object from a 2D vector of values.
-    ///
-    /// Each non-zero value is converted to a triple (row, col, value).
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let matrix = vec![
-    ///     vec![0.0, 1.0, 0.0],
-    ///     vec![0.0, 0.0, 2.0],
-    ///     vec![3.0, 0.0, 0.0],
-    /// ];
-    /// let triples = Triples::from(matrix);
-    /// ```
-    fn from(matrix: Vec<Vec<f64>>) -> Triples {
-        let mut triples = Vec::new();
-        for (row_idx, row) in matrix.iter().enumerate() {
-            for (col_idx, &value) in row.iter().enumerate() {
-                if value != 0.0 {
-                    triples.push((row_idx, col_idx, value));
-                }
-            }
-        }
-        Triples::from(triples)
-    }
-}
 
 impl PartialEq for Triples {
     fn eq(&self, other: &Self) -> bool {
@@ -61,7 +20,6 @@ impl PartialEq for Triples {
             Triples::Single(triple) => vec![*triple],
             Triples::Double(triples) => triples.to_vec(),
             Triples::Quad(triples) => triples.to_vec(),
-            Triples::Vec(triples) => triples.clone(),
         };
 
         let other_triples: Vec<_> = match other {
@@ -69,7 +27,6 @@ impl PartialEq for Triples {
             Triples::Single(triple) => vec![*triple],
             Triples::Double(triples) => triples.to_vec(),
             Triples::Quad(triples) => triples.to_vec(),
-            Triples::Vec(triples) => triples.clone(),
         };
 
         // Sort both vectors before comparing
@@ -98,7 +55,6 @@ impl fmt::Debug for Triples {
             Triples::Single(triple) => vec![*triple],
             Triples::Double(triples) => triples.to_vec(),
             Triples::Quad(triples) => triples.to_vec(),
-            Triples::Vec(triples) => triples.clone(),
         };
 
         sorted_triples.sort_by(|(row1, col1, _), (row2, col2, _)| {
@@ -116,58 +72,6 @@ impl fmt::Debug for Triples {
     }
 }
 
-impl FromIterator<(usize, usize, f64)> for Triples {
-    fn from_iter<I: IntoIterator<Item = (usize, usize, f64)>>(iter: I) -> Self {
-        let vec: Vec<_> = iter.into_iter().collect();
-        match vec.len() {
-            1 => Triples::Single(vec[0]),
-            4 => Triples::Quad([vec[0], vec[1], vec[2], vec[3]]),
-            _ => Triples::Vec(vec),
-        }
-    }
-}
-
-impl Add for Triples {
-    type Output = Triples;
-
-    fn add(self, other: Triples) -> Triples {
-        let mut combined: Vec<(usize, usize, f64)> = match self {
-            Triples::Empty => vec![],
-            Triples::Single(triple) => vec![triple],
-            Triples::Double(triples) => triples.to_vec(),
-            Triples::Quad(triples) => triples.to_vec(),
-            Triples::Vec(triples) => triples,
-        };
-
-        combined.extend(match other {
-            Triples::Empty => vec![],
-            Triples::Single(triple) => vec![triple],
-            Triples::Double(triples) => triples.to_vec(),
-            Triples::Quad(triples) => triples.to_vec(),
-            Triples::Vec(triples) => triples,
-        });
-
-        combined.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
-
-        let mut result: Vec<(usize, usize, f64)> = Vec::new();
-
-        for (i, &(row, col, value)) in combined.iter().enumerate() {
-            if i == 0 || result.last().unwrap().0 != row || result.last().unwrap().1 != col {
-                result.push((row, col, value));
-            } else {
-                let last = result.last_mut().unwrap();
-                last.2 += value;
-            }
-        }
-
-        match result.len() {
-            1 => Triples::Single(result[0]),
-            4 => Triples::Quad([result[0], result[1], result[2], result[3]]),
-            _ => Triples::Vec(result),
-        }
-    }
-}
-
 impl Triples {
     #[cfg(test)]
     pub fn len(&self) -> usize {
@@ -176,7 +80,6 @@ impl Triples {
             Triples::Single(_) => 1,
             Triples::Double(_) => 2,
             Triples::Quad(_) => 4,
-            Triples::Vec(v) => v.len(),
         }
     }
 }

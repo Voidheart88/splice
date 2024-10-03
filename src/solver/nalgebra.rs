@@ -49,9 +49,6 @@ impl Solver for NalgebraSolver {
             Triples::Single(tr) => self.set_single(tr),
             Triples::Double(tr) => self.set_double(tr),
             Triples::Quad(tr) => self.set_quad(tr),
-            Triples::Vec(triples) => triples.iter().for_each(|(row, col, val)| {
-                self.a_mat[(*row, *col)] = *val;
-            }),
         };
     }
 
@@ -65,9 +62,6 @@ impl Solver for NalgebraSolver {
                 self.b_vec[*col1] = *val1;
                 self.b_vec[*col2] = *val2;
             }
-            Pairs::Vec(pairs) => pairs.iter().for_each(|(col, val)| {
-                self.b_vec[*col] = *val;
-            }),
         }
     }
 
@@ -91,9 +85,6 @@ impl Solver for NalgebraSolver {
             ComplexTriples::Single(tr) => self.set_cplx_single(tr),
             ComplexTriples::Double(tr) => self.set_cplx_double(tr),
             ComplexTriples::Quad(tr) => self.set_cplx_quad(tr),
-            ComplexTriples::Vec(triples) => triples.iter().for_each(|(row, col, val)| {
-                self.cplx_a_mat[(*row, *col)] = *val;
-            }),
         };
     }
 
@@ -107,9 +98,6 @@ impl Solver for NalgebraSolver {
                 self.cplx_b_vec[*col1] = *val1;
                 self.cplx_b_vec[*col2] = *val2;
             }
-            ComplexPairs::Vec(pairs) => pairs.iter().for_each(|(col, val)| {
-                self.cplx_b_vec[*col] = *val;
-            }),
         }
     }
 
