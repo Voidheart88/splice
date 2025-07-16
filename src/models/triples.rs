@@ -12,7 +12,6 @@ pub(crate) enum Triples {
     Quad([(usize, usize, f64); 4]),
 }
 
-
 impl PartialEq for Triples {
     fn eq(&self, other: &Self) -> bool {
         let self_triples: Vec<_> = match self {

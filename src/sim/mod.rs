@@ -175,9 +175,7 @@ impl<SO: Solver> Simulator<SO> {
 
     /// Checks if the circuit contains any nonlinear elements.
     fn has_nonlinear_elements(&self) -> bool {
-        self.elements
-            .iter()
-            .any(|element| element.is_nonlinear())
+        self.elements.iter().any(|element| element.is_nonlinear())
     }
 
     /// Adds variable names to the solution vector.
@@ -515,16 +513,16 @@ impl<SO: Solver> Simulator<SO> {
     fn generate_initial_guess(&self) -> Vec<f64> {
         let len = self.vars.len();
         let mut acc = vec![0.0; len];
-    
+
         for element in &self.elements {
             let mut local_guess = vec![0.0; len];
-    
+
             match element {
                 Element::VSource(vsource) => {
                     let value = vsource.value();
                     let node0_idx: Option<usize> = vsource.node0_idx();
                     let node1_idx = vsource.node1_idx();
-    
+
                     if let Some(node0_idx) = node0_idx {
                         local_guess[node0_idx] = -value;
                     }
@@ -535,7 +533,7 @@ impl<SO: Solver> Simulator<SO> {
                 Element::Diode(diode) => {
                     let a_idx = diode.a_idx();
                     let c_idx = diode.c_idx();
-    
+
                     match (a_idx, c_idx) {
                         (None, Some(c_idx)) => local_guess[c_idx] = -DIO_GUESS / 2.0,
                         (Some(a_idx), None) => local_guess[a_idx] = DIO_GUESS,
@@ -550,12 +548,12 @@ impl<SO: Solver> Simulator<SO> {
                     // Handle other elements if needed
                 }
             }
-    
+
             for (i, &val) in local_guess.iter().enumerate() {
                 acc[i] += val;
             }
         }
-    
+
         acc
     }
 
