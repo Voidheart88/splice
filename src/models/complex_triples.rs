@@ -237,10 +237,6 @@ impl From<Triples> for ComplexTriples {
                     },
                 ),
             ]),
-            // Add the new Vec variant handling for `Triples` if `Triples` also has a Vec variant
-            // This assumes `Triples::Vec` would be `Triples::Vec(Vec<(usize, usize, f64)>)`
-            #[allow(unreachable_patterns)]
-            // If Triples doesn't have a Vec variant, this will be unreachable
             Triples::Vec(triples_vec) => ComplexTriples::Vec(
                 triples_vec
                     .into_iter()
@@ -251,15 +247,15 @@ impl From<Triples> for ComplexTriples {
     }
 }
 
-#[cfg(test)]
 impl ComplexTriples {
-    pub fn len(&self) -> usize {
-        match self {
-            ComplexTriples::Empty => 0,
-            ComplexTriples::Single(_) => 1,
-            ComplexTriples::Double(_) => 2,
-            ComplexTriples::Quad(_) => 4, // Quad is fixed at 4, even if some are zero
-            ComplexTriples::Vec(v) => v.len(),
-        }
-    }
+    //#[cfg(test)]
+    //pub fn len(&self) -> usize {
+    //    match self {
+    //        ComplexTriples::Empty => 0,
+    //        ComplexTriples::Single(_) => 1,
+    //        ComplexTriples::Double(_) => 2,
+    //        ComplexTriples::Quad(_) => 4, // Quad is fixed at 4, even if some are zero
+    //        ComplexTriples::Vec(v) => v.len(),
+    //    }
+    //}
 }
