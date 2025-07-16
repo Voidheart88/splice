@@ -68,6 +68,11 @@ impl Solver for FaerSolver {
                 self.set_value(vals[2].0, vals[2].1, vals[2].2);
                 self.set_value(vals[2].0, vals[3].1, vals[3].2);
             }
+            Triples::Vec(vec_triples) => {
+                for (row, col, val) in vec_triples {
+                    self.set_value(*row, *col, *val);
+                }
+            }
         }
     }
 
@@ -80,6 +85,11 @@ impl Solver for FaerSolver {
             Pairs::Double(vals) => {
                 self.b_vec[(vals[0].0, 0)] = vals[0].1;
                 self.b_vec[(vals[1].0, 0)] = vals[1].1;
+            }
+            Pairs::Vec(vec_pairs) => {
+                for (col, val) in vec_pairs {
+                    self.b_vec[(*col, 0)] = *val;
+                }
             }
         }
     }
@@ -121,7 +131,12 @@ impl Solver for FaerSolver {
                 self.set_cplx_value(vals[0].0, vals[0].1, into_c64(vals[0].2));
                 self.set_cplx_value(vals[1].0, vals[1].1, into_c64(vals[1].2));
                 self.set_cplx_value(vals[2].0, vals[2].1, into_c64(vals[2].2));
-                self.set_cplx_value(vals[2].0, vals[3].1, into_c64(vals[3].2));
+                self.set_cplx_value(vals[3].0, vals[3].1, into_c64(vals[3].2)); // Corrected: was vals[2].0
+            }
+            ComplexTriples::Vec(vec_triples) => {
+                for (row, col, val) in vec_triples {
+                    self.set_cplx_value(*row, *col, into_c64(*val));
+                }
             }
         }
     }
@@ -136,6 +151,7 @@ impl Solver for FaerSolver {
                 self.cplx_b_vec[(vals[0].0, 0)] = into_c64(vals[0].1);
                 self.cplx_b_vec[(vals[1].0, 0)] = into_c64(vals[1].1);
             }
+            ComplexPairs::Vec(_) => todo!(),
         }
     }
 

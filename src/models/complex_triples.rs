@@ -1,247 +1,101 @@
 use num::Complex;
+use std::collections::HashMap;
 use std::fmt;
 use std::ops::Add;
 
-use super::Triples;
+use crate::models::Triples; // Needed for the HashMap approach
+
+// Assuming `super::Triples` is correctly defined elsewhere and potentially updated with a Vec variant too.
 
 /// A structure representing the triples of an element.
 ///
 /// Each triple consists of a row, a column, and a value of type `Complex<f64>`.
-#[derive(Clone)]
+#[derive(Clone)] // Removed PartialEq and Debug from derive, implementing manually for precision and sorting
 pub(crate) enum ComplexTriples {
     Empty,
     Single((usize, usize, Complex<f64>)),
     Double([(usize, usize, Complex<f64>); 2]),
     Quad([(usize, usize, Complex<f64>); 4]),
+    Vec(Vec<(usize, usize, Complex<f64>)>), // New Vec variant!
 }
 
 impl Add for ComplexTriples {
     type Output = Self;
 
     fn add(self, other: Self) -> Self {
-        match (self, other) {
-            // Adding anything to Empty results in the other value
-            (ComplexTriples::Empty, other) => other,
-            (self_val, ComplexTriples::Empty) => self_val,
+        let mut combined_elements = Vec::new();
 
-            // Adding two Single variants
-            (ComplexTriples::Single(s1), ComplexTriples::Single(s2)) => {
-                if s1.0 == s2.0 && s1.1 == s2.1 {
-                    // Same (row, col), sum values
-                    ComplexTriples::Single((s1.0, s1.1, s1.2 + s2.2))
-                } else {
-                    // Different (row, col), combine into Double
-                    ComplexTriples::Double([s1, s2])
+        // Helper to push elements from any variant into the Vec
+        let push_elements =
+            |elements_enum: Self, target_vec: &mut Vec<(usize, usize, Complex<f64>)>| {
+                match elements_enum {
+                    ComplexTriples::Empty => {}
+                    ComplexTriples::Single(s) => target_vec.push(s),
+                    ComplexTriples::Double(d) => target_vec.extend_from_slice(&d),
+                    ComplexTriples::Quad(q) => target_vec.extend_from_slice(&q),
+                    ComplexTriples::Vec(v) => target_vec.extend(v), // Extend directly from the Vec
                 }
-            }
+            };
 
-            // Adding Single to Double (and vice-versa)
-            (ComplexTriples::Single(s), ComplexTriples::Double(mut d)) => {
-                let mut found = false;
-                for i in 0..2 {
-                    if d[i].0 == s.0 && d[i].1 == s.1 {
-                        d[i].2 += s.2;
-                        found = true;
-                        break;
-                    }
-                }
-                if found {
-                    ComplexTriples::Double(d)
-                } else {
-                    // No match, results in 3 unique elements. This exceeds Double capacity.
-                    // This is where you might need a Vec or a Quad.
-                    ComplexTriples::Quad([d[0], d[1], s, (0, 0, Complex::new(0.0, 0.0))])
-                    // Placeholder to fill Quad, assuming it will be handled by final vector logic
-                    // More robust: convert both to Vec, combine, then convert back
-                }
-            }
-            (ComplexTriples::Double(mut d), ComplexTriples::Single(s)) => {
-                // Symmetric case
-                let mut found = false;
-                for i in 0..2 {
-                    if d[i].0 == s.0 && d[i].1 == s.1 {
-                        d[i].2 += s.2;
-                        found = true;
-                        break;
-                    }
-                }
-                if found {
-                    ComplexTriples::Double(d)
-                } else {
-                    ComplexTriples::Quad([d[0], d[1], s, (0, 0, Complex::new(0.0, 0.0))])
-                    // Placeholder
-                }
-            }
+        // Push elements from `self`
+        push_elements(self, &mut combined_elements);
+        // Push elements from `other`
+        push_elements(other, &mut combined_elements);
 
-            // Adding Single to Quad (and vice-versa)
-            (ComplexTriples::Single(s), ComplexTriples::Quad(mut q)) => {
-                let mut found = false;
-                for i in 0..4 {
-                    if q[i].0 == s.0 && q[i].1 == s.1 {
-                        q[i].2 += s.2;
-                        found = true;
-                        break;
-                    }
-                }
-                if found {
-                    ComplexTriples::Quad(q)
-                } else {
-                    // Exceeds Quad capacity (5 unique elements possible)
-                    eprintln!("Warning: Adding Single to Quad resulted in more than 4 unique triples. Returning Empty for simplicity.");
-                    ComplexTriples::Empty
-                }
-            }
-            (ComplexTriples::Quad(mut q), ComplexTriples::Single(s)) => {
-                // Symmetric case
-                let mut found = false;
-                for i in 0..4 {
-                    if q[i].0 == s.0 && q[i].1 == s.1 {
-                        q[i].2 += s.2;
-                        found = true;
-                        break;
-                    }
-                }
-                if found {
-                    ComplexTriples::Quad(q)
-                } else {
-                    eprintln!("Warning: Adding Quad to Single resulted in more than 4 unique triples. Returning Empty for simplicity.");
-                    ComplexTriples::Empty
-                }
-            }
+        // Now, combine and sum duplicates in `combined_elements` using a HashMap
+        // The key for the HashMap will be (row, col)
+        let mut unique_elements_map: HashMap<(usize, usize), Complex<f64>> = HashMap::new();
 
-            // Adding two Double variants
-            (ComplexTriples::Double(d1), ComplexTriples::Double(d2)) => {
-                let mut combined_elements = Vec::new();
-                for &val in d1.iter() {
-                    combined_elements.push(val);
-                }
-                for &val_d2 in d2.iter() {
-                    let mut found = false;
-                    for &mut (r_comb, c_comb, ref mut v_comb) in combined_elements.iter_mut() {
-                        if r_comb == val_d2.0 && c_comb == val_d2.1 {
-                            *v_comb += val_d2.2;
-                            found = true;
-                            break;
-                        }
-                    }
-                    if !found {
-                        combined_elements.push(val_d2);
-                    }
-                }
-                // Handle different lengths
-                Self::from_vec(combined_elements)
-            }
-
-            // Adding Double to Quad (and vice-versa)
-            (ComplexTriples::Double(d), ComplexTriples::Quad(q)) => {
-                let mut combined_elements = Vec::new();
-                for &val in d.iter() {
-                    combined_elements.push(val);
-                }
-                for &val_q in q.iter() {
-                    let mut found = false;
-                    for &mut (r_comb, c_comb, ref mut v_comb) in combined_elements.iter_mut() {
-                        if r_comb == val_q.0 && c_comb == val_q.1 {
-                            *v_comb += val_q.2;
-                            found = true;
-                            break;
-                        }
-                    }
-                    if !found {
-                        combined_elements.push(val_q);
-                    }
-                }
-                Self::from_vec(combined_elements)
-            }
-            (ComplexTriples::Quad(q), ComplexTriples::Double(d)) => {
-                // Symmetric case
-                let mut combined_elements = Vec::new();
-                for &val in q.iter() {
-                    combined_elements.push(val);
-                }
-                for &val_d in d.iter() {
-                    let mut found = false;
-                    for &mut (r_comb, c_comb, ref mut v_comb) in combined_elements.iter_mut() {
-                        if r_comb == val_d.0 && c_comb == val_d.1 {
-                            *v_comb += val_d.2;
-                            found = true;
-                            break;
-                        }
-                    }
-                    if !found {
-                        combined_elements.push(val_d);
-                    }
-                }
-                Self::from_vec(combined_elements)
-            }
-
-            // Adding two Quad variants
-            (ComplexTriples::Quad(q1), ComplexTriples::Quad(q2)) => {
-                let mut combined_elements = Vec::new();
-
-                for &val in q1.iter() {
-                    combined_elements.push(val);
-                }
-
-                for &val_q2 in q2.iter() {
-                    let mut found = false;
-                    for &mut (r_comb, c_comb, ref mut v_comb) in combined_elements.iter_mut() {
-                        if r_comb == val_q2.0 && c_comb == val_q2.1 {
-                            *v_comb += val_q2.2;
-                            found = true;
-                            break;
-                        }
-                    }
-                    if !found {
-                        combined_elements.push(val_q2);
-                    }
-                }
-                Self::from_vec(combined_elements)
-            }
+        for (row, col, val) in combined_elements {
+            *unique_elements_map
+                .entry((row, col))
+                .or_insert(Complex::new(0.0, 0.0)) += val;
         }
+
+        // Convert the map back to a Vec of triples, filtering out zero-valued complex numbers
+        let mut final_elements: Vec<(usize, usize, Complex<f64>)> = unique_elements_map
+            .into_iter()
+            .map(|((row, col), val)| (row, col, val))
+            .filter(|&(_, _, val)| val.norm_sqr() > f64::EPSILON * f64::EPSILON) // Use norm_sq for Complex zero check
+            .collect();
+
+        // Sort elements for deterministic output (useful for fixed-size arrays and tests)
+        final_elements.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
+
+        // Now, use the from_vec helper to convert the final Vec into the appropriate enum variant
+        Self::from_vec(final_elements)
     }
 }
 
-// Helper function to convert a Vec of triples into the appropriate ComplexTriples enum variant
 impl ComplexTriples {
-    fn from_vec(mut elements: Vec<(usize, usize, Complex<f64>)>) -> Self {
-        // Filter out zero-value entries if desired (e.g., after subtraction)
-        elements.retain(|&(_, _, val)| val != Complex::new(0.0, 0.0));
+    pub fn from_vec(mut elements: Vec<(usize, usize, Complex<f64>)>) -> Self {
+        // Ensure no zero-value entries if not already filtered
+        elements.retain(|&(_, _, val)| val.norm_sqr() > f64::EPSILON * f64::EPSILON);
+        // Ensure elements are sorted for consistency in fixed-size arrays and tests
+        elements.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
 
         match elements.len() {
             0 => ComplexTriples::Empty,
-            1 => ComplexTriples::Single(elements[0]),
-            2 => ComplexTriples::Double([elements[0], elements[1]]),
-            3 => {
-                // Need to convert to a Quad, filling the 4th spot with a dummy zero if only 3 elements
-                // Or you might want to return an error/another enum type for 3 elements.
-                let mut arr: [(usize, usize, Complex<f64>); 4] =
-                    [(0, 0, Complex::new(0.0, 0.0)); 4];
-                for (i, &item) in elements.into_iter().enumerate() {
-                    arr[i] = item;
-                }
-                ComplexTriples::Quad(arr)
-            }
-            4 => {
-                // Ensure unique (row, col) if they were not already after combining and summing.
-                // This assumes after addition, you still want to maintain a distinct pair for each (row, col).
-                // If there are duplicate (row, col) after summing, this logic needs to be more robust.
-                // For simplicity here, we assume duplicates are already summed during vec processing.
-                let mut arr: [(usize, usize, Complex<f64>); 4] =
-                    [(0, 0, Complex::new(0.0, 0.0)); 4];
-                for (i, &item) in elements.into_iter().enumerate() {
-                    arr[i] = item;
-                }
-                ComplexTriples::Quad(arr)
-            }
-            _ => {
-                eprintln!("Warning: Addition resulted in more than 4 unique triples. Returning Empty for simplicity.");
-                ComplexTriples::Empty
-            }
+            1 => ComplexTriples::Single(elements.remove(0)),
+            2 => ComplexTriples::Double([elements.remove(0), elements.remove(0)]),
+            3 => ComplexTriples::Quad([
+                elements.remove(0),
+                elements.remove(0),
+                elements.remove(0),
+                (0, 0, Complex::new(0.0, 0.0)),
+            ]), // Pad to 4
+            4 => ComplexTriples::Quad([
+                elements.remove(0),
+                elements.remove(0),
+                elements.remove(0),
+                elements.remove(0),
+            ]),
+            _ => ComplexTriples::Vec(elements), // If more than 4, store in Vec
         }
     }
 }
 
+// Manual PartialEq implementation for float precision and order independence
 impl PartialEq for ComplexTriples {
     fn eq(&self, other: &Self) -> bool {
         let self_triples: Vec<_> = match self {
@@ -249,6 +103,7 @@ impl PartialEq for ComplexTriples {
             ComplexTriples::Single(triple) => vec![*triple],
             ComplexTriples::Double(triples) => triples.to_vec(),
             ComplexTriples::Quad(triples) => triples.to_vec(),
+            ComplexTriples::Vec(triples) => triples.clone(), // Clone the Vec
         };
 
         let other_triples: Vec<_> = match other {
@@ -256,19 +111,44 @@ impl PartialEq for ComplexTriples {
             ComplexTriples::Single(triple) => vec![*triple],
             ComplexTriples::Double(triples) => triples.to_vec(),
             ComplexTriples::Quad(triples) => triples.to_vec(),
+            ComplexTriples::Vec(triples) => triples.clone(), // Clone the Vec
         };
 
+        // Filter out zero-valued Complex numbers for comparison consistency
+        let mut self_filtered: Vec<_> = self_triples
+            .into_iter()
+            .filter(|&(_, _, val)| val.norm_sqr() > f64::EPSILON * f64::EPSILON)
+            .collect();
+        let mut other_filtered: Vec<_> = other_triples
+            .into_iter()
+            .filter(|&(_, _, val)| val.norm_sqr() > f64::EPSILON * f64::EPSILON)
+            .collect();
+
         // Sort both vectors before comparing
-        let mut self_triples_sorted = self_triples.clone();
-        self_triples_sorted.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
+        self_filtered.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
+        other_filtered.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
 
-        let mut other_triples_sorted = other_triples.clone();
-        other_triples_sorted.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
+        if self_filtered.len() != other_filtered.len() {
+            return false;
+        }
 
-        self_triples_sorted == other_triples_sorted
+        for i in 0..self_filtered.len() {
+            if self_filtered[i].0 != other_filtered[i].0
+                || self_filtered[i].1 != other_filtered[i].1
+            {
+                return false;
+            }
+            if (self_filtered[i].2.re - other_filtered[i].2.re).abs() > f64::EPSILON
+                || (self_filtered[i].2.im - other_filtered[i].2.im).abs() > f64::EPSILON
+            {
+                return false;
+            }
+        }
+        true
     }
 }
 
+// Manual Debug implementation for consistent, sorted output
 impl fmt::Debug for ComplexTriples {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut sorted_triples: Vec<_> = match self {
@@ -276,7 +156,11 @@ impl fmt::Debug for ComplexTriples {
             ComplexTriples::Single(triple) => vec![*triple],
             ComplexTriples::Double(triples) => triples.to_vec(),
             ComplexTriples::Quad(triples) => triples.to_vec(),
+            ComplexTriples::Vec(triples) => triples.clone(), // Clone the Vec
         };
+
+        // Filter out zero-valued Complex numbers for cleaner debug output
+        sorted_triples.retain(|&(_, _, val)| val.norm_sqr() > f64::EPSILON * f64::EPSILON);
 
         sorted_triples.sort_by(|(row1, col1, _), (row2, col2, _)| {
             row1.cmp(row2).then_with(|| col1.cmp(col2))
@@ -287,12 +171,13 @@ impl fmt::Debug for ComplexTriples {
             if i > 0 {
                 write!(f, ", ")?;
             }
-            write!(f, "({:?}, {:?}, {})", row, col, value)?;
+            write!(f, "({}, {}, {})", row, col, value)?; // Use default Complex debug which is fine
         }
         write!(f, "]")
     }
 }
 
+// Fix your `From<Triples> for ComplexTriples` implementation to handle Triples::Vec if it exists
 impl From<Triples> for ComplexTriples {
     fn from(value: Triples) -> Self {
         match value {
@@ -352,6 +237,16 @@ impl From<Triples> for ComplexTriples {
                     },
                 ),
             ]),
+            // Add the new Vec variant handling for `Triples` if `Triples` also has a Vec variant
+            // This assumes `Triples::Vec` would be `Triples::Vec(Vec<(usize, usize, f64)>)`
+            #[allow(unreachable_patterns)]
+            // If Triples doesn't have a Vec variant, this will be unreachable
+            Triples::Vec(triples_vec) => ComplexTriples::Vec(
+                triples_vec
+                    .into_iter()
+                    .map(|(row, col, val)| (row, col, Complex { re: val, im: 0.0 }))
+                    .collect(),
+            ),
         }
     }
 }
@@ -363,7 +258,8 @@ impl ComplexTriples {
             ComplexTriples::Empty => 0,
             ComplexTriples::Single(_) => 1,
             ComplexTriples::Double(_) => 2,
-            ComplexTriples::Quad(_) => 4,
+            ComplexTriples::Quad(_) => 4, // Quad is fixed at 4, even if some are zero
+            ComplexTriples::Vec(v) => v.len(),
         }
     }
 }

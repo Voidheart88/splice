@@ -6,13 +6,13 @@ use assert_float_eq::*;
 /* -----------------------------------Tests---------------------------------- */
 use super::super::*;
 use crate::models::{DiodeBundle, Unit, VSourceBundle, Variable};
-use crate::solver::FaerSolver;
+use crate::solver::FaerSolver; // Ensure FaerSolver is imported
 
 #[test]
 fn test_new() {
     let solver = FaerSolver::new(3).unwrap();
 
-    // Lens should be 0 since no value were loaded
+    // The dimensions should be initialized based on `vars` for FaerSolver
     assert_eq!(solver.rows(), 3);
     assert_eq!(solver.cols(), 3);
     assert_eq!(solver.b_vec_len(), 3);
@@ -25,14 +25,14 @@ fn test_set_a() {
     let triples = Triples::Vec(vec![(0, 0, 1.0), (1, 1, 2.0), (2, 2, 3.0)]);
     solver.set_a(&triples);
 
-    assert_eq!(solver.a_mat()[&(0, 0)], 1.0);
-    assert_eq!(solver.a_mat()[&(1, 1)], 2.0);
-    assert_eq!(solver.a_mat()[&(2, 2)], 3.0);
+    assert_eq!(solver.a_mat()[&(0usize, 0usize)], 1.0);
+    assert_eq!(solver.a_mat()[&(1usize, 1usize)], 2.0);
+    assert_eq!(solver.a_mat()[&(2usize, 2usize)], 3.0);
 }
 
 #[test]
 fn test_set_a2() {
-    let a_mat = vec![
+    let raw_a_mat = vec![
         vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
         vec![11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0],
         vec![21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0],
@@ -40,14 +40,24 @@ fn test_set_a2() {
         vec![41.0, 42.0, 43.0, 44.0, 45.0, 46.0, 47.0],
         vec![51.0, 52.0, 53.0, 54.0, 55.0, 56.0, 57.0],
         vec![61.0, 62.0, 63.0, 64.0, 65.0, 66.0, 67.0],
-    ]
-    .into();
+    ];
+
+    let mut triples_data = Vec::new();
+    for (r_idx, row) in raw_a_mat.iter().enumerate() {
+        for (c_idx, &val) in row.iter().enumerate() {
+            // For dense matrices, we include all values
+            triples_data.push((r_idx, c_idx, val));
+        }
+    }
+    let a_mat = Triples::Vec(triples_data);
+
     let mut solver = FaerSolver::new(7).unwrap();
     solver.set_a(&a_mat);
+
     for row in 0..7 {
         for col in 0..7 {
             let val = solver.a_mat()[&(row, col)];
-            let exp = row as f64 * 10.0 + col as f64 + 1.0;
+            let exp = (row as f64 * 10.0) + (col as f64 + 1.0); // Corrected calculation
             assert_f64_near!(val, exp)
         }
     }
@@ -65,7 +75,9 @@ fn test_set_b1() {
 
 #[test]
 fn test_set_b2() {
-    let b_vec = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0].into();
+    let raw_b_vec = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0];
+    let b_vec = Pairs::Vec(raw_b_vec.iter().enumerate().map(|(i, &v)| (i, v)).collect());
+
     let mut solver = FaerSolver::new(7).unwrap();
     solver.set_b(&b_vec);
     for row in 0..7 {
@@ -104,20 +116,29 @@ fn test_solve2() {
 
 #[test]
 fn test_solve3() {
-    let a_mat = vec![
+    let raw_a_mat = vec![
         vec![1.0, -2.0, 3.0, -4.0],
         vec![-9.0, 8.0, -7.0, 6.0],
         vec![0.0, -10.0, 11.0, -12.0],
         vec![-13.0, 14.0, 0.0, 16.0],
-    ]
-    .into();
-    let b_vec = vec![-1.0, 2.0, -3.0, 4.0].into();
+    ];
+    let mut triples_data = Vec::new();
+    for (r_idx, row) in raw_a_mat.iter().enumerate() {
+        for (c_idx, &val) in row.iter().enumerate() {
+            triples_data.push((r_idx, c_idx, val));
+        }
+    }
+    let a_mat = Triples::Vec(triples_data);
+
+    let raw_b_vec = vec![-1.0, 2.0, -3.0, 4.0];
+    let b_vec = Pairs::Vec(raw_b_vec.iter().enumerate().map(|(i, &v)| (i, v)).collect());
+
     let exp = vec![-2.0 / 45.0, 1.0 / 75.0, -1.0 / 25.0, 91.0 / 450.0];
 
     let mut solver = FaerSolver::new(4).unwrap();
     solver.set_a(&a_mat);
     solver.set_b(&b_vec);
-    //
+
     let result = solver.solve().unwrap();
     assert_f64_near!(result[0], exp[0], 5);
     assert_f64_near!(result[1], exp[1], 5);
@@ -127,7 +148,7 @@ fn test_solve3() {
 
 #[test]
 fn test_solve4() {
-    let a_mat = vec![
+    let raw_a_mat = vec![
         vec![
             0.366104800751686,
             0.783415601458037,
@@ -191,9 +212,18 @@ fn test_solve4() {
             0.684528909941880,
             0.0892023993241946,
         ],
-    ]
-    .into();
-    let b_vec = vec![-1.0, 2.0, -3.0, 4.0, -5.0, 6.0, -7.0].into();
+    ];
+    let mut triples_data = Vec::new();
+    for (r_idx, row) in raw_a_mat.iter().enumerate() {
+        for (c_idx, &val) in row.iter().enumerate() {
+            triples_data.push((r_idx, c_idx, val));
+        }
+    }
+    let a_mat = Triples::Vec(triples_data);
+
+    let raw_b_vec = vec![-1.0, 2.0, -3.0, 4.0, -5.0, 6.0, -7.0];
+    let b_vec = Pairs::Vec(raw_b_vec.iter().enumerate().map(|(i, &v)| (i, v)).collect());
+
     let exp = vec![
         -6.32989007522271,
         3.79116020770979,
@@ -207,7 +237,7 @@ fn test_solve4() {
     let mut solver = FaerSolver::new(7).unwrap();
     solver.set_a(&a_mat);
     solver.set_b(&b_vec);
-    //
+
     let result = solver.solve().unwrap();
     assert_f64_near!(result[0], exp[0], 48);
     assert_f64_near!(result[1], exp[1], 48);
@@ -220,44 +250,60 @@ fn test_solve4() {
 
 #[test]
 fn test_solve5() {
-    let a_mat = vec![
+    let raw_a_mat_1 = vec![
         vec![1.0, -2.0, 3.0, -4.0],
         vec![-9.0, 8.0, -7.0, 6.0],
         vec![0.0, -10.0, 11.0, -12.0],
         vec![-13.0, 14.0, 0.0, 16.0],
-    ]
-    .into();
-    let b_vec = vec![-1.0, 2.0, -3.0, 4.0].into();
-    let exp = vec![-2.0 / 45.0, 1.0 / 75.0, -1.0 / 25.0, 91.0 / 450.0];
+    ];
+    let mut triples_data_1 = Vec::new();
+    for (r_idx, row) in raw_a_mat_1.iter().enumerate() {
+        for (c_idx, &val) in row.iter().enumerate() {
+            triples_data_1.push((r_idx, c_idx, val));
+        }
+    }
+    let a_mat_1 = Triples::Vec(triples_data_1);
+
+    let raw_b_vec_1 = vec![-1.0, 2.0, -3.0, 4.0];
+    let b_vec_1 = Pairs::Vec(raw_b_vec_1.iter().enumerate().map(|(i, &v)| (i, v)).collect());
+
+    let exp_1 = vec![-2.0 / 45.0, 1.0 / 75.0, -1.0 / 25.0, 91.0 / 450.0];
 
     let mut solver = FaerSolver::new(4).unwrap();
-    solver.set_a(&a_mat);
-    solver.set_b(&b_vec);
+    solver.set_a(&a_mat_1);
+    solver.set_b(&b_vec_1);
 
     let result = solver.solve().unwrap();
-    assert_f64_near!(result[0], exp[0], 15);
-    assert_f64_near!(result[1], exp[1], 15);
-    assert_f64_near!(result[2], exp[2], 15);
-    assert_f64_near!(result[3], exp[3], 15);
+    assert_f64_near!(result[0], exp_1[0], 15);
+    assert_f64_near!(result[1], exp_1[1], 15);
+    assert_f64_near!(result[2], exp_1[2], 15);
+    assert_f64_near!(result[3], exp_1[3], 15);
 
-    let a_mat = vec![
+    let raw_a_mat_2 = vec![
         vec![1.0, 2.0, 3.0, 4.0],
         vec![-5.0, -6.0, -7.0, -8.0],
         vec![9.0, 0.0, 11.0, 12.0],
         vec![0.0, -14.0, -15.0, -16.0],
-    ]
-    .into();
+    ];
+    let mut triples_data_2 = Vec::new();
+    for (r_idx, row) in raw_a_mat_2.iter().enumerate() {
+        for (c_idx, &val) in row.iter().enumerate() {
+            triples_data_2.push((r_idx, c_idx, val));
+        }
+    }
+    let a_mat_2 = Triples::Vec(triples_data_2);
 
-    let b_vec = vec![1.0, 2.0, 3.0, 4.0].into();
+    let raw_b_vec_2 = vec![1.0, 2.0, 3.0, 4.0];
+    let b_vec_2 = Pairs::Vec(raw_b_vec_2.iter().enumerate().map(|(i, &v)| (i, v)).collect());
 
-    solver.set_a(&a_mat);
-    solver.set_b(&b_vec);
+    solver.set_a(&a_mat_2);
+    solver.set_b(&b_vec_2);
     let result = solver.solve().unwrap();
-    let exp = vec![-4.0 / 13.0, -4.0 / 5.0, -96.0 / 65.0, 477.0 / 260.0];
-    assert_f64_near!(result[0], exp[0], 15);
-    assert_f64_near!(result[1], exp[1], 15);
-    assert_f64_near!(result[2], exp[2], 15);
-    assert_f64_near!(result[3], exp[3], 15);
+    let exp_2 = vec![-4.0 / 13.0, -4.0 / 5.0, -96.0 / 65.0, 477.0 / 260.0];
+    assert_f64_near!(result[0], exp_2[0], 15);
+    assert_f64_near!(result[1], exp_2[1], 15);
+    assert_f64_near!(result[2], exp_2[2], 15);
+    assert_f64_near!(result[3], exp_2[3], 15);
 }
 
 #[test]

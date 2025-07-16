@@ -12,26 +12,26 @@ use rsparse::lusol;
 pub(crate) struct RSparseSolver {
     vars: usize,
     /// The conductance matrix `A` as a sparse matrix.
-    a: Trpl,
+    a: Trpl<f64>,
     /// The vector `b` as a dense vector.
     b: Vec<f64>,
     /// The Solution vector `x`.
     x: Vec<f64>,
 
     // Sparse Matrix Workspace
-    sprs: Sprs,
+    sprs: Sprs<f64>,
     symb: Option<Symb>,
-    lu: Nmrc,
+    lu: Nmrc<f64>,
 
     /// The conductance matrix `A` as a sparse matrix.
-    cplx_a: Trpl,
+    cplx_a: Trpl<f64>,
     /// The vector `b` as a dense vector.
     cplx_b: Vec<f64>,
     /// The Solution vector `x`.
     cplx_x: Vec<Complex<f64>>,
 
     //Complex Sparse Matrix Workspace
-    cplx_sprs: Sprs,
+    cplx_sprs: Sprs<f64>,
     cplx_symb: Option<Symb>,
 }
 
@@ -99,6 +99,11 @@ impl Solver for RSparseSolver {
                 self.b[*col1] = *val1;
                 self.b[*col2] = *val2;
             }
+            Pairs::Vec(vec_pairs) => {
+                for (col, val) in vec_pairs {
+                    self.b[*col] = *val;
+                }
+            }
         }
     }
 
@@ -110,7 +115,7 @@ impl Solver for RSparseSolver {
             self.symb = Some(rsparse::sqr(&self.sprs, 1, false))
         }
         let mut symb = self.symb.take().unwrap();
-        self.lu = rsparse::lu(&self.sprs, &mut symb, 1e-6);
+        self.lu = rsparse::lu(&self.sprs, &mut symb, 1e-6).unwrap();
 
         ipvec(self.sprs.n, &self.lu.pinv, &self.b, &mut self.x[..]);
         rsparse::lsolve(&self.lu.l, &mut self.x);
@@ -156,6 +161,7 @@ impl Solver for RSparseSolver {
                 self.cplx_b[col1] = val1;
                 self.cplx_b[col2] = val2;
             }
+            Pairs::Vec(items) => todo!(),
         }
     }
 
@@ -198,39 +204,46 @@ impl RSparseSolver {
                 (pivot + row, *col, val.im()),
                 (pivot + row, pivot + col, val.re()),
             ]),
-            ComplexTriples::Double(vals) => vals
-                .iter()
-                .flat_map(|val: &(usize, usize, Complex<f64>)| {
-                    vec![
-                        (val.0, val.1, val.2.re),
-                        (val.0, pivot + val.1, -val.2.im),
-                        (pivot + val.0, val.1, val.2.im),
-                        (pivot + val.0, pivot + val.1, val.2.re),
-                    ]
-                })
-                .collect(),
-            ComplexTriples::Quad(vals) => vals
-                .iter()
-                .flat_map(|val: &(usize, usize, Complex<f64>)| {
-                    vec![
-                        (val.0, val.1, val.2.re),
-                        (val.0, pivot + val.1, -val.2.im),
-                        (pivot + val.0, val.1, val.2.im),
-                        (pivot + val.0, pivot + val.1, val.2.re),
-                    ]
-                })
-                .collect(),
-            ComplexTriples::Vec(vals) => vals
-                .iter()
-                .flat_map(|val: &(usize, usize, Complex<f64>)| {
-                    vec![
-                        (val.0, val.1, val.2.re),
-                        (val.0, pivot + val.1, -val.2.im),
-                        (pivot + val.0, val.1, val.2.im),
-                        (pivot + val.0, pivot + val.1, val.2.re),
-                    ]
-                })
-                .collect(),
+            ComplexTriples::Double(vals) => {
+                Triples::from_vec(
+                    vals.iter()
+                        .flat_map(|val: &(usize, usize, Complex<f64>)| {
+                            vec![
+                                (val.0, val.1, val.2.re),
+                                (val.0, pivot + val.1, -val.2.im),
+                                (pivot + val.0, val.1, val.2.im),
+                                (pivot + val.0, pivot + val.1, val.2.re),
+                            ]
+                        })
+                        .collect(), // This collects into a Vec<(usize, usize, f64)>
+                )
+            }
+            ComplexTriples::Quad(vals) => Triples::from_vec(
+                vals.iter()
+                    .flat_map(|val: &(usize, usize, Complex<f64>)| {
+                        vec![
+                            (val.0, val.1, val.2.re),
+                            (val.0, pivot + val.1, -val.2.im),
+                            (pivot + val.0, val.1, val.2.im),
+                            (pivot + val.0, pivot + val.1, val.2.re),
+                        ]
+                    })
+                    .collect(), // This collects into a Vec<(usize, usize, f64)>
+            ),
+            ComplexTriples::Vec(vals) => {
+                let collected_triples: Vec<(usize, usize, f64)> = vals
+                    .iter()
+                    .flat_map(|val: &(usize, usize, Complex<f64>)| {
+                        vec![
+                            (val.0, val.1, val.2.re),
+                            (val.0, pivot + val.1, -val.2.im),
+                            (pivot + val.0, val.1, val.2.im),
+                            (pivot + val.0, pivot + val.1, val.2.re),
+                        ]
+                    })
+                    .collect();
+                Triples::from_vec(collected_triples)
+            }
         }
     }
 
@@ -242,6 +255,7 @@ impl RSparseSolver {
                 Pairs::Double([(*index, value.re()), (pivot + index, value.im())])
             }
             ComplexPairs::Double(pairs) => todo!(),
+            ComplexPairs::Vec(vec) => todo!(),
         }
     }
 
@@ -282,7 +296,7 @@ impl RSparseSolver {
     }
 
     /// Returns a reference to the matrix `a_mat`.
-    pub fn a_mat(&self) -> &Trpl {
+    pub fn a_mat(&self) -> &Trpl<f64> {
         &self.a
     }
 
