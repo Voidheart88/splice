@@ -109,7 +109,6 @@ impl Solver for RSparseSolver {
 
     /// Solves the system of equations (Ax = B for x) and returns a reference to the solution.
     fn solve(&mut self) -> Result<&Vec<f64>, SolverError> {
-        // Convert the triplet matrix to a sparse matrix
         self.sprs.from_trpl(&self.a);
         if self.symb.is_none() {
             self.symb = Some(rsparse::sqr(&self.sprs, 1, false))
@@ -204,20 +203,18 @@ impl RSparseSolver {
                 (pivot + row, *col, val.im()),
                 (pivot + row, pivot + col, val.re()),
             ]),
-            ComplexTriples::Double(vals) => {
-                Triples::from_vec(
-                    vals.iter()
-                        .flat_map(|val: &(usize, usize, Complex<f64>)| {
-                            vec![
-                                (val.0, val.1, val.2.re),
-                                (val.0, pivot + val.1, -val.2.im),
-                                (pivot + val.0, val.1, val.2.im),
-                                (pivot + val.0, pivot + val.1, val.2.re),
-                            ]
-                        })
-                        .collect(), // This collects into a Vec<(usize, usize, f64)>
-                )
-            }
+            ComplexTriples::Double(vals) => Triples::from_vec(
+                vals.iter()
+                    .flat_map(|val: &(usize, usize, Complex<f64>)| {
+                        vec![
+                            (val.0, val.1, val.2.re),
+                            (val.0, pivot + val.1, -val.2.im),
+                            (pivot + val.0, val.1, val.2.im),
+                            (pivot + val.0, pivot + val.1, val.2.re),
+                        ]
+                    })
+                    .collect(),
+            ),
             ComplexTriples::Quad(vals) => Triples::from_vec(
                 vals.iter()
                     .flat_map(|val: &(usize, usize, Complex<f64>)| {
@@ -228,7 +225,7 @@ impl RSparseSolver {
                             (pivot + val.0, pivot + val.1, val.2.re),
                         ]
                     })
-                    .collect(), // This collects into a Vec<(usize, usize, f64)>
+                    .collect(),
             ),
             ComplexTriples::Vec(vals) => {
                 let collected_triples: Vec<(usize, usize, f64)> = vals

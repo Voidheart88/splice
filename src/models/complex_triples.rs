@@ -3,20 +3,16 @@ use std::collections::HashMap;
 use std::fmt;
 use std::ops::Add;
 
-use crate::models::Triples; // Needed for the HashMap approach
-
-// Assuming `super::Triples` is correctly defined elsewhere and potentially updated with a Vec variant too.
-
 /// A structure representing the triples of an element.
 ///
 /// Each triple consists of a row, a column, and a value of type `Complex<f64>`.
-#[derive(Clone)] // Removed PartialEq and Debug from derive, implementing manually for precision and sorting
+#[derive(Clone)]
 pub(crate) enum ComplexTriples {
     Empty,
     Single((usize, usize, Complex<f64>)),
     Double([(usize, usize, Complex<f64>); 2]),
     Quad([(usize, usize, Complex<f64>); 4]),
-    Vec(Vec<(usize, usize, Complex<f64>)>), // New Vec variant!
+    Vec(Vec<(usize, usize, Complex<f64>)>),
 }
 
 impl Add for ComplexTriples {
@@ -25,7 +21,6 @@ impl Add for ComplexTriples {
     fn add(self, other: Self) -> Self {
         let mut combined_elements = Vec::new();
 
-        // Helper to push elements from any variant into the Vec
         let push_elements =
             |elements_enum: Self, target_vec: &mut Vec<(usize, usize, Complex<f64>)>| {
                 match elements_enum {
@@ -33,17 +28,13 @@ impl Add for ComplexTriples {
                     ComplexTriples::Single(s) => target_vec.push(s),
                     ComplexTriples::Double(d) => target_vec.extend_from_slice(&d),
                     ComplexTriples::Quad(q) => target_vec.extend_from_slice(&q),
-                    ComplexTriples::Vec(v) => target_vec.extend(v), // Extend directly from the Vec
+                    ComplexTriples::Vec(v) => target_vec.extend(v),
                 }
             };
 
-        // Push elements from `self`
         push_elements(self, &mut combined_elements);
-        // Push elements from `other`
         push_elements(other, &mut combined_elements);
 
-        // Now, combine and sum duplicates in `combined_elements` using a HashMap
-        // The key for the HashMap will be (row, col)
         let mut unique_elements_map: HashMap<(usize, usize), Complex<f64>> = HashMap::new();
 
         for (row, col, val) in combined_elements {
@@ -52,26 +43,20 @@ impl Add for ComplexTriples {
                 .or_insert(Complex::new(0.0, 0.0)) += val;
         }
 
-        // Convert the map back to a Vec of triples, filtering out zero-valued complex numbers
         let mut final_elements: Vec<(usize, usize, Complex<f64>)> = unique_elements_map
             .into_iter()
             .map(|((row, col), val)| (row, col, val))
-            .filter(|&(_, _, val)| val.norm_sqr() > f64::EPSILON * f64::EPSILON) // Use norm_sq for Complex zero check
+            .filter(|&(_, _, val)| val.norm_sqr() > f64::EPSILON * f64::EPSILON)
             .collect();
 
-        // Sort elements for deterministic output (useful for fixed-size arrays and tests)
         final_elements.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
-
-        // Now, use the from_vec helper to convert the final Vec into the appropriate enum variant
         Self::from_vec(final_elements)
     }
 }
 
 impl ComplexTriples {
     pub fn from_vec(mut elements: Vec<(usize, usize, Complex<f64>)>) -> Self {
-        // Ensure no zero-value entries if not already filtered
         elements.retain(|&(_, _, val)| val.norm_sqr() > f64::EPSILON * f64::EPSILON);
-        // Ensure elements are sorted for consistency in fixed-size arrays and tests
         elements.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
 
         match elements.len() {
@@ -83,19 +68,18 @@ impl ComplexTriples {
                 elements.remove(0),
                 elements.remove(0),
                 (0, 0, Complex::new(0.0, 0.0)),
-            ]), // Pad to 4
+            ]),
             4 => ComplexTriples::Quad([
                 elements.remove(0),
                 elements.remove(0),
                 elements.remove(0),
                 elements.remove(0),
             ]),
-            _ => ComplexTriples::Vec(elements), // If more than 4, store in Vec
+            _ => ComplexTriples::Vec(elements),
         }
     }
 }
 
-// Manual PartialEq implementation for float precision and order independence
 impl PartialEq for ComplexTriples {
     fn eq(&self, other: &Self) -> bool {
         let self_triples: Vec<_> = match self {
@@ -111,10 +95,9 @@ impl PartialEq for ComplexTriples {
             ComplexTriples::Single(triple) => vec![*triple],
             ComplexTriples::Double(triples) => triples.to_vec(),
             ComplexTriples::Quad(triples) => triples.to_vec(),
-            ComplexTriples::Vec(triples) => triples.clone(), // Clone the Vec
+            ComplexTriples::Vec(triples) => triples.clone(),
         };
 
-        // Filter out zero-valued Complex numbers for comparison consistency
         let mut self_filtered: Vec<_> = self_triples
             .into_iter()
             .filter(|&(_, _, val)| val.norm_sqr() > f64::EPSILON * f64::EPSILON)
@@ -124,7 +107,6 @@ impl PartialEq for ComplexTriples {
             .filter(|&(_, _, val)| val.norm_sqr() > f64::EPSILON * f64::EPSILON)
             .collect();
 
-        // Sort both vectors before comparing
         self_filtered.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
         other_filtered.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
 
@@ -148,7 +130,6 @@ impl PartialEq for ComplexTriples {
     }
 }
 
-// Manual Debug implementation for consistent, sorted output
 impl fmt::Debug for ComplexTriples {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut sorted_triples: Vec<_> = match self {
@@ -156,10 +137,9 @@ impl fmt::Debug for ComplexTriples {
             ComplexTriples::Single(triple) => vec![*triple],
             ComplexTriples::Double(triples) => triples.to_vec(),
             ComplexTriples::Quad(triples) => triples.to_vec(),
-            ComplexTriples::Vec(triples) => triples.clone(), // Clone the Vec
+            ComplexTriples::Vec(triples) => triples.clone(),
         };
 
-        // Filter out zero-valued Complex numbers for cleaner debug output
         sorted_triples.retain(|&(_, _, val)| val.norm_sqr() > f64::EPSILON * f64::EPSILON);
 
         sorted_triples.sort_by(|(row1, col1, _), (row2, col2, _)| {
@@ -171,91 +151,8 @@ impl fmt::Debug for ComplexTriples {
             if i > 0 {
                 write!(f, ", ")?;
             }
-            write!(f, "({}, {}, {})", row, col, value)?; // Use default Complex debug which is fine
+            write!(f, "({}, {}, {})", row, col, value)?;
         }
         write!(f, "]")
     }
-}
-
-// Fix your `From<Triples> for ComplexTriples` implementation to handle Triples::Vec if it exists
-impl From<Triples> for ComplexTriples {
-    fn from(value: Triples) -> Self {
-        match value {
-            Triples::Empty => ComplexTriples::Empty,
-            Triples::Single((row, col, val)) => {
-                ComplexTriples::Single((row, col, Complex { re: val, im: 0.0 }))
-            }
-            Triples::Double(triples) => ComplexTriples::Double([
-                (
-                    triples[0].0,
-                    triples[0].1,
-                    Complex {
-                        re: triples[0].2,
-                        im: 0.0,
-                    },
-                ),
-                (
-                    triples[1].0,
-                    triples[1].1,
-                    Complex {
-                        re: triples[1].2,
-                        im: 0.0,
-                    },
-                ),
-            ]),
-            Triples::Quad(triples) => ComplexTriples::Quad([
-                (
-                    triples[0].0,
-                    triples[0].1,
-                    Complex {
-                        re: triples[0].2,
-                        im: 0.0,
-                    },
-                ),
-                (
-                    triples[1].0,
-                    triples[1].1,
-                    Complex {
-                        re: triples[1].2,
-                        im: 0.0,
-                    },
-                ),
-                (
-                    triples[2].0,
-                    triples[2].1,
-                    Complex {
-                        re: triples[2].2,
-                        im: 0.0,
-                    },
-                ),
-                (
-                    triples[3].0,
-                    triples[3].1,
-                    Complex {
-                        re: triples[3].2,
-                        im: 0.0,
-                    },
-                ),
-            ]),
-            Triples::Vec(triples_vec) => ComplexTriples::Vec(
-                triples_vec
-                    .into_iter()
-                    .map(|(row, col, val)| (row, col, Complex { re: val, im: 0.0 }))
-                    .collect(),
-            ),
-        }
-    }
-}
-
-impl ComplexTriples {
-    //#[cfg(test)]
-    //pub fn len(&self) -> usize {
-    //    match self {
-    //        ComplexTriples::Empty => 0,
-    //        ComplexTriples::Single(_) => 1,
-    //        ComplexTriples::Double(_) => 2,
-    //        ComplexTriples::Quad(_) => 4, // Quad is fixed at 4, even if some are zero
-    //        ComplexTriples::Vec(v) => v.len(),
-    //    }
-    //}
 }

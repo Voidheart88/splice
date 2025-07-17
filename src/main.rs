@@ -66,7 +66,6 @@ fn main() -> Result<()> {
     let sim = frontend.simulation()?;
 
     info!("Simulate!");
-    // Fixme: Implement backend selection logic
     let results = match cli.solver {
         Solvers::Rsparse => {
             let mut sim: Simulator<RSparseSolver> = Simulator::from(sim);

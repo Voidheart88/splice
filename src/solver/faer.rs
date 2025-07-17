@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 
-use faer::{prelude::*, sparse::{linalg::LuError, Triplet}};
+use faer::{
+    prelude::*,
+    sparse::{linalg::LuError, Triplet},
+};
 
 use super::{Solver, SolverError};
 use crate::models::{ComplexPairs, ComplexTriples, Pairs, Triples};
@@ -227,7 +230,7 @@ impl From<LuError> for SolverError {
     fn from(value: LuError) -> Self {
         match value {
             LuError::Generic(_) => SolverError::MatrixNonInvertible,
-            LuError::SymbolicSingular { index:_ } => SolverError::MatrixNonInvertible,
+            LuError::SymbolicSingular { index: _ } => SolverError::MatrixNonInvertible,
         }
     }
 }

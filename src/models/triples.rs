@@ -4,40 +4,33 @@ use std::{cmp::Ordering, fmt};
 /// A structure representing the triples of an element.
 ///
 /// Each triple consists of a row, a column, and a value of type `f64`.
-#[derive(Clone, PartialOrd)] // Added Debug and PartialEq for testing
+#[derive(Clone, PartialOrd)]
 pub(crate) enum Triples {
     #[allow(unused)]
     Empty,
     Single((usize, usize, f64)),
     Double([(usize, usize, f64); 2]),
     Quad([(usize, usize, f64); 4]),
-    Vec(Vec<(usize, usize, f64)>), // New variant!
+    Vec(Vec<(usize, usize, f64)>),
 }
 
 impl Add for Triples {
     type Output = Self;
 
     fn add(self, other: Self) -> Self {
-        // Collect all elements into a temporary Vec, then use from_vec to normalize.
         let mut combined_elements = Vec::new();
-
-        // Helper to push elements from any variant into the Vec
-        let push_elements = |elements_enum: Self, target_vec: &mut Vec<(usize, usize, f64)>| {
-            match elements_enum {
+        let push_elements =
+            |elements_enum: Self, target_vec: &mut Vec<(usize, usize, f64)>| match elements_enum {
                 Triples::Empty => {}
                 Triples::Single(s) => target_vec.push(s),
                 Triples::Double(d) => target_vec.extend_from_slice(&d),
                 Triples::Quad(q) => target_vec.extend_from_slice(&q),
-                Triples::Vec(v) => target_vec.extend(v), // Extend directly from the Vec
-            }
-        };
+                Triples::Vec(v) => target_vec.extend(v),
+            };
 
-        // Push elements from `self`
         push_elements(self, &mut combined_elements);
-        // Push elements from `other`
         push_elements(other, &mut combined_elements);
 
-        // Now, combine and sum duplicates in `combined_elements`
         let mut unique_elements_map: std::collections::HashMap<(usize, usize), f64> =
             std::collections::HashMap::new();
 
@@ -45,28 +38,20 @@ impl Add for Triples {
             *unique_elements_map.entry((r, c)).or_insert(0.0) += val;
         }
 
-        // Convert the map back to a Vec of triples, filtering out zeros
         let mut final_elements: Vec<(usize, usize, f64)> = unique_elements_map
             .into_iter()
             .map(|((r, c), val)| (r, c, val))
             .filter(|&(_, _, val)| val.abs() > f64::EPSILON)
             .collect();
 
-        // Sort elements for deterministic output if you care about the order within the Vec variant
-        // This is good practice for consistency, especially in tests
         final_elements.sort_by_key(|t| (t.0, t.1));
-
-        // Now, use the from_vec helper to convert the final Vec into the appropriate enum variant
         Self::from_vec(final_elements)
     }
 }
 
-// Helper function to convert a Vec of triples into the appropriate Triples enum variant
 impl Triples {
     pub fn from_vec(mut elements: Vec<(usize, usize, f64)>) -> Self {
-        // Ensure no zero-value entries if not already filtered
         elements.retain(|&(_, _, val)| val.abs() > f64::EPSILON);
-        // Ensure elements are sorted for consistency in fixed-size arrays and tests
         elements.sort_by_key(|t| (t.0, t.1));
 
         match elements.len() {
@@ -75,7 +60,6 @@ impl Triples {
             2 => Triples::Double([elements.remove(0), elements.remove(0)]),
             3 => {
                 let mut arr: [(usize, usize, f64); 4] = [(0, 0, 0.0); 4];
-                // Use `drain(..)` to take elements out of the Vec efficiently
                 for (i, item) in elements.drain(..).enumerate() {
                     arr[i] = item;
                 }
@@ -88,36 +72,26 @@ impl Triples {
                 }
                 Triples::Quad(arr)
             }
-            _ => {
-                // Now, if more than 4, we store it in the Vec variant
-                Triples::Vec(elements)
-            }
+            _ => Triples::Vec(elements),
         }
     }
 }
 
 impl PartialEq for Triples {
     fn eq(&self, other: &Self) -> bool {
-        // Helper to convert any Triples variant into a canonical Vec for comparison
         let to_canonical_vec = |t: &Triples| -> Vec<(usize, usize, f64)> {
             let mut temp_vec = match t {
                 Triples::Empty => vec![],
                 Triples::Single(triple) => vec![*triple],
                 Triples::Double(triples) => triples.to_vec(),
                 Triples::Quad(triples) => triples.to_vec(),
-                Triples::Vec(triples_vec) => triples_vec.clone(), // Clone the inner Vec
+                Triples::Vec(triples_vec) => triples_vec.clone(),
             };
 
-            // Filter out zero-value entries for robust comparison, as they are often treated as equivalent to non-existence
             temp_vec.retain(|&(_, _, val)| val.abs() > f64::EPSILON);
-
-            // Sort before comparing to ensure order independence
             temp_vec.sort_by(|a, b| {
                 a.0.cmp(&b.0)
                     .then_with(|| a.1.cmp(&b.1))
-                    // For f64, use partial_cmp. unwrap_or(Ordering::Equal) handles NaNs,
-                    // but usually you want NaNs to not be equal, so typically use if let Some.
-                    // For typical numeric data, this is often fine.
                     .then_with(|| a.2.partial_cmp(&b.2).unwrap_or(Ordering::Equal))
             });
             temp_vec
@@ -125,14 +99,6 @@ impl PartialEq for Triples {
 
         let self_triples_canonical = to_canonical_vec(self);
         let other_triples_canonical = to_canonical_vec(other);
-
-        // Finally, compare the canonical (sorted, non-zero) vectors
-        // Note: For floating-point equality, it's better to compare with epsilon,
-        // but `Vec == Vec` uses element-wise `PartialEq` which for f64 uses exact equality.
-        // If exact equality for f64 is not desired, this would need a custom loop.
-        // Given your current `sort_by` which uses `partial_cmp`, this means
-        // your float comparison within the sort key is robust. However, `==` for `f64`
-        // is exact. We should manually compare floats.
         if self_triples_canonical.len() != other_triples_canonical.len() {
             return false;
         }
@@ -144,7 +110,6 @@ impl PartialEq for Triples {
     }
 }
 
-// Fix your Debug implementation
 impl fmt::Debug for Triples {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut sorted_triples: Vec<_> = match self {
@@ -152,22 +117,20 @@ impl fmt::Debug for Triples {
             Triples::Single(triple) => vec![*triple],
             Triples::Double(triples) => triples.to_vec(),
             Triples::Quad(triples) => triples.to_vec(),
-            Triples::Vec(triples_vec) => triples_vec.clone(), // Clone the inner Vec
+            Triples::Vec(triples_vec) => triples_vec.clone(),
         };
 
-        // Filter out zero-value entries for cleaner debug output if desired
         sorted_triples.retain(|&(_, _, val)| val.abs() > f64::EPSILON);
-
         sorted_triples.sort_by(|(row1, col1, _), (row2, col2, _)| {
             row1.cmp(row2).then_with(|| col1.cmp(col2))
         });
 
-        write!(f, "Triples[")?; // Indicate it's a Triples enum
+        write!(f, "Triples[")?;
         for (i, (row, col, value)) in sorted_triples.iter().enumerate() {
             if i > 0 {
                 write!(f, ", ")?;
             }
-            write!(f, "({}, {}, {})", row, col, value)?; // Simplified output
+            write!(f, "({}, {}, {})", row, col, value)?;
         }
         write!(f, "]")
     }
