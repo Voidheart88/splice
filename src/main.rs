@@ -1,7 +1,7 @@
 #![deny(unsafe_code)]
 
 mod backends;
-mod consts;
+mod spot;
 mod frontends;
 mod models;
 mod sim;
