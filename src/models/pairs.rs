@@ -79,7 +79,7 @@ impl Pairs {
     pub fn is_empty(&self) -> bool {
         matches!(self, Pairs::Empty)
     }
-    
+
     pub fn len(&self) -> usize {
         match self {
             Pairs::Empty => 0,

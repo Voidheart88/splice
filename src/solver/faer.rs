@@ -1,11 +1,12 @@
 use std::collections::HashMap;
 
+use faer::{prelude::*, sparse::{linalg::LuError, Triplet}};
+
 use super::{Solver, SolverError};
 use crate::models::{ComplexPairs, ComplexTriples, Pairs, Triples};
-use faer::complex_native::c64;
-use faer::solvers::SpSolver;
-use faer::sparse::{LuError, SparseColMat};
-use faer::Mat;
+
+//use faer::solvers::SpSolver;
+//use faer::sparse::{LuError, SparseColMat};
 
 /// A backend implementation using the Faer library.
 pub(crate) struct FaerSolver {
@@ -95,10 +96,14 @@ impl Solver for FaerSolver {
     }
 
     fn solve(&mut self) -> Result<&Vec<f64>, SolverError> {
-        let triples: Vec<(usize, usize, f64)> = self
+        let triples: Vec<Triplet<usize, usize, f64>> = self
             .a_mat
             .iter()
-            .map(|((row, col), val)| (*row, *col, *val))
+            .map(|((row, col), val)| Triplet {
+                row: *row,
+                col: *col,
+                val: *val,
+            })
             .collect();
         let a_mat =
             SparseColMat::try_new_from_triplets(self.x_vec.len(), self.x_vec.len(), &triples)
@@ -156,15 +161,23 @@ impl Solver for FaerSolver {
     }
 
     fn solve_cplx(&mut self) -> Result<&Vec<num::Complex<f64>>, SolverError> {
-        let triples: Vec<(usize, usize, c64)> = self
+        let triples: Vec<Triplet<usize, usize, c64>> = self // <--- Type for Vec changed
             .cplx_a_mat
             .iter()
-            .map(|((row, col), val)| (*row, *col, *val))
+            .map(|((row, col), val)| {
+                // Create a Triplet struct instance
+                Triplet {
+                    row: *row,
+                    col: *col,
+                    val: *val, // `val` is already `c64` here
+                }
+            })
             .collect();
+
         let cplx_a_mat = SparseColMat::try_new_from_triplets(
             self.cplx_x_vec.len(),
             self.cplx_x_vec.len(),
-            &triples,
+            &triples, // <--- Now `triples` is `&[Triplet<usize, usize, c64>]`
         )
         .unwrap();
 
@@ -214,7 +227,7 @@ impl From<LuError> for SolverError {
     fn from(value: LuError) -> Self {
         match value {
             LuError::Generic(_) => SolverError::MatrixNonInvertible,
-            LuError::SymbolicSingular(_) => SolverError::MatrixNonInvertible,
+            LuError::SymbolicSingular { index:_ } => SolverError::MatrixNonInvertible,
         }
     }
 }

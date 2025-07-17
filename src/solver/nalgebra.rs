@@ -219,9 +219,7 @@ impl NalgebraSolver {
     }
 
     /// Returns a reference to the vector `b_vec`.
-    pub fn b_vec(
-        &self,
-    ) -> &na::Matrix<f64, na::Dyn, na::U1, na::VecStorage<f64, na::Dyn, na::U1>> {
+    pub fn b_vec(&self) -> &na::Matrix<f64, na::Dyn, na::U1, na::VecStorage<f64, na::Dyn, na::U1>> {
         &self.b_vec
     }
 }

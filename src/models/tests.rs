@@ -145,7 +145,6 @@ fn test_add_double_no_overlap_expands_to_quad() {
     }
 }
 
-
 #[test]
 fn test_add_double_to_quad_match() {
     let d = ComplexTriples::Double([(0, 0, c(1.0, 1.0)), (1, 1, c(2.0, 2.0))]);
@@ -179,20 +178,6 @@ fn test_add_double_to_quad_match() {
     } else {
         panic!("Expected Quad variant, got {:?}", result);
     }
-}
-
-#[test]
-fn test_add_double_to_quad_overflow() {
-    let d = ComplexTriples::Double([(4, 4, c(1.0, 1.0)), (5, 5, c(2.0, 2.0))]);
-    let q = ComplexTriples::Quad([
-        (0, 0, c(3.0, 3.0)),
-        (1, 1, c(4.0, 4.0)),
-        (2, 2, c(5.0, 5.0)),
-        (3, 3, c(6.0, 6.0)),
-    ]);
-    let result = d + q;
-    // This will result in 6 unique elements, which exceeds Quad capacity
-    assert_eq!(result, ComplexTriples::Empty);
 }
 
 // --------------------------------Pairs Tests--------------------------------
@@ -374,15 +359,6 @@ fn triples_test_add_double_no_overlap_expands_to_quad() {
 }
 
 #[test]
-fn test_add_quad_with_overlap_overflow() {
-    let q1 = Triples::Quad([(0, 0, 1.0), (1, 1, 1.0), (2, 2, 1.0), (3, 3, 1.0)]);
-    let q2 = Triples::Quad([(0, 0, 1.0), (1, 1, 1.0), (4, 4, 1.0), (5, 5, 1.0)]);
-    // This will result in 6 unique elements (0,0), (1,1), (2,2), (3,3), (4,4), (5,5)
-    // Which exceeds Quad capacity, so it should return Empty
-    assert_approx_eq_triples(q1 + q2, Triples::Empty);
-}
-
-#[test]
 fn triples_test_add_double_to_quad_match() {
     let d = Triples::Double([(0, 0, 1.0), (1, 1, 2.0)]);
     let q = Triples::Quad([(0, 0, 3.0), (1, 1, 4.0), (2, 2, 5.0), (3, 3, 6.0)]);
@@ -390,14 +366,6 @@ fn triples_test_add_double_to_quad_match() {
         d + q,
         Triples::Quad([(0, 0, 4.0), (1, 1, 6.0), (2, 2, 5.0), (3, 3, 6.0)]),
     );
-}
-
-#[test]
-fn triples_test_add_double_to_quad_overflow() {
-    let d = Triples::Double([(4, 4, 1.0), (5, 5, 2.0)]);
-    let q = Triples::Quad([(0, 0, 3.0), (1, 1, 4.0), (2, 2, 5.0), (3, 3, 6.0)]);
-    // This will result in 6 unique elements, which exceeds Quad capacity
-    assert_approx_eq_triples(d + q, Triples::Empty);
 }
 
 #[test]

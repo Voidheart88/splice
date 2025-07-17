@@ -76,7 +76,8 @@ fn test_solve3() {
     let mut triples_data = Vec::new();
     for (r_idx, row) in raw_a_mat.iter().enumerate() {
         for (c_idx, &val) in row.iter().enumerate() {
-            if val != 0.0 { // Only add non-zero elements for sparse matrix
+            if val != 0.0 {
+                // Only add non-zero elements for sparse matrix
                 triples_data.push((r_idx, c_idx, val));
             }
         }
@@ -84,7 +85,13 @@ fn test_solve3() {
     let a_mat = Triples::Vec(triples_data);
 
     let b_vec_data = vec![-1.0, 2.0, -3.0, 4.0];
-    let b_vec = Pairs::Vec(b_vec_data.iter().enumerate().map(|(i, &v)| (i, v)).collect());
+    let b_vec = Pairs::Vec(
+        b_vec_data
+            .iter()
+            .enumerate()
+            .map(|(i, &v)| (i, v))
+            .collect(),
+    );
 
     let exp = vec![-2.0 / 45.0, 1.0 / 75.0, -1.0 / 25.0, 91.0 / 450.0];
 
@@ -169,7 +176,8 @@ fn test_solve4() {
     let mut triples_data = Vec::new();
     for (r_idx, row) in raw_a_mat.iter().enumerate() {
         for (c_idx, &val) in row.iter().enumerate() {
-            if val != 0.0 { // Only add non-zero elements for sparse matrix
+            if val != 0.0 {
+                // Only add non-zero elements for sparse matrix
                 triples_data.push((r_idx, c_idx, val));
             }
         }
@@ -177,7 +185,13 @@ fn test_solve4() {
     let a_mat = Triples::Vec(triples_data);
 
     let b_vec_data = vec![-1.0, 2.0, -3.0, 4.0, -5.0, 6.0, -7.0];
-    let b_vec = Pairs::Vec(b_vec_data.iter().enumerate().map(|(i, &v)| (i, v)).collect());
+    let b_vec = Pairs::Vec(
+        b_vec_data
+            .iter()
+            .enumerate()
+            .map(|(i, &v)| (i, v))
+            .collect(),
+    );
 
     let exp = vec![
         -6.32989007522271,
@@ -222,7 +236,13 @@ fn test_solve5() {
     let a_mat_1 = Triples::Vec(triples_data_1);
 
     let b_vec_data_1 = vec![-1.0, 2.0, -3.0, 4.0];
-    let b_vec_1 = Pairs::Vec(b_vec_data_1.iter().enumerate().map(|(i, &v)| (i, v)).collect());
+    let b_vec_1 = Pairs::Vec(
+        b_vec_data_1
+            .iter()
+            .enumerate()
+            .map(|(i, &v)| (i, v))
+            .collect(),
+    );
 
     let exp_1 = vec![-2.0 / 45.0, 1.0 / 75.0, -1.0 / 25.0, 91.0 / 450.0];
 
@@ -253,8 +273,13 @@ fn test_solve5() {
     let a_mat_2 = Triples::Vec(triples_data_2);
 
     let b_vec_data_2 = vec![1.0, 2.0, 3.0, 4.0];
-    let b_vec_2 = Pairs::Vec(b_vec_data_2.iter().enumerate().map(|(i, &v)| (i, v)).collect());
-
+    let b_vec_2 = Pairs::Vec(
+        b_vec_data_2
+            .iter()
+            .enumerate()
+            .map(|(i, &v)| (i, v))
+            .collect(),
+    );
 
     solver.set_a(&a_mat_2);
     solver.set_b(&b_vec_2);
