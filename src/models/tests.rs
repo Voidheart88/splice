@@ -71,7 +71,6 @@ fn test_add_single_to_double_no_match_expands_to_quad() {
     let s = ComplexTriples::Single((2, 2, c(1.0, 1.0)));
     let d = ComplexTriples::Double([(0, 0, c(2.0, 2.0)), (1, 1, c(3.0, 3.0))]);
     let result = s + d;
-    // This will result in 3 unique elements, which should fit into Quad (with a dummy 4th element)
     if let ComplexTriples::Quad(arr) = result {
         let mut found_00 = false;
         let mut found_11 = false;
@@ -208,7 +207,6 @@ fn test_add_single_same_row() {
 fn test_add_single_different_row() {
     let s1 = ComplexPairs::Single((0, Complex::new(1.0, 2.0)));
     let s2 = ComplexPairs::Single((1, Complex::new(3.0, 4.0)));
-    // Order might vary, so we need to check both possibilities for the array
     let result = s1 + s2;
     assert!(
         result == ComplexPairs::Double([(0, Complex::new(1.0, 2.0)), (1, Complex::new(3.0, 4.0))])
@@ -233,7 +231,6 @@ fn test_add_double_same_rows() {
     let d2 = ComplexPairs::Double([(0, Complex::new(3.0, 3.0)), (1, Complex::new(4.0, 4.0))]);
     let _ = ComplexPairs::Double([(0, Complex::new(4.0, 4.0)), (1, Complex::new(6.0, 6.0))]);
     let result = d1 + d2;
-    // Due to array order not being guaranteed, we'll check individual elements
     if let ComplexPairs::Double(arr) = result {
         let mut found_0 = false;
         let mut found_1 = false;
@@ -250,7 +247,6 @@ fn test_add_double_same_rows() {
     }
 }
 
-// Helper for approximate float comparison in tests
 const EPSILON: f64 = 1e-9;
 
 fn assert_approx_eq_triple(actual: (usize, usize, f64), expected: (usize, usize, f64)) {
@@ -269,9 +265,8 @@ fn assert_approx_eq_triples(actual: Triples, expected: Triples) {
         (Triples::Empty, Triples::Empty) => {}
         (Triples::Single(a), Triples::Single(e)) => assert_approx_eq_triple(a, e),
         (Triples::Double(a_arr), Triples::Double(e_arr)) => {
-            // Convert to Vecs, sort, and then compare for order independence
             let mut a_vec: Vec<_> = a_arr.into_iter().collect();
-            a_vec.sort_by_key(|t| (t.0, t.1)); // Sort by row then column
+            a_vec.sort_by_key(|t| (t.0, t.1));
             let mut e_vec: Vec<_> = e_arr.into_iter().collect();
             e_vec.sort_by_key(|t| (t.0, t.1));
 
@@ -281,7 +276,6 @@ fn assert_approx_eq_triples(actual: Triples, expected: Triples) {
             }
         }
         (Triples::Quad(a_arr), Triples::Quad(e_arr)) => {
-            // Convert to Vecs, filter zeros, sort, and then compare for order independence
             let mut a_vec: Vec<_> = a_arr.into_iter().filter(|&t| t.2.abs() > EPSILON).collect();
             a_vec.sort_by_key(|t| (t.0, t.1));
             let mut e_vec: Vec<_> = e_arr.into_iter().filter(|&t| t.2.abs() > EPSILON).collect();
@@ -334,7 +328,6 @@ fn triples_test_add_single_to_double_match() {
 fn triples_test_add_single_to_double_no_match_expands_to_quad() {
     let s = Triples::Single((2, 2, 1.0));
     let d = Triples::Double([(0, 0, 2.0), (1, 1, 3.0)]);
-    // This will result in 3 unique elements, which should fit into Quad (with a dummy 4th element)
     assert_approx_eq_triples(
         s + d,
         Triples::Quad([(0, 0, 2.0), (1, 1, 3.0), (2, 2, 1.0), (0, 0, 0.0)]),
@@ -372,13 +365,12 @@ fn triples_test_add_double_to_quad_match() {
 fn test_add_resulting_in_zero() {
     let s1 = Triples::Single((0, 0, 5.0));
     let s2 = Triples::Single((0, 0, -5.0));
-    assert_approx_eq_triples(s1 + s2, Triples::Empty); // Should result in Empty after filtering
+    assert_approx_eq_triples(s1 + s2, Triples::Empty);
 }
 
 #[test]
 fn test_double_add_with_some_zeros() {
     let d1 = Triples::Double([(0, 0, 1.0), (1, 1, 2.0)]);
     let d2 = Triples::Double([(0, 0, -1.0), (2, 2, 3.0)]);
-    // (0,0) becomes 0.0 and is filtered. Result should be (1,1,2.0) and (2,2,3.0) -> Double
     assert_approx_eq_triples(d1 + d2, Triples::Double([(1, 1, 2.0), (2, 2, 3.0)]));
 }
