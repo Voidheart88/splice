@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::ops::Add;
 
 /// A structure representing the Pairs of an element.
@@ -12,38 +11,98 @@ pub(crate) enum Pairs {
     Vec(Vec<(usize, f64)>),
 }
 
+impl Pairs {
+    fn normalize_elements(mut elements: Vec<(usize, f64)>) -> Vec<(usize, f64)> {
+        if elements.is_empty() {
+            return elements;
+        }
+
+        elements.sort_unstable_by_key(|p| p.0);
+        let mut write_idx = 0;
+        for read_idx in 0..elements.len() {
+            let (current_row, current_val) = elements[read_idx];
+
+            if write_idx > 0 && elements[write_idx - 1].0 == current_row {
+                elements[write_idx - 1].1 += current_val;
+            } else {
+                if read_idx != write_idx {
+                    elements[write_idx] = elements[read_idx];
+                }
+                write_idx += 1;
+            }
+        }
+
+        elements.truncate(write_idx);
+        let mut final_elements: Vec<(usize, f64)> = elements
+            .into_iter()
+            .filter(|&(_, val)| val.abs() > f64::EPSILON)
+            .collect();
+        final_elements.sort_by_key(|p| p.0);
+
+        final_elements
+    }
+}
+
 impl Add for Pairs {
     type Output = Self;
 
     fn add(self, other: Self) -> Self {
-        let mut combined_elements = Vec::new();
+        match (self, other) {
+            (Pairs::Empty, other) => other,
+            (self_val, Pairs::Empty) => self_val,
 
-        let push_elements =
-            |elements_enum: Self, target_vec: &mut Vec<(usize, f64)>| match elements_enum {
-                Pairs::Empty => {}
-                Pairs::Single(s) => target_vec.push(s),
-                Pairs::Double(d) => target_vec.extend_from_slice(&d),
-                Pairs::Vec(v) => target_vec.extend(v),
-            };
+            (Pairs::Single((r1, v1)), Pairs::Single((r2, v2))) => {
+                if r1 == r2 {
+                    let sum = v1 + v2;
+                    if sum.abs() > f64::EPSILON {
+                        Pairs::Single((r1, sum))
+                    } else {
+                        Pairs::Empty
+                    }
+                } else {
+                    let mut elements = [(r1, v1), (r2, v2)];
+                    elements.sort_by_key(|p| p.0);
+                    Pairs::Double(elements)
+                }
+            }
 
-        push_elements(self, &mut combined_elements);
-        push_elements(other, &mut combined_elements);
+            (Pairs::Single(s), Pairs::Double(d)) | (Pairs::Double(d), Pairs::Single(s)) => {
+                let mut combined = Vec::with_capacity(3);
+                combined.push(s);
+                combined.extend_from_slice(&d);
+                Self::from_vec(Pairs::normalize_elements(combined))
+            }
 
-        let mut unique_elements_map: HashMap<usize, f64> = HashMap::new();
+            (Pairs::Double(d1), Pairs::Double(d2)) => {
+                let mut combined = Vec::with_capacity(4);
+                combined.extend_from_slice(&d1);
+                combined.extend_from_slice(&d2);
+                Self::from_vec(Pairs::normalize_elements(combined))
+            }
 
-        for (row, val) in combined_elements {
-            *unique_elements_map.entry(row).or_insert(0.0) += val;
+            (Pairs::Vec(mut v1), Pairs::Vec(v2)) => {
+                v1.extend(v2);
+                Self::from_vec(Pairs::normalize_elements(v1))
+            }
+            (Pairs::Vec(mut v), s_or_d) => {
+                match s_or_d {
+                    Pairs::Single(s) => v.push(s),
+                    Pairs::Double(d) => v.extend_from_slice(&d),
+                    _ => unreachable!(),
+                }
+                Self::from_vec(Pairs::normalize_elements(v))
+            }
+            (s_or_d, Pairs::Vec(v)) => {
+                let mut temp_vec = Vec::new();
+                match s_or_d {
+                    Pairs::Single(s) => temp_vec.push(s),
+                    Pairs::Double(d) => temp_vec.extend_from_slice(&d),
+                    _ => unreachable!(),
+                }
+                temp_vec.extend(v);
+                Self::from_vec(Pairs::normalize_elements(temp_vec))
+            }
         }
-
-        let mut final_elements: Vec<(usize, f64)> = unique_elements_map
-            .into_iter()
-            .map(|(row, val)| (row, val))
-            .filter(|&(_, val)| val.abs() > f64::EPSILON)
-            .collect();
-
-        final_elements.sort_by_key(|p| p.0);
-
-        Self::from_vec(final_elements)
     }
 }
 
@@ -56,7 +115,7 @@ impl Pairs {
             0 => Pairs::Empty,
             1 => Pairs::Single(elements.remove(0)),
             2 => Pairs::Double([elements.remove(0), elements.remove(0)]),
-            _ => Pairs::Vec(elements), // If more than 2, store in Vec
+            _ => Pairs::Vec(elements),
         }
     }
 }
