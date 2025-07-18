@@ -2,6 +2,7 @@
 
 use super::{Solver, SolverError};
 use crate::models::{ComplexPairs, ComplexTriples, Pairs, Triples};
+use crate::spot::*;
 use log::trace;
 use num::complex::ComplexFloat;
 use num::Complex;
@@ -12,26 +13,26 @@ use rsparse::lusol;
 pub(crate) struct RSparseSolver {
     vars: usize,
     /// The conductance matrix `A` as a sparse matrix.
-    a: Trpl<f64>,
+    a: Trpl<Numeric>,
     /// The vector `b` as a dense vector.
-    b: Vec<f64>,
+    b: Vec<Numeric>,
     /// The Solution vector `x`.
-    x: Vec<f64>,
+    x: Vec<Numeric>,
 
     // Sparse Matrix Workspace
-    sprs: Sprs<f64>,
+    sprs: Sprs<Numeric>,
     symb: Option<Symb>,
-    lu: Nmrc<f64>,
+    lu: Nmrc<Numeric>,
 
     /// The conductance matrix `A` as a sparse matrix.
-    cplx_a: Trpl<f64>,
+    cplx_a: Trpl<Numeric>,
     /// The vector `b` as a dense vector.
-    cplx_b: Vec<f64>,
+    cplx_b: Vec<Numeric>,
     /// The Solution vector `x`.
-    cplx_x: Vec<Complex<f64>>,
+    cplx_x: Vec<Complex<Numeric>>,
 
     //Complex Sparse Matrix Workspace
-    cplx_sprs: Sprs<f64>,
+    cplx_sprs: Sprs<Numeric>,
     cplx_symb: Option<Symb>,
 }
 
@@ -66,43 +67,21 @@ impl Solver for RSparseSolver {
     }
 
     /// Sets the conductance matrix (`a_mat`) into the Solver.
-    fn set_a(&mut self, a_mat: &Triples) {
+    fn set_a(&mut self, a_mat: &Vec<Triples<Numeric, 4>>) {
         let mut new_a = Trpl::new();
-        match a_mat {
-            Triples::Empty => {}
-            Triples::Single(tr) => new_a.append(tr.0, tr.1, tr.2),
-            Triples::Double(tr) => {
-                new_a.append(tr[0].0, tr[0].1, tr[0].2);
-                new_a.append(tr[1].0, tr[1].1, tr[1].2);
-            }
-            Triples::Quad(tr) => {
-                new_a.append(tr[0].0, tr[0].1, tr[0].2);
-                new_a.append(tr[1].0, tr[1].1, tr[1].2);
-                new_a.append(tr[2].0, tr[2].1, tr[2].2);
-                new_a.append(tr[3].0, tr[3].1, tr[3].2);
-            }
-            Triples::Vec(triples) => {
-                for (row, col, v) in triples.iter() {
-                    new_a.append(*row, *col, *v);
-                }
+        for triplets in a_mat {
+            for triplet in triplets {
+                new_a.append(triplet.0, triplet.1, triplet.2);
             }
         }
         self.a = new_a;
     }
 
     /// Sets the known values vector (`b_vec`) into the Solver.
-    fn set_b(&mut self, b_vec: &Pairs) {
-        match b_vec {
-            Pairs::Empty => {}
-            Pairs::Single((col, val)) => self.b[*col] = *val,
-            Pairs::Double([(col1, val1), (col2, val2)]) => {
-                self.b[*col1] = *val1;
-                self.b[*col2] = *val2;
-            }
-            Pairs::Vec(vec_pairs) => {
-                for (col, val) in vec_pairs {
-                    self.b[*col] = *val;
-                }
+    fn set_b(&mut self, b_vec: &Vec<Pairs<Numeric, 4>>) {
+        for pairs in b_vec {
+            for pair in pairs {
+                self.b[pair.0] = pair.1;
             }
         }
     }
@@ -125,7 +104,7 @@ impl Solver for RSparseSolver {
         Ok(&self.b)
     }
 
-    fn set_cplx_a(&mut self, a_mat: &ComplexTriples) {
+    fn set_cplx_a(&mut self, a_mat: &Vec<ComplexTriples>) {
         let triples = self.cplx_triple_to_triple(a_mat);
         let mut new_a = Trpl::new();
         match triples {

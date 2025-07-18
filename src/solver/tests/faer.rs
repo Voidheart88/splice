@@ -6,7 +6,8 @@ use assert_float_eq::*;
 /* -----------------------------------Tests---------------------------------- */
 use super::super::*;
 use crate::models::{DiodeBundle, Unit, VSourceBundle, Variable};
-use crate::solver::FaerSolver; // Ensure FaerSolver is imported
+use crate::solver::FaerSolver;
+use crate::spot::*; // Ensure FaerSolver is imported
 
 #[test]
 fn test_new() {
@@ -22,7 +23,7 @@ fn test_new() {
 fn test_set_a() {
     let mut solver = FaerSolver::new(3).unwrap();
 
-    let triples = Triples::Vec(vec![(0, 0, 1.0), (1, 1, 2.0), (2, 2, 3.0)]);
+    let triples = Triples::new(&vec![(0, 0, 1.0), (1, 1, 2.0), (2, 2, 3.0)]);
     solver.set_a(&triples);
 
     assert_eq!(solver.a_mat()[&(0usize, 0usize)], 1.0);
@@ -49,7 +50,7 @@ fn test_set_a2() {
             triples_data.push((r_idx, c_idx, val));
         }
     }
-    let a_mat = Triples::Vec(triples_data);
+    let a_mat = Triples::new(&triples_data);
 
     let mut solver = FaerSolver::new(7).unwrap();
     solver.set_a(&a_mat);
@@ -57,7 +58,7 @@ fn test_set_a2() {
     for row in 0..7 {
         for col in 0..7 {
             let val = solver.a_mat()[&(row, col)];
-            let exp = (row as f64 * 10.0) + (col as f64 + 1.0); // Corrected calculation
+            let exp = (row as Numeric * 10.0) + (col as f64 + 1.0); // Corrected calculation
             assert_f64_near!(val, exp)
         }
     }
@@ -66,7 +67,7 @@ fn test_set_a2() {
 #[test]
 fn test_set_b1() {
     let mut solver = FaerSolver::new(2).unwrap();
-    let pairs = Pairs::Double([(0, 3.0), (1, 4.0)]);
+    let pairs = Pairs::new(&[(0, 3.0), (1, 4.0)]);
     solver.set_b(&pairs);
 
     assert_eq!(solver.b_vec()[(0, 0)], 3.0);
@@ -76,7 +77,8 @@ fn test_set_b1() {
 #[test]
 fn test_set_b2() {
     let raw_b_vec = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0];
-    let b_vec = Pairs::Vec(raw_b_vec.iter().enumerate().map(|(i, &v)| (i, v)).collect());
+    let b_vec = raw_b_vec.iter().enumerate().map(|(i, &v)| (i, v)).collect();
+    let b_vec = Pairs::new(&b_vec);
 
     let mut solver = FaerSolver::new(7).unwrap();
     solver.set_b(&b_vec);

@@ -1,11 +1,11 @@
 #![deny(unsafe_code)]
 
 mod backends;
-mod spot;
 mod frontends;
 mod models;
 mod sim;
 mod solver;
+mod spot;
 
 use clap::Parser;
 use log::info;

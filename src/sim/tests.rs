@@ -22,11 +22,11 @@ impl Solver for MockBackend {
         Ok(Self)
     }
 
-    fn set_a(&mut self, _: &Triples) {}
+    fn set_a(&mut self, _: &Triples<Numeric, 4>) {}
 
-    fn set_b(&mut self, _: &Pairs) {}
+    fn set_b(&mut self, _: &Pairs<Numeric, 2>) {}
 
-    fn solve(&mut self) -> Result<&Vec<f64>, SolverError> {
+    fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError> {
         Err(SolverError::MatrixNonInvertible)
     }
 
@@ -34,7 +34,7 @@ impl Solver for MockBackend {
 
     fn set_cplx_b(&mut self, _: &ComplexPairs) {}
 
-    fn solve_cplx(&mut self) -> Result<&Vec<num::Complex<f64>>, SolverError> {
+    fn solve_cplx(&mut self) -> Result<&Vec<num::Complex<Numeric>>, SolverError> {
         Err(SolverError::MatrixNonInvertible)
     }
 }
@@ -289,9 +289,9 @@ fn test_run_simulation3() {
     assert_eq!(var, exp);
 
     let var = res[4].clone();
-    let exp: (&str, f64) = ("3", 6.6666666666666666);
+    let exp: (&str, Numeric) = ("3", 6.6666666666666666);
     assert_eq!(*var.0.name(), *exp.0);
-    assert!(relative_eq!(var.1, exp.1, epsilon = f64::EPSILON));
+    assert!(relative_eq!(var.1, exp.1, epsilon = Numeric::EPSILON));
 }
 
 /// Test to ensure the consistency of results in witch current sources.

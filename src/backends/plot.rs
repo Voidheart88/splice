@@ -25,7 +25,6 @@ pub struct PlotBackend {
     pth: String,
 }
 
-
 impl Backend for PlotBackend {
     /// Outputs the simulation results as a plot.
     ///

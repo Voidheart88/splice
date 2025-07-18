@@ -7,6 +7,7 @@ use faer::{
 
 use super::{Solver, SolverError};
 use crate::models::{ComplexPairs, ComplexTriples, Pairs, Triples};
+use crate::spot::Numeric;
 
 //use faer::solvers::SpSolver;
 //use faer::sparse::{LuError, SparseColMat};
@@ -14,13 +15,13 @@ use crate::models::{ComplexPairs, ComplexTriples, Pairs, Triples};
 /// A backend implementation using the Faer library.
 pub(crate) struct FaerSolver {
     /// The conductance matrix `A`.
-    a_mat: HashMap<(usize, usize), f64>,
+    a_mat: HashMap<(usize, usize), Numeric>,
 
     /// The vector `b`.
-    b_vec: Mat<f64>,
+    b_vec: Mat<Numeric>,
 
     /// The Solution vector
-    x_vec: Vec<f64>,
+    x_vec: Vec<Numeric>,
 
     /// The conductance matrix `A`.
     cplx_a_mat: HashMap<(usize, usize), c64>,
@@ -29,11 +30,11 @@ pub(crate) struct FaerSolver {
     cplx_b_vec: Mat<c64>,
 
     /// The Solution vector
-    cplx_x_vec: Vec<num::Complex<f64>>,
+    cplx_x_vec: Vec<num::Complex<Numeric>>,
 }
 
 impl FaerSolver {
-    fn set_value(&mut self, row: usize, col: usize, val: f64) {
+    fn set_value(&mut self, row: usize, col: usize, val: Numeric) {
         self.a_mat.insert((row, col), val);
     }
     fn set_cplx_value(&mut self, row: usize, col: usize, val: c64) {
@@ -56,7 +57,11 @@ impl Solver for FaerSolver {
         })
     }
 
-    fn set_a(&mut self, a_mat: &Triples) {
+    fn set_a(&mut self, a_mat: &[Triples<Numeric, 4>]) {
+        a_mat.iter().for_each(|val| {
+            val.iter().for_each();
+        });
+
         match a_mat {
             Triples::Empty => {}
             Triples::Single((row, col, val)) => {
@@ -72,11 +77,7 @@ impl Solver for FaerSolver {
                 self.set_value(vals[2].0, vals[2].1, vals[2].2);
                 self.set_value(vals[2].0, vals[3].1, vals[3].2);
             }
-            Triples::Vec(vec_triples) => {
-                for (row, col, val) in vec_triples {
-                    self.set_value(*row, *col, *val);
-                }
-            }
+            Triples::Vec(vec_triples) => for (row, col, val) in vec_triples {},
         }
     }
 

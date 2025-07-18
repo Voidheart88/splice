@@ -8,13 +8,13 @@ use std::sync::Arc;
 use itertools::Itertools;
 use log::{info, trace};
 use miette::Diagnostic;
-use num::Complex;
+use num::{Complex, One};
 use options::SimulationOption;
 use thiserror::Error;
 
-use crate::consts::{DIO_GUESS, MAXITER, VECTOL};
 use crate::models::{ComplexPairs, ComplexTriples, Element, Pairs, Triples, Variable};
 use crate::solver::{Solver, SolverError};
+use crate::spot::*;
 use crate::Simulation;
 use commands::{ACMode, SimulationCommand};
 use simulation_result::Sim;
@@ -115,8 +115,10 @@ impl<SO: Solver> Simulator<SO> {
     fn run_op(&mut self) -> Result<Sim, SimulatorError> {
         info!("Run operating point analysis");
         // Check for nonlinear elements
-        let const_a_mat = self.build_constant_a_mat()?;
-        let const_b_vec = self.build_constant_b_vec()?;
+        let mut const_a_mat = Vec::new();
+        self.build_constant_a_mat(&mut const_a_mat)?;
+        let mut const_b_vec = Vec::new();
+        self.build_constant_b_vec(&mut const_b_vec)?;
         if !self.has_nonlinear_elements() {
             // Build the constant matrix
             self.solver.set_a(&const_a_mat);
@@ -183,7 +185,7 @@ impl<SO: Solver> Simulator<SO> {
     /// This method takes a solution vector and adds variable names to each value,
     /// based on the order of variables stored in the `vars` field of the `Simulator`.
     /// It returns a vector of tuples, where each tuple contains a variable name and its corresponding value.
-    fn add_var_name(&self, solution: Vec<f64>) -> Vec<(Variable, f64)> {
+    fn add_var_name(&self, solution: Vec<Numeric>) -> Vec<(Variable, Numeric)> {
         solution
             .into_iter()
             .enumerate()
@@ -196,7 +198,7 @@ impl<SO: Solver> Simulator<SO> {
     /// This method takes a solution vector and adds variable names to each value,
     /// based on the order of variables stored in the `vars` field of the `Simulator`.
     /// It returns a vector of tuples, where each tuple contains a variable name and its corresponding value.
-    fn add_complex_var_name(&self, solution: Vec<Complex<f64>>) -> Vec<(Variable, Complex<f64>)> {
+    fn add_complex_var_name(&self, solution: Vec<Complex<Numeric>>) -> Vec<(Variable, Complex<Numeric>)> {
         solution
             .into_iter()
             .enumerate()
@@ -221,8 +223,8 @@ impl<SO: Solver> Simulator<SO> {
     /// This method performs an AC analysis.
     fn run_ac(
         &mut self,
-        fstart: &f64,
-        fend: &f64,
+        fstart: &Numeric,
+        fend: &Numeric,
         steps: &usize,
         ac_option: &ACMode,
     ) -> Result<Sim, SimulatorError> {
@@ -231,19 +233,19 @@ impl<SO: Solver> Simulator<SO> {
         self.find_op()?;
 
         //Calculate frequencies in the range from [fstart;fend]
-        let freqs: Vec<f64> = match ac_option {
+        let freqs: Vec<Numeric> = match ac_option {
             ACMode::Lin => {
-                let step_size = (fend - fstart) / (*steps as f64);
+                let step_size = (fend - fstart) / (*steps as Numeric);
                 (0..=*steps)
-                    .map(|i| fstart + i as f64 * step_size)
+                    .map(|i| fstart + i as Numeric * step_size)
                     .collect()
             }
             ACMode::Dec => {
                 let log_fstart = fstart.log10();
                 let log_fend = fend.log10();
-                let step_size = (log_fend - log_fstart) / (*steps as f64);
+                let step_size = (log_fend - log_fstart) / (*steps as Numeric);
                 (0..=*steps)
-                    .map(|i| 10f64.powf(log_fstart + i as f64 * step_size))
+                    .map(|i| 10f64.powf(log_fstart + i as Numeric * step_size))
                     .collect()
             }
             ACMode::Oct => {
@@ -257,8 +259,11 @@ impl<SO: Solver> Simulator<SO> {
         };
 
         info!("Run analysis");
-        let _const_a_mat = self.build_constant_a_mat()?;
-        let _const_b_vec = self.build_constant_b_vec()?;
+        let mut const_a_mat = Vec::new();
+        self.build_constant_a_mat(&mut const_a_mat)?;
+        let mut const_b_vec = Vec::new();
+        self.build_constant_b_vec(&mut const_b_vec)?;
+        
         let mut results = Vec::new();
         for freq in freqs {
             let cplx_a_mat = self.build_ac_a_mat(freq);
@@ -345,7 +350,7 @@ impl<SO: Solver> Simulator<SO> {
     ///
     /// This method performs an operating point analysis by building the constant matrices,
     /// transferring them to the backend, solving the equations, and collecting the results.
-    fn find_op(&mut self) -> Result<Vec<(Variable, f64)>, SimulatorError> {
+    fn find_op(&mut self) -> Result<Vec<(Variable, Numeric)>, SimulatorError> {
         // Check for nonlinear elements
         let const_a_mat = self.build_constant_a_mat()?;
         let const_b_vec = self.build_constant_b_vec()?;
@@ -396,17 +401,15 @@ impl<SO: Solver> Simulator<SO> {
     ///
     /// * `Ok(Triples)` - The combined constant triples.
     /// * `Err(SimulatorError::ConstantMatrixEmpty)` - If no constant triples are found.
-    fn build_constant_a_mat(&self) -> Result<Triples, SimulatorError> {
-        let const_a_mat = self
-            .elements
+    fn build_constant_a_mat(&self, workspace:&mut Vec<Triples<Numeric, 4>>) -> Result<(), SimulatorError> {
+        self.elements
             .iter()
             .filter_map(|ele| ele.get_constant_triples())
-            .reduce(|acc, ele| acc + ele)
-            .unwrap_or(Triples::Empty);
-        if const_a_mat == Triples::Empty {
+            .for_each(|ele| workspace.push(ele));
+        if workspace.len() == 0 {
             Err(SimulatorError::ConstantMatrixEmpty)
         } else {
-            Ok(const_a_mat)
+            Ok(())
         }
     }
 
@@ -419,17 +422,15 @@ impl<SO: Solver> Simulator<SO> {
     ///
     /// * `Ok(pairs)` - The combined constant pairs.
     /// * `Err(SimulatorError::ConstantVectorEmpty)` - If no constant pairs are found.
-    fn build_constant_b_vec(&self) -> Result<Pairs, SimulatorError> {
-        let const_b_vec = self
-            .elements
+    fn build_constant_b_vec(&self, workspace:&mut Vec<Pairs<Numeric, 2>>) -> Result<(), SimulatorError> {
+        self.elements
             .iter()
             .filter_map(|ele| ele.get_constant_pairs())
-            .reduce(|acc, ele| acc + ele)
-            .unwrap_or(Pairs::Empty);
-        if const_b_vec == Pairs::Empty {
+            .for_each(|ele| workspace.push(ele));
+        if workspace.is_empty() {
             Err(SimulatorError::ConstantVectorEmpty)
         } else {
-            Ok(const_b_vec)
+            Ok(())
         }
     }
 
@@ -441,12 +442,11 @@ impl<SO: Solver> Simulator<SO> {
     /// # Returns
     ///
     /// * `Triples` - The combined time-variant triples, or an empty `Triples` if none are found.
-    fn build_time_variant_a_mat(&self) -> Triples {
+    fn build_time_variant_a_mat(&self,workspace:&mut Vec<Triples<Numeric, 4>>) {
         self.elements
             .iter()
             .filter_map(|ele| ele.get_time_variant_triples())
-            .reduce(|acc, ele| acc + ele)
-            .unwrap_or(Triples::Empty)
+            .for_each(|ele| workspace.push(ele))
     }
 
     /// Builds a time-variant vector 'B' from the elements.
@@ -457,12 +457,11 @@ impl<SO: Solver> Simulator<SO> {
     /// # Returns
     ///
     /// * `pairs` - The combined time-variant pairs, or an empty `pairs` if none are found.
-    fn build_time_variant_b_vec(&self) -> Pairs {
+    fn build_time_variant_b_vec(&self,workspace:&mut Vec<Pairs<Numeric, 2>>){
         self.elements
             .iter()
             .filter_map(|ele| ele.get_time_variant_pairs())
-            .reduce(|acc, ele| acc + ele)
-            .unwrap_or(Pairs::Empty)
+            .for_each(|ele| workspace.push(ele))
     }
 
     /// Builds a nonlinear matrix 'A' from the elements, based on a given vector `x_vec`.
@@ -478,12 +477,11 @@ impl<SO: Solver> Simulator<SO> {
     /// # Returns
     ///
     /// * `Triples` - The combined nonlinear triples, or an empty `Triples` if none are found.
-    fn build_nonlinear_a_mat(&self, x_vec: &Vec<f64>) -> Triples {
+    fn build_nonlinear_a_mat(&self, x_vec: &Vec<f64>,workspace:&mut Vec<Triples<Numeric, 4>>) {
         self.elements
             .iter()
             .filter_map(|ele| ele.get_nonlinear_triples(x_vec))
-            .reduce(|acc, ele| acc + ele)
-            .unwrap_or(Triples::Empty)
+            .for_each(|ele| workspace.push(ele))
     }
 
     /// Builds a nonlinear vector 'B' from the elements.
@@ -494,12 +492,11 @@ impl<SO: Solver> Simulator<SO> {
     /// # Returns
     ///
     /// * `pairs` - The combined nonlinear pairs, or an empty `pairs` if none are found.
-    fn build_nonlinear_b_vec(&self, x_vec: &Vec<f64>) -> Pairs {
+    fn build_nonlinear_b_vec(&self, x_vec: &Vec<f64>,workspace:&mut Vec<Pairs<Numeric, 2>>) {
         self.elements
             .iter()
             .filter_map(|ele| ele.get_nonlinear_pairs(x_vec))
-            .reduce(|acc, ele| acc + ele)
-            .unwrap_or(Pairs::Empty)
+            .for_each(|ele| workspace.push(ele))
     }
 
     /// Generates an initial guess for the node voltages in the circuit.
@@ -510,7 +507,7 @@ impl<SO: Solver> Simulator<SO> {
     /// # Returns
     ///
     /// A vector containing the initial guess for the node voltages.
-    fn generate_initial_guess(&self) -> Vec<f64> {
+    fn generate_initial_guess(&self) -> Vec<Numeric> {
         let len = self.vars.len();
         let mut acc = vec![0.0; len];
 
@@ -535,11 +532,13 @@ impl<SO: Solver> Simulator<SO> {
                     let c_idx = diode.c_idx();
 
                     match (a_idx, c_idx) {
-                        (None, Some(c_idx)) => local_guess[c_idx] = -DIO_GUESS / 2.0,
+                        (None, Some(c_idx)) => {
+                            local_guess[c_idx] = -DIO_GUESS / (Numeric::one() + Numeric::one())
+                        }
                         (Some(a_idx), None) => local_guess[a_idx] = DIO_GUESS,
                         (Some(a_idx), Some(c_idx)) => {
-                            local_guess[a_idx] = DIO_GUESS / 2.0;
-                            local_guess[c_idx] = -DIO_GUESS / 2.0;
+                            local_guess[a_idx] = DIO_GUESS / (Numeric::one() + Numeric::one());
+                            local_guess[c_idx] = -DIO_GUESS / (Numeric::one() + Numeric::one());
                         }
                         _ => {}
                     }
@@ -571,7 +570,12 @@ impl<SO: Solver> Simulator<SO> {
     /// # Returns
     ///
     /// `true` if the vectors have converged, otherwise `false`.
-    fn has_converged(&self, x_old: &Vec<f64>, x_new: &Vec<f64>, tolerance: f64) -> bool {
+    fn has_converged(
+        &self,
+        x_old: &Vec<Numeric>,
+        x_new: &Vec<Numeric>,
+        tolerance: Numeric,
+    ) -> bool {
         x_old
             .iter()
             .zip(x_new.iter())
@@ -587,7 +591,7 @@ impl<SO: Solver> Simulator<SO> {
     ///
     /// * `Ok(Triples)` - The combined ac triples.
     /// * `Err(SimulatorError::ConstantMatrixEmpty)` - If no ac triples are found.
-    fn build_ac_a_mat(&self, freq: f64) -> ComplexTriples {
+    fn build_ac_a_mat(&self, freq: Numeric) -> ComplexTriples {
         self.elements
             .iter()
             .filter_map(|ele| ele.get_ac_triples(freq))
@@ -604,7 +608,7 @@ impl<SO: Solver> Simulator<SO> {
     ///
     /// * `Ok(pairs)` - The combined ac pairs.
     /// * `Err(SimulatorError::ConstantVectorEmpty)` - If no ac pairs are found.
-    fn build_ac_b_vec(&self, freq: f64) -> ComplexPairs {
+    fn build_ac_b_vec(&self, freq: Numeric) -> ComplexPairs {
         self.elements
             .iter()
             .filter_map(|ele| ele.get_ac_pairs(freq))
@@ -678,7 +682,7 @@ fn is_vsource_with_name(element: &Element, srcnam: &Arc<str>) -> bool {
     }
 }
 
-fn get_vsource_value(element: &mut Element) -> Option<f64> {
+fn get_vsource_value(element: &mut Element) -> Option<Numeric> {
     if let Element::VSource(ref mut vs) = element {
         Some(vs.value())
     } else {
