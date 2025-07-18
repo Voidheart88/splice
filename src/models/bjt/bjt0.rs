@@ -1,9 +1,8 @@
 #![allow(unused)]
 use std::sync::Arc;
 
-use crate::consts::UT;
-
 use super::super::*;
+use crate::spot::*;
 
 /// A structure representing a BJT.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
@@ -61,12 +60,12 @@ impl Bjt0Bundle {
     }
 
     /// Returns a reference to the triples representing matrix A.
-    pub fn triples(&self, _x_vec: &Vec<f64>) -> Triples {
+    pub fn triples(&self, _x_vec: &Vec<f64>) -> Triples<Numeric, 4> {
         todo!()
     }
 
     /// Returns a reference to the pairs representing vector b.
-    pub fn pairs(&self, _x_vec: &Vec<f64>) -> Pairs {
+    pub fn pairs(&self, _x_vec: &Vec<f64>) -> Pairs<Numeric, 2> {
         todo!()
     }
 

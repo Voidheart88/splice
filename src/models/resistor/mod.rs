@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use num::Complex;
+use num::{Complex,One, Zero};
 
 use super::*;
 /// A structure representing a bundle of resistors.
@@ -9,7 +9,7 @@ pub(crate) struct ResistorBundle {
     name: Arc<str>,
     node0: Option<Variable>,
     node1: Option<Variable>,
-    value: f64,
+    value: Numeric,
 }
 
 impl ResistorBundle {
@@ -29,7 +29,7 @@ impl ResistorBundle {
         name: Arc<str>,
         node0: Option<Variable>,
         node1: Option<Variable>,
-        value: f64,
+        value: Numeric,
     ) -> ResistorBundle {
         ResistorBundle {
             name,
@@ -60,84 +60,84 @@ impl ResistorBundle {
     }
 
     /// Returns triples representing this elements contribution to the a matrix
-    pub fn triples(&self) -> Triples {
+    pub fn triples(&self) -> Triples<Numeric, 4> {
         let node0_idx = if let Some(idx) = self.node0_idx() {
             idx
         } else {
-            return Triples::Single((
+            return Triples::new(&[(
                 self.node1_idx().unwrap(),
                 self.node1_idx().unwrap(),
-                1.0 / self.value,
-            ));
+                Numeric::one() / self.value,
+            )]);
         };
         let Some(node1_idx) = self.node1_idx() else {
-            return Triples::Single((node0_idx, node0_idx, 1.0 / self.value));
+            return Triples::new(&[(node0_idx, node0_idx, Numeric::one() / self.value)]);
         };
 
-        Triples::Quad([
-            (node0_idx, node0_idx, 1.0 / self.value),
-            (node1_idx, node1_idx, 1.0 / self.value),
-            (node0_idx, node1_idx, -1.0 / self.value),
-            (node1_idx, node0_idx, -1.0 / self.value),
+        Triples::new(&[
+            (node0_idx, node0_idx, Numeric::one() / self.value),
+            (node1_idx, node1_idx, Numeric::one() / self.value),
+            (node0_idx, node1_idx, -Numeric::one() / self.value),
+            (node1_idx, node0_idx, -Numeric::one() / self.value),
         ])
     }
 
     /// Returns triples representing this elements contribution to the a matrix
-    pub fn ac_triples(&self) -> ComplexTriples {
+    pub fn ac_triples(&self) -> Triples<ComplexNumeric, 4> {
         let node0_idx = if let Some(idx) = self.node0_idx() {
             idx
         } else {
-            return ComplexTriples::Single((
+            return Triples::new(&[(
                 self.node1_idx().unwrap(),
                 self.node1_idx().unwrap(),
                 Complex {
-                    re: 1.0 / self.value,
-                    im: 0.0,
+                    re: Numeric::one() / self.value,
+                    im: Numeric::zero(),
                 },
-            ));
+            )]);
         };
         let Some(node1_idx) = self.node1_idx() else {
-            return ComplexTriples::Single((
+            return Triples::new(&[(
                 node0_idx,
                 node0_idx,
                 Complex {
-                    re: 1.0 / self.value,
-                    im: 0.0,
+                    re: Numeric::one() / self.value,
+                    im: Numeric::zero(),
                 },
-            ));
+            )]);
         };
 
-        ComplexTriples::Quad([
+        Triples::new(&[
             (
                 node0_idx,
                 node0_idx,
                 Complex {
-                    re: 1.0 / self.value,
-                    im: 0.0,
+                    re: Numeric::one() / self.value,
+                    im: Numeric::zero(),
                 },
             ),
             (
                 node1_idx,
                 node1_idx,
                 Complex {
-                    re: 1.0 / self.value,
-                    im: 0.0,
+                    re: Numeric::one() / self.value,
+                    im: Numeric::zero(),
                 },
             ),
             (
                 node0_idx,
                 node1_idx,
                 Complex {
-                    re: -1.0 / self.value,
-                    im: 0.0,
+                    re: -Numeric::one() / self.value,
+                    im: Numeric::zero(),
                 },
             ),
             (
                 node1_idx,
                 node0_idx,
                 Complex {
-                    re: -1.0 / self.value,
-                    im: 0.0,
+                    re: -Numeric::one() / self.value,
+                    im: Numeric::zero(),
                 },
             ),
         ])

@@ -1,8 +1,9 @@
-use std::{f64::consts::PI, sync::Arc};
+use std::sync::Arc;
 
-use num::Complex;
+use num::traits::FloatConst;
+use num::{Complex, One, Zero};
 
-use crate::consts::DEFAULT_CONDUCTANCE;
+use crate::spot::*;
 
 use super::*;
 
@@ -12,7 +13,7 @@ pub(crate) struct InductorBundle {
     name: Arc<str>,
     node0: Option<Variable>,
     node1: Option<Variable>,
-    value: f64,
+    value: Numeric,
 }
 
 impl InductorBundle {
@@ -32,7 +33,7 @@ impl InductorBundle {
         name: Arc<str>,
         node0: Option<Variable>,
         node1: Option<Variable>,
-        value: f64,
+        value: Numeric,
     ) -> InductorBundle {
         InductorBundle {
             name,
@@ -48,24 +49,24 @@ impl InductorBundle {
     }
 
     /// Returns the triples representing the inductor's contribution to matrix A.
-    pub fn triples(&self) -> Triples {
+    pub fn triples(&self) -> Triples<Numeric, 4> {
         let node0_idx = if let Some(node) = &self.node0 {
             node.idx()
         } else {
-            return Triples::Single((
+            return Triples::new(&[(
                 self.node1.as_ref().unwrap().idx(),
                 self.node1.as_ref().unwrap().idx(),
                 DEFAULT_CONDUCTANCE,
-            ));
+            )]);
         };
 
         let node1_idx = if let Some(node) = &self.node1 {
             node.idx()
         } else {
-            return Triples::Single((node0_idx, node0_idx, DEFAULT_CONDUCTANCE));
+            return Triples::new(&[(node0_idx, node0_idx, DEFAULT_CONDUCTANCE)]);
         };
 
-        Triples::Quad([
+        Triples::new(&[
             (node0_idx, node0_idx, DEFAULT_CONDUCTANCE),
             (node1_idx, node1_idx, DEFAULT_CONDUCTANCE),
             (node0_idx, node1_idx, DEFAULT_CONDUCTANCE),
@@ -74,64 +75,70 @@ impl InductorBundle {
     }
 
     /// Returns the triples representing the inductor's contribution to matrix A.
-    pub fn ac_triples(&self, freq: f64) -> ComplexTriples {
+    pub fn ac_triples(&self, freq: Numeric) -> Triples<ComplexNumeric, 4> {
         let node0_idx = if let Some(node) = &self.node0 {
             node.idx()
         } else {
-            return ComplexTriples::Single((
+            return Triples::new(&[(
                 self.node1.as_ref().unwrap().idx(),
                 self.node1.as_ref().unwrap().idx(),
                 Complex {
-                    re: 0.0,
-                    im: 1.0 / (2.0 * PI * freq * self.value),
+                    re: Numeric::zero(),
+                    im: Numeric::one()
+                        / ((Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value),
                 },
-            ));
+            )]);
         };
 
         let node1_idx = if let Some(node) = &self.node1 {
             node.idx()
         } else {
-            return ComplexTriples::Single((
+            return Triples::new(&[(
                 node0_idx,
                 node0_idx,
                 Complex {
-                    re: 0.0,
-                    im: 1.0 / (2.0 * PI * freq * self.value),
+                    re: Numeric::zero(),
+                    im: Numeric::one()
+                        / ((Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value),
                 },
-            ));
+            )]);
         };
 
-        ComplexTriples::Quad([
+        Triples::new(&[
             (
                 node0_idx,
                 node0_idx,
                 Complex {
-                    re: 0.0,
-                    im: 1.0 / (2.0 * PI * freq * self.value),
+                    re: Numeric::zero(),
+                    im: Numeric::one()
+                        / ((Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value),
                 },
             ),
             (
                 node1_idx,
                 node1_idx,
                 Complex {
-                    re: 0.0,
-                    im: 1.0 / (2.0 * PI * freq * self.value),
+                    re: Numeric::zero(),
+                    im: Numeric::one()
+                        / ((Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value),
                 },
             ),
             (
                 node0_idx,
                 node1_idx,
                 -Complex {
-                    re: 0.0,
-                    im: 1.0 / (2.0 * PI * freq * self.value),
+                    re: Numeric::zero(),
+                    im: Numeric::one()
+                        / ((Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value),
                 },
             ),
             (
                 node1_idx,
                 node0_idx,
                 -Complex {
-                    re: 0.0,
-                    im: 1.0 / (2.0 * PI * freq * self.value),
+                    re: Numeric::zero(),
+                    im: Numeric::one()
+                        / ((Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value),
                 },
             ),
         ])

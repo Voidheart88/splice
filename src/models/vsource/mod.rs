@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use num::Complex;
+use num::{Complex,One,Zero};
 
 use super::*;
 
@@ -11,8 +11,8 @@ pub(crate) struct VSourceBundle {
     branch: Variable,
     node0: Option<Variable>,
     node1: Option<Variable>,
-    value: f64,
-    ac_value: Option<f64>,
+    value: Numeric,
+    ac_value: Option<Numeric>,
 }
 
 impl VSourceBundle {
@@ -36,8 +36,8 @@ impl VSourceBundle {
         branch: Variable,
         node0: Option<Variable>,
         node1: Option<Variable>,
-        value: f64,
-        ac_value: Option<f64>,
+        value: Numeric,
+        ac_value: Option<Numeric>,
     ) -> Self {
         VSourceBundle {
             name,
@@ -76,56 +76,64 @@ impl VSourceBundle {
     }
 
     /// Returns the value of the voltage source.
-    pub fn value(&self) -> f64 {
+    pub fn value(&self) -> Numeric {
         self.value
     }
 
     /// Returns a reference to the triples representing matrix A.
-    pub fn triples(&self) -> Triples {
+    pub fn triples(&self) -> Triples<Numeric, 4> {
         let branch_idx = self.branch_idx();
         let node0_idx = match self.node0_idx() {
             Some(node0_idx) => node0_idx,
             None => {
-                return Triples::Double([
-                    (self.branch_idx(), self.node1_idx().unwrap(), 1.0),
-                    (self.node1_idx().unwrap(), self.branch_idx(), 1.0),
+                return Triples::new(&[
+                    (self.branch_idx(), self.node1_idx().unwrap(), Numeric::one()),
+                    (self.node1_idx().unwrap(), self.branch_idx(), Numeric::one()),
                 ]);
             }
         };
         let node1_idx = match self.node1_idx() {
             Some(node1_idx) => node1_idx,
             None => {
-                return Triples::Double([
-                    (self.branch_idx(), self.node0_idx().unwrap(), -1.0),
-                    (self.node0_idx().unwrap(), self.branch_idx(), -1.0),
+                return Triples::new(&[
+                    (
+                        self.branch_idx(),
+                        self.node0_idx().unwrap(),
+                        -Numeric::one(),
+                    ),
+                    (
+                        self.node0_idx().unwrap(),
+                        self.branch_idx(),
+                        -Numeric::one(),
+                    ),
                 ])
             }
         };
 
-        Triples::Quad([
-            (branch_idx, node0_idx, 1.0),
-            (node0_idx, branch_idx, 1.0),
-            (branch_idx, node1_idx, -1.0),
-            (node1_idx, branch_idx, -1.0),
+        Triples::new(&[
+            (branch_idx, node0_idx, Numeric::one()),
+            (node0_idx, branch_idx, Numeric::one()),
+            (branch_idx, node1_idx, -Numeric::one()),
+            (node1_idx, branch_idx, -Numeric::one()),
         ])
     }
 
     /// Returns a reference to the triples representing matrix A.
-    pub fn ac_triples(&self) -> ComplexTriples {
+    pub fn ac_triples(&self) -> Triples<ComplexNumeric, 4> {
         let branch_idx = self.branch_idx();
         let node0_idx = match self.node0_idx() {
             Some(node0_idx) => node0_idx,
             None => {
-                return ComplexTriples::Double([
+                return Triples::new(&[
                     (
                         self.branch_idx(),
                         self.node1_idx().unwrap(),
-                        Complex { re: 1.0, im: 0.0 },
+                        Complex { re: Numeric::one(), im: Numeric::zero() },
                     ),
                     (
                         self.node1_idx().unwrap(),
                         self.branch_idx(),
-                        Complex { re: 1.0, im: 0.0 },
+                        Complex { re: Numeric::one(), im: Numeric::zero() },
                     ),
                 ]);
             }
@@ -133,49 +141,49 @@ impl VSourceBundle {
         let node1_idx = match self.node1_idx() {
             Some(node1_idx) => node1_idx,
             None => {
-                return ComplexTriples::Double([
+                return Triples::new(&[
                     (
                         self.branch_idx(),
                         self.node0_idx().unwrap(),
-                        Complex { re: -1.0, im: 0.0 },
+                        Complex { re: -Numeric::one(), im: Numeric::zero() },
                     ),
                     (
                         self.node0_idx().unwrap(),
                         self.branch_idx(),
-                        Complex { re: -1.0, im: 0.0 },
+                        Complex { re: -Numeric::one(), im: Numeric::zero() },
                     ),
                 ])
             }
         };
 
-        ComplexTriples::Quad([
-            (branch_idx, node0_idx, Complex { re: 1.0, im: 0.0 }),
-            (node0_idx, branch_idx, Complex { re: 1.0, im: 0.0 }),
-            (branch_idx, node1_idx, Complex { re: -1.0, im: 0.0 }),
-            (node1_idx, branch_idx, Complex { re: -1.0, im: 0.0 }),
+        Triples::new(&[
+            (branch_idx, node0_idx, Complex { re: Numeric::one(), im: Numeric::zero() }),
+            (node0_idx, branch_idx, Complex { re: Numeric::one(), im: Numeric::zero() }),
+            (branch_idx, node1_idx, Complex { re: -Numeric::one(), im: Numeric::zero() }),
+            (node1_idx, branch_idx, Complex { re: -Numeric::one(), im: Numeric::zero() }),
         ])
     }
 
     /// Returns a reference to the pair representing vector b.
-    pub fn pairs(&self) -> Pairs {
-        Pairs::Single((self.branch_idx(), self.value))
+    pub fn pairs(&self) -> Pairs<Numeric, 2> {
+        Pairs::new(&[(self.branch_idx(), self.value)])
     }
 
     /// Returns a reference to the pair representing vector b.
-    pub fn ac_pairs(&self) -> ComplexPairs {
+    pub fn ac_pairs(&self) -> Pairs<ComplexNumeric, 2> {
         match self.ac_value {
-            Some(ac_val) => ComplexPairs::Single((
+            Some(ac_val) => Pairs::new(&[(
                 self.branch_idx(),
                 Complex {
                     re: ac_val,
-                    im: 0.0,
+                    im: Numeric::zero(),
                 },
-            )),
-            None => ComplexPairs::Empty,
+            )]),
+            None => Pairs::new(&[]),
         }
     }
 
-    pub fn set_voltage(&mut self, voltage: f64) {
+    pub fn set_voltage(&mut self, voltage: Numeric) {
         self.value = voltage;
     }
 }

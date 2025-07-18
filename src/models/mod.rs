@@ -1,7 +1,5 @@
 mod bjt;
 mod capacitor;
-mod complex_pairs;
-mod complex_triples;
 mod diode;
 mod inductor;
 mod isource;
@@ -14,9 +12,9 @@ mod vsource;
 use core::fmt::Display;
 use std::sync::Arc;
 
+use crate::spot::*;
+
 pub(crate) use self::capacitor::CapacitorBundle;
-pub(crate) use self::complex_pairs::ComplexPairs;
-pub(crate) use self::complex_triples::ComplexTriples;
 pub(crate) use self::diode::DiodeBundle;
 pub(crate) use self::inductor::InductorBundle;
 pub(crate) use self::isource::ISourceBundle;
@@ -99,7 +97,7 @@ pub enum Element {
 impl Element {
     #[allow(unused)]
     /// Returns the constant triples of the element, if applicable.
-    pub(crate) fn get_triples(&self, x_vec: &Vec<f64>) -> Option<Triples> {
+    pub(crate) fn get_triples(&self, x_vec: &Vec<f64>) -> Option<Triples<Numeric, 4>> {
         match self {
             Element::VSource(ele) => Some(ele.triples()),
             Element::Resistor(ele) => Some(ele.triples()),
@@ -113,7 +111,7 @@ impl Element {
 
     #[allow(unused)]
     /// Returns the time variant pairs of the element, if applicable.
-    pub(crate) fn get_pairs(&self, x_vec: &Vec<f64>) -> Option<Pairs> {
+    pub(crate) fn get_pairs(&self, x_vec: &Vec<f64>) -> Option<Pairs<Numeric, 2>> {
         match self {
             Element::Diode(ele) => Some(ele.pairs(x_vec)),
             Element::Mos0(ele) => Some(ele.pairs(x_vec)),
@@ -123,7 +121,7 @@ impl Element {
         }
     }
 
-    pub(crate) fn get_constant_triples(&self) -> Option<Triples> {
+    pub(crate) fn get_constant_triples(&self) -> Option<Triples<Numeric, 4>> {
         match self {
             Element::VSource(ele) => Some(ele.triples()),
             Element::Resistor(ele) => Some(ele.triples()),
@@ -132,7 +130,7 @@ impl Element {
     }
 
     /// Returns the constant pairs of the element, if applicable.
-    pub(crate) fn get_constant_pairs(&self) -> Option<Pairs> {
+    pub(crate) fn get_constant_pairs(&self) -> Option<Pairs<Numeric, 2>> {
         match self {
             Element::VSource(ele) => Some(ele.pairs()),
             Element::ISource(ele) => Some(ele.pairs()),
@@ -141,7 +139,7 @@ impl Element {
     }
 
     /// Returns the time variant triples of the element, if applicable.
-    pub(crate) fn get_time_variant_triples(&self) -> Option<Triples> {
+    pub(crate) fn get_time_variant_triples(&self) -> Option<Triples<Numeric, 4>> {
         match self {
             Element::Capacitor(ele) => Some(ele.triples()),
             Element::Inductor(ele) => Some(ele.triples()),
@@ -150,14 +148,14 @@ impl Element {
     }
 
     /// Returns the time variant pairs of the element, if applicable.
-    pub(crate) fn get_time_variant_pairs(&self) -> Option<Pairs> {
+    pub(crate) fn get_time_variant_pairs(&self) -> Option<Pairs<Numeric, 2>> {
         match self {
             _ => None,
         }
     }
 
     /// Returns the nonlinear triples. Nonlinear Triples are Dependend on Vector x
-    pub(crate) fn get_nonlinear_triples(&self, x_vec: &Vec<f64>) -> Option<Triples> {
+    pub(crate) fn get_nonlinear_triples(&self, x_vec: &Vec<f64>) -> Option<Triples<Numeric, 4>> {
         match self {
             Element::Diode(ele) => Some(ele.triples(x_vec)),
             Element::Mos0(ele) => Some(ele.triples(x_vec)),
@@ -166,7 +164,7 @@ impl Element {
     }
 
     /// Returns the nonlinear pairs of the element, if applicable.
-    pub(crate) fn get_nonlinear_pairs(&self, x_vec: &Vec<f64>) -> Option<Pairs> {
+    pub(crate) fn get_nonlinear_pairs(&self, x_vec: &Vec<f64>) -> Option<Pairs<Numeric, 2>> {
         match self {
             Element::Diode(ele) => Some(ele.pairs(x_vec)),
             Element::Mos0(ele) => Some(ele.pairs(x_vec)),
@@ -184,7 +182,7 @@ impl Element {
     }
 
     /// Returns the ac triples. Ac Triples are dependend on f
-    pub(crate) fn get_ac_triples(&self, freq: f64) -> Option<ComplexTriples> {
+    pub(crate) fn get_ac_triples(&self, freq: f64) -> Option<Triples<ComplexNumeric, 4>> {
         match self {
             Element::Diode(_) => None,
             Element::Mos0(_) => None,
@@ -197,7 +195,7 @@ impl Element {
     }
 
     /// Returns the ac pairs of the element, if applicable.
-    pub(crate) fn get_ac_pairs(&self, _freq: f64) -> Option<ComplexPairs> {
+    pub(crate) fn get_ac_pairs(&self, _freq: f64) -> Option<Pairs<ComplexNumeric, 2>> {
         match self {
             Element::Diode(_) => None,
             Element::Mos0(_) => None,

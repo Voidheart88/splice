@@ -8,7 +8,7 @@ pub(crate) struct ISourceBundle {
     name: Arc<str>,
     node0: Option<Variable>,
     node1: Option<Variable>,
-    value: f64,
+    value: Numeric,
 }
 
 impl ISourceBundle {
@@ -28,7 +28,7 @@ impl ISourceBundle {
         name: Arc<str>,
         node0: Option<Variable>,
         node1: Option<Variable>,
-        value: f64,
+        value: Numeric,
     ) -> Self {
         ISourceBundle {
             name,
@@ -44,13 +44,13 @@ impl ISourceBundle {
     }
 
     /// Returns the pair representing the current source contributions to the vector b.
-    pub fn pairs(&self) -> Pairs {
+    pub fn pairs(&self) -> Pairs<Numeric, 2> {
         match (&self.node0, &self.node1) {
-            (None, None) => Pairs::Empty,
-            (Some(node0), None) => Pairs::Single((node0.idx(), -self.value)),
-            (None, Some(node1)) => Pairs::Single((node1.idx(), self.value)),
+            (None, None) => Pairs::new(&[]),
+            (Some(node0), None) => Pairs::new(&[(node0.idx(), -self.value)]),
+            (None, Some(node1)) => Pairs::new(&[(node1.idx(), self.value)]),
             (Some(node0), Some(node1)) => {
-                Pairs::Double([(node0.idx(), -self.value), (node1.idx(), self.value)])
+                Pairs::new(&[(node0.idx(), -self.value), (node1.idx(), self.value)])
             }
         }
     }

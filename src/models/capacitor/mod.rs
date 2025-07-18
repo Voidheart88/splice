@@ -1,9 +1,10 @@
 use std::sync::Arc;
 
-use num::Complex;
-use std::f64::consts::PI;
+use num::traits::FloatConst;
+use num::{Complex, One, Zero};
 
 use super::*;
+use crate::spot::*;
 
 /// A structure representing a bundle of capacitors.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
@@ -11,7 +12,7 @@ pub(crate) struct CapacitorBundle {
     name: Arc<str>,
     node0: Option<Variable>,
     node1: Option<Variable>,
-    value: f64,
+    value: Numeric,
 }
 
 impl CapacitorBundle {
@@ -33,7 +34,7 @@ impl CapacitorBundle {
         name: Arc<str>,
         node0: Option<Variable>,
         node1: Option<Variable>,
-        value: f64,
+        value: Numeric,
     ) -> CapacitorBundle {
         CapacitorBundle {
             name,
@@ -65,89 +66,90 @@ impl CapacitorBundle {
     }
 
     /// Returns a reference to the triples representing matrix A.
-    pub fn triples(&self) -> Triples {
+    pub fn triples(&self) -> Triples<Numeric, 4> {
         let node0_idx = if let Some(idx) = self.node0_idx() {
             idx
         } else {
-            return Triples::Single(
-                (self.node1_idx().unwrap(), self.node1_idx().unwrap(), 0.0).into(),
-            );
+            return Triples::new(&[(
+                self.node1_idx().unwrap(),
+                self.node1_idx().unwrap(),
+                Numeric::zero(),
+            )
+                .into()]);
         };
         let node1_idx = if let Some(idx) = self.node1_idx() {
             idx
         } else {
-            return Triples::Single((node0_idx, node0_idx, 0.0));
+            return Triples::new(&[(node0_idx, node0_idx, Numeric::zero())]);
         };
 
-        Triples::Quad([
-            (node0_idx, node0_idx, 0.0),
-            (node1_idx, node1_idx, 0.0),
-            (node0_idx, node1_idx, 0.0),
-            (node1_idx, node0_idx, 0.0),
+        Triples::new(&[
+            (node0_idx, node0_idx, Numeric::zero()),
+            (node1_idx, node1_idx, Numeric::zero()),
+            (node0_idx, node1_idx, Numeric::zero()),
+            (node1_idx, node0_idx, Numeric::zero()),
         ])
     }
 
     /// Returns a reference to the triples representing matrix A.
-    pub fn ac_triples(&self, freq: f64) -> ComplexTriples {
+    pub fn ac_triples(&self, freq: Numeric) -> Triples<ComplexNumeric, 4> {
         let node0_idx = if let Some(idx) = self.node0_idx() {
             idx
         } else {
-            return ComplexTriples::Single(
-                (
-                    self.node1_idx().unwrap(),
-                    self.node1_idx().unwrap(),
-                    Complex {
-                        re: 0.0,
-                        im: -2.0 * PI * freq * self.value,
-                    },
-                )
-                    .into(),
-            );
+            return Triples::new(&[(
+                self.node1_idx().unwrap(),
+                self.node1_idx().unwrap(),
+                Complex {
+                    re: Numeric::zero(),
+                    im: -(Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
+                },
+            )
+                .into()]);
         };
         let node1_idx = if let Some(idx) = self.node1_idx() {
             idx
         } else {
-            return ComplexTriples::Single((
+            return Triples::new(&[(
                 node0_idx,
                 node0_idx,
                 Complex {
-                    re: 0.0,
-                    im: -2.0 * PI * freq * self.value,
+                    re: Numeric::zero(),
+                    im: -(Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
                 },
-            ));
+            )]);
         };
 
-        ComplexTriples::Quad([
+        Triples::new(&[
             (
                 node0_idx,
                 node0_idx,
                 Complex {
-                    re: 0.0,
-                    im: -2.0 * PI * freq * self.value,
+                    re: Numeric::zero(),
+                    im: -(Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
                 },
             ),
             (
                 node1_idx,
                 node1_idx,
                 Complex {
-                    re: 0.0,
-                    im: -2.0 * PI * freq * self.value,
+                    re: Numeric::zero(),
+                    im: -(Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
                 },
             ),
             (
                 node0_idx,
                 node1_idx,
                 -Complex {
-                    re: 0.0,
-                    im: -2.0 * PI * freq * self.value,
+                    re: Numeric::zero(),
+                    im: -(Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
                 },
             ),
             (
                 node1_idx,
                 node0_idx,
                 -Complex {
-                    re: 0.0,
-                    im: -2.0 * PI * freq * self.value,
+                    re: Numeric::zero(),
+                    im: -(Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
                 },
             ),
         ])

@@ -41,12 +41,6 @@ fn test_pairs_with_both_nodes() {
 
     let pairs = isource_bundle.pairs();
     assert_eq!(pairs.len(), 2);
-    let pairs = match pairs {
-        Pairs::Empty => todo!(),
-        Pairs::Single(_) => todo!(),
-        Pairs::Double(v) => v,
-        Pairs::Vec(_) => todo!(),
-    };
     assert_eq!(pairs[0], (0, -5.0));
     assert_eq!(pairs[1], (1, 5.0));
 }

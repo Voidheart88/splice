@@ -1,35 +1,112 @@
+use std::ops::{Index, IndexMut};
+
 /// A structure representing pairs of an element.
 ///
 /// Each pair consists of a row and a value. The struct has a compile-time
 /// fixed capacity `N`, but `length` tracks the actual number of valid elements currently stored.
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
-pub(crate) struct Pairs<const N: usize, T> {
+pub(crate) struct Pairs<T, const N: usize> {
     length: usize,
     data: [(usize, T); N],
 }
 
-impl<const N: usize, T: Copy + Default> Pairs<N, T> {
+impl<T: Copy + Default, const N: usize> Pairs<T, N> {
     pub(crate) fn new(initial_data: &[(usize, T)]) -> Self {
-        assert!(initial_data.len() <= N, "Initial data length exceeds the capacity N.");
-        let mut data_array: [(usize, T); N] = [(0, T::default()); N]; 
+        assert!(
+            initial_data.len() <= N,
+            "Initial data length exceeds the capacity N."
+        );
+        let mut data_array: [(usize, T); N] = [(0, T::default()); N];
         for (i, &item) in initial_data.iter().enumerate() {
             data_array[i] = item;
         }
 
-        Pairs {
+        Self {
             length: initial_data.len(),
             data: data_array,
+        }
+    }
+
+    pub(crate) fn iter(&self) -> PairsIter<'_, T, N> {
+        self.into_iter()
+    }
+}
+
+impl<T: Copy + Default, const N: usize> Index<usize> for Pairs<T, N> {
+    type Output = (usize, T);
+
+    fn index(&self, index: usize) -> &Self::Output {
+        if index >= self.length {
+            panic!(
+                "Index {} out of bounds for Pairs with length {}",
+                index, self.length
+            );
+        }
+        &self.data[index]
+    }
+}
+
+impl<T: Copy + Default, const N: usize> IndexMut<usize> for Pairs<T, N> {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        if index >= self.length {
+            panic!(
+                "Index {} out of bounds for Pairs with length {}",
+                index, self.length
+            );
+        }
+        &mut self.data[index]
+    }
+}
+
+pub(crate) struct PairsIter<'a, T, const N: usize> {
+    pairs: &'a Pairs<T, N>,
+    current: usize,
+}
+
+impl<'a, T, const N: usize> Iterator for PairsIter<'a, T, N> {
+    type Item = &'a (usize, T);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.current < self.pairs.length {
+            let item = &self.pairs.data[self.current];
+            self.current += 1;
+            Some(item)
+        } else {
+            None
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let remaining = self.pairs.length - self.current;
+        (remaining, Some(remaining))
+    }
+}
+
+impl<'a, T, const N: usize> ExactSizeIterator for PairsIter<'a, T, N> {
+    fn len(&self) -> usize {
+        self.pairs.length - self.current
+    }
+}
+
+impl<'a, T, const N: usize> IntoIterator for &'a Pairs<T, N> {
+    type Item = &'a (usize, T);
+    type IntoIter = PairsIter<'a, T, N>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        PairsIter {
+            pairs: self,
+            current: 0,
         }
     }
 }
 
 #[cfg(test)]
-impl<const N: usize, T: Copy + Default> Pairs<N, T> {
+impl<T, const N: usize> Pairs<T, N> {
     pub fn is_empty(&self) -> bool {
-        return self.length == 0
+        return self.length == 0;
     }
 
     pub fn len(&self) -> usize {
-        return self.length
+        return self.length;
     }
 }

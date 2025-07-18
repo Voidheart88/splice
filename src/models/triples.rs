@@ -1,150 +1,108 @@
-use std::ops::Add;
-use std::{cmp::Ordering, fmt};
+use std::ops::{Index, IndexMut};
 
-/// A structure representing the triples of an element.
+/// A structure representing triples of an element.
 ///
-/// Each triple consists of a row, a column, and a value of type `f64`.
-#[derive(Clone, PartialOrd)]
-pub(crate) enum Triples {
-    #[allow(unused)]
-    Empty,
-    Single((usize, usize, f64)),
-    Double([(usize, usize, f64); 2]),
-    Quad([(usize, usize, f64); 4]),
-    Vec(Vec<(usize, usize, f64)>),
+/// Each pair consists of a row and a value. The struct has a compile-time
+/// fixed capacity `N`, but `length` tracks the actual number of valid elements currently stored.
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub(crate) struct Triples<T, const N: usize> {
+    length: usize,
+    data: [(usize, usize, T); N],
 }
 
-impl Add for Triples {
-    type Output = Self;
-
-    fn add(self, other: Self) -> Self {
-        let mut combined_elements = Vec::new();
-        let push_elements =
-            |elements_enum: Self, target_vec: &mut Vec<(usize, usize, f64)>| match elements_enum {
-                Triples::Empty => {}
-                Triples::Single(s) => target_vec.push(s),
-                Triples::Double(d) => target_vec.extend_from_slice(&d),
-                Triples::Quad(q) => target_vec.extend_from_slice(&q),
-                Triples::Vec(v) => target_vec.extend(v),
-            };
-
-        push_elements(self, &mut combined_elements);
-        push_elements(other, &mut combined_elements);
-
-        let mut unique_elements_map: std::collections::HashMap<(usize, usize), f64> =
-            std::collections::HashMap::new();
-
-        for (r, c, val) in combined_elements {
-            *unique_elements_map.entry((r, c)).or_insert(0.0) += val;
+impl<T: Copy + Default, const N: usize> Triples<T, N> {
+    pub(crate) fn new(initial_data: &[(usize, usize, T)]) -> Self {
+        assert!(
+            initial_data.len() <= N,
+            "Initial data length exceeds the capacity N."
+        );
+        let mut data_array: [(usize, usize, T); N] = [(0, 0, T::default()); N];
+        for (i, &item) in initial_data.iter().enumerate() {
+            data_array[i] = item;
         }
 
-        let mut final_elements: Vec<(usize, usize, f64)> = unique_elements_map
-            .into_iter()
-            .map(|((r, c), val)| (r, c, val))
-            .filter(|&(_, _, val)| val.abs() > f64::EPSILON)
-            .collect();
-
-        final_elements.sort_by_key(|t| (t.0, t.1));
-        Self::from_vec(final_elements)
-    }
-}
-
-impl Triples {
-    pub fn from_vec(mut elements: Vec<(usize, usize, f64)>) -> Self {
-        elements.retain(|&(_, _, val)| val.abs() > f64::EPSILON);
-        elements.sort_by_key(|t| (t.0, t.1));
-
-        match elements.len() {
-            0 => Triples::Empty,
-            1 => Triples::Single(elements.remove(0)),
-            2 => Triples::Double([elements.remove(0), elements.remove(0)]),
-            3 => {
-                let mut arr: [(usize, usize, f64); 4] = [(0, 0, 0.0); 4];
-                for (i, item) in elements.drain(..).enumerate() {
-                    arr[i] = item;
-                }
-                Triples::Quad(arr)
-            }
-            4 => {
-                let mut arr: [(usize, usize, f64); 4] = [(0, 0, 0.0); 4];
-                for (i, item) in elements.drain(..).enumerate() {
-                    arr[i] = item;
-                }
-                Triples::Quad(arr)
-            }
-            _ => Triples::Vec(elements),
+        Self {
+            length: initial_data.len(),
+            data: data_array,
         }
     }
 }
 
-impl PartialEq for Triples {
-    fn eq(&self, other: &Self) -> bool {
-        let to_canonical_vec = |t: &Triples| -> Vec<(usize, usize, f64)> {
-            let mut temp_vec = match t {
-                Triples::Empty => vec![],
-                Triples::Single(triple) => vec![*triple],
-                Triples::Double(triples) => triples.to_vec(),
-                Triples::Quad(triples) => triples.to_vec(),
-                Triples::Vec(triples_vec) => triples_vec.clone(),
-            };
+impl<T: Copy + Default, const N: usize> Index<usize> for Triples<T, N> {
+    type Output = (usize, usize, T);
 
-            temp_vec.retain(|&(_, _, val)| val.abs() > f64::EPSILON);
-            temp_vec.sort_by(|a, b| {
-                a.0.cmp(&b.0)
-                    .then_with(|| a.1.cmp(&b.1))
-                    .then_with(|| a.2.partial_cmp(&b.2).unwrap_or(Ordering::Equal))
-            });
-            temp_vec
-        };
-
-        let self_triples_canonical = to_canonical_vec(self);
-        let other_triples_canonical = to_canonical_vec(other);
-        if self_triples_canonical.len() != other_triples_canonical.len() {
-            return false;
+    fn index(&self, index: usize) -> &Self::Output {
+        if index >= self.length {
+            panic!(
+                "Index {} out of bounds for Triples with length {}",
+                index, self.length
+            );
         }
-
-        self_triples_canonical
-            .iter()
-            .zip(other_triples_canonical.iter())
-            .all(|(a, b)| a.0 == b.0 && a.1 == b.1 && (a.2 - b.2).abs() < f64::EPSILON)
+        &self.data[index]
     }
 }
 
-impl fmt::Debug for Triples {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut sorted_triples: Vec<_> = match self {
-            Triples::Empty => vec![],
-            Triples::Single(triple) => vec![*triple],
-            Triples::Double(triples) => triples.to_vec(),
-            Triples::Quad(triples) => triples.to_vec(),
-            Triples::Vec(triples_vec) => triples_vec.clone(),
-        };
-
-        sorted_triples.retain(|&(_, _, val)| val.abs() > f64::EPSILON);
-        sorted_triples.sort_by(|(row1, col1, _), (row2, col2, _)| {
-            row1.cmp(row2).then_with(|| col1.cmp(col2))
-        });
-
-        write!(f, "Triples[")?;
-        for (i, (row, col, value)) in sorted_triples.iter().enumerate() {
-            if i > 0 {
-                write!(f, ", ")?;
-            }
-            write!(f, "({}, {}, {})", row, col, value)?;
+impl<T: Copy + Default, const N: usize> IndexMut<usize> for Triples<T, N> {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        if index >= self.length {
+            panic!(
+                "Index {} out of bounds for Triples with length {}",
+                index, self.length
+            );
         }
-        write!(f, "]")
+        &mut self.data[index]
     }
 }
 
-impl Triples {
-    #[cfg(test)]
+pub(crate) struct TriplesIter<'a, T, const N: usize> {
+    triples: &'a Triples<T, N>,
+    current: usize,
+}
+
+impl<'a, T, const N: usize> Iterator for TriplesIter<'a, T, N> {
+    type Item = &'a (usize, usize, T);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.current < self.triples.length {
+            let item = &self.triples.data[self.current];
+            self.current += 1;
+            Some(item)
+        } else {
+            None
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let remaining = self.triples.length - self.current;
+        (remaining, Some(remaining))
+    }
+}
+
+impl<'a, T, const N: usize> ExactSizeIterator for TriplesIter<'a, T, N> {
+    fn len(&self) -> usize {
+        self.triples.length - self.current
+    }
+}
+
+impl<'a, T, const N: usize> IntoIterator for &'a Triples<T, N> {
+    type Item = &'a (usize, usize, T);
+    type IntoIter = TriplesIter<'a, T, N>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        TriplesIter {
+            triples: self,
+            current: 0,
+        }
+    }
+}
+
+#[cfg(test)]
+impl<T, const N: usize> Triples<T, N> {
+    pub fn is_empty(&self) -> bool {
+        return self.length == 0;
+    }
+
     pub fn len(&self) -> usize {
-        match self {
-            Triples::Empty => 0,
-            Triples::Single(_) => 1,
-            Triples::Double(_) => 2,
-            Triples::Quad(_) => 4,
-            Triples::Vec(vec) => vec.len(),
-        }
+        return self.length;
     }
 }

@@ -6,13 +6,7 @@ fn test_new_inductor_bundle() {
     let node1 = Variable::new(Arc::from("Node1"), Unit::Volt, 1);
     let inductor_bundle =
         InductorBundle::new(Arc::from("InductorBundle1"), Some(node0), Some(node1), 5.0);
-
     assert_eq!(*inductor_bundle.name(), *"InductorBundle1");
-    if let Triples::Quad(triples) = inductor_bundle.triples() {
-        assert_eq!(triples.len(), 4);
-    } else {
-        panic!("Expected Quad tuples");
-    }
     assert_eq!(inductor_bundle.value, 5.0);
 }
 

@@ -1,8 +1,9 @@
 use std::sync::Arc;
 
-use crate::consts::UT;
+use num::{One, Zero};
 
 use super::*;
+use crate::spot::*;
 
 /// A structure representing a Diode with all their options.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
@@ -16,9 +17,9 @@ pub(crate) struct DiodeBundle {
 /// An struct representing possible Diode options.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub(crate) struct DiodeOptions {
-    is: f64,
-    n: f64,
-    rs: Option<f64>,
+    is: Numeric,
+    n: Numeric,
+    rs: Option<Numeric>,
 }
 
 impl Default for DiodeOptions {
@@ -71,33 +72,33 @@ impl DiodeBundle {
     }
 
     /// Returns a reference to the triples representing matrix A.
-    pub fn triples(&self, x_vec: &Vec<f64>) -> Triples {
+    pub fn triples(&self, x_vec: &Vec<Numeric>) -> Triples<Numeric, 4> {
         let a_voltage = match self.a_idx() {
             Some(idx) => x_vec[idx],
-            None => 0.0,
+            None => Numeric::zero(),
         };
         let c_voltage = match self.c_idx() {
             Some(idx) => x_vec[idx],
-            None => 0.0,
+            None => Numeric::zero(),
         };
         let v_diode = a_voltage - c_voltage;
 
         // Conductance of this diode - Schokley equation
-        let cond =
-            (self.value.is * (f64::exp(v_diode / (self.value.n * UT)) - 1.0)) / (self.value.n * UT);
+        let cond = (self.value.is * (Numeric::exp(v_diode / (self.value.n * UT)) - Numeric::one()))
+            / (self.value.n * UT);
 
         let a_idx = if let Some(idx) = self.a_idx() {
             idx
         } else {
-            return Triples::Single((self.c_idx().unwrap(), self.c_idx().unwrap(), cond));
+            return Triples::new(&[(self.c_idx().unwrap(), self.c_idx().unwrap(), cond)]);
         };
         let c_idx = if let Some(idx) = self.c_idx() {
             idx
         } else {
-            return Triples::Single((self.a_idx().unwrap(), self.a_idx().unwrap(), cond));
+            return Triples::new(&[(self.a_idx().unwrap(), self.a_idx().unwrap(), cond)]);
         };
 
-        Triples::Quad([
+        Triples::new(&[
             (a_idx, a_idx, cond),
             (c_idx, c_idx, cond),
             (a_idx, c_idx, -cond),
@@ -106,37 +107,39 @@ impl DiodeBundle {
     }
 
     /// Returns a reference to the pairs representing vector b.
-    pub fn pairs(&self, x_vec: &Vec<f64>) -> Pairs {
+    pub fn pairs(&self, x_vec: &Vec<Numeric>) -> Pairs<Numeric, 2> {
         let a_voltage = match self.a_idx() {
             Some(idx) => x_vec[idx],
-            None => 0.0,
+            None => Numeric::zero(),
         };
         let c_voltage = match self.c_idx() {
             Some(idx) => x_vec[idx],
-            None => 0.0,
+            None => Numeric::zero(),
         };
         let v_diode = a_voltage - c_voltage;
 
         // Conductance of this diode - Schokley equation
-        let cond =
-            (self.value.is * (f64::exp(v_diode / (self.value.n * UT)) - 1.0)) / (self.value.n * UT);
+        let cond = (self.value.is * (Numeric::exp(v_diode / (self.value.n * UT)) - Numeric::one()))
+            / (self.value.n * UT);
 
-        let ca = cond * v_diode - self.value.is * (f64::exp(v_diode / (self.value.n * UT)) - 1.0);
-        let cc = -cond * v_diode - self.value.is * (f64::exp(v_diode / (self.value.n * UT)) - 1.0);
+        let ca = cond * v_diode
+            - self.value.is * (Numeric::exp(v_diode / (self.value.n * UT)) - Numeric::one());
+        let cc = -cond * v_diode
+            - self.value.is * (Numeric::exp(v_diode / (self.value.n * UT)) - Numeric::one());
 
         let a_idx = if let Some(idx) = self.a_idx() {
             idx
         } else {
-            return Pairs::Single((self.c_idx().unwrap(), cc));
+            return Pairs::new(&[(self.c_idx().unwrap(), cc)]);
         };
 
         let c_idx = if let Some(idx) = self.c_idx() {
             idx
         } else {
-            return Pairs::Single((self.a_idx().unwrap(), ca));
+            return Pairs::new(&[(self.a_idx().unwrap(), ca)]);
         };
 
-        Pairs::Double([(a_idx, ca), (c_idx, cc)])
+        Pairs::new(&[(a_idx, ca), (c_idx, cc)])
     }
 
     pub fn a_idx(&self) -> Option<usize> {
