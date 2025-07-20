@@ -11,8 +11,8 @@ pub(crate) use faer::FaerSolver;
 pub(crate) use nalgebra::NalgebraSolver;
 pub(crate) use rsparse::RSparseSolver;
 
-use crate::models::{ComplexPairs, ComplexTriples, Pairs, Triples};
-use crate::spot::Numeric;
+use crate::models::{Pairs, Triples};
+use crate::spot::{ComplexNumeric, Numeric};
 
 /// Errors that can occur in the Solver.
 #[derive(Debug, Error, Diagnostic, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -42,23 +42,23 @@ pub trait Solver {
 
     /// Sets the conductance matrix (`a`) into the Solver.
     /// Set sets a Value to the given matrix i,j
-    fn set_a(&mut self, a_mat: &Vec<Triples<Numeric, 4>>);
+    fn set_a(&mut self, a_trpl: (usize,usize,Numeric));
 
     /// Sets the known values vector (`b`) into the Solver.
     /// Set sets a Value to the given vector i
-    fn set_b(&mut self, b_vec: &Vec<Pairs<Numeric, 2>>);
+    fn set_b(&mut self, b_double: (usize,Numeric));
 
-    fn solve(&mut self) -> Result<&Vec<f64>, SolverError>;
+    fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError>;
 
     /// Sets the conductance matrix (`a`) into the Solver.
     /// Set sets a Value to the given matrix i,j
-    fn set_cplx_a(&mut self, a_mat: &Vec<ComplexTriples>);
+    fn set_cplx_a(&mut self, a_trpl: (usize,usize,ComplexNumeric));
 
     /// Sets the known values vector (`b`) into the Solver.
     /// Set sets a Value to the given vector i
-    fn set_cplx_b(&mut self, b_vec: &Vec<ComplexPairs>);
+    fn set_cplx_b(&mut self, b_double: (usize,ComplexNumeric));
 
-    fn solve_cplx(&mut self) -> Result<&Vec<Complex<f64>>, SolverError>;
+    fn solve_cplx(&mut self) -> Result<&Vec<ComplexNumeric>, SolverError>;
 }
 
 #[cfg(test)]

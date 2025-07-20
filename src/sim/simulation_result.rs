@@ -1,14 +1,14 @@
 use num::Complex;
 
+use crate::spot::Numeric;
 use crate::models::Variable;
-
 use super::options::SimulationOption;
 
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) enum Sim {
-    Op(Vec<(Variable, f64)>),
-    Dc(Vec<Vec<(Variable, f64)>>),
-    Ac(Vec<(f64, Vec<(Variable, Complex<f64>)>)>),
+    Op(Vec<(Variable, Numeric)>),
+    Dc(Vec<Vec<(Variable, Numeric)>>),
+    Ac(Vec<(Numeric, Vec<(Variable, Complex<Numeric>)>)>),
 }
 
 #[derive(Debug, Clone, PartialEq)]

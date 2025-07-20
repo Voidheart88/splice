@@ -17,9 +17,9 @@ pub(crate) struct Bjt0Bundle {
 /// An enum representing possible Bjt Ebers Moll options.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub(crate) struct Bjt0Options {
-    is: f64,
-    n: f64,
-    beta: f64,
+    is: Numeric,
+    n: Numeric,
+    beta: Numeric,
 }
 
 impl Default for Bjt0Options {
@@ -60,12 +60,12 @@ impl Bjt0Bundle {
     }
 
     /// Returns a reference to the triples representing matrix A.
-    pub fn triples(&self, _x_vec: &Vec<f64>) -> Triples<Numeric, 4> {
+    pub fn triples(&self, _x_vec: &Vec<Numeric>) -> Triples<Numeric, 4> {
         todo!()
     }
 
     /// Returns a reference to the pairs representing vector b.
-    pub fn pairs(&self, _x_vec: &Vec<f64>) -> Pairs<Numeric, 2> {
+    pub fn pairs(&self, _x_vec: &Vec<Numeric>) -> Pairs<Numeric, 2> {
         todo!()
     }
 

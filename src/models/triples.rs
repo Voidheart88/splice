@@ -26,6 +26,11 @@ impl<T: Copy + Default, const N: usize> Triples<T, N> {
             data: data_array,
         }
     }
+
+    pub(crate) fn iter(&self) -> TriplesIter<'_, T, N> {
+        self.into_iter()
+    }
+
 }
 
 impl<T: Copy + Default, const N: usize> Index<usize> for Triples<T, N> {

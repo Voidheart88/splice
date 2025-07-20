@@ -12,7 +12,7 @@ use num::{Complex, One};
 use options::SimulationOption;
 use thiserror::Error;
 
-use crate::models::{ComplexPairs, ComplexTriples, Element, Pairs, Triples, Variable};
+use crate::models::{Element, Variable};
 use crate::solver::{Solver, SolverError};
 use crate::spot::*;
 use crate::Simulation;
@@ -52,11 +52,6 @@ impl From<SolverError> for SimulatorError {
     }
 }
 
-/// A simulator for circuit analysis.
-///
-/// This struct represents a simulator used for analyzing electrical circuits.
-/// It contains the circuit elements, simulation commands, variables, backend,
-/// and results of the simulation.
 pub(super) struct Simulator<SO: Solver> {
     /// The elements in the circuit.
     elements: Vec<Element>,
@@ -71,10 +66,6 @@ pub(super) struct Simulator<SO: Solver> {
 }
 
 impl<SO: Solver> Simulator<SO> {
-    /// Executes the simulation commands and returns the simulation results.
-    ///
-    /// This method iterates through the simulation commands, executes each one, and collects
-    /// the results. If an error occurs during execution, it returns an error.
     pub fn run(&mut self) -> Result<SimulationResults, SimulatorError> {
         let commands = self.commands.clone();
         let mut results = SimulationResults::default();
@@ -90,10 +81,6 @@ impl<SO: Solver> Simulator<SO> {
         Ok(results)
     }
 
-    /// Executes a single simulation command.
-    ///
-    /// This method executes the given simulation command by calling the corresponding
-    /// method for that command. If an error occurs during execution, it returns an error.
     fn execute_command(&mut self, comm: &SimulationCommand) -> Result<Sim, SimulatorError> {
         let res = match comm {
             SimulationCommand::Op => self.run_op()?,
@@ -108,19 +95,13 @@ impl<SO: Solver> Simulator<SO> {
         Ok(res)
     }
 
-    /// Executes an operating point analysis.
-    ///
-    /// This method performs an operating point analysis by building the constant matrices,
-    /// transferring them to the backend, solving the equations, and collecting the results.
     fn run_op(&mut self) -> Result<Sim, SimulatorError> {
         info!("Run operating point analysis");
-        // Check for nonlinear elements
-        let mut const_a_mat = Vec::new();
-        self.build_constant_a_mat(&mut const_a_mat)?;
-        let mut const_b_vec = Vec::new();
-        self.build_constant_b_vec(&mut const_b_vec)?;
+
+        self.build_constant_a_mat();
+        self.build_constant_b_vec();
+
         if !self.has_nonlinear_elements() {
-            // Build the constant matrix
             self.solver.set_a(&const_a_mat);
             self.solver.set_b(&const_b_vec);
             let x_vec = self.solver.solve()?.clone();
@@ -136,8 +117,8 @@ impl<SO: Solver> Simulator<SO> {
             .into_iter()
             .map(|run| {
                 trace!("Iteration: {run}");
-                let a_mat = self.build_nonlinear_a_mat(&x) + const_a_mat.clone();
-                let b_vec = self.build_nonlinear_b_vec(&x) + const_b_vec.clone();
+                let a_mat = self.build_nonlinear_a_mat()// + const_a_mat.clone();
+                let b_vec = self.build_nonlinear_b_vec()// + const_b_vec.clone();
 
                 trace!("Set matrix");
                 // Populate matrices
@@ -175,16 +156,10 @@ impl<SO: Solver> Simulator<SO> {
         }
     }
 
-    /// Checks if the circuit contains any nonlinear elements.
     fn has_nonlinear_elements(&self) -> bool {
         self.elements.iter().any(|element| element.is_nonlinear())
     }
 
-    /// Adds variable names to the solution vector.
-    ///
-    /// This method takes a solution vector and adds variable names to each value,
-    /// based on the order of variables stored in the `vars` field of the `Simulator`.
-    /// It returns a vector of tuples, where each tuple contains a variable name and its corresponding value.
     fn add_var_name(&self, solution: Vec<Numeric>) -> Vec<(Variable, Numeric)> {
         solution
             .into_iter()
@@ -193,11 +168,6 @@ impl<SO: Solver> Simulator<SO> {
             .collect_vec()
     }
 
-    /// Adds variable names to the solution vector.
-    ///
-    /// This method takes a solution vector and adds variable names to each value,
-    /// based on the order of variables stored in the `vars` field of the `Simulator`.
-    /// It returns a vector of tuples, where each tuple contains a variable name and its corresponding value.
     fn add_complex_var_name(&self, solution: Vec<Complex<Numeric>>) -> Vec<(Variable, Complex<Numeric>)> {
         solution
             .into_iter()
@@ -206,11 +176,6 @@ impl<SO: Solver> Simulator<SO> {
             .collect_vec()
     }
 
-    /// Executes a transient analysis.
-    ///
-    /// This method performs a transient analysis by building the constant, time variant,
-    /// and nonlinear matrices and vectors. It does not currently perform any calculations
-    /// but returns `Err(SimulatorError::Unimplemented)` to indicate NYI.
     fn run_tran(&mut self) -> Result<Sim, SimulatorError> {
         let _ = self.build_time_variant_a_mat();
         let _ = self.build_time_variant_b_vec();
@@ -218,9 +183,6 @@ impl<SO: Solver> Simulator<SO> {
         Err(SimulatorError::Unimplemented)
     }
 
-    /// Executes an AC analysis.
-    ///
-    /// This method performs an AC analysis.
     fn run_ac(
         &mut self,
         fstart: &Numeric,
@@ -251,26 +213,19 @@ impl<SO: Solver> Simulator<SO> {
             ACMode::Oct => {
                 let oct_fstart = fstart.log2();
                 let oct_fend = fend.log2();
-                let step_size = (oct_fend - oct_fstart) / (*steps as f64);
+                let step_size = (oct_fend - oct_fstart) / (*steps as Numeric);
                 (0..=*steps)
-                    .map(|i| 2f64.powf(oct_fstart + i as f64 * step_size))
+                    .map(|i| 2f64.powf(oct_fstart + i as Numeric * step_size))
                     .collect()
             }
         };
 
         info!("Run analysis");
-        let mut const_a_mat = Vec::new();
-        self.build_constant_a_mat(&mut const_a_mat)?;
-        let mut const_b_vec = Vec::new();
-        self.build_constant_b_vec(&mut const_b_vec)?;
         
-        let mut results = Vec::new();
+        let mut ac_results = Vec::new();
         for freq in freqs {
             let cplx_a_mat = self.build_ac_a_mat(freq);
             let cplx_b_vec = self.build_ac_b_vec(freq);
-
-            self.solver.set_cplx_a(&cplx_a_mat);
-            self.solver.set_cplx_b(&cplx_b_vec);
 
             let x_new = match self.solver.solve_cplx().cloned() {
                 Ok(solution) => solution,
@@ -279,10 +234,10 @@ impl<SO: Solver> Simulator<SO> {
 
             let x_new = self.add_complex_var_name(x_new);
 
-            results.push((freq, x_new))
+            ac_results.push((freq, x_new))
         }
 
-        Ok(Sim::Ac(results))
+        Ok(Sim::Ac(ac_results))
     }
 
     /// Executes a DC analysis.
@@ -291,10 +246,10 @@ impl<SO: Solver> Simulator<SO> {
     fn run_dc(
         &mut self,
         srcnam: &Arc<str>,
-        vstart: &f64,
-        vstop: &f64,
-        vstep: &f64,
-        _optional: &Option<(Arc<str>, f64, f64, f64)>,
+        vstart: &Numeric,
+        vstop: &Numeric,
+        vstep: &Numeric,
+        _optional: &Option<(Arc<str>, Numeric, Numeric, Numeric)>,
     ) -> Result<Sim, SimulatorError> {
         let vsource1_idx = self
             .elements
@@ -346,19 +301,12 @@ impl<SO: Solver> Simulator<SO> {
         Ok(Sim::Dc(dc_results))
     }
 
-    /// Executes a single operating point analysis for dc analysis
-    ///
-    /// This method performs an operating point analysis by building the constant matrices,
-    /// transferring them to the backend, solving the equations, and collecting the results.
     fn find_op(&mut self) -> Result<Vec<(Variable, Numeric)>, SimulatorError> {
         // Check for nonlinear elements
-        let const_a_mat = self.build_constant_a_mat()?;
-        let const_b_vec = self.build_constant_b_vec()?;
+        self.build_constant_a_mat();
+        self.build_constant_b_vec();
 
         if !self.has_nonlinear_elements() {
-            // Build the constant matrix
-            self.solver.set_a(&const_a_mat);
-            self.solver.set_b(&const_b_vec);
             let x_vec = self.solver.solve()?.clone();
             let res = self.add_var_name(x_vec);
             return Ok(res);
@@ -366,13 +314,12 @@ impl<SO: Solver> Simulator<SO> {
 
         // Build the initial guess
         let mut x = self.generate_initial_guess();
+        
         for _ in 0..MAXITER {
-            let a_mat = self.build_nonlinear_a_mat(&x) + const_a_mat.clone();
-            let b_vec = self.build_nonlinear_b_vec(&x) + const_b_vec.clone();
-
-            // Populate matrices
-            self.solver.set_a(&a_mat);
-            self.solver.set_b(&b_vec);
+            self.build_constant_a_mat();
+            self.build_constant_b_vec();
+            self.build_nonlinear_a_mat(&x);
+            self.build_nonlinear_b_vec(&x);
 
             // Solve for the new x
             let x_new = self.solver.solve()?.clone();
@@ -392,121 +339,54 @@ impl<SO: Solver> Simulator<SO> {
         Err(SimulatorError::NonConvergentMaxIter)
     }
 
-    /// Builds a constant matrix 'A' from the elements.
-    ///
-    /// This method iterates over the elements and collects their constant triples.
-    /// If any elements provide constant triples, they are summed together.
-    ///
-    /// # Returns
-    ///
-    /// * `Ok(Triples)` - The combined constant triples.
-    /// * `Err(SimulatorError::ConstantMatrixEmpty)` - If no constant triples are found.
-    fn build_constant_a_mat(&self, workspace:&mut Vec<Triples<Numeric, 4>>) -> Result<(), SimulatorError> {
+    fn build_constant_a_mat(&mut self) {
         self.elements
             .iter()
             .filter_map(|ele| ele.get_constant_triples())
-            .for_each(|ele| workspace.push(ele));
-        if workspace.len() == 0 {
-            Err(SimulatorError::ConstantMatrixEmpty)
-        } else {
-            Ok(())
-        }
+            .flat_map(|triples| triples.iter().map(|&(row, col, val)| (row, col, val)))
+            .for_each(|ele| self.solver.set_a(ele));      
     }
 
-    /// Builds a constant vector 'b' from the elements.
-    ///
-    /// This method iterates over the elements and collects their constant pairs.
-    /// If any elements provide constant pairs, they are summed together.
-    ///
-    /// # Returns
-    ///
-    /// * `Ok(pairs)` - The combined constant pairs.
-    /// * `Err(SimulatorError::ConstantVectorEmpty)` - If no constant pairs are found.
-    fn build_constant_b_vec(&self, workspace:&mut Vec<Pairs<Numeric, 2>>) -> Result<(), SimulatorError> {
+    fn build_constant_b_vec(&mut self) {
         self.elements
             .iter()
             .filter_map(|ele| ele.get_constant_pairs())
-            .for_each(|ele| workspace.push(ele));
-        if workspace.is_empty() {
-            Err(SimulatorError::ConstantVectorEmpty)
-        } else {
-            Ok(())
-        }
+            .flat_map(|pairs| pairs.iter().map(|&(row, val)| (row, val)))
+            .for_each(|ele| self.solver.set_b(ele));  
     }
 
-    /// Builds a time-variant matrix 'A' from the elements.
-    ///
-    /// This method iterates over the elements and collects their time-variant triples.
-    /// If any elements provide time-variant triples, they are summed together.
-    ///
-    /// # Returns
-    ///
-    /// * `Triples` - The combined time-variant triples, or an empty `Triples` if none are found.
-    fn build_time_variant_a_mat(&self,workspace:&mut Vec<Triples<Numeric, 4>>) {
+    fn build_time_variant_a_mat(&mut self) {
         self.elements
             .iter()
             .filter_map(|ele| ele.get_time_variant_triples())
-            .for_each(|ele| workspace.push(ele))
+            .flat_map(|triples| triples.iter().map(|&(row, col, val)| (row, col, val)))
+            .for_each(|ele| self.solver.set_a(ele));  
     }
 
-    /// Builds a time-variant vector 'B' from the elements.
-    ///
-    /// This method iterates over the elements and collects their time-variant pairs.
-    /// If any elements provide time-variant pairs, they are summed together.
-    ///
-    /// # Returns
-    ///
-    /// * `pairs` - The combined time-variant pairs, or an empty `pairs` if none are found.
-    fn build_time_variant_b_vec(&self,workspace:&mut Vec<Pairs<Numeric, 2>>){
+    fn build_time_variant_b_vec(&mut self){
         self.elements
             .iter()
             .filter_map(|ele| ele.get_time_variant_pairs())
-            .for_each(|ele| workspace.push(ele))
+            .flat_map(|pairs| pairs.iter().map(|&(row, val)| (row, val)))
+            .for_each(|ele| self.solver.set_b(ele)); 
     }
 
-    /// Builds a nonlinear matrix 'A' from the elements, based on a given vector `x_vec`.
-    ///
-    /// This method iterates over the elements and collects their nonlinear triples
-    /// using the provided `x_vec`. If any elements provide nonlinear triples,
-    /// they are summed together.
-    ///
-    /// # Parameters
-    ///
-    /// * `x_vec` - A reference to a vector of floating-point numbers used in the nonlinear calculation.
-    ///
-    /// # Returns
-    ///
-    /// * `Triples` - The combined nonlinear triples, or an empty `Triples` if none are found.
-    fn build_nonlinear_a_mat(&self, x_vec: &Vec<f64>,workspace:&mut Vec<Triples<Numeric, 4>>) {
+    fn build_nonlinear_a_mat(&mut self, x_vec: &Vec<Numeric>) {
         self.elements
             .iter()
             .filter_map(|ele| ele.get_nonlinear_triples(x_vec))
-            .for_each(|ele| workspace.push(ele))
+            .flat_map(|triples| triples.iter().map(|&(row, col, val)| (row, col, val)))
+            .for_each(|ele| self.solver.set_a(ele)); 
     }
 
-    /// Builds a nonlinear vector 'B' from the elements.
-    ///
-    /// This method iterates over the elements and collects their nonlinear pairs.
-    /// If any elements provide nonlinear pairs, they are summed together.
-    ///
-    /// # Returns
-    ///
-    /// * `pairs` - The combined nonlinear pairs, or an empty `pairs` if none are found.
-    fn build_nonlinear_b_vec(&self, x_vec: &Vec<f64>,workspace:&mut Vec<Pairs<Numeric, 2>>) {
+    fn build_nonlinear_b_vec(&mut self, x_vec: &Vec<Numeric>) {
         self.elements
             .iter()
             .filter_map(|ele| ele.get_nonlinear_pairs(x_vec))
-            .for_each(|ele| workspace.push(ele))
+            .flat_map(|pairs| pairs.iter().map(|&(row, val)| (row, val)))
+            .for_each(|ele| self.solver.set_b(ele));
     }
 
-    /// Generates an initial guess for the node voltages in the circuit.
-    ///
-    /// This method iterates over all elements in the circuit and sets the initial
-    /// guess for node voltages based on the connected voltage sources and diodes.
-    ///
-    /// # Returns
-    ///
-    /// A vector containing the initial guess for the node voltages.
     fn generate_initial_guess(&self) -> Vec<Numeric> {
         let len = self.vars.len();
         let mut acc = vec![0.0; len];
@@ -544,7 +424,6 @@ impl<SO: Solver> Simulator<SO> {
                     }
                 }
                 _ => {
-                    // Handle other elements if needed
                 }
             }
 
@@ -556,20 +435,6 @@ impl<SO: Solver> Simulator<SO> {
         acc
     }
 
-    /// Checks if two vectors have converged within a given tolerance.
-    ///
-    /// This method compares the old and new vectors element-wise to determine if
-    /// the difference is within the specified tolerance.
-    ///
-    /// # Arguments
-    ///
-    /// * `x_old` - The old vector of voltages.
-    /// * `x_new` - The new vector of voltages.
-    /// * `tolerance` - The convergence tolerance.
-    ///
-    /// # Returns
-    ///
-    /// `true` if the vectors have converged, otherwise `false`.
     fn has_converged(
         &self,
         x_old: &Vec<Numeric>,
@@ -582,77 +447,30 @@ impl<SO: Solver> Simulator<SO> {
             .all(|(&old, &new)| (old - new).abs() < tolerance)
     }
 
-    /// Builds a ac matrix 'A' from the elements.
-    ///
-    /// This method iterates over the elements and collects their ac triples.
-    /// If any elements provide ac triples, they are summed together.
-    ///
-    /// # Returns
-    ///
-    /// * `Ok(Triples)` - The combined ac triples.
-    /// * `Err(SimulatorError::ConstantMatrixEmpty)` - If no ac triples are found.
-    fn build_ac_a_mat(&self, freq: Numeric) -> ComplexTriples {
+    fn build_ac_a_mat(&mut self, freq: Numeric){
         self.elements
             .iter()
             .filter_map(|ele| ele.get_ac_triples(freq))
-            .reduce(|acc, ele| acc + ele)
-            .unwrap_or(ComplexTriples::Empty)
+            .flat_map(|triples| triples.iter().map(|&(row, col, val)| (row, col, val)))
+            .for_each(|ele| self.solver.set_cplx_a(ele)); 
+        
     }
 
-    /// Builds a ac vector 'b' from the elements.
-    ///
-    /// This method iterates over the elements and collects their ac pairs.
-    /// If any elements provide ac pairs, they are summed together.
-    ///
-    /// # Returns
-    ///
-    /// * `Ok(pairs)` - The combined ac pairs.
-    /// * `Err(SimulatorError::ConstantVectorEmpty)` - If no ac pairs are found.
-    fn build_ac_b_vec(&self, freq: Numeric) -> ComplexPairs {
+    fn build_ac_b_vec(&mut self, freq: Numeric){
         self.elements
             .iter()
             .filter_map(|ele| ele.get_ac_pairs(freq))
-            .reduce(|acc, ele| acc + ele)
-            .unwrap_or(ComplexPairs::Empty)
+            .flat_map(|pairs| pairs.iter().map(|&(row, val)| (row, val)))
+            .for_each(|ele| self.solver.set_cplx_b(ele));
     }
 }
 
-/// Implements the `Debug` trait for the `Simulator` struct, which uses the specified backend.
-/// This trait allows the `Simulator` to be formatted using the `{:?}` and `{:#?}` format specifiers.
-///
-/// # Example
-///
-/// ```
-/// let sim = Simulator::<NalgebraBackend>::from(simulation);
-/// println!("{:?}", sim);
-/// ```
 impl<SO: Solver> Debug for Simulator<SO> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Simulator").finish()
     }
 }
 
-/// Implements the `From` trait to create a `Simulator` instance from a `Simulation`.
-/// This trait allows for easy conversion between `Simulation` and `Simulator`.
-///
-/// # Parameters
-///
-/// - `sim`: The `Simulation` instance to be converted into a `Simulator`.
-///
-/// # Returns
-///
-/// A new `Simulator` instance initialized with the given `Simulation` parameters.
-///
-/// # Example
-///
-/// ```
-/// let simulation = Simulation {
-///     variables: vec!["1".into(), "v1#branch".into()],
-///     elements: vec![Element::Resistor(res), Element::VSource(vol)],
-///     commands: vec![SimulationCommand::Op],
-/// };
-/// let simulator: Simulator<NalgebraBackend> = Simulator::from(simulation);
-/// ```
 impl<SO: Solver> From<Simulation> for Simulator<SO> {
     fn from(sim: Simulation) -> Self {
         let Simulation {

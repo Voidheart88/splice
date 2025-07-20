@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use crate::spot::*;
+
 /// Represents different simulation commands in a circuit simulator.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub(crate) enum SimulationCommand {
@@ -8,9 +10,9 @@ pub(crate) enum SimulationCommand {
     /// Represents a transient analysis command.
     Tran,
     /// Represents an AC analysis command.
-    Ac(f64, f64, usize, ACMode),
+    Ac(Numeric, Numeric, usize, ACMode),
     /// Represents a DC analysis command.
-    Dc(Arc<str>, f64, f64, f64, Option<(Arc<str>, f64, f64, f64)>),
+    Dc(Arc<str>, Numeric, Numeric, Numeric, Option<(Arc<str>, Numeric, Numeric, Numeric)>),
 }
 
 /// Represents the ac simulation options

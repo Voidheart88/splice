@@ -6,7 +6,7 @@ use faer::{
 };
 
 use super::{Solver, SolverError};
-use crate::models::{ComplexPairs, ComplexTriples, Pairs, Triples};
+use crate::{models::{Pairs, Triples}, spot::ComplexNumeric};
 use crate::spot::Numeric;
 
 //use faer::solvers::SpSolver;
@@ -57,50 +57,12 @@ impl Solver for FaerSolver {
         })
     }
 
-    fn set_a(&mut self, a_mat: &[Triples<Numeric, 4>]) {
-        a_mat.iter().for_each(|val| {
-            val.iter().for_each();
-        });
+    fn set_a(&mut self, a_mat: (usize,usize,Numeric)) {}
 
-        match a_mat {
-            Triples::Empty => {}
-            Triples::Single((row, col, val)) => {
-                self.set_value(*row, *col, *val);
-            }
-            Triples::Double(vals) => {
-                self.set_value(vals[0].0, vals[0].1, vals[0].2);
-                self.set_value(vals[1].0, vals[1].1, vals[1].2);
-            }
-            Triples::Quad(vals) => {
-                self.set_value(vals[0].0, vals[0].1, vals[0].2);
-                self.set_value(vals[1].0, vals[1].1, vals[1].2);
-                self.set_value(vals[2].0, vals[2].1, vals[2].2);
-                self.set_value(vals[2].0, vals[3].1, vals[3].2);
-            }
-            Triples::Vec(vec_triples) => for (row, col, val) in vec_triples {},
-        }
-    }
+    fn set_b(&mut self, b_vec: (usize,Numeric)) {}
 
-    fn set_b(&mut self, b_vec: &Pairs) {
-        match b_vec {
-            Pairs::Empty => {}
-            Pairs::Single(val) => {
-                self.b_vec[(val.0, 0)] = val.1;
-            }
-            Pairs::Double(vals) => {
-                self.b_vec[(vals[0].0, 0)] = vals[0].1;
-                self.b_vec[(vals[1].0, 0)] = vals[1].1;
-            }
-            Pairs::Vec(vec_pairs) => {
-                for (col, val) in vec_pairs {
-                    self.b_vec[(*col, 0)] = *val;
-                }
-            }
-        }
-    }
-
-    fn solve(&mut self) -> Result<&Vec<f64>, SolverError> {
-        let triples: Vec<Triplet<usize, usize, f64>> = self
+    fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError> {
+        let triples: Vec<Triplet<usize, usize, Numeric>> = self
             .a_mat
             .iter()
             .map(|((row, col), val)| Triplet {
@@ -126,76 +88,14 @@ impl Solver for FaerSolver {
         Ok(&self.x_vec)
     }
 
-    fn set_cplx_a(&mut self, a_mat: &crate::models::ComplexTriples) {
-        match a_mat {
-            ComplexTriples::Empty => {}
-            ComplexTriples::Single((row, col, val)) => {
-                self.set_cplx_value(*row, *col, into_c64(*val));
-            }
-            ComplexTriples::Double(vals) => {
-                self.set_cplx_value(vals[0].0, vals[0].1, into_c64(vals[0].2));
-                self.set_cplx_value(vals[1].0, vals[1].1, into_c64(vals[1].2));
-            }
-            ComplexTriples::Quad(vals) => {
-                self.set_cplx_value(vals[0].0, vals[0].1, into_c64(vals[0].2));
-                self.set_cplx_value(vals[1].0, vals[1].1, into_c64(vals[1].2));
-                self.set_cplx_value(vals[2].0, vals[2].1, into_c64(vals[2].2));
-                self.set_cplx_value(vals[3].0, vals[3].1, into_c64(vals[3].2)); // Corrected: was vals[2].0
-            }
-            ComplexTriples::Vec(vec_triples) => {
-                for (row, col, val) in vec_triples {
-                    self.set_cplx_value(*row, *col, into_c64(*val));
-                }
-            }
-        }
+    fn set_cplx_a(&mut self, a_mat: (usize,usize,ComplexNumeric)) {
     }
 
-    fn set_cplx_b(&mut self, b_vec: &crate::models::ComplexPairs) {
-        match b_vec {
-            ComplexPairs::Empty => {}
-            ComplexPairs::Single(val) => {
-                self.cplx_b_vec[(val.0, 0)] = into_c64(val.1);
-            }
-            ComplexPairs::Double(vals) => {
-                self.cplx_b_vec[(vals[0].0, 0)] = into_c64(vals[0].1);
-                self.cplx_b_vec[(vals[1].0, 0)] = into_c64(vals[1].1);
-            }
-            ComplexPairs::Vec(_) => todo!(),
-        }
+    fn set_cplx_b(&mut self, b_vec: (usize,ComplexNumeric)) {
     }
 
-    fn solve_cplx(&mut self) -> Result<&Vec<num::Complex<f64>>, SolverError> {
-        let triples: Vec<Triplet<usize, usize, c64>> = self // <--- Type for Vec changed
-            .cplx_a_mat
-            .iter()
-            .map(|((row, col), val)| {
-                // Create a Triplet struct instance
-                Triplet {
-                    row: *row,
-                    col: *col,
-                    val: *val, // `val` is already `c64` here
-                }
-            })
-            .collect();
-
-        let cplx_a_mat = SparseColMat::try_new_from_triplets(
-            self.cplx_x_vec.len(),
-            self.cplx_x_vec.len(),
-            &triples, // <--- Now `triples` is `&[Triplet<usize, usize, c64>]`
-        )
-        .unwrap();
-
-        let lu = match cplx_a_mat.sp_lu() {
-            Ok(lu) => lu,
-            Err(_) => return Err(SolverError::MatrixNonInvertible),
-        };
-
-        let res = lu.solve(&self.cplx_b_vec);
-        for (idx, val) in res.col_as_slice(0).iter().enumerate() {
-            self.cplx_x_vec[idx] = into_complex(*val);
-        }
-
-        Ok(&self.cplx_x_vec)
+    fn solve_cplx(&mut self) -> Result<&Vec<ComplexNumeric>, SolverError> {
+        Err(SolverError::MatrixNonInvertible)
     }
 }
 
@@ -217,12 +117,12 @@ impl FaerSolver {
     }
 
     /// Returns a reference to the matrix `a_mat`.
-    pub fn a_mat(&self) -> &HashMap<(usize, usize), f64> {
+    pub fn a_mat(&self) -> &HashMap<(usize, usize), Numeric> {
         &self.a_mat
     }
 
     /// Returns a reference to the vector `b_vec`.
-    pub fn b_vec(&self) -> &Mat<f64> {
+    pub fn b_vec(&self) -> &Mat<Numeric> {
         &self.b_vec
     }
 }
@@ -236,14 +136,14 @@ impl From<LuError> for SolverError {
     }
 }
 
-fn into_c64(val: num::Complex<f64>) -> c64 {
+fn into_c64(val: ComplexNumeric) -> c64 {
     c64 {
         re: val.re,
         im: val.im,
     }
 }
 
-fn into_complex(val: c64) -> num::Complex<f64> {
+fn into_complex(val: c64) -> ComplexNumeric {
     num::Complex {
         re: val.re,
         im: val.im,

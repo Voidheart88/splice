@@ -1,23 +1,19 @@
-use std::{
-    collections::{HashMap, HashSet},
-    fs::File,
-    io::Read,
-    path::Path,
-    sync::Arc,
-};
+
+use std::collections::{HashMap, HashSet};
+use std::fs::File;
+use std::io::Read;
+use std::path::Path;
+use std::sync::Arc;
 
 use log::trace;
 use pest::{iterators::Pair, Parser};
 use pest_derive::Parser;
 
-use crate::{
-    models::VSourceBundle,
-    sim::{
-        commands::{ACMode, SimulationCommand},
-        options::SimulationOption,
-    },
-    Frontend, FrontendError, Simulation,
-};
+use crate::frontends::{Frontend, FrontendError, Simulation};
+use crate::spot::*;
+use crate::sim::options::SimulationOption;
+use crate::sim::commands::{ACMode, SimulationCommand};
+use crate::models::VSourceBundle;
 
 use super::{
     CapacitorBundle, DiodeBundle, Element, ISourceBundle, InductorBundle, Mos0Bundle,
@@ -176,13 +172,13 @@ impl SpiceFrontend {
         let source = inner.next().unwrap().as_str();
 
         //extract vstart
-        let vstart = inner.next().unwrap().as_str().parse::<f64>().unwrap();
+        let vstart = inner.next().unwrap().as_str().parse::<Numeric>().unwrap();
 
         //extract vend
-        let vend = inner.next().unwrap().as_str().parse::<f64>().unwrap();
+        let vend = inner.next().unwrap().as_str().parse::<Numeric>().unwrap();
 
         //extract vstep
-        let vstep = inner.next().unwrap().as_str().parse::<f64>().unwrap();
+        let vstep = inner.next().unwrap().as_str().parse::<Numeric>().unwrap();
 
         let src2 = inner.next();
         let src2 = if src2.is_none() {
@@ -204,11 +200,11 @@ impl SpiceFrontend {
         let source2 = src2.next().unwrap().as_str();
 
         //extract Name
-        let vstart2 = src2.next().unwrap().as_str().parse::<f64>().unwrap();
+        let vstart2 = src2.next().unwrap().as_str().parse::<Numeric>().unwrap();
         //extract Name
-        let vend2 = src2.next().unwrap().as_str().parse::<f64>().unwrap();
+        let vend2 = src2.next().unwrap().as_str().parse::<Numeric>().unwrap();
         //extract Name
-        let vstep2 = src2.next().unwrap().as_str().parse::<f64>().unwrap();
+        let vstep2 = src2.next().unwrap().as_str().parse::<Numeric>().unwrap();
 
         commands.push(SimulationCommand::Dc(
             Arc::from(source),
@@ -288,7 +284,7 @@ impl SpiceFrontend {
         //extract Value
         let value = inner.next().unwrap().as_span();
         let value = ele[value.start() - offset..value.end() - offset]
-            .parse::<f64>()
+            .parse::<Numeric>()
             .unwrap();
 
         let ac_value = if let Some(val) = inner.next() {
@@ -339,7 +335,7 @@ impl SpiceFrontend {
         //extract Value
         let value = inner.next().unwrap().as_span();
         let value = ele[value.start() - offset..value.end() - offset]
-            .parse::<f64>()
+            .parse::<Numeric>()
             .unwrap();
 
         let src = ISourceBundle::new(
@@ -377,7 +373,7 @@ impl SpiceFrontend {
         //extract Value
         let value = inner.next().unwrap().as_span();
         let value = ele[value.start() - offset..value.end() - offset]
-            .parse::<f64>()
+            .parse::<Numeric>()
             .unwrap();
 
         let res = ResistorBundle::new(
@@ -414,7 +410,7 @@ impl SpiceFrontend {
         //extract Value
         let value = inner.next().unwrap().as_span();
         let value = ele[value.start() - offset..value.end() - offset]
-            .parse::<f64>()
+            .parse::<Numeric>()
             .unwrap();
 
         let cap = CapacitorBundle::new(
@@ -451,7 +447,7 @@ impl SpiceFrontend {
         //extract Value
         let value = inner.next().unwrap().as_span();
         let value = ele[value.start() - offset..value.end() - offset]
-            .parse::<f64>()
+            .parse::<Numeric>()
             .unwrap();
 
         let ind = InductorBundle::new(

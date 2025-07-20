@@ -1,12 +1,11 @@
 use std::collections::HashSet;
 use std::sync::Arc;
 
-use num::Complex;
-
 use super::Backend;
 use crate::models::Variable;
 use crate::sim::options::SimulationOption;
 use crate::sim::simulation_result::Sim;
+use crate::spot::*;
 use crate::{sim::simulation_result::SimulationResults, BackendError};
 
 /// A backend for outputting simulation results as CSV.
@@ -50,7 +49,7 @@ impl CsvBackend {
     /// # Arguments
     ///
     /// * `results` - A vector of tuples containing variables and their corresponding values.
-    fn output_op(results: &Vec<(Variable, f64)>) {
+    fn output_op(results: &Vec<(Variable, Numeric)>) {
         for res in results {
             println!("{},{},{}", res.0.name(), res.1, res.0.unit())
         }
@@ -62,7 +61,7 @@ impl CsvBackend {
     ///
     /// * `data` - A vector of vectors, where each inner vector contains tuples of variables and their values for each step.
     /// * `options` - A vector of Simulation options.
-    fn output_dc(data: &Vec<Vec<(Variable, f64)>>, options: Vec<SimulationOption>) {
+    fn output_dc(data: &Vec<Vec<(Variable, Numeric)>>, options: Vec<SimulationOption>) {
         // Collect the variable names specified in the options.
         let mut filtered_headers = HashSet::new();
         for option in options {
@@ -106,7 +105,7 @@ impl CsvBackend {
     /// # Arguments
     ///
     /// * `data` - A vector of tuples, where each tuple contains a frequency and a vector of tuples with variables and their complex values.
-    fn output_ac(data: &Vec<(f64, Vec<(Variable, Complex<f64>)>)>) {
+    fn output_ac(data: &Vec<(Numeric, Vec<(Variable, ComplexNumeric)>)>) {
         let mut headers: HashSet<Arc<str>> = HashSet::new();
         for (_, step_data) in data {
             for (var, _) in step_data {

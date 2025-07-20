@@ -1,24 +1,19 @@
-use std::{
-    collections::HashSet,
-    path::{Path, PathBuf},
-};
+use std::collections::HashSet;
+use std::path::{Path, PathBuf};
 
-use super::Backend;
-use crate::{
-    models::{Unit, Variable},
-    sim::{
-        options::SimulationOption,
-        simulation_result::{Sim, SimulationResults},
-    },
-    BackendError,
-};
 use full_palette::{LIGHTBLUE, RED_500};
-use num::Complex;
 use plotters::{
     backend::SVGBackend,
     prelude::*,
     style::full_palette::{GREY_400, GREY_800},
 };
+
+
+use super::Backend;
+use crate::{backends::BackendError, spot::*};
+use crate::sim::options::SimulationOption;
+use crate::sim::simulation_result::{Sim, SimulationResults};
+use crate::models::{Unit, Variable};
 
 /// A struct for handling plot output of simulation results.
 pub struct PlotBackend {
@@ -81,14 +76,14 @@ impl PlotBackend {
     ///
     /// # Parameters
     ///
-    /// - `data`: A reference to a vector of vectors of tuples where each tuple contains a `Variable` and a `f64`.
+    /// - `data`: A reference to a vector of vectors of tuples where each tuple contains a `Variable` and a `Numeric`.
     ///
     /// # Returns
     ///
     /// A `Result` which is `Ok` if the plotting operation succeeds, or an `BackendError` if it fails.
     fn plot_dc(
         &self,
-        data: &Vec<Vec<(Variable, f64)>>,
+        data: &Vec<Vec<(Variable, Numeric)>>,
         options: Vec<SimulationOption>,
     ) -> Result<(), BackendError> {
         let mut path = PathBuf::from(&self.pth);
@@ -121,7 +116,7 @@ impl PlotBackend {
             }
         }
 
-        let filtered_data: Vec<Vec<(Variable, f64)>> = data
+        let filtered_data: Vec<Vec<(Variable, Numeric)>> = data
             .iter()
             .map(|step_data| {
                 step_data
@@ -145,8 +140,8 @@ impl PlotBackend {
 
         let (max, min) = match (max, min) {
             (None, None) => return Err(BackendError::CantFindMaxMin),
-            (None, Some(v)) => (f64::MAX, v),
-            (Some(v), None) => (v, f64::MIN),
+            (None, Some(v)) => (Numeric::MAX, v),
+            (Some(v), None) => (v, Numeric::MIN),
             (Some(v1), Some(v2)) => (v1, v2),
         };
 
@@ -174,7 +169,7 @@ impl PlotBackend {
             .draw()?;
 
         // Create a series containing both voltage and current data
-        let mut series: Vec<Vec<f64>> = Vec::new();
+        let mut series: Vec<Vec<Numeric>> = Vec::new();
         let mut units: Vec<Unit> = Vec::new();
         let var_count = filtered_data[0].len();
         for _ in 0..var_count {
@@ -225,7 +220,7 @@ impl PlotBackend {
 
     fn plot_ac(
         &self,
-        data: &Vec<(f64, Vec<(Variable, Complex<f64>)>)>,
+        data: &Vec<(Numeric, Vec<(Variable, ComplexNumeric)>)>,
     ) -> Result<(), BackendError> {
         let mut path = PathBuf::from(&self.pth);
         path.set_extension("svg");
@@ -261,15 +256,15 @@ impl PlotBackend {
 
         let (max_gain, min_gain) = match (max_gain, min_gain) {
             (None, None) => return Err(BackendError::PlotError("Plot empty".into())),
-            (None, Some(v)) => (f64::MAX, v),
-            (Some(v), None) => (v, f64::MIN),
+            (None, Some(v)) => (Numeric::MAX, v),
+            (Some(v), None) => (v, Numeric::MIN),
             (Some(v1), Some(v2)) => (v1, v2),
         };
 
         let (max_phase, min_phase) = match (max_phase, min_phase) {
             (None, None) => return Err(BackendError::PlotError("Plot empty".into())),
-            (None, Some(v)) => (f64::MAX, v),
-            (Some(v), None) => (v, f64::MIN),
+            (None, Some(v)) => (Numeric::MAX, v),
+            (Some(v), None) => (v, Numeric::MIN),
             (Some(v1), Some(v2)) => (v1, v2),
         };
 
@@ -321,8 +316,8 @@ impl PlotBackend {
             .draw()?;
 
         // Create a series containing both gain and phase data
-        let mut series_gain: Vec<Vec<f64>> = Vec::new();
-        let mut series_phase: Vec<Vec<f64>> = Vec::new();
+        let mut series_gain: Vec<Vec<Numeric>> = Vec::new();
+        let mut series_phase: Vec<Vec<Numeric>> = Vec::new();
         let mut units: Vec<Unit> = Vec::new();
         let var_count = data[0].1.len();
         for _ in 0..var_count {
@@ -408,12 +403,12 @@ impl PlotBackend {
     ///
     /// # Parameters
     ///
-    /// - `data`: A reference to a vector of tuples where each tuple contains a `Variable` and a `f64`.
+    /// - `data`: A reference to a vector of tuples where each tuple contains a `Variable` and a `Numeric`.
     ///
     /// # Returns
     ///
     /// A `Result` which is `Ok` if the plotting operation succeeds, or an `BackendError` if it fails.
-    fn plot_op(&self, data: &Vec<(Variable, f64)>) -> Result<(), BackendError> {
+    fn plot_op(&self, data: &Vec<(Variable, Numeric)>) -> Result<(), BackendError> {
         let mut path = PathBuf::from(&self.pth);
 
         if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
@@ -437,8 +432,8 @@ impl PlotBackend {
 
         let (max, min) = match (max, min) {
             (None, None) => return Err(BackendError::CantFindMaxMin),
-            (None, Some(v)) => (f64::MAX, v),
-            (Some(v), None) => (v, f64::MIN),
+            (None, Some(v)) => (Numeric::MAX, v),
+            (Some(v), None) => (v, Numeric::MIN),
             (Some(v1), Some(v2)) => (v1, v2),
         };
 
@@ -466,7 +461,7 @@ impl PlotBackend {
         let values = data
             .iter()
             .enumerate()
-            .map(|(i, (_var, val))| (i as f64, *val))
+            .map(|(i, (_var, val))| (i as Numeric, *val))
             .map(|(x, y)| (x as u32, y));
 
         let histogram = Histogram::vertical(&chart)
