@@ -27,10 +27,6 @@ impl<T: Copy + Default, const N: usize> Triples<T, N> {
         }
     }
 
-    pub(crate) fn iter(&self) -> TriplesIter<'_, T, N> {
-        self.into_iter()
-    }
-    
     pub(crate) fn data(&self) -> [(usize, usize, T); N] {
         self.data
     }
@@ -106,12 +102,7 @@ impl<'a, T, const N: usize> IntoIterator for &'a Triples<T, N> {
 
 #[cfg(test)]
 impl<T, const N: usize> Triples<T, N> {
-    pub fn is_empty(&self) -> bool {
-        return self.length == 0;
-    }
-
     pub fn len(&self) -> usize {
         return self.length;
     }
-
 }

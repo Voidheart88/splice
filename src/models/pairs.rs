@@ -27,10 +27,6 @@ impl<T: Copy + Default, const N: usize> Pairs<T, N> {
         }
     }
 
-    pub(crate) fn iter(&self) -> PairsIter<'_, T, N> {
-        self.into_iter()
-    }
-    
     pub(crate) fn data(&self) -> [(usize, T); N] {
         self.data
     }
@@ -106,10 +102,6 @@ impl<'a, T, const N: usize> IntoIterator for &'a Pairs<T, N> {
 
 #[cfg(test)]
 impl<T, const N: usize> Pairs<T, N> {
-    pub fn is_empty(&self) -> bool {
-        return self.length == 0;
-    }
-
     pub fn len(&self) -> usize {
         return self.length;
     }

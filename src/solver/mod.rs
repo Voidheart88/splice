@@ -53,7 +53,7 @@ pub trait Solver {
     /// Sets the known values vector (`b`) into the Solver.
     /// Set sets a Value to the given vector i
     fn set_cplx_b(&mut self, b_pair: &(usize, ComplexNumeric));
-    
+
     fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError>;
 
     fn solve_cplx(&mut self) -> Result<&Vec<ComplexNumeric>, SolverError>;

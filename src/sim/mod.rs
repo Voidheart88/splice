@@ -29,14 +29,13 @@ pub(crate) enum SimulatorError {
     #[error("{0}")]
     BackendError(SolverError),
 
-    #[error("The constant part of the conductance matrix is empty")]
-    #[diagnostic(help("This is a severe error! Send your circuit to Github"))]
-    ConstantMatrixEmpty,
+    //#[error("The constant part of the conductance matrix is empty")]
+    //#[diagnostic(help("This is a severe error! Send your circuit to Github"))]
+    //ConstantMatrixEmpty,
 
-    #[error("The constant part of the vector is empty")]
-    #[diagnostic(help("This is a severe error! Send your circuit to Github"))]
-    ConstantVectorEmpty,
-
+    //#[error("The constant part of the vector is empty")]
+    //#[diagnostic(help("This is a severe error! Send your circuit to Github"))]
+    //ConstantVectorEmpty,
     #[error("The Simulation did not converge after MAXITER steps")]
     #[diagnostic(help("Try reducing the convergence settings by increasing VECTOL"))]
     NonConvergentMaxIter,
@@ -349,7 +348,7 @@ impl<SO: Solver> Simulator<SO> {
         self.elements
             .iter()
             .filter_map(|ele| ele.get_constant_pairs())
-            .flat_map(|pairs| pairs.data() )
+            .flat_map(|pairs| pairs.data())
             .for_each(|pair| self.solver.set_b(&pair));
     }
 
@@ -384,8 +383,7 @@ impl<SO: Solver> Simulator<SO> {
             .flat_map(|pairs| pairs.data())
             .for_each(|pair| self.solver.set_b(&pair));
     }
-    
-    
+
     fn build_ac_a_mat(&mut self, freq: Numeric) {
         self.elements
             .iter()

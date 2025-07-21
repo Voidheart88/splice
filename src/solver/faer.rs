@@ -8,9 +8,6 @@ use faer::{
 use super::{Solver, SolverError};
 use crate::spot::*;
 
-//use faer::solvers::SpSolver;
-//use faer::sparse::{LuError, SparseColMat};
-
 /// A backend implementation using the Faer library.
 pub(crate) struct FaerSolver {
     /// The conductance matrix `A`.
@@ -59,9 +56,9 @@ impl Solver for FaerSolver {
     fn set_a(&mut self, a_mat: &(usize, usize, Numeric)) {}
 
     fn set_b(&mut self, b_vec: &(usize, Numeric)) {}
-    
+
     fn set_cplx_a(&mut self, a_mat: &(usize, usize, ComplexNumeric)) {}
-    
+
     fn set_cplx_b(&mut self, b_vec: &(usize, ComplexNumeric)) {}
 
     fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError> {

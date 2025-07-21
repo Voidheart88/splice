@@ -46,7 +46,7 @@ impl Solver for RSparseSolver {
         let lu = Nmrc::new();
 
         let cplx_a = Trpl::new();
-        let cplx_b = Vec::with_capacity(2 * vars);
+        let cplx_b = vec![0.; 2*vars];
         let cplx_x = Vec::with_capacity(2 * vars);
         let cplx_sprs = Sprs::new();
 
@@ -66,13 +66,32 @@ impl Solver for RSparseSolver {
         })
     }
 
-    fn set_a(&mut self, a_mat: &(usize, usize, Numeric)) {}
+    fn set_a(&mut self, a_mat: &(usize, usize, Numeric)) {
+        let (row, col, val) = *a_mat;
+        self.a.append(row, col, val);
+    }
 
-    fn set_b(&mut self, b_vec: &(usize, Numeric)) {}
+    fn set_b(&mut self, b_vec: &(usize, Numeric)) {
+        let (row, val) = *b_vec;
+        self.b[row] = val;
+    }
 
-    fn set_cplx_a(&mut self, a_mat: &(usize, usize, ComplexNumeric)) {}
+    fn set_cplx_a(&mut self, a_mat: &(usize, usize, ComplexNumeric)) {
+        let (row, col, val) = *a_mat;
+        let pivot = self.cplx_a.m / 2;
 
-    fn set_cplx_b(&mut self, b_vec: &(usize, ComplexNumeric)) {}
+        self.cplx_a.append(row, col, val.re);
+        self.cplx_a.append(row, col + pivot, -val.im);
+        self.cplx_a.append(row + pivot, col, val.im);
+        self.cplx_a.append(row + pivot, col + pivot, val.re);
+    }
+
+    fn set_cplx_b(&mut self, b_vec: &(usize, ComplexNumeric)) {
+        let (row, val) = *b_vec;
+        let pivot = self.cplx_b.len() / 2;
+        self.cplx_b[row] = val.re;
+        self.cplx_b[row + pivot] = val.im;
+    }
 
     /// Solves the system of equations (Ax = B for x) and returns a reference to the solution.
     fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError> {
@@ -134,9 +153,24 @@ impl RSparseSolver {
         self.a.m
     }
 
+    /// Returns the number of rows in the matrix `a_mat`.
+    pub fn cplx_rows(&self) -> usize {
+        self.cplx_a.n
+    }
+
+    /// Returns the number of columns in the matrix `a_mat`.
+    pub fn cplx_cols(&self) -> usize {
+        self.cplx_a.m
+    }
+
     /// Returns the length of the vector `b_vec`.
     pub fn b_vec_len(&self) -> usize {
         self.b.len()
+    }
+
+    /// Returns the length of the vector `b_vec`.
+    pub fn cplx_b_vec_len(&self) -> usize {
+        self.cplx_b.len()
     }
 
     /// Returns a reference to the matrix `a_mat`.
@@ -147,5 +181,15 @@ impl RSparseSolver {
     /// Returns a reference to the vector `b_vec`.
     pub fn b_vec(&self) -> &Vec<Numeric> {
         &self.b
+    }
+    
+    /// Returns a reference to the matrix `cplx_a_mat`.
+    pub fn cplx_a_mat(&self) -> &Trpl<Numeric> {
+        &self.cplx_a
+    }
+
+    /// Returns a reference to the vector `cplx_b_vec`.
+    pub fn cplx_b_vec(&self) -> &Vec<Numeric> {
+        &self.cplx_b
     }
 }
