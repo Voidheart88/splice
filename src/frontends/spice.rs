@@ -1,4 +1,3 @@
-
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::Read;
@@ -10,10 +9,10 @@ use pest::{iterators::Pair, Parser};
 use pest_derive::Parser;
 
 use crate::frontends::{Frontend, FrontendError, Simulation};
-use crate::spot::*;
-use crate::sim::options::SimulationOption;
-use crate::sim::commands::{ACMode, SimulationCommand};
 use crate::models::VSourceBundle;
+use crate::sim::commands::{ACMode, SimulationCommand};
+use crate::sim::options::SimulationOption;
+use crate::spot::*;
 
 use super::{
     CapacitorBundle, DiodeBundle, Element, ISourceBundle, InductorBundle, Mos0Bundle,

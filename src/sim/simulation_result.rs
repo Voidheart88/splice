@@ -1,8 +1,8 @@
 use num::Complex;
 
-use crate::spot::Numeric;
-use crate::models::Variable;
 use super::options::SimulationOption;
+use crate::models::Variable;
+use crate::spot::Numeric;
 
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) enum Sim {

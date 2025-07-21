@@ -30,6 +30,10 @@ impl<T: Copy + Default, const N: usize> Pairs<T, N> {
     pub(crate) fn iter(&self) -> PairsIter<'_, T, N> {
         self.into_iter()
     }
+    
+    pub(crate) fn data(&self) -> [(usize, T); N] {
+        self.data
+    }
 }
 
 impl<T: Copy + Default, const N: usize> Index<usize> for Pairs<T, N> {

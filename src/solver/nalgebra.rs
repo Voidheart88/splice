@@ -1,5 +1,5 @@
 use super::{Solver, SolverError};
-use crate::{models::{Pairs, Triples}, spot::{ComplexNumeric, Numeric}}; // Ensure these are correctly imported
+use crate::spot::{ComplexNumeric, Numeric}; // Ensure these are correctly imported
 use na::LU;
 use nalgebra as na;
 
@@ -40,10 +40,13 @@ impl Solver for NalgebraSolver {
         })
     }
 
-    fn set_a(&mut self, a_mat: (usize,usize,Numeric)) {}
+    fn set_a(&mut self, a_mat: &(usize, usize, Numeric)) {}
 
-    fn set_b(&mut self, b_vec: (usize,Numeric)) {}
+    fn set_b(&mut self, b_vec: &(usize, Numeric)) {}
 
+    fn set_cplx_a(&mut self, a_mat: &(usize, usize, ComplexNumeric)) {}
+
+    fn set_cplx_b(&mut self, b_vec: &(usize, ComplexNumeric)) {}
 
     fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError> {
         let lu = LU::new(self.a_mat.clone());
@@ -54,12 +57,6 @@ impl Solver for NalgebraSolver {
         };
 
         Ok(&self.x_vec.data.as_vec())
-    }
-
-    fn set_cplx_a(&mut self, a_mat: (usize,usize,ComplexNumeric)) {
-    }
-
-    fn set_cplx_b(&mut self, b_vec: (usize,ComplexNumeric)) {
     }
 
     fn solve_cplx(&mut self) -> Result<&Vec<ComplexNumeric>, SolverError> {
@@ -76,7 +73,6 @@ impl Solver for NalgebraSolver {
         Ok(&self.cplx_x_vec.data.as_vec())
     }
 }
-
 
 #[cfg(test)]
 impl NalgebraSolver {
@@ -103,7 +99,9 @@ impl NalgebraSolver {
     }
 
     /// Returns a reference to the vector `b_vec`.
-    pub fn b_vec(&self) -> &na::Matrix<Numeric, na::Dyn, na::U1, na::VecStorage<Numeric, na::Dyn, na::U1>> {
+    pub fn b_vec(
+        &self,
+    ) -> &na::Matrix<Numeric, na::Dyn, na::U1, na::VecStorage<Numeric, na::Dyn, na::U1>> {
         &self.b_vec
     }
 }

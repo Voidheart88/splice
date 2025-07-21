@@ -8,12 +8,11 @@ use plotters::{
     style::full_palette::{GREY_400, GREY_800},
 };
 
-
 use super::Backend;
-use crate::{backends::BackendError, spot::*};
+use crate::models::{Unit, Variable};
 use crate::sim::options::SimulationOption;
 use crate::sim::simulation_result::{Sim, SimulationResults};
-use crate::models::{Unit, Variable};
+use crate::{backends::BackendError, spot::*};
 
 /// A struct for handling plot output of simulation results.
 pub struct PlotBackend {

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use num::{Complex,One,Zero};
+use num::{Complex, One, Zero};
 
 use super::*;
 
@@ -128,12 +128,18 @@ impl VSourceBundle {
                     (
                         self.branch_idx(),
                         self.node1_idx().unwrap(),
-                        Complex { re: Numeric::one(), im: Numeric::zero() },
+                        Complex {
+                            re: Numeric::one(),
+                            im: Numeric::zero(),
+                        },
                     ),
                     (
                         self.node1_idx().unwrap(),
                         self.branch_idx(),
-                        Complex { re: Numeric::one(), im: Numeric::zero() },
+                        Complex {
+                            re: Numeric::one(),
+                            im: Numeric::zero(),
+                        },
                     ),
                 ]);
             }
@@ -145,22 +151,56 @@ impl VSourceBundle {
                     (
                         self.branch_idx(),
                         self.node0_idx().unwrap(),
-                        Complex { re: -Numeric::one(), im: Numeric::zero() },
+                        Complex {
+                            re: -Numeric::one(),
+                            im: Numeric::zero(),
+                        },
                     ),
                     (
                         self.node0_idx().unwrap(),
                         self.branch_idx(),
-                        Complex { re: -Numeric::one(), im: Numeric::zero() },
+                        Complex {
+                            re: -Numeric::one(),
+                            im: Numeric::zero(),
+                        },
                     ),
                 ])
             }
         };
 
         Triples::new(&[
-            (branch_idx, node0_idx, Complex { re: Numeric::one(), im: Numeric::zero() }),
-            (node0_idx, branch_idx, Complex { re: Numeric::one(), im: Numeric::zero() }),
-            (branch_idx, node1_idx, Complex { re: -Numeric::one(), im: Numeric::zero() }),
-            (node1_idx, branch_idx, Complex { re: -Numeric::one(), im: Numeric::zero() }),
+            (
+                branch_idx,
+                node0_idx,
+                Complex {
+                    re: Numeric::one(),
+                    im: Numeric::zero(),
+                },
+            ),
+            (
+                node0_idx,
+                branch_idx,
+                Complex {
+                    re: Numeric::one(),
+                    im: Numeric::zero(),
+                },
+            ),
+            (
+                branch_idx,
+                node1_idx,
+                Complex {
+                    re: -Numeric::one(),
+                    im: Numeric::zero(),
+                },
+            ),
+            (
+                node1_idx,
+                branch_idx,
+                Complex {
+                    re: -Numeric::one(),
+                    im: Numeric::zero(),
+                },
+            ),
         ])
     }
 

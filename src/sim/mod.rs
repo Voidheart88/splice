@@ -98,12 +98,9 @@ impl<SO: Solver> Simulator<SO> {
     fn run_op(&mut self) -> Result<Sim, SimulatorError> {
         info!("Run operating point analysis");
 
-        self.build_constant_a_mat();
-        self.build_constant_b_vec();
-
         if !self.has_nonlinear_elements() {
-            self.solver.set_a(&const_a_mat);
-            self.solver.set_b(&const_b_vec);
+            self.build_constant_a_mat();
+            self.build_constant_b_vec();
             let x_vec = self.solver.solve()?.clone();
             let res = self.add_var_name(x_vec);
             return Ok(Sim::Op(res));
@@ -117,17 +114,15 @@ impl<SO: Solver> Simulator<SO> {
             .into_iter()
             .map(|run| {
                 trace!("Iteration: {run}");
-                let a_mat = self.build_nonlinear_a_mat()// + const_a_mat.clone();
-                let b_vec = self.build_nonlinear_b_vec()// + const_b_vec.clone();
-
                 trace!("Set matrix");
-                // Populate matrices
-                self.solver.set_a(&a_mat);
-                self.solver.set_b(&b_vec);
-
+                self.build_constant_a_mat();
+                self.build_constant_b_vec();
+                self.build_nonlinear_a_mat(&x);
+                self.build_nonlinear_b_vec(&x);
                 trace!("Solve matrix");
                 // Solve for the new x
                 let x_new = match self.solver.solve().cloned() {
+                    // FIXME — This should only be cloned if converged.
                     Ok(solution) => solution,
                     Err(err) => return Some(Err(err.into())),
                 };
@@ -136,13 +131,13 @@ impl<SO: Solver> Simulator<SO> {
                 // Check for convergence
                 if self.has_converged(&x, &x_new, VECTOL) {
                     // If converged, store the result
-                    let res = self.add_var_name(x_new.clone());
+                    let res = self.add_var_name(x_new);
                     return Some(Ok(Sim::Op(res)));
                 }
 
                 trace!("Update x");
                 // Update x for the next iteration
-                x = x_new.clone();
+                x = x_new;
 
                 None
             })
@@ -164,11 +159,14 @@ impl<SO: Solver> Simulator<SO> {
         solution
             .into_iter()
             .enumerate()
-            .map(|(idx, var)| (self.vars[idx].clone(), var))
+            .map(|(idx, var)| (self.vars[idx].clone(), var)) // CLONE — this only clones the arc
             .collect_vec()
     }
 
-    fn add_complex_var_name(&self, solution: Vec<Complex<Numeric>>) -> Vec<(Variable, Complex<Numeric>)> {
+    fn add_complex_var_name(
+        &self,
+        solution: Vec<Complex<Numeric>>,
+    ) -> Vec<(Variable, Complex<Numeric>)> {
         solution
             .into_iter()
             .enumerate()
@@ -177,8 +175,8 @@ impl<SO: Solver> Simulator<SO> {
     }
 
     fn run_tran(&mut self) -> Result<Sim, SimulatorError> {
-        let _ = self.build_time_variant_a_mat();
-        let _ = self.build_time_variant_b_vec();
+        self.build_time_variant_a_mat();
+        self.build_time_variant_b_vec();
 
         Err(SimulatorError::Unimplemented)
     }
@@ -221,11 +219,11 @@ impl<SO: Solver> Simulator<SO> {
         };
 
         info!("Run analysis");
-        
+
         let mut ac_results = Vec::new();
         for freq in freqs {
-            let cplx_a_mat = self.build_ac_a_mat(freq);
-            let cplx_b_vec = self.build_ac_b_vec(freq);
+            self.build_ac_a_mat(freq);
+            self.build_ac_b_vec(freq);
 
             let x_new = match self.solver.solve_cplx().cloned() {
                 Ok(solution) => solution,
@@ -314,7 +312,7 @@ impl<SO: Solver> Simulator<SO> {
 
         // Build the initial guess
         let mut x = self.generate_initial_guess();
-        
+
         for _ in 0..MAXITER {
             self.build_constant_a_mat();
             self.build_constant_b_vec();
@@ -343,48 +341,65 @@ impl<SO: Solver> Simulator<SO> {
         self.elements
             .iter()
             .filter_map(|ele| ele.get_constant_triples())
-            .flat_map(|triples| triples.iter().map(|&(row, col, val)| (row, col, val)))
-            .for_each(|ele| self.solver.set_a(ele));      
+            .flat_map(|triples| triples.data())
+            .for_each(|triplet| self.solver.set_a(&triplet));
     }
 
     fn build_constant_b_vec(&mut self) {
         self.elements
             .iter()
             .filter_map(|ele| ele.get_constant_pairs())
-            .flat_map(|pairs| pairs.iter().map(|&(row, val)| (row, val)))
-            .for_each(|ele| self.solver.set_b(ele));  
+            .flat_map(|pairs| pairs.data() )
+            .for_each(|pair| self.solver.set_b(&pair));
     }
 
     fn build_time_variant_a_mat(&mut self) {
         self.elements
             .iter()
             .filter_map(|ele| ele.get_time_variant_triples())
-            .flat_map(|triples| triples.iter().map(|&(row, col, val)| (row, col, val)))
-            .for_each(|ele| self.solver.set_a(ele));  
+            .flat_map(|triples| triples.data())
+            .for_each(|triplet| self.solver.set_a(&triplet));
     }
 
-    fn build_time_variant_b_vec(&mut self){
+    fn build_time_variant_b_vec(&mut self) {
         self.elements
             .iter()
             .filter_map(|ele| ele.get_time_variant_pairs())
-            .flat_map(|pairs| pairs.iter().map(|&(row, val)| (row, val)))
-            .for_each(|ele| self.solver.set_b(ele)); 
+            .flat_map(|pairs| pairs.data())
+            .for_each(|pair| self.solver.set_b(&pair));
     }
 
     fn build_nonlinear_a_mat(&mut self, x_vec: &Vec<Numeric>) {
         self.elements
             .iter()
             .filter_map(|ele| ele.get_nonlinear_triples(x_vec))
-            .flat_map(|triples| triples.iter().map(|&(row, col, val)| (row, col, val)))
-            .for_each(|ele| self.solver.set_a(ele)); 
+            .flat_map(|triples| triples.data())
+            .for_each(|triplet| self.solver.set_a(&triplet));
     }
 
     fn build_nonlinear_b_vec(&mut self, x_vec: &Vec<Numeric>) {
         self.elements
             .iter()
             .filter_map(|ele| ele.get_nonlinear_pairs(x_vec))
-            .flat_map(|pairs| pairs.iter().map(|&(row, val)| (row, val)))
-            .for_each(|ele| self.solver.set_b(ele));
+            .flat_map(|pairs| pairs.data())
+            .for_each(|pair| self.solver.set_b(&pair));
+    }
+    
+    
+    fn build_ac_a_mat(&mut self, freq: Numeric) {
+        self.elements
+            .iter()
+            .filter_map(|ele| ele.get_ac_triples(freq))
+            .flat_map(|triples| triples.data())
+            .for_each(|triplet| self.solver.set_cplx_a(&triplet));
+    }
+
+    fn build_ac_b_vec(&mut self, freq: Numeric) {
+        self.elements
+            .iter()
+            .filter_map(|ele| ele.get_ac_pairs(freq))
+            .flat_map(|pairs| pairs.data())
+            .for_each(|pair| self.solver.set_cplx_b(&pair));
     }
 
     fn generate_initial_guess(&self) -> Vec<Numeric> {
@@ -423,8 +438,7 @@ impl<SO: Solver> Simulator<SO> {
                         _ => {}
                     }
                 }
-                _ => {
-                }
+                _ => {}
             }
 
             for (i, &val) in local_guess.iter().enumerate() {
@@ -445,23 +459,6 @@ impl<SO: Solver> Simulator<SO> {
             .iter()
             .zip(x_new.iter())
             .all(|(&old, &new)| (old - new).abs() < tolerance)
-    }
-
-    fn build_ac_a_mat(&mut self, freq: Numeric){
-        self.elements
-            .iter()
-            .filter_map(|ele| ele.get_ac_triples(freq))
-            .flat_map(|triples| triples.iter().map(|&(row, col, val)| (row, col, val)))
-            .for_each(|ele| self.solver.set_cplx_a(ele)); 
-        
-    }
-
-    fn build_ac_b_vec(&mut self, freq: Numeric){
-        self.elements
-            .iter()
-            .filter_map(|ele| ele.get_ac_pairs(freq))
-            .flat_map(|pairs| pairs.iter().map(|&(row, val)| (row, val)))
-            .for_each(|ele| self.solver.set_cplx_b(ele));
     }
 }
 

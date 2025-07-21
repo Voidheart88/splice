@@ -12,7 +12,13 @@ pub(crate) enum SimulationCommand {
     /// Represents an AC analysis command.
     Ac(Numeric, Numeric, usize, ACMode),
     /// Represents a DC analysis command.
-    Dc(Arc<str>, Numeric, Numeric, Numeric, Option<(Arc<str>, Numeric, Numeric, Numeric)>),
+    Dc(
+        Arc<str>,
+        Numeric,
+        Numeric,
+        Numeric,
+        Option<(Arc<str>, Numeric, Numeric, Numeric)>,
+    ),
 }
 
 /// Represents the ac simulation options

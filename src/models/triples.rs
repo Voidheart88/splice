@@ -30,7 +30,10 @@ impl<T: Copy + Default, const N: usize> Triples<T, N> {
     pub(crate) fn iter(&self) -> TriplesIter<'_, T, N> {
         self.into_iter()
     }
-
+    
+    pub(crate) fn data(&self) -> [(usize, usize, T); N] {
+        self.data
+    }
 }
 
 impl<T: Copy + Default, const N: usize> Index<usize> for Triples<T, N> {
@@ -110,4 +113,5 @@ impl<T, const N: usize> Triples<T, N> {
     pub fn len(&self) -> usize {
         return self.length;
     }
+
 }

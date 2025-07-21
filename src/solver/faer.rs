@@ -6,8 +6,7 @@ use faer::{
 };
 
 use super::{Solver, SolverError};
-use crate::{models::{Pairs, Triples}, spot::ComplexNumeric};
-use crate::spot::Numeric;
+use crate::spot::*;
 
 //use faer::solvers::SpSolver;
 //use faer::sparse::{LuError, SparseColMat};
@@ -57,9 +56,13 @@ impl Solver for FaerSolver {
         })
     }
 
-    fn set_a(&mut self, a_mat: (usize,usize,Numeric)) {}
+    fn set_a(&mut self, a_mat: &(usize, usize, Numeric)) {}
 
-    fn set_b(&mut self, b_vec: (usize,Numeric)) {}
+    fn set_b(&mut self, b_vec: &(usize, Numeric)) {}
+    
+    fn set_cplx_a(&mut self, a_mat: &(usize, usize, ComplexNumeric)) {}
+    
+    fn set_cplx_b(&mut self, b_vec: &(usize, ComplexNumeric)) {}
 
     fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError> {
         let triples: Vec<Triplet<usize, usize, Numeric>> = self
@@ -86,12 +89,6 @@ impl Solver for FaerSolver {
         }
 
         Ok(&self.x_vec)
-    }
-
-    fn set_cplx_a(&mut self, a_mat: (usize,usize,ComplexNumeric)) {
-    }
-
-    fn set_cplx_b(&mut self, b_vec: (usize,ComplexNumeric)) {
     }
 
     fn solve_cplx(&mut self) -> Result<&Vec<ComplexNumeric>, SolverError> {

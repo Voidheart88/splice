@@ -66,10 +66,13 @@ impl Solver for RSparseSolver {
         })
     }
 
-    fn set_a(&mut self, a_mat: (usize,usize,Numeric)) {}
+    fn set_a(&mut self, a_mat: &(usize, usize, Numeric)) {}
 
-    fn set_b(&mut self, b_vec: (usize,Numeric)) {}
+    fn set_b(&mut self, b_vec: &(usize, Numeric)) {}
 
+    fn set_cplx_a(&mut self, a_mat: &(usize, usize, ComplexNumeric)) {}
+
+    fn set_cplx_b(&mut self, b_vec: &(usize, ComplexNumeric)) {}
 
     /// Solves the system of equations (Ax = B for x) and returns a reference to the solution.
     fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError> {
@@ -89,12 +92,6 @@ impl Solver for RSparseSolver {
         Ok(&self.b)
     }
 
-    fn set_cplx_a(&mut self, a_mat: (usize,usize,ComplexNumeric)) {
-    }
-
-    fn set_cplx_b(&mut self, b_vec: (usize,ComplexNumeric)) {
-    }
-
     fn solve_cplx(&mut self) -> Result<&Vec<ComplexNumeric>, SolverError> {
         // Convert the triplet matrix to a sparse matrix
         self.cplx_sprs.from_trpl(&self.cplx_a);
@@ -106,7 +103,6 @@ impl Solver for RSparseSolver {
 }
 
 impl RSparseSolver {
-
     pub fn real_vec_to_complex_vec(&self) -> Vec<ComplexNumeric> {
         let pivot = self.vars;
         let real = &self.cplx_b[..pivot];

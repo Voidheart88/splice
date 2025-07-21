@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use num::{Complex,One, Zero};
+use num::{Complex, One, Zero};
 
 use super::*;
 /// A structure representing a bundle of resistors.

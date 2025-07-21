@@ -4,14 +4,12 @@ pub(crate) mod rsparse;
 
 use clap::ValueEnum;
 use miette::Diagnostic;
-use num::Complex;
 use thiserror::Error;
 
 pub(crate) use faer::FaerSolver;
 pub(crate) use nalgebra::NalgebraSolver;
 pub(crate) use rsparse::RSparseSolver;
 
-use crate::models::{Pairs, Triples};
 use crate::spot::{ComplexNumeric, Numeric};
 
 /// Errors that can occur in the Solver.
@@ -42,21 +40,21 @@ pub trait Solver {
 
     /// Sets the conductance matrix (`a`) into the Solver.
     /// Set sets a Value to the given matrix i,j
-    fn set_a(&mut self, a_trpl: (usize,usize,Numeric));
+    fn set_a(&mut self, a_trpl: &(usize, usize, Numeric));
 
     /// Sets the known values vector (`b`) into the Solver.
     /// Set sets a Value to the given vector i
-    fn set_b(&mut self, b_double: (usize,Numeric));
-
-    fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError>;
+    fn set_b(&mut self, b_pair: &(usize, Numeric));
 
     /// Sets the conductance matrix (`a`) into the Solver.
     /// Set sets a Value to the given matrix i,j
-    fn set_cplx_a(&mut self, a_trpl: (usize,usize,ComplexNumeric));
+    fn set_cplx_a(&mut self, a_trpl: &(usize, usize, ComplexNumeric));
 
     /// Sets the known values vector (`b`) into the Solver.
     /// Set sets a Value to the given vector i
-    fn set_cplx_b(&mut self, b_double: (usize,ComplexNumeric));
+    fn set_cplx_b(&mut self, b_pair: &(usize, ComplexNumeric));
+    
+    fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError>;
 
     fn solve_cplx(&mut self) -> Result<&Vec<ComplexNumeric>, SolverError>;
 }
