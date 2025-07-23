@@ -26,16 +26,7 @@ pub(crate) struct FaerSolver {
     cplx_b_vec: Mat<c64>,
 
     /// The Solution vector
-    cplx_x_vec: Vec<num::Complex<Numeric>>,
-}
-
-impl FaerSolver {
-    fn set_value(&mut self, row: usize, col: usize, val: Numeric) {
-        self.a_mat.insert((row, col), val);
-    }
-    fn set_cplx_value(&mut self, row: usize, col: usize, val: c64) {
-        self.cplx_a_mat.insert((row, col), val);
-    }
+    cplx_x_vec: Vec<ComplexNumeric>,
 }
 
 impl Solver for FaerSolver {
@@ -113,7 +104,31 @@ impl Solver for FaerSolver {
     }
 
     fn solve_cplx(&mut self) -> Result<&Vec<ComplexNumeric>, SolverError> {
-        Err(SolverError::MatrixNonInvertible)
+        let triples: Vec<Triplet<usize, usize, ComplexNumeric>> = self
+            .cplx_a_mat
+            .iter()
+            .map(|((row, col), val)| Triplet {
+                row: *row,
+                col: *col,
+                val: *val,
+            })
+            .collect();
+        let a_mat =
+            SparseColMat::try_new_from_triplets(self.x_vec.len(), self.x_vec.len(), &triples)
+                .unwrap();
+        
+        let lu = match a_mat.sp_lu() {
+            Ok(lu) => lu,
+            Err(_) => return Err(SolverError::MatrixNonInvertible),
+        };
+        
+        let res = lu.solve(&self.cplx_b_vec);
+        for (idx, val) in res.col_as_slice(0).iter().enumerate() {
+            self.cplx_x_vec[idx] = *val;
+        }
+
+        Ok(&self.cplx_x_vec)
+        
     }
 }
 
@@ -126,8 +141,6 @@ impl From<LuError> for SolverError {
     }
 }
 
-#[cfg(test)]
-use rsparse::data::Trpl;
 #[cfg(test)]
 impl FaerSolver {
     /// Returns the number of rows in the matrix `a_mat`.
@@ -144,17 +157,6 @@ impl FaerSolver {
     pub fn b_vec_len(&self) -> usize {
         self.b_vec.nrows()
     }
-
-    /// Returns a reference to the matrix `a_mat`.
-    pub fn a_mat(&self) -> &HashMap<(usize, usize), Numeric> {
-        &self.a_mat
-    }
-
-    /// Returns a reference to the vector `b_vec`.
-    pub fn b_vec(&self) -> &Mat<Numeric> {
-        &self.b_vec
-    }
-
 }
 
 

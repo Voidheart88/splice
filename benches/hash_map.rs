@@ -2,7 +2,6 @@ use criterion::Criterion;
 use rand::seq::SliceRandom;
 use rand::Rng;
 use std::collections::HashMap;
-use std::hint::black_box;
 
 const MAP_SIZE: usize = 10_000;
 const LARGE_MAP_SIZE: usize = 1_000_000;

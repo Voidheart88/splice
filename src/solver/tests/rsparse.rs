@@ -225,3 +225,29 @@ fn solve_complex_small_wo_imag() {
     assert_eq!(solution[0], 1.0);
     assert_eq!(solution[1], 1.0);
 }
+
+#[test]
+#[should_panic]
+fn insert_add() {
+    let mut a_matrix_elements = Vec::new();
+    a_matrix_elements.push((0, 0, 1.0));
+    a_matrix_elements.push((0, 1, 2.0));
+    a_matrix_elements.push((1, 0, 3.0));
+    a_matrix_elements.push((1, 1, 4.0));
+
+    let mut b_vector_elements = Vec::new();
+    b_vector_elements.push(0.0);
+    b_vector_elements.push(0.0);
+    let mut solver = RSparseSolver::new(2).unwrap();
+
+    a_matrix_elements.iter().for_each(|trpl| solver.set_a(trpl));
+    b_vector_elements
+        .iter()
+        .enumerate()
+        .for_each(|(idx, val)| solver.set_b(&(idx, *val)));
+
+    let result = solver.solve();
+    if result.is_err() {
+        panic!("expected")
+    }
+}

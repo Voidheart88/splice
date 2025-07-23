@@ -37,7 +37,7 @@ pub(crate) struct RSparseSolver {
 }
 
 impl Solver for RSparseSolver {
-    /// Creates a new instance of the Faer Solver with the given number of variables.
+    /// Creates a new instance of the Solver with the given number of variables.
     fn new(vars: usize) -> Result<Self, SolverError> {
         let a = Trpl::new();
         let b = vec![0.; vars];

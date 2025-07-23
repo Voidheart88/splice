@@ -72,48 +72,28 @@ impl Solver for NalgebraSolver {
     }
 
     fn solve_cplx(&mut self) -> Result<&Vec<ComplexNumeric>, SolverError> {
-        // Cloning only the necessary matrices for LU decomposition
         let lu = LU::new(self.cplx_a_mat.clone());
 
-        // Solving the equations without unnecessary cloning
         self.cplx_x_vec = match lu.solve(&self.cplx_b_vec) {
             Some(v) => v,
             None => return Err(SolverError::MatrixNonInvertible),
         };
 
-        // Returning a reference to the solution vector
         Ok(&self.cplx_x_vec.data.as_vec())
     }
 }
 
 #[cfg(test)]
 impl NalgebraSolver {
-    /// Returns the number of rows in the matrix `a_mat`.
     pub fn rows(&self) -> usize {
         self.a_mat.nrows()
     }
 
-    /// Returns the number of columns in the matrix `a_mat`.
     pub fn cols(&self) -> usize {
         self.a_mat.ncols()
     }
 
-    /// Returns the length of the vector `b_vec`.
     pub fn b_vec_len(&self) -> usize {
         self.b_vec.len()
-    }
-
-    /// Returns a reference to the matrix `a_mat`.
-    pub fn a_mat(
-        &self,
-    ) -> &na::Matrix<Numeric, na::Dyn, na::Dyn, na::VecStorage<Numeric, na::Dyn, na::Dyn>> {
-        &self.a_mat
-    }
-
-    /// Returns a reference to the vector `b_vec`.
-    pub fn b_vec(
-        &self,
-    ) -> &na::Matrix<Numeric, na::Dyn, na::U1, na::VecStorage<Numeric, na::Dyn, na::U1>> {
-        &self.b_vec
     }
 }
