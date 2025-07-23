@@ -341,7 +341,7 @@ impl<SO: Solver> Simulator<SO> {
             .iter()
             .filter_map(|ele| ele.get_constant_triples())
             .flat_map(|triples| triples.data())
-            .for_each(|triplet| self.solver.set_a(&triplet));
+            .for_each(|triplet| self.solver.insert_a(&triplet));
     }
 
     fn build_constant_b_vec(&mut self) {
@@ -349,7 +349,7 @@ impl<SO: Solver> Simulator<SO> {
             .iter()
             .filter_map(|ele| ele.get_constant_pairs())
             .flat_map(|pairs| pairs.data())
-            .for_each(|pair| self.solver.set_b(&pair));
+            .for_each(|pair| self.solver.insert_b(&pair));
     }
 
     fn build_time_variant_a_mat(&mut self) {
@@ -357,7 +357,7 @@ impl<SO: Solver> Simulator<SO> {
             .iter()
             .filter_map(|ele| ele.get_time_variant_triples())
             .flat_map(|triples| triples.data())
-            .for_each(|triplet| self.solver.set_a(&triplet));
+            .for_each(|triplet| self.solver.insert_a(&triplet));
     }
 
     fn build_time_variant_b_vec(&mut self) {
@@ -365,7 +365,7 @@ impl<SO: Solver> Simulator<SO> {
             .iter()
             .filter_map(|ele| ele.get_time_variant_pairs())
             .flat_map(|pairs| pairs.data())
-            .for_each(|pair| self.solver.set_b(&pair));
+            .for_each(|pair| self.solver.insert_b(&pair));
     }
 
     fn build_nonlinear_a_mat(&mut self, x_vec: &Vec<Numeric>) {
@@ -373,7 +373,7 @@ impl<SO: Solver> Simulator<SO> {
             .iter()
             .filter_map(|ele| ele.get_nonlinear_triples(x_vec))
             .flat_map(|triples| triples.data())
-            .for_each(|triplet| self.solver.set_a(&triplet));
+            .for_each(|triplet| self.solver.insert_a(&triplet));
     }
 
     fn build_nonlinear_b_vec(&mut self, x_vec: &Vec<Numeric>) {
@@ -381,7 +381,7 @@ impl<SO: Solver> Simulator<SO> {
             .iter()
             .filter_map(|ele| ele.get_nonlinear_pairs(x_vec))
             .flat_map(|pairs| pairs.data())
-            .for_each(|pair| self.solver.set_b(&pair));
+            .for_each(|pair| self.solver.insert_b(&pair));
     }
 
     fn build_ac_a_mat(&mut self, freq: Numeric) {
@@ -389,7 +389,7 @@ impl<SO: Solver> Simulator<SO> {
             .iter()
             .filter_map(|ele| ele.get_ac_triples(freq))
             .flat_map(|triples| triples.data())
-            .for_each(|triplet| self.solver.set_cplx_a(&triplet));
+            .for_each(|triplet| self.solver.insert_cplx_a(&triplet));
     }
 
     fn build_ac_b_vec(&mut self, freq: Numeric) {
@@ -397,7 +397,7 @@ impl<SO: Solver> Simulator<SO> {
             .iter()
             .filter_map(|ele| ele.get_ac_pairs(freq))
             .flat_map(|pairs| pairs.data())
-            .for_each(|pair| self.solver.set_cplx_b(&pair));
+            .for_each(|pair| self.solver.insert_cplx_b(&pair));
     }
 
     fn generate_initial_guess(&self) -> Vec<Numeric> {

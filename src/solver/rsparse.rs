@@ -66,17 +66,17 @@ impl Solver for RSparseSolver {
         })
     }
 
-    fn set_a(&mut self, a_mat: &(usize, usize, Numeric)) {
+    fn insert_a(&mut self, a_mat: &(usize, usize, Numeric)) {
         let (row, col, val) = *a_mat;
         self.a.append(row, col, val);
     }
 
-    fn set_b(&mut self, b_vec: &(usize, Numeric)) {
+    fn insert_b(&mut self, b_vec: &(usize, Numeric)) {
         let (row, val) = *b_vec;
         self.b[row] = val;
     }
 
-    fn set_cplx_a(&mut self, a_mat: &(usize, usize, ComplexNumeric)) {
+    fn insert_cplx_a(&mut self, a_mat: &(usize, usize, ComplexNumeric)) {
         let (row, col, val) = *a_mat;
         let pivot = self.cplx_a.m / 2;
 
@@ -86,7 +86,7 @@ impl Solver for RSparseSolver {
         self.cplx_a.append(row + pivot, col + pivot, val.re);
     }
 
-    fn set_cplx_b(&mut self, b_vec: &(usize, ComplexNumeric)) {
+    fn insert_cplx_b(&mut self, b_vec: &(usize, ComplexNumeric)) {
         let (row, val) = *b_vec;
         let pivot = self.cplx_b.len() / 2;
         self.cplx_b[row] = val.re;
@@ -144,6 +144,7 @@ fn ipvec(n: usize, p: &Option<Vec<isize>>, b: &[Numeric], x: &mut [Numeric]) {
 
 #[cfg(test)]
 impl RSparseSolver {
+    
     /// Returns the number of rows in the matrix `a_mat`.
     pub fn rows(&self) -> usize {
         self.a.n
@@ -179,6 +180,11 @@ impl RSparseSolver {
         &self.a
     }
 
+    /// Returns a reference to the matrix `a_mat`.
+    pub fn a_mat_mut(&mut self) -> &mut Trpl<Numeric> {
+        &mut self.a
+    }
+
     /// Returns a reference to the vector `b_vec`.
     pub fn b_vec(&self) -> &Vec<Numeric> {
         &self.b
@@ -192,5 +198,37 @@ impl RSparseSolver {
     /// Returns a reference to the vector `cplx_b_vec`.
     pub fn cplx_b_vec(&self) -> &Vec<Numeric> {
         &self.cplx_b
+    }
+    
+    pub fn print_matrix_from_trpl(triple: Trpl<f64>) {
+        let m = triple.m;
+        let n = triple.n;
+        let p = triple.p;
+        let i = triple.i;
+        let x = triple.x;
+    
+        let mut matrix = vec![vec![0.0; n]; m];
+
+        for k in 0..x.len() {
+            let row = i[k];
+            let col = p[k];
+            if row < m && col < n as isize {
+                matrix[row][col as usize] = x[k];
+            } else {
+                eprintln!("Warning: Index out of bounds detected for element at index {}. Skipping.", k);
+            }
+        }
+    
+        // Print the matrix in a formatted way.
+        for row in 0..m {
+            print!("[");
+            for col in 0..n {
+                print!("{:>8.2}", matrix[row][col]); // Format to 2 decimal places, right-aligned, 8 chars wide
+                if col < n - 1 {
+                    print!(", ");
+                }
+            }
+            println!("]");
+        }
     }
 }

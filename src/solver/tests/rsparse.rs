@@ -27,11 +27,11 @@ fn init_solver() {
 
     let mut solver = RSparseSolver::new(3).unwrap();
 
-    a_matrix.iter().for_each(|trpl| solver.set_a(trpl));
+    a_matrix.iter().for_each(|trpl| solver.insert_a(trpl));
     b_vector
         .iter()
         .enumerate()
-        .for_each(|(idx, val)| solver.set_b(&(idx, *val)));
+        .for_each(|(idx, val)| solver.insert_b(&(idx, *val)));
 
     assert_eq!(solver.rows(), 3);
     assert_eq!(solver.cols(), 3);
@@ -62,11 +62,11 @@ fn init_solver_cplx() {
 
     let mut solver = RSparseSolver::new(3).unwrap();
 
-    a_matrix.iter().for_each(|trpl| solver.set_cplx_a(trpl));
+    a_matrix.iter().for_each(|trpl| solver.insert_cplx_a(trpl));
     b_vector
         .iter()
         .enumerate()
-        .for_each(|(idx, val)| solver.set_cplx_b(&(idx, *val)));
+        .for_each(|(idx, val)| solver.insert_cplx_b(&(idx, *val)));
 
     println!("{:?}", solver.cplx_a_mat());
     assert_eq!(solver.cplx_cols(), 6);
@@ -90,11 +90,11 @@ fn solve_small() {
 
     let mut solver = RSparseSolver::new(3).unwrap();
 
-    a_matrix.iter().for_each(|trpl| solver.set_a(trpl));
+    a_matrix.iter().for_each(|trpl| solver.insert_a(trpl));
     b_vector
         .iter()
         .enumerate()
-        .for_each(|(idx, val)| solver.set_b(&(idx, *val)));
+        .for_each(|(idx, val)| solver.insert_b(&(idx, *val)));
 
     let solution = match solver.solve() {
         Ok(solution) => solution,
@@ -118,11 +118,11 @@ fn solve_small_2() {
 
     let mut solver = RSparseSolver::new(2).unwrap();
 
-    a_matrix_elements.iter().for_each(|trpl| solver.set_a(trpl));
+    a_matrix_elements.iter().for_each(|trpl| solver.insert_a(trpl));
     b_vector_elements
         .iter()
         .enumerate()
-        .for_each(|(idx, val)| solver.set_b(&(idx, *val)));
+        .for_each(|(idx, val)| solver.insert_b(&(idx, *val)));
 
     let solution = match solver.solve() {
         Ok(solution) => solution,
@@ -158,11 +158,11 @@ fn solve_no_solution() {
 
     let mut solver = RSparseSolver::new(2).unwrap();
 
-    a_matrix_elements.iter().for_each(|trpl| solver.set_a(trpl));
+    a_matrix_elements.iter().for_each(|trpl| solver.insert_a(trpl));
     b_vector_elements
         .iter()
         .enumerate()
-        .for_each(|(idx, val)| solver.set_b(&(idx, *val)));
+        .for_each(|(idx, val)| solver.insert_b(&(idx, *val)));
 
     let result = solver.solve();
     if result.is_err() {
@@ -184,11 +184,11 @@ fn solve_infinite_solutions_dependent() {
     b_vector_elements.push(6.0);
     let mut solver = RSparseSolver::new(2).unwrap();
 
-    a_matrix_elements.iter().for_each(|trpl| solver.set_a(trpl));
+    a_matrix_elements.iter().for_each(|trpl| solver.insert_a(trpl));
     b_vector_elements
         .iter()
         .enumerate()
-        .for_each(|(idx, val)| solver.set_b(&(idx, *val)));
+        .for_each(|(idx, val)| solver.insert_b(&(idx, *val)));
 
     let result = solver.solve();
     if result.is_err() {
@@ -212,11 +212,11 @@ fn solve_complex_small_wo_imag() {
 
     let mut solver = RSparseSolver::new(3).unwrap();
 
-    a_matrix.iter().for_each(|trpl| solver.set_cplx_a(trpl));
+    a_matrix.iter().for_each(|trpl| solver.insert_cplx_a(trpl));
     b_vector
         .iter()
         .enumerate()
-        .for_each(|(idx, val)| solver.set_cplx_b(&(idx, *val)));
+        .for_each(|(idx, val)| solver.insert_cplx_b(&(idx, *val)));
 
     let solution = match solver.solve() {
         Ok(solution) => solution,
@@ -227,27 +227,24 @@ fn solve_complex_small_wo_imag() {
 }
 
 #[test]
-#[should_panic]
-fn insert_add() {
+fn insert_add_a() {
     let mut a_matrix_elements = Vec::new();
     a_matrix_elements.push((0, 0, 1.0));
     a_matrix_elements.push((0, 1, 2.0));
     a_matrix_elements.push((1, 0, 3.0));
     a_matrix_elements.push((1, 1, 4.0));
 
-    let mut b_vector_elements = Vec::new();
-    b_vector_elements.push(0.0);
-    b_vector_elements.push(0.0);
     let mut solver = RSparseSolver::new(2).unwrap();
 
-    a_matrix_elements.iter().for_each(|trpl| solver.set_a(trpl));
-    b_vector_elements
+    a_matrix_elements
         .iter()
-        .enumerate()
-        .for_each(|(idx, val)| solver.set_b(&(idx, *val)));
-
-    let result = solver.solve();
-    if result.is_err() {
-        panic!("expected")
-    }
+        .for_each(|trpl| solver.insert_a(trpl));
+    
+    solver.insert_a(&(0,0,4.0));
+    solver.insert_a(&(0,1,3.0));
+    solver.insert_a(&(1,0,2.0));
+    solver.insert_a(&(1,1,1.0));
+    
+    solver.a_mat_mut().sum_dupl();
 }
+

@@ -44,7 +44,7 @@ impl Solver for FaerSolver {
         })
     }
 
-    fn set_a(&mut self, a_mat: &(usize, usize, Numeric)) {
+    fn insert_a(&mut self, a_mat: &(usize, usize, Numeric)) {
         let (row, col, val) = *a_mat;
         match self.a_mat.get_mut(&(row, col)) {
             Some(v) => *v += val,
@@ -54,13 +54,13 @@ impl Solver for FaerSolver {
         };
     }
 
-    fn set_b(&mut self, b_vec: &(usize, Numeric)) {
+    fn insert_b(&mut self, b_vec: &(usize, Numeric)) {
         let (row, val) = *b_vec;
         let value = self.b_vec.get_mut(row, 0);
         *value = *value + val;
     }
 
-    fn set_cplx_a(&mut self, a_mat: &(usize, usize, ComplexNumeric)) {
+    fn insert_cplx_a(&mut self, a_mat: &(usize, usize, ComplexNumeric)) {
         let (row, col, val) = *a_mat;
         match self.cplx_a_mat.get_mut(&(row, col)) {
             Some(v) => *v += val,
@@ -70,7 +70,7 @@ impl Solver for FaerSolver {
         };
     }
 
-    fn set_cplx_b(&mut self, b_vec: &(usize, ComplexNumeric)) {
+    fn insert_cplx_b(&mut self, b_vec: &(usize, ComplexNumeric)) {
         let (row, val) = *b_vec;
         let value = self.cplx_b_vec.get_mut(row, 0);
         *value = *value + val;

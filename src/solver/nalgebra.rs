@@ -40,22 +40,22 @@ impl Solver for NalgebraSolver {
         })
     }
 
-    fn set_a(&mut self, a_mat: &(usize, usize, Numeric)) {
+    fn insert_a(&mut self, a_mat: &(usize, usize, Numeric)) {
         let (row, col, val) = *a_mat;
         self.a_mat[(row, col)] = val;
     }
 
-    fn set_b(&mut self, b_vec: &(usize, Numeric)) {
+    fn insert_b(&mut self, b_vec: &(usize, Numeric)) {
         let (row, val) = *b_vec;
         self.b_vec[row] = val;
     }
 
-    fn set_cplx_a(&mut self, a_mat: &(usize, usize, ComplexNumeric)) {
+    fn insert_cplx_a(&mut self, a_mat: &(usize, usize, ComplexNumeric)) {
         let (row, col, val) = *a_mat;
         self.cplx_a_mat[(row, col)] = val;
     }
 
-    fn set_cplx_b(&mut self, b_vec: &(usize, ComplexNumeric)) {
+    fn insert_cplx_b(&mut self, b_vec: &(usize, ComplexNumeric)) {
         let (row, val) = *b_vec;
         self.cplx_b_vec[row] = val;
     }

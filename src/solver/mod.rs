@@ -38,21 +38,17 @@ pub trait Solver {
     where
         Self: Sized;
 
-    /// Sets the conductance matrix (`a`) into the Solver.
-    /// Set sets a Value to the given matrix i,j
-    fn set_a(&mut self, a_trpl: &(usize, usize, Numeric));
+    /// Inserts a Value into the conductance matrix (`a`) of the Solver.
+    fn insert_a(&mut self, a_trpl: &(usize, usize, Numeric));
 
-    /// Sets the known values vector (`b`) into the Solver.
-    /// Set sets a Value to the given vector i
-    fn set_b(&mut self, b_pair: &(usize, Numeric));
+    /// Inserts a Value into the  known values Vector (`a`) of the Solver.
+    fn insert_b(&mut self, b_pair: &(usize, Numeric));
 
-    /// Sets the conductance matrix (`a`) into the Solver.
-    /// Set sets a Value to the given matrix i,j
-    fn set_cplx_a(&mut self, a_trpl: &(usize, usize, ComplexNumeric));
+    /// Inserts a Value into the conductance matrix (`a`) of the Solver.
+    fn insert_cplx_a(&mut self, a_trpl: &(usize, usize, ComplexNumeric));
 
-    /// Sets the known values vector (`b`) into the Solver.
-    /// Set sets a Value to the given vector i
-    fn set_cplx_b(&mut self, b_pair: &(usize, ComplexNumeric));
+    /// Inserts a Value into the  known values Vector (`a`) of the Solver.
+    fn insert_cplx_b(&mut self, b_pair: &(usize, ComplexNumeric));
 
     fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError>;
 
