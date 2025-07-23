@@ -1,4 +1,7 @@
-use crate::{solver::{FaerSolver, Solver}, spot::ComplexNumeric};
+use crate::{
+    solver::{FaerSolver, Solver},
+    spot::ComplexNumeric,
+};
 
 #[test]
 fn init_solver() {
@@ -35,7 +38,6 @@ fn init_solver() {
     assert_eq!(solver.b_vec_len(), 3);
 }
 
-
 #[test]
 fn solve_small() {
     let mut a_matrix = Vec::new();
@@ -50,7 +52,7 @@ fn solve_small() {
     b_vector.push(7.0);
     b_vector.push(3.0);
 
-    let mut solver = FaerSolver::new(3).unwrap();
+    let mut solver = FaerSolver::new(2).unwrap();
 
     a_matrix.iter().for_each(|trpl| solver.insert_a(trpl));
     b_vector
@@ -80,7 +82,9 @@ fn solve_small_2() {
 
     let mut solver = FaerSolver::new(2).unwrap();
 
-    a_matrix_elements.iter().for_each(|trpl| solver.insert_a(trpl));
+    a_matrix_elements
+        .iter()
+        .for_each(|trpl| solver.insert_a(trpl));
     b_vector_elements
         .iter()
         .enumerate()
@@ -120,7 +124,9 @@ fn solve_no_solution() {
 
     let mut solver = FaerSolver::new(2).unwrap();
 
-    a_matrix_elements.iter().for_each(|trpl| solver.insert_a(trpl));
+    a_matrix_elements
+        .iter()
+        .for_each(|trpl| solver.insert_a(trpl));
     b_vector_elements
         .iter()
         .enumerate()
@@ -146,7 +152,9 @@ fn solve_infinite_solutions_dependent() {
     b_vector_elements.push(6.0);
     let mut solver = FaerSolver::new(2).unwrap();
 
-    a_matrix_elements.iter().for_each(|trpl| solver.insert_a(trpl));
+    a_matrix_elements
+        .iter()
+        .for_each(|trpl| solver.insert_a(trpl));
     b_vector_elements
         .iter()
         .enumerate()
@@ -187,4 +195,3 @@ fn solve_complex_small_wo_imag() {
     assert_eq!(solution[0], 1.0);
     assert_eq!(solution[1], 1.0);
 }
-

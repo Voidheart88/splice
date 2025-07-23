@@ -78,7 +78,7 @@ impl Solver for RSparseSolver {
 
     fn insert_cplx_a(&mut self, a_mat: &(usize, usize, ComplexNumeric)) {
         let (row, col, val) = *a_mat;
-        let pivot = self.cplx_a.m / 2;
+        let pivot = self.vars;
 
         self.cplx_a.append(row, col, val.re);
         self.cplx_a.append(row, col + pivot, -val.im);
@@ -144,7 +144,6 @@ fn ipvec(n: usize, p: &Option<Vec<isize>>, b: &[Numeric], x: &mut [Numeric]) {
 
 #[cfg(test)]
 impl RSparseSolver {
-    
     /// Returns the number of rows in the matrix `a_mat`.
     pub fn rows(&self) -> usize {
         self.a.n
@@ -199,14 +198,14 @@ impl RSparseSolver {
     pub fn cplx_b_vec(&self) -> &Vec<Numeric> {
         &self.cplx_b
     }
-    
+
     pub fn print_matrix_from_trpl(triple: Trpl<f64>) {
         let m = triple.m;
         let n = triple.n;
         let p = triple.p;
         let i = triple.i;
         let x = triple.x;
-    
+
         let mut matrix = vec![vec![0.0; n]; m];
 
         for k in 0..x.len() {
@@ -215,10 +214,13 @@ impl RSparseSolver {
             if row < m && col < n as isize {
                 matrix[row][col as usize] = x[k];
             } else {
-                eprintln!("Warning: Index out of bounds detected for element at index {}. Skipping.", k);
+                eprintln!(
+                    "Warning: Index out of bounds detected for element at index {}. Skipping.",
+                    k
+                );
             }
         }
-    
+
         // Print the matrix in a formatted way.
         for row in 0..m {
             print!("[");

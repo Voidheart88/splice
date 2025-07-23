@@ -116,19 +116,18 @@ impl Solver for FaerSolver {
         let a_mat =
             SparseColMat::try_new_from_triplets(self.x_vec.len(), self.x_vec.len(), &triples)
                 .unwrap();
-        
+
         let lu = match a_mat.sp_lu() {
             Ok(lu) => lu,
             Err(_) => return Err(SolverError::MatrixNonInvertible),
         };
-        
+
         let res = lu.solve(&self.cplx_b_vec);
         for (idx, val) in res.col_as_slice(0).iter().enumerate() {
             self.cplx_x_vec[idx] = *val;
         }
 
         Ok(&self.cplx_x_vec)
-        
     }
 }
 
@@ -158,5 +157,3 @@ impl FaerSolver {
         self.b_vec.nrows()
     }
 }
-
-

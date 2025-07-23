@@ -68,7 +68,6 @@ fn init_solver_cplx() {
         .enumerate()
         .for_each(|(idx, val)| solver.insert_cplx_b(&(idx, *val)));
 
-    println!("{:?}", solver.cplx_a_mat());
     assert_eq!(solver.cplx_cols(), 6);
     assert_eq!(solver.cplx_rows(), 6);
     assert_eq!(solver.cplx_b_vec_len(), 6);
@@ -118,7 +117,9 @@ fn solve_small_2() {
 
     let mut solver = RSparseSolver::new(2).unwrap();
 
-    a_matrix_elements.iter().for_each(|trpl| solver.insert_a(trpl));
+    a_matrix_elements
+        .iter()
+        .for_each(|trpl| solver.insert_a(trpl));
     b_vector_elements
         .iter()
         .enumerate()
@@ -158,7 +159,9 @@ fn solve_no_solution() {
 
     let mut solver = RSparseSolver::new(2).unwrap();
 
-    a_matrix_elements.iter().for_each(|trpl| solver.insert_a(trpl));
+    a_matrix_elements
+        .iter()
+        .for_each(|trpl| solver.insert_a(trpl));
     b_vector_elements
         .iter()
         .enumerate()
@@ -184,7 +187,9 @@ fn solve_infinite_solutions_dependent() {
     b_vector_elements.push(6.0);
     let mut solver = RSparseSolver::new(2).unwrap();
 
-    a_matrix_elements.iter().for_each(|trpl| solver.insert_a(trpl));
+    a_matrix_elements
+        .iter()
+        .for_each(|trpl| solver.insert_a(trpl));
     b_vector_elements
         .iter()
         .enumerate()
@@ -239,12 +244,42 @@ fn insert_add_a() {
     a_matrix_elements
         .iter()
         .for_each(|trpl| solver.insert_a(trpl));
-    
-    solver.insert_a(&(0,0,4.0));
-    solver.insert_a(&(0,1,3.0));
-    solver.insert_a(&(1,0,2.0));
-    solver.insert_a(&(1,1,1.0));
-    
+
+    solver.insert_a(&(0, 0, 4.0));
+    solver.insert_a(&(0, 1, 3.0));
+    solver.insert_a(&(1, 0, 2.0));
+    solver.insert_a(&(1, 1, 1.0));
+
     solver.a_mat_mut().sum_dupl();
 }
 
+#[test]
+fn solve_small_electrical() {
+    let mut a_matrix = Vec::new();
+
+    a_matrix.push((0, 0, 1.0 / 10.0));
+    a_matrix.push((0, 1, 1.0));
+    a_matrix.push((1, 0, 1.0));
+    a_matrix.push((1, 1, 0.0));
+
+    let mut b_vector = Vec::new();
+
+    b_vector.push(0.0);
+    b_vector.push(10.0);
+
+    let mut solver = RSparseSolver::new(3).unwrap();
+
+    a_matrix.iter().for_each(|trpl| solver.insert_a(trpl));
+    b_vector
+        .iter()
+        .enumerate()
+        .for_each(|(idx, val)| solver.insert_b(&(idx, *val)));
+
+    let solution = match solver.solve() {
+        Ok(solution) => solution,
+        Err(err) => panic!("{err}"),
+    };
+
+    assert_eq!(solution[0], 10.0);
+    assert_eq!(solution[1], -1.0);
+}

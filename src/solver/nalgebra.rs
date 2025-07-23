@@ -42,22 +42,22 @@ impl Solver for NalgebraSolver {
 
     fn insert_a(&mut self, a_mat: &(usize, usize, Numeric)) {
         let (row, col, val) = *a_mat;
-        self.a_mat[(row, col)] = val;
+        self.a_mat[(row, col)] += val;
     }
 
     fn insert_b(&mut self, b_vec: &(usize, Numeric)) {
         let (row, val) = *b_vec;
-        self.b_vec[row] = val;
+        self.b_vec[row] += val;
     }
 
     fn insert_cplx_a(&mut self, a_mat: &(usize, usize, ComplexNumeric)) {
         let (row, col, val) = *a_mat;
-        self.cplx_a_mat[(row, col)] = val;
+        self.cplx_a_mat[(row, col)] += val;
     }
 
     fn insert_cplx_b(&mut self, b_vec: &(usize, ComplexNumeric)) {
         let (row, val) = *b_vec;
-        self.cplx_b_vec[row] = val;
+        self.cplx_b_vec[row] += val;
     }
 
     fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError> {

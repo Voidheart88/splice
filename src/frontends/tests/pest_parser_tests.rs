@@ -5,7 +5,7 @@ use super::super::spice::*;
 #[test]
 fn process_minimal_vsource() {
     let input = "v 0 1 10";
-    SpiceParser::parse(Rule::SPICE, input)
+    let out = SpiceParser::parse(Rule::SPICE, input)
         .expect("unsuccessful parse")
         .next()
         .unwrap();

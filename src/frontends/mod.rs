@@ -95,7 +95,7 @@ impl SelectFrontend {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) struct Simulation {
     pub commands: Vec<SimulationCommand>,
     pub options: Vec<SimulationOption>,

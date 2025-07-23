@@ -41,7 +41,7 @@ fn parse_resistor1() {
     );
 
     assert_eq!(res, &expected);
-    assert_eq!(variables.len(), 1)
+    assert_eq!(variables.len(), 1);
 }
 
 #[test]
@@ -352,6 +352,8 @@ fn parse_regression1() {
     assert_eq!(variables.len(), 5);
     assert_eq!(elements.len(), 5);
     assert_eq!(commands.len(), 1);
+
+    println!("{:?}", elements);
 }
 
 #[test]
@@ -783,4 +785,22 @@ fn parse_out1() {
         elements: _,
         variables: _,
     } = parser.simulation().unwrap();
+}
+
+#[test]
+fn parse_minimal_circuit() {
+    let main_path = "src/frontends/tests/spice_files/parse_minimal_circuit.cir";
+    let parser = SpiceFrontend::new(main_path.to_string());
+
+    let Simulation {
+        commands,
+        options,
+        elements,
+        variables,
+    } = parser.simulation().unwrap();
+
+    println!("{:?}", commands);
+    println!("{:?}", options);
+    println!("{:?}", elements);
+    println!("{:?}", variables);
 }
