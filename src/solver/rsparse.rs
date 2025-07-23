@@ -46,7 +46,7 @@ impl Solver for RSparseSolver {
         let lu = Nmrc::new();
 
         let cplx_a = Trpl::new();
-        let cplx_b = vec![0.; 2*vars];
+        let cplx_b = vec![0.; 2 * vars];
         let cplx_x = Vec::with_capacity(2 * vars);
         let cplx_sprs = Sprs::new();
 
@@ -95,6 +95,7 @@ impl Solver for RSparseSolver {
 
     /// Solves the system of equations (Ax = B for x) and returns a reference to the solution.
     fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError> {
+        self.a.sum_dupl();
         self.sprs.from_trpl(&self.a);
         if self.symb.is_none() {
             self.symb = Some(rsparse::sqr(&self.sprs, 1, false))
@@ -182,7 +183,7 @@ impl RSparseSolver {
     pub fn b_vec(&self) -> &Vec<Numeric> {
         &self.b
     }
-    
+
     /// Returns a reference to the matrix `cplx_a_mat`.
     pub fn cplx_a_mat(&self) -> &Trpl<Numeric> {
         &self.cplx_a

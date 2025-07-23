@@ -1,5 +1,3 @@
-use rsparse::data::Trpl;
-
 use crate::{
     solver::{RSparseSolver, Solver},
     spot::ComplexNumeric,
@@ -44,24 +42,24 @@ fn init_solver() {
 fn init_solver_cplx() {
     let mut a_matrix = Vec::new();
 
-    a_matrix.push((0, 0, ComplexNumeric{re: 1.0, im: 0.0}));
-    a_matrix.push((0, 1, ComplexNumeric{re: 2.0, im: 0.0}));
-    a_matrix.push((0, 2, ComplexNumeric{re: 3.0, im: 0.0}));
-    
-    a_matrix.push((1, 0, ComplexNumeric{re: 4.0, im: 0.0}));
-    a_matrix.push((1, 1, ComplexNumeric{re: 5.0, im: 0.0}));
-    a_matrix.push((1, 2, ComplexNumeric{re: 6.0, im: 0.0}));
-    
-    a_matrix.push((2, 0, ComplexNumeric{re: 7.0, im: 0.0}));
-    a_matrix.push((2, 1, ComplexNumeric{re: 8.0, im: 0.0}));
-    a_matrix.push((2, 2, ComplexNumeric{re: 9.0, im: 0.0}));
+    a_matrix.push((0, 0, ComplexNumeric { re: 1.0, im: 0.0 }));
+    a_matrix.push((0, 1, ComplexNumeric { re: 2.0, im: 0.0 }));
+    a_matrix.push((0, 2, ComplexNumeric { re: 3.0, im: 0.0 }));
+
+    a_matrix.push((1, 0, ComplexNumeric { re: 4.0, im: 0.0 }));
+    a_matrix.push((1, 1, ComplexNumeric { re: 5.0, im: 0.0 }));
+    a_matrix.push((1, 2, ComplexNumeric { re: 6.0, im: 0.0 }));
+
+    a_matrix.push((2, 0, ComplexNumeric { re: 7.0, im: 0.0 }));
+    a_matrix.push((2, 1, ComplexNumeric { re: 8.0, im: 0.0 }));
+    a_matrix.push((2, 2, ComplexNumeric { re: 9.0, im: 0.0 }));
 
     let mut b_vector = Vec::new();
 
-    b_vector.push(ComplexNumeric{re: 1.0, im: 0.0});
-    b_vector.push(ComplexNumeric{re: 2.0, im: 0.0});
-    b_vector.push(ComplexNumeric{re: 3.0, im: 0.0});
-    
+    b_vector.push(ComplexNumeric { re: 1.0, im: 0.0 });
+    b_vector.push(ComplexNumeric { re: 2.0, im: 0.0 });
+    b_vector.push(ComplexNumeric { re: 3.0, im: 0.0 });
+
     let mut solver = RSparseSolver::new(3).unwrap();
 
     a_matrix.iter().for_each(|trpl| solver.set_cplx_a(trpl));
@@ -69,9 +67,9 @@ fn init_solver_cplx() {
         .iter()
         .enumerate()
         .for_each(|(idx, val)| solver.set_cplx_b(&(idx, *val)));
-    
-    println!("{:?}",solver.cplx_a_mat());  
-    assert_eq!(solver.cplx_cols(), 6);  
+
+    println!("{:?}", solver.cplx_a_mat());
+    assert_eq!(solver.cplx_cols(), 6);
     assert_eq!(solver.cplx_rows(), 6);
     assert_eq!(solver.cplx_b_vec_len(), 6);
 }

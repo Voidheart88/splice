@@ -53,13 +53,37 @@ impl Solver for FaerSolver {
         })
     }
 
-    fn set_a(&mut self, a_mat: &(usize, usize, Numeric)) {}
+    fn set_a(&mut self, a_mat: &(usize, usize, Numeric)) {
+        let (row, col, val) = *a_mat;
+        match self.a_mat.get_mut(&(row, col)) {
+            Some(v) => *v += val,
+            None => {
+                self.a_mat.insert((row, col), val);
+            }
+        };
+    }
 
-    fn set_b(&mut self, b_vec: &(usize, Numeric)) {}
+    fn set_b(&mut self, b_vec: &(usize, Numeric)) {
+        let (row, val) = *b_vec;
+        let value = self.b_vec.get_mut(row, 0);
+        *value = *value + val;
+    }
 
-    fn set_cplx_a(&mut self, a_mat: &(usize, usize, ComplexNumeric)) {}
+    fn set_cplx_a(&mut self, a_mat: &(usize, usize, ComplexNumeric)) {
+        let (row, col, val) = *a_mat;
+        match self.cplx_a_mat.get_mut(&(row, col)) {
+            Some(v) => *v += val,
+            None => {
+                self.cplx_a_mat.insert((row, col), val);
+            }
+        };
+    }
 
-    fn set_cplx_b(&mut self, b_vec: &(usize, ComplexNumeric)) {}
+    fn set_cplx_b(&mut self, b_vec: &(usize, ComplexNumeric)) {
+        let (row, val) = *b_vec;
+        let value = self.cplx_b_vec.get_mut(row, 0);
+        *value = *value + val;
+    }
 
     fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError> {
         let triples: Vec<Triplet<usize, usize, Numeric>> = self
@@ -93,6 +117,17 @@ impl Solver for FaerSolver {
     }
 }
 
+impl From<LuError> for SolverError {
+    fn from(value: LuError) -> Self {
+        match value {
+            LuError::Generic(_) => SolverError::MatrixNonInvertible,
+            LuError::SymbolicSingular { index: _ } => SolverError::MatrixNonInvertible,
+        }
+    }
+}
+
+#[cfg(test)]
+use rsparse::data::Trpl;
 #[cfg(test)]
 impl FaerSolver {
     /// Returns the number of rows in the matrix `a_mat`.
@@ -119,27 +154,7 @@ impl FaerSolver {
     pub fn b_vec(&self) -> &Mat<Numeric> {
         &self.b_vec
     }
+
 }
 
-impl From<LuError> for SolverError {
-    fn from(value: LuError) -> Self {
-        match value {
-            LuError::Generic(_) => SolverError::MatrixNonInvertible,
-            LuError::SymbolicSingular { index: _ } => SolverError::MatrixNonInvertible,
-        }
-    }
-}
 
-fn into_c64(val: ComplexNumeric) -> c64 {
-    c64 {
-        re: val.re,
-        im: val.im,
-    }
-}
-
-fn into_complex(val: c64) -> ComplexNumeric {
-    num::Complex {
-        re: val.re,
-        im: val.im,
-    }
-}
