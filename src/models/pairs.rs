@@ -100,37 +100,6 @@ impl<'a, T, const N: usize> IntoIterator for &'a Pairs<T, N> {
     }
 }
 
-/// A structure representing pair index of an element.
-///
-/// Each pair consists of a row and a col. The struct has a compile-time
-/// fixed capacity `N`, but `length` tracks the actual number of valid elements currently stored.
-#[derive(Clone, Debug, PartialEq, PartialOrd)]
-pub(crate) struct PairIdx<const N: usize> {
-    length: usize,
-    data: [usize; N],
-}
-
-impl<const N: usize> PairIdx<N> {
-    pub(crate) fn new(initial_data: &[usize]) -> Self {
-        assert!(
-            initial_data.len() <= N,
-            "Initial data length exceeds the capacity N."
-        );
-        let mut data_array: [usize; N] = [0; N];
-        for (i, &item) in initial_data.iter().enumerate() {
-            data_array[i] = item;
-        }
-
-        Self {
-            length: initial_data.len(),
-            data: data_array,
-        }
-    }
-
-    pub(crate) fn data(&self) -> [usize; N] {
-        self.data
-    }
-}
 
 #[cfg(test)]
 impl<T, const N: usize> Pairs<T, N> {

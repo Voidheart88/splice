@@ -125,9 +125,7 @@ impl Solver for RSparseSolver {
     fn init(
         &mut self,
         a_matrix: Vec<(usize, usize)>,
-        b_vec: Vec<usize>,
         cplx_a_matrix: Vec<(usize, usize)>,
-        cplx_b_vec: Vec<usize>,
     ) {
         let mut trpl = Trpl::new();
         a_matrix

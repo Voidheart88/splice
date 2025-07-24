@@ -158,16 +158,6 @@ impl DiodeBundle {
         Pairs::new(&[(a_idx, ca), (c_idx, cc)])
     }
 
-    /// Returns the pair representing the current source contributions to the vector b.
-    pub fn pair_idx(&self) -> Option<PairIdx<2>> {
-        match (self.a_idx(), self.c_idx()) {
-            (None, None) => None,
-            (Some(node0), None) => Some(PairIdx::new(&[node0])),
-            (None, Some(node1)) => Some(PairIdx::new(&[node1])),
-            (Some(node0), Some(node1)) => Some(PairIdx::new(&[node0, node1])),
-        }
-    }
-
     pub fn a_idx(&self) -> Option<usize> {
         match &self.anode {
             Some(v) => Some(v.idx()),

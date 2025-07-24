@@ -91,13 +91,6 @@ impl<SO: Solver> Simulator<SO> {
             .flat_map(|ele| ele.data())
             .collect();
 
-        let b_vec: Vec<usize> = self
-            .elements
-            .iter()
-            .filter_map(|ele| ele.get_pair_indices())
-            .flat_map(|ele| ele.data())
-            .collect();
-
         let cplx_a_mat: Vec<(usize, usize)> = self
             .elements
             .iter()
@@ -105,14 +98,7 @@ impl<SO: Solver> Simulator<SO> {
             .flat_map(|ele| ele.data())
             .collect();
 
-        let cplx_b_vec: Vec<usize> = self
-            .elements
-            .iter()
-            .filter_map(|ele| ele.get_cplx_pair_indices())
-            .flat_map(|ele| ele.data())
-            .collect();
-
-        self.solver.init(a_mat, b_vec, cplx_a_mat, cplx_b_vec);
+        self.solver.init(a_mat, cplx_a_mat);
     }
 
     fn execute_command(&mut self, comm: &SimulationCommand) -> Result<Sim, SimulatorError> {
@@ -239,7 +225,7 @@ impl<SO: Solver> Simulator<SO> {
                 let log_fend = fend.log10();
                 let step_size = (log_fend - log_fstart) / (*steps as Numeric);
                 (0..=*steps)
-                    .map(|i| 10f64.powf(log_fstart + i as Numeric * step_size))
+                    .map(|i| NUMERIC_TEN.powf(log_fstart + i as Numeric * step_size))
                     .collect()
             }
             ACMode::Oct => {
@@ -247,7 +233,7 @@ impl<SO: Solver> Simulator<SO> {
                 let oct_fend = fend.log2();
                 let step_size = (oct_fend - oct_fstart) / (*steps as Numeric);
                 (0..=*steps)
-                    .map(|i| 2f64.powf(oct_fstart + i as Numeric * step_size))
+                    .map(|i| NUMERIC_TWO.powf(oct_fstart + i as Numeric * step_size))
                     .collect()
             }
         };

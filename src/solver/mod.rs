@@ -42,9 +42,7 @@ pub trait Solver {
     fn init(
         &mut self,
         a_matrix: Vec<(usize, usize)>,
-        b_vec: Vec<usize>,
         cplx_a_matrix: Vec<(usize, usize)>,
-        cplx_b_vec: Vec<usize>,
     );
 
     /// Inserts a Value into the conductance matrix (`a`) of the Solver.

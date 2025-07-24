@@ -89,9 +89,7 @@ impl Solver for NalgebraSolver {
     fn init(
         &mut self,
         a_matrix: Vec<(usize, usize)>,
-        _: Vec<usize>,
         cplx_a_matrix: Vec<(usize, usize)>,
-        _: Vec<usize>,
     ) {
         a_matrix
             .iter()

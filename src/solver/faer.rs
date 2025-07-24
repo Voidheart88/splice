@@ -100,7 +100,12 @@ impl Solver for FaerSolver {
         for (idx, val) in res.col_as_slice(0).iter().enumerate() {
             self.x_vec[idx] = *val;
         }
-
+        
+        self.a_mat.iter_mut().for_each(|(_,val)| *val = Numeric::zero());
+        for idx in 0..self.x_vec.len() {
+            let value = self.b_vec.get_mut(idx, 0);
+            *value = Numeric::zero();
+        }
         Ok(&self.x_vec)
     }
 
@@ -134,9 +139,7 @@ impl Solver for FaerSolver {
     fn init(
         &mut self,
         a_matrix: Vec<(usize, usize)>,
-        _: Vec<usize>,
         cplx_a_matrix: Vec<(usize, usize)>,
-        _: Vec<usize>,
     ) {
         a_matrix
             .iter()
@@ -177,4 +180,5 @@ impl FaerSolver {
     pub fn b_vec_len(&self) -> usize {
         self.b_vec.nrows()
     }
+
 }

@@ -12,7 +12,6 @@ mod vsource;
 use core::fmt::Display;
 use std::sync::Arc;
 
-use crate::models::pairs::PairIdx;
 use crate::spot::*;
 
 pub(crate) use self::capacitor::CapacitorBundle;
@@ -20,7 +19,7 @@ pub(crate) use self::diode::DiodeBundle;
 pub(crate) use self::inductor::InductorBundle;
 pub(crate) use self::isource::ISourceBundle;
 pub(crate) use self::mosfet::Mos0Bundle;
-pub(crate) use self::pairs::Pairs; //Fixme: Find a better word for this
+pub(crate) use self::pairs::Pairs;
 pub(crate) use self::resistor::ResistorBundle;
 pub(crate) use self::triples::{TripleIdx, Triples};
 pub(crate) use self::vsource::VSourceBundle;
@@ -96,30 +95,6 @@ pub enum Element {
 }
 
 impl Element {
-    /// Returns the constant triples of the element, if applicable.
-    pub(crate) fn get_triples(&self, x_vec: &Vec<Numeric>) -> Option<Triples<Numeric, 4>> {
-        match self {
-            Element::VSource(ele) => Some(ele.triples()),
-            Element::Resistor(ele) => Some(ele.triples()),
-            Element::Capacitor(ele) => Some(ele.triples()),
-            Element::Inductor(ele) => Some(ele.triples()),
-            Element::Diode(ele) => Some(ele.triples(x_vec)),
-            Element::Mos0(ele) => Some(ele.triples(x_vec)),
-            Element::ISource(_) => None,
-        }
-    }
-
-    /// Returns the time variant pairs of the element, if applicable.
-    pub(crate) fn get_pairs(&self, x_vec: &Vec<Numeric>) -> Option<Pairs<Numeric, 2>> {
-        match self {
-            Element::Diode(ele) => Some(ele.pairs(x_vec)),
-            Element::Mos0(ele) => Some(ele.pairs(x_vec)),
-            Element::VSource(ele) => Some(ele.pairs()),
-            Element::ISource(ele) => Some(ele.pairs()),
-            _ => None,
-        }
-    }
-
     pub(crate) fn get_constant_triples(&self) -> Option<Triples<Numeric, 4>> {
         match self {
             Element::VSource(ele) => Some(ele.triples()),
@@ -235,18 +210,6 @@ impl Element {
         }
     }
 
-    /// Returns the name of the element.
-    pub(crate) fn get_pair_indices(&self) -> Option<PairIdx<2>> {
-        match self {
-            Element::Capacitor(_) => None,
-            Element::Inductor(_) => None,
-            Element::Resistor(_) => None,
-            Element::Diode(ele) => ele.pair_idx(),
-            Element::Mos0(ele) => ele.pair_idx(),
-            Element::VSource(ele) => ele.pair_idx(),
-            Element::ISource(ele) => ele.pair_idx(),
-        }
-    }
 
     /// Returns the ac triples. Ac Triples are dependend on f
     pub(crate) fn get_cplx_triple_indices(&self) -> Option<TripleIdx<4>> {
@@ -261,18 +224,6 @@ impl Element {
         }
     }
 
-    /// Returns the ac pairs of the element, if applicable.
-    pub(crate) fn get_cplx_pair_indices(&self) -> Option<PairIdx<2>> {
-        match self {
-            Element::Diode(_) => None,
-            Element::Mos0(_) => None,
-            Element::Capacitor(_) => None,
-            Element::Inductor(_) => None,
-            Element::Resistor(_) => None,
-            Element::VSource(ele) => ele.pair_idx(),
-            Element::ISource(_) => None,
-        }
-    }
 }
 
 #[cfg(test)]

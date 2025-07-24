@@ -3,14 +3,20 @@ use num::Complex;
 pub type Numeric = f64;
 pub type ComplexNumeric = Complex<Numeric>;
 
+/// Ten
+pub const NUMERIC_TEN: Numeric = 10.0;
+
+/// TWO
+pub const NUMERIC_TWO: Numeric = 10.0;
+
 /// Boltzmann constant J/K
-pub const KB: Numeric = 1.380649e-23f64;
+pub const KB: Numeric = 1.380649e-23;
 
 /// Elementary Charge
-pub const ELE_CHRG: Numeric = 1.602176634e-19f64;
+pub const ELE_CHRG: Numeric = 1.602176634e-19;
 
 /// Room temperature in K
-pub const TEMP: Numeric = 293.15f64;
+pub const TEMP: Numeric = 293.15;
 
 /// The default conductance for inductors in S
 pub const DEFAULT_CONDUCTANCE: Numeric = 1e24;

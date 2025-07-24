@@ -27,7 +27,6 @@ nalgebra = "0.33"
 rsparse = "1.2"
 faer = "0.22"
 
-
 [dev-dependencies]
 criterion = { version = "0.6", features = ["html_reports"] }
 assert_float_eq = "1.1.3"
