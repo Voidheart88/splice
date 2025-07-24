@@ -2,6 +2,8 @@ use std::sync::Arc;
 
 use num::Zero;
 
+use crate::models::triples::TripleIdx;
+
 use super::super::*;
 
 /// A structure representing a Mos0 Mosfet.
@@ -89,6 +91,21 @@ impl Mos0Bundle {
         }
     }
 
+    /// Returns a reference to the triples representing matrix A.
+    pub fn triple_idx(&self) -> Option<TripleIdx<4>> {
+        match (self.d_idx(), self.s_idx()) {
+            (None, None) => Some(TripleIdx::new(&[])),
+            (None, Some(s_idx)) => Some(TripleIdx::new(&[(s_idx, s_idx)])),
+            (Some(d_idx), None) => Some(TripleIdx::new(&[(d_idx, d_idx)])),
+            (Some(d_idx), Some(s_idx)) => Some(TripleIdx::new(&[
+                (d_idx, d_idx),
+                (s_idx, s_idx),
+                (d_idx, s_idx),
+                (s_idx, d_idx),
+            ])),
+        }
+    }
+
     /// Returns a reference to the pairs representing vector b.
     pub fn pairs(&self, x_vec: &Vec<Numeric>) -> Pairs<Numeric, 2> {
         let kp = self.options.kp;
@@ -110,6 +127,16 @@ impl Mos0Bundle {
             (None, Some(s_idx)) => Pairs::new(&[(s_idx, -i_ds)]),
             (Some(d_idx), None) => Pairs::new(&[(d_idx, i_ds)]),
             (Some(d_idx), Some(s_idx)) => Pairs::new(&[(d_idx, i_ds), (s_idx, -i_ds)]),
+        }
+    }
+
+    /// Returns the pair representing the current source contributions to the vector b.
+    pub fn pair_idx(&self) -> Option<PairIdx<2>> {
+        match (self.d_idx(), self.s_idx()) {
+            (None, None) => None,
+            (Some(node0), None) => Some(PairIdx::new(&[node0])),
+            (None, Some(node1)) => Some(PairIdx::new(&[node1])),
+            (Some(node0), Some(node1)) => Some(PairIdx::new(&[node0, node1])),
         }
     }
 

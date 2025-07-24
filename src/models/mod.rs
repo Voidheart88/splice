@@ -12,6 +12,7 @@ mod vsource;
 use core::fmt::Display;
 use std::sync::Arc;
 
+use crate::models::pairs::PairIdx;
 use crate::spot::*;
 
 pub(crate) use self::capacitor::CapacitorBundle;
@@ -21,7 +22,7 @@ pub(crate) use self::isource::ISourceBundle;
 pub(crate) use self::mosfet::Mos0Bundle;
 pub(crate) use self::pairs::Pairs; //Fixme: Find a better word for this
 pub(crate) use self::resistor::ResistorBundle;
-pub(crate) use self::triples::Triples;
+pub(crate) use self::triples::{TripleIdx, Triples};
 pub(crate) use self::vsource::VSourceBundle;
 
 /// An Enum representing the Unit of the Value - Nessecary for
@@ -95,7 +96,6 @@ pub enum Element {
 }
 
 impl Element {
-    #[allow(unused)]
     /// Returns the constant triples of the element, if applicable.
     pub(crate) fn get_triples(&self, x_vec: &Vec<Numeric>) -> Option<Triples<Numeric, 4>> {
         match self {
@@ -109,7 +109,6 @@ impl Element {
         }
     }
 
-    #[allow(unused)]
     /// Returns the time variant pairs of the element, if applicable.
     pub(crate) fn get_pairs(&self, x_vec: &Vec<Numeric>) -> Option<Pairs<Numeric, 2>> {
         match self {
@@ -220,6 +219,58 @@ impl Element {
             Element::Mos0(ele) => ele.name(),
             Element::VSource(ele) => ele.name(),
             Element::ISource(ele) => ele.name(),
+        }
+    }
+
+    /// Returns the name of the element.
+    pub(crate) fn get_triple_indices(&self) -> Option<TripleIdx<4>> {
+        match self {
+            Element::Capacitor(ele) => ele.triple_idx(),
+            Element::Inductor(ele) => ele.triple_idx(),
+            Element::Resistor(ele) => ele.triple_idx(),
+            Element::Diode(ele) => ele.triple_idx(),
+            Element::Mos0(ele) => ele.triple_idx(),
+            Element::VSource(ele) => ele.triple_idx(),
+            Element::ISource(_) => None,
+        }
+    }
+
+    /// Returns the name of the element.
+    pub(crate) fn get_pair_indices(&self) -> Option<PairIdx<2>> {
+        match self {
+            Element::Capacitor(_) => None,
+            Element::Inductor(_) => None,
+            Element::Resistor(_) => None,
+            Element::Diode(ele) => ele.pair_idx(),
+            Element::Mos0(ele) => ele.pair_idx(),
+            Element::VSource(ele) => ele.pair_idx(),
+            Element::ISource(ele) => ele.pair_idx(),
+        }
+    }
+
+    /// Returns the ac triples. Ac Triples are dependend on f
+    pub(crate) fn get_cplx_triple_indices(&self) -> Option<TripleIdx<4>> {
+        match self {
+            Element::Diode(_) => None,
+            Element::Mos0(_) => None,
+            Element::Capacitor(cap) => cap.triple_idx(),
+            Element::Inductor(ind) => ind.triple_idx(),
+            Element::Resistor(res) => res.triple_idx(),
+            Element::VSource(vsource) => vsource.triple_idx(),
+            Element::ISource(_) => None,
+        }
+    }
+
+    /// Returns the ac pairs of the element, if applicable.
+    pub(crate) fn get_cplx_pair_indices(&self) -> Option<PairIdx<2>> {
+        match self {
+            Element::Diode(_) => None,
+            Element::Mos0(_) => None,
+            Element::Capacitor(_) => None,
+            Element::Inductor(_) => None,
+            Element::Resistor(_) => None,
+            Element::VSource(ele) => ele.pair_idx(),
+            Element::ISource(_) => None,
         }
     }
 }

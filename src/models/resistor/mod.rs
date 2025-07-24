@@ -2,6 +2,8 @@ use std::sync::Arc;
 
 use num::{Complex, One, Zero};
 
+use crate::models::triples::TripleIdx;
+
 use super::*;
 /// A structure representing a bundle of resistors.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
@@ -80,6 +82,21 @@ impl ResistorBundle {
             (node0_idx, node1_idx, -Numeric::one() / self.value),
             (node1_idx, node0_idx, -Numeric::one() / self.value),
         ])
+    }
+
+    /// Returns the triples indices.
+    pub fn triple_idx(&self) -> Option<TripleIdx<4>> {
+        match (self.node0_idx(), self.node1_idx()) {
+            (None, None) => None,
+            (None, Some(idx_1)) => Some(TripleIdx::new(&[(idx_1, idx_1)])),
+            (Some(idx_0), None) => Some(TripleIdx::new(&[(idx_0, idx_0)])),
+            (Some(idx_0), Some(idx_1)) => Some(TripleIdx::new(&[
+                (idx_0, idx_0),
+                (idx_1, idx_1),
+                (idx_0, idx_1),
+                (idx_1, idx_0),
+            ])),
+        }
     }
 
     /// Returns triples representing this elements contribution to the a matrix

@@ -1,3 +1,5 @@
+use num::Zero;
+
 use super::{Solver, SolverError};
 use crate::spot::{ComplexNumeric, Numeric}; // Ensure these are correctly imported
 use na::LU;
@@ -80,6 +82,22 @@ impl Solver for NalgebraSolver {
         };
 
         Ok(&self.cplx_x_vec.data.as_vec())
+    }
+
+    fn init(
+        &mut self,
+        a_matrix: Vec<(usize, usize)>,
+        _: Vec<usize>,
+        cplx_a_matrix: Vec<(usize, usize)>,
+        _: Vec<usize>,
+    ) {
+        a_matrix
+            .iter()
+            .for_each(|(row, col)| self.a_mat[(*row, *col)] = Numeric::zero());
+
+        cplx_a_matrix
+            .iter()
+            .for_each(|(row, col)| self.cplx_a_mat[(*row, *col)] = ComplexNumeric::zero());
     }
 }
 

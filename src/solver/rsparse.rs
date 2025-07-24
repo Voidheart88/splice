@@ -1,11 +1,13 @@
 #![allow(unused)]
 
+use std::collections::HashMap;
+
 use super::{Solver, SolverError};
 use crate::models::{Pairs, Triples};
 use crate::spot::*;
 use log::trace;
 use num::complex::ComplexFloat;
-use num::Complex;
+use num::{Complex, Zero};
 use rsparse::data::{Nmrc, Sprs, Symb, Trpl};
 use rsparse::lusol;
 
@@ -95,7 +97,6 @@ impl Solver for RSparseSolver {
 
     /// Solves the system of equations (Ax = B for x) and returns a reference to the solution.
     fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError> {
-        self.a.sum_dupl();
         self.sprs.from_trpl(&self.a);
         if self.symb.is_none() {
             self.symb = Some(rsparse::sqr(&self.sprs, 1, false))
@@ -119,6 +120,37 @@ impl Solver for RSparseSolver {
         self.cplx_x = self.real_vec_to_complex_vec();
 
         Ok(&self.cplx_x)
+    }
+
+    fn init(
+        &mut self,
+        a_matrix: Vec<(usize, usize)>,
+        b_vec: Vec<usize>,
+        cplx_a_matrix: Vec<(usize, usize)>,
+        cplx_b_vec: Vec<usize>,
+    ) {
+        let mut trpl = Trpl::new();
+        a_matrix
+            .iter()
+            .for_each(|val| trpl.append(val.0, val.1, Numeric::zero()));
+
+        let pivot = self.vars;
+        let mut cplx_trpl = Trpl::new();
+        cplx_a_matrix.iter().for_each(|val| {
+            cplx_trpl.append(val.0, val.1, Numeric::zero());
+            cplx_trpl.append(val.0, val.1 + pivot, Numeric::zero());
+            cplx_trpl.append(val.0 + pivot, val.1, Numeric::zero());
+            cplx_trpl.append(val.0 + pivot, val.1 + pivot, Numeric::zero());
+        });
+        trpl.sum_dupl();
+
+        let mut sprs = Sprs::new();
+        sprs.from_trpl(&trpl);
+        self.symb = Some(rsparse::sqr(&sprs, 1, false));
+
+        let mut cplx_sprs = Sprs::new();
+        cplx_sprs.from_trpl(&cplx_trpl);
+        self.cplx_symb = Some(rsparse::sqr(&cplx_sprs, 1, false));
     }
 }
 

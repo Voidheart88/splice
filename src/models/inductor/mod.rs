@@ -3,6 +3,7 @@ use std::sync::Arc;
 use num::traits::FloatConst;
 use num::{Complex, One, Zero};
 
+use crate::models::triples::TripleIdx;
 use crate::spot::*;
 
 use super::*;
@@ -72,6 +73,37 @@ impl InductorBundle {
             (node0_idx, node1_idx, DEFAULT_CONDUCTANCE),
             (node1_idx, node0_idx, DEFAULT_CONDUCTANCE),
         ])
+    }
+
+    /// Returns the triples indices.
+    pub fn triple_idx(&self) -> Option<TripleIdx<4>> {
+        match (self.node0_idx(), self.node1_idx()) {
+            (None, None) => None,
+            (None, Some(idx_1)) => Some(TripleIdx::new(&[(idx_1, idx_1)])),
+            (Some(idx_0), None) => Some(TripleIdx::new(&[(idx_0, idx_0)])),
+            (Some(idx_0), Some(idx_1)) => Some(TripleIdx::new(&[
+                (idx_0, idx_0),
+                (idx_1, idx_1),
+                (idx_0, idx_1),
+                (idx_1, idx_0),
+            ])),
+        }
+    }
+
+    /// Returns the index of node0 if it exists.
+    pub fn node0_idx(&self) -> Option<usize> {
+        match &self.node0 {
+            Some(v) => Some(v.idx()),
+            None => None,
+        }
+    }
+
+    /// Returns the index of node1 if it exists.
+    pub fn node1_idx(&self) -> Option<usize> {
+        match &self.node1 {
+            Some(v) => Some(v.idx()),
+            None => None,
+        }
     }
 
     /// Returns the triples representing the inductor's contribution to matrix A.

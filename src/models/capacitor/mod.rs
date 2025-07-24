@@ -4,6 +4,7 @@ use num::traits::FloatConst;
 use num::{Complex, One, Zero};
 
 use super::*;
+use crate::models::triples::TripleIdx;
 use crate::spot::*;
 
 /// A structure representing a bundle of capacitors.
@@ -153,6 +154,20 @@ impl CapacitorBundle {
                 },
             ),
         ])
+    }
+
+    pub fn triple_idx(&self) -> Option<TripleIdx<4>> {
+        match (self.node0_idx(), self.node1_idx()) {
+            (None, None) => None,
+            (None, Some(idx_1)) => Some(TripleIdx::new(&[(idx_1, idx_1)])),
+            (Some(idx_0), None) => Some(TripleIdx::new(&[(idx_0, idx_0)])),
+            (Some(idx_0), Some(idx_1)) => Some(TripleIdx::new(&[
+                (idx_0, idx_0),
+                (idx_1, idx_1),
+                (idx_0, idx_1),
+                (idx_1, idx_0),
+            ])),
+        }
     }
 }
 

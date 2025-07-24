@@ -4,6 +4,7 @@ use faer::{
     prelude::*,
     sparse::{linalg::LuError, Triplet},
 };
+use num::Zero;
 
 use super::{Solver, SolverError};
 use crate::spot::*;
@@ -128,6 +129,26 @@ impl Solver for FaerSolver {
         }
 
         Ok(&self.cplx_x_vec)
+    }
+
+    fn init(
+        &mut self,
+        a_matrix: Vec<(usize, usize)>,
+        _: Vec<usize>,
+        cplx_a_matrix: Vec<(usize, usize)>,
+        _: Vec<usize>,
+    ) {
+        a_matrix
+            .iter()
+            .for_each(|(row, col)| {
+                self.a_mat.insert((*row,*col),Numeric::zero());
+            });
+
+        cplx_a_matrix
+            .iter()
+            .for_each(|(row, col)| {
+                self.cplx_a_mat.insert((*row,*col),ComplexNumeric::zero());
+            });
     }
 }
 

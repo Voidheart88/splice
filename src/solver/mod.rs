@@ -38,6 +38,15 @@ pub trait Solver {
     where
         Self: Sized;
 
+    /// Initialize the matrices and vectors to get the sparsity pattern.
+    fn init(
+        &mut self,
+        a_matrix: Vec<(usize, usize)>,
+        b_vec: Vec<usize>,
+        cplx_a_matrix: Vec<(usize, usize)>,
+        cplx_b_vec: Vec<usize>,
+    );
+
     /// Inserts a Value into the conductance matrix (`a`) of the Solver.
     fn insert_a(&mut self, a_trpl: &(usize, usize, Numeric));
 

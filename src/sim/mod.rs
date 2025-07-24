@@ -66,6 +66,9 @@ pub(super) struct Simulator<SO: Solver> {
 
 impl<SO: Solver> Simulator<SO> {
     pub fn run(&mut self) -> Result<SimulationResults, SimulatorError> {
+        //Inits matrices and sparsity patterns
+        self.init_solver();
+
         let commands = self.commands.clone();
         let mut results = SimulationResults::default();
         results.options = self.options.clone();
@@ -78,6 +81,38 @@ impl<SO: Solver> Simulator<SO> {
         }
 
         Ok(results)
+    }
+
+    fn init_solver(&mut self) {
+        let a_mat: Vec<(usize, usize)> = self
+            .elements
+            .iter()
+            .filter_map(|ele| ele.get_triple_indices())
+            .flat_map(|ele| ele.data())
+            .collect();
+
+        let b_vec: Vec<usize> = self
+            .elements
+            .iter()
+            .filter_map(|ele| ele.get_pair_indices())
+            .flat_map(|ele| ele.data())
+            .collect();
+
+        let cplx_a_mat: Vec<(usize, usize)> = self
+            .elements
+            .iter()
+            .filter_map(|ele| ele.get_cplx_triple_indices())
+            .flat_map(|ele| ele.data())
+            .collect();
+
+        let cplx_b_vec: Vec<usize> = self
+            .elements
+            .iter()
+            .filter_map(|ele| ele.get_cplx_pair_indices())
+            .flat_map(|ele| ele.data())
+            .collect();
+
+        self.solver.init(a_mat, b_vec, cplx_a_mat, cplx_b_vec);
     }
 
     fn execute_command(&mut self, comm: &SimulationCommand) -> Result<Sim, SimulatorError> {

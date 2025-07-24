@@ -2,6 +2,8 @@ use std::sync::Arc;
 
 use num::{Complex, One, Zero};
 
+use crate::models::triples::TripleIdx;
+
 use super::*;
 
 /// A structure representing a bundle of voltage sources.
@@ -118,6 +120,21 @@ impl VSourceBundle {
         ])
     }
 
+    /// Returns the triples indices.
+    pub fn triple_idx(&self) -> Option<TripleIdx<4>> {
+        match (self.node0_idx(), self.node1_idx()) {
+            (None, None) => None,
+            (None, Some(idx_1)) => Some(TripleIdx::new(&[(idx_1, idx_1)])),
+            (Some(idx_0), None) => Some(TripleIdx::new(&[(idx_0, idx_0)])),
+            (Some(idx_0), Some(idx_1)) => Some(TripleIdx::new(&[
+                (idx_0, idx_0),
+                (idx_1, idx_1),
+                (idx_0, idx_1),
+                (idx_1, idx_0),
+            ])),
+        }
+    }
+
     /// Returns a reference to the triples representing matrix A.
     pub fn ac_triples(&self) -> Triples<ComplexNumeric, 4> {
         let branch_idx = self.branch_idx();
@@ -207,6 +224,16 @@ impl VSourceBundle {
     /// Returns a reference to the pair representing vector b.
     pub fn pairs(&self) -> Pairs<Numeric, 2> {
         Pairs::new(&[(self.branch_idx(), self.value)])
+    }
+
+    /// Returns the pair representing the current source contributions to the vector b.
+    pub fn pair_idx(&self) -> Option<PairIdx<2>> {
+        match (&self.node0, &self.node1) {
+            (None, None) => None,
+            (Some(node0), None) => Some(PairIdx::new(&[node0.idx()])),
+            (None, Some(node1)) => Some(PairIdx::new(&[node1.idx()])),
+            (Some(node0), Some(node1)) => Some(PairIdx::new(&[node0.idx(), node1.idx()])),
+        }
     }
 
     /// Returns a reference to the pair representing vector b.

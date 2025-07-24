@@ -251,6 +251,20 @@ fn insert_add_a() {
     solver.insert_a(&(1, 1, 1.0));
 
     solver.a_mat_mut().sum_dupl();
+
+    let mut exp = rsparse::data::Trpl::new();
+    exp.append(0, 0, 5.0);
+    exp.append(0, 1, 5.0);
+    exp.append(1, 0, 5.0);
+    exp.append(1, 1, 5.0);
+
+    solver.a_mat_mut().sum_dupl();
+    println!("{:?}", solver.a_mat());
+
+    assert_eq!(exp.get(0, 0), solver.a_mat().get(0, 0));
+    assert_eq!(exp.get(1, 0), solver.a_mat().get(1, 0));
+    assert_eq!(exp.get(0, 1), solver.a_mat().get(0, 1));
+    assert_eq!(exp.get(1, 1), solver.a_mat().get(1, 1));
 }
 
 #[test]

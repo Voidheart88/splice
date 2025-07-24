@@ -3,6 +3,7 @@ use std::sync::Arc;
 use num::{One, Zero};
 
 use super::*;
+use crate::models::triples::TripleIdx;
 use crate::spot::*;
 
 /// A structure representing a Diode with all their options.
@@ -106,6 +107,21 @@ impl DiodeBundle {
         ])
     }
 
+    /// Returns a reference to the triples representing matrix A.
+    pub fn triple_idx(&self) -> Option<TripleIdx<4>> {
+        match (self.a_idx(), self.c_idx()) {
+            (None, None) => None,
+            (None, Some(idx_1)) => Some(TripleIdx::new(&[(idx_1, idx_1)])),
+            (Some(idx_0), None) => Some(TripleIdx::new(&[(idx_0, idx_0)])),
+            (Some(idx_0), Some(idx_1)) => Some(TripleIdx::new(&[
+                (idx_0, idx_0),
+                (idx_1, idx_1),
+                (idx_0, idx_1),
+                (idx_1, idx_0),
+            ])),
+        }
+    }
+
     /// Returns a reference to the pairs representing vector b.
     pub fn pairs(&self, x_vec: &Vec<Numeric>) -> Pairs<Numeric, 2> {
         let a_voltage = match self.a_idx() {
@@ -140,6 +156,16 @@ impl DiodeBundle {
         };
 
         Pairs::new(&[(a_idx, ca), (c_idx, cc)])
+    }
+
+    /// Returns the pair representing the current source contributions to the vector b.
+    pub fn pair_idx(&self) -> Option<PairIdx<2>> {
+        match (self.a_idx(), self.c_idx()) {
+            (None, None) => None,
+            (Some(node0), None) => Some(PairIdx::new(&[node0])),
+            (None, Some(node1)) => Some(PairIdx::new(&[node1])),
+            (Some(node0), Some(node1)) => Some(PairIdx::new(&[node0, node1])),
+        }
     }
 
     pub fn a_idx(&self) -> Option<usize> {
