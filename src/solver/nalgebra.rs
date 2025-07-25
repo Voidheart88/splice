@@ -3,6 +3,8 @@ use num::Zero;
 use super::{Solver, SolverError};
 use crate::spot::{ComplexNumeric, Numeric}; // Ensure these are correctly imported
 use na::LU;
+#[cfg(test)]
+use nalgebra::{Dyn, Matrix, VecStorage};
 use nalgebra as na;
 
 /// A Solver implementation using the Nalgebra library.
@@ -113,5 +115,9 @@ impl NalgebraSolver {
 
     pub fn b_vec_len(&self) -> usize {
         self.b_vec.len()
+    }
+    
+    pub fn a_mat(&self) -> &Matrix<Numeric, Dyn, Dyn, VecStorage<Numeric, Dyn, Dyn>> {
+        &self.a_mat
     }
 }

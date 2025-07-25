@@ -195,3 +195,18 @@ fn solve_complex_small_wo_imag() {
     assert_eq!(solution[0], 1.0);
     assert_eq!(solution[1], 1.0);
 }
+
+#[test]
+fn insert_add_a_mat() {
+    let a_matrix = vec!(
+        (0,0,1.0),
+        (0,0,1.0),
+    );
+
+    let mut solver = NalgebraSolver::new(3).unwrap();
+    a_matrix.iter().for_each(|trpl| solver.insert_a(trpl));
+    
+    let a_mat = solver.a_mat();
+    
+    println!("{}",a_mat);
+}
