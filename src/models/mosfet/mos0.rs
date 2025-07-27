@@ -8,7 +8,7 @@ use super::super::*;
 
 /// A structure representing a Mos0 Mosfet.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub(crate) struct Mos0Bundle {
+pub struct Mos0Bundle {
     name: Arc<str>,
     gate: Option<Variable>,
     drain: Option<Variable>,
@@ -18,7 +18,7 @@ pub(crate) struct Mos0Bundle {
 
 /// An enum representing possible Mosfet MOS0 options.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub(crate) struct Mos0Options {
+pub struct Mos0Options {
     /// Vt0 threshold Voltage
     vt0: Numeric,
     /// Tranceconductance

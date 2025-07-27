@@ -9,7 +9,7 @@ use crate::spot::*;
 
 /// A structure representing a bundle of capacitors.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub(crate) struct CapacitorBundle {
+pub struct CapacitorBundle {
     name: Arc<str>,
     node0: Option<Variable>,
     node1: Option<Variable>,

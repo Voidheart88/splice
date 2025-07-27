@@ -7,7 +7,7 @@ use crate::models::triples::TripleIdx;
 use super::*;
 /// A structure representing a bundle of resistors.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub(crate) struct ResistorBundle {
+pub struct ResistorBundle {
     name: Arc<str>,
     node0: Option<Variable>,
     node1: Option<Variable>,

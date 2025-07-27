@@ -5,14 +5,14 @@ use crate::models::Variable;
 use crate::spot::Numeric;
 
 #[derive(Debug, Clone, PartialEq)]
-pub(crate) enum Sim {
+pub enum Sim {
     Op(Vec<(Variable, Numeric)>),
     Dc(Vec<Vec<(Variable, Numeric)>>),
     Ac(Vec<(Numeric, Vec<(Variable, Complex<Numeric>)>)>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub(crate) struct SimulationResults {
+pub struct SimulationResults {
     pub options: Vec<SimulationOption>,
     pub results: Vec<Sim>,
 }

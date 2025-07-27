@@ -8,7 +8,7 @@ use super::*;
 
 /// A structure representing a bundle of voltage sources.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub(crate) struct VSourceBundle {
+pub struct VSourceBundle {
     name: Arc<str>,
     branch: Variable,
     node0: Option<Variable>,

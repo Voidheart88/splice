@@ -5,13 +5,13 @@ use std::ops::{Index, IndexMut};
 /// Each pair consists of a row and a value. The struct has a compile-time
 /// fixed capacity `N`, but `length` tracks the actual number of valid elements currently stored.
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
-pub(crate) struct Pairs<T, const N: usize> {
+pub struct Pairs<T, const N: usize> {
     length: usize,
     data: [(usize, T); N],
 }
 
 impl<T: Copy + Default, const N: usize> Pairs<T, N> {
-    pub(crate) fn new(initial_data: &[(usize, T)]) -> Self {
+    pub fn new(initial_data: &[(usize, T)]) -> Self {
         assert!(
             initial_data.len() <= N,
             "Initial data length exceeds the capacity N."
@@ -58,7 +58,7 @@ impl<T: Copy + Default, const N: usize> IndexMut<usize> for Pairs<T, N> {
     }
 }
 
-pub(crate) struct PairsIter<'a, T, const N: usize> {
+pub struct PairsIter<'a, T, const N: usize> {
     pairs: &'a Pairs<T, N>,
     current: usize,
 }

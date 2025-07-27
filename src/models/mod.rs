@@ -1,32 +1,32 @@
-mod bjt;
-mod capacitor;
-mod diode;
-mod inductor;
-mod isource;
-mod mosfet;
-mod pairs;
-mod resistor;
-mod triples;
-mod vsource;
+pub mod bjt;
+pub mod capacitor;
+pub mod diode;
+pub mod inductor;
+pub mod isource;
+pub mod mosfet;
+pub mod pairs;
+pub mod resistor;
+pub mod triples;
+pub mod vsource;
 
 use core::fmt::Display;
 use std::sync::Arc;
 
 use crate::spot::*;
 
-pub(crate) use self::capacitor::CapacitorBundle;
-pub(crate) use self::diode::DiodeBundle;
-pub(crate) use self::inductor::InductorBundle;
-pub(crate) use self::isource::ISourceBundle;
-pub(crate) use self::mosfet::Mos0Bundle;
-pub(crate) use self::pairs::Pairs;
-pub(crate) use self::resistor::ResistorBundle;
-pub(crate) use self::triples::{TripleIdx, Triples};
-pub(crate) use self::vsource::VSourceBundle;
+pub use self::capacitor::CapacitorBundle;
+pub use self::diode::DiodeBundle;
+pub use self::inductor::InductorBundle;
+pub use self::isource::ISourceBundle;
+pub use self::mosfet::Mos0Bundle;
+pub use self::pairs::Pairs;
+pub use self::resistor::ResistorBundle;
+pub use self::triples::{TripleIdx, Triples};
+pub use self::vsource::VSourceBundle;
 
 /// An Enum representing the Unit of the Value - Nessecary for
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
-pub(crate) enum Unit {
+pub enum Unit {
     Volt,
     Ampere,
 }
@@ -42,7 +42,7 @@ impl Display for Unit {
 
 /// A structure representing the name and position of a Variable.
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
-pub(crate) struct Variable(Arc<str>, Unit, usize);
+pub struct Variable(Arc<str>, Unit, usize);
 
 impl Variable {
     /// Creates a new `Variable` object.

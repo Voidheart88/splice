@@ -8,7 +8,7 @@ use crate::spot::*;
 
 /// A structure representing a Diode with all their options.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub(crate) struct DiodeBundle {
+pub struct DiodeBundle {
     name: Arc<str>,
     anode: Option<Variable>,
     cathode: Option<Variable>,
@@ -17,7 +17,7 @@ pub(crate) struct DiodeBundle {
 
 /// An struct representing possible Diode options.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub(crate) struct DiodeOptions {
+pub struct DiodeOptions {
     is: Numeric,
     n: Numeric,
     rs: Option<Numeric>,

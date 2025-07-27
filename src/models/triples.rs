@@ -5,13 +5,13 @@ use std::ops::{Index, IndexMut};
 /// Each triple consists of a row a col and a value. The struct has a compile-time
 /// fixed capacity `N`, but `length` tracks the actual number of valid elements currently stored.
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
-pub(crate) struct Triples<T, const N: usize> {
+pub struct Triples<T, const N: usize> {
     length: usize,
     data: [(usize, usize, T); N],
 }
 
 impl<T: Copy + Default, const N: usize> Triples<T, N> {
-    pub(crate) fn new(initial_data: &[(usize, usize, T)]) -> Self {
+    pub fn new(initial_data: &[(usize, usize, T)]) -> Self {
         assert!(
             initial_data.len() <= N,
             "Initial data length exceeds the capacity N."
@@ -58,7 +58,7 @@ impl<T: Copy + Default, const N: usize> IndexMut<usize> for Triples<T, N> {
     }
 }
 
-pub(crate) struct TriplesIter<'a, T, const N: usize> {
+pub struct TriplesIter<'a, T, const N: usize> {
     triples: &'a Triples<T, N>,
     current: usize,
 }
@@ -105,13 +105,13 @@ impl<'a, T, const N: usize> IntoIterator for &'a Triples<T, N> {
 /// Each triple consists of a row and a col. The struct has a compile-time
 /// fixed capacity `N`, but `length` tracks the actual number of valid elements currently stored.
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
-pub(crate) struct TripleIdx<const N: usize> {
+pub struct TripleIdx<const N: usize> {
     length: usize,
     data: [(usize, usize); N],
 }
 
 impl<const N: usize> TripleIdx<N> {
-    pub(crate) fn new(initial_data: &[(usize, usize)]) -> Self {
+    pub fn new(initial_data: &[(usize, usize)]) -> Self {
         assert!(
             initial_data.len() <= N,
             "Initial data length exceeds the capacity N."
@@ -127,7 +127,7 @@ impl<const N: usize> TripleIdx<N> {
         }
     }
 
-    pub(crate) fn data(&self) -> [(usize, usize); N] {
+    pub fn data(&self) -> [(usize, usize); N] {
         self.data
     }
 }

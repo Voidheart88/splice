@@ -10,7 +10,7 @@ use super::*;
 
 /// A structure representing a bundle of inductors.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub(crate) struct InductorBundle {
+pub struct InductorBundle {
     name: Arc<str>,
     node0: Option<Variable>,
     node1: Option<Variable>,

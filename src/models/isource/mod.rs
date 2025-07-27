@@ -4,7 +4,7 @@ use super::*;
 
 /// A structure representing a bundle of current sources.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub(crate) struct ISourceBundle {
+pub struct ISourceBundle {
     name: Arc<str>,
     node0: Option<Variable>,
     node1: Option<Variable>,
