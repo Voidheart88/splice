@@ -96,7 +96,7 @@ impl SelectFrontend {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct Simulation {
+pub struct Simulation {
     pub commands: Vec<SimulationCommand>,
     pub options: Vec<SimulationOption>,
     pub elements: Vec<Element>,
@@ -105,7 +105,7 @@ pub(crate) struct Simulation {
 
 /// The Frontend trait defines the interface between the choosen frontend
 /// and the simulator.
-pub(crate) trait Frontend {
+pub trait Frontend {
     /// The provided circuit method must be implemented by the frontend and returns
     /// a circuit.
     /// This Simulation consists of a vector with CircuitElements and a vector of commands

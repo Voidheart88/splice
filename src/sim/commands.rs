@@ -4,7 +4,7 @@ use crate::spot::*;
 
 /// Represents different simulation commands in a circuit simulator.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub(crate) enum SimulationCommand {
+pub enum SimulationCommand {
     /// Represents an operating point analysis command.
     Op,
     /// Represents a transient analysis command.
@@ -23,7 +23,7 @@ pub(crate) enum SimulationCommand {
 
 /// Represents the ac simulation options
 #[derive(Debug, Clone, PartialEq, PartialOrd, Default)]
-pub(crate) enum ACMode {
+pub enum ACMode {
     #[default]
     Lin,
     Dec,
