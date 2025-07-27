@@ -42,7 +42,7 @@ struct Cli {
     path: Option<String>,
 }
 
-pub fn run() -> Result<()>{
+pub fn run() -> Result<()> {
     let cli = Cli::parse();
 
     simple_logger::init_with_level(cli.verbose).unwrap();

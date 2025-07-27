@@ -10,7 +10,7 @@ use super::{Solver, SolverError};
 use crate::spot::*;
 
 /// A backend implementation using the Faer library.
-pub(crate) struct FaerSolver {
+pub struct FaerSolver {
     /// The conductance matrix `A`.
     a_mat: HashMap<(usize, usize), Numeric>,
 
@@ -100,8 +100,10 @@ impl Solver for FaerSolver {
         for (idx, val) in res.col_as_slice(0).iter().enumerate() {
             self.x_vec[idx] = *val;
         }
-        
-        self.a_mat.iter_mut().for_each(|(_,val)| *val = Numeric::zero());
+
+        self.a_mat
+            .iter_mut()
+            .for_each(|(_, val)| *val = Numeric::zero());
         for idx in 0..self.x_vec.len() {
             let value = self.b_vec.get_mut(idx, 0);
             *value = Numeric::zero();
@@ -136,22 +138,14 @@ impl Solver for FaerSolver {
         Ok(&self.cplx_x_vec)
     }
 
-    fn init(
-        &mut self,
-        a_matrix: Vec<(usize, usize)>,
-        cplx_a_matrix: Vec<(usize, usize)>,
-    ) {
-        a_matrix
-            .iter()
-            .for_each(|(row, col)| {
-                self.a_mat.insert((*row,*col),Numeric::zero());
-            });
+    fn init(&mut self, a_matrix: Vec<(usize, usize)>, cplx_a_matrix: Vec<(usize, usize)>) {
+        a_matrix.iter().for_each(|(row, col)| {
+            self.a_mat.insert((*row, *col), Numeric::zero());
+        });
 
-        cplx_a_matrix
-            .iter()
-            .for_each(|(row, col)| {
-                self.cplx_a_mat.insert((*row,*col),ComplexNumeric::zero());
-            });
+        cplx_a_matrix.iter().for_each(|(row, col)| {
+            self.cplx_a_mat.insert((*row, *col), ComplexNumeric::zero());
+        });
     }
 }
 
@@ -180,5 +174,4 @@ impl FaerSolver {
     pub fn b_vec_len(&self) -> usize {
         self.b_vec.nrows()
     }
-
 }

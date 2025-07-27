@@ -100,7 +100,6 @@ impl<'a, T, const N: usize> IntoIterator for &'a Pairs<T, N> {
     }
 }
 
-
 #[cfg(test)]
 impl<T, const N: usize> Pairs<T, N> {
     pub fn len(&self) -> usize {

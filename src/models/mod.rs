@@ -210,7 +210,6 @@ impl Element {
         }
     }
 
-
     /// Returns the ac triples. Ac Triples are dependend on f
     pub(crate) fn get_cplx_triple_indices(&self) -> Option<TripleIdx<4>> {
         match self {
@@ -223,7 +222,6 @@ impl Element {
             Element::ISource(_) => None,
         }
     }
-
 }
 
 #[cfg(test)]

@@ -12,7 +12,7 @@ use rsparse::data::{Nmrc, Sprs, Symb, Trpl};
 use rsparse::lusol;
 
 /// A Solver implementation using the Faer library.
-pub(crate) struct RSparseSolver {
+pub struct RSparseSolver {
     vars: usize,
     /// The conductance matrix `A` as a sparse matrix.
     a: Trpl<Numeric>,
@@ -122,11 +122,7 @@ impl Solver for RSparseSolver {
         Ok(&self.cplx_x)
     }
 
-    fn init(
-        &mut self,
-        a_matrix: Vec<(usize, usize)>,
-        cplx_a_matrix: Vec<(usize, usize)>,
-    ) {
+    fn init(&mut self, a_matrix: Vec<(usize, usize)>, cplx_a_matrix: Vec<(usize, usize)>) {
         let mut trpl = Trpl::new();
         a_matrix
             .iter()

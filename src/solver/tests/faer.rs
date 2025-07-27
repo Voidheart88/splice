@@ -204,21 +204,21 @@ fn insert_after_solve() {
     solver.insert_a(&(0, 1, 1.0));
     solver.insert_a(&(1, 0, 1.0));
     solver.insert_a(&(1, 1, -1.0));
-    solver.insert_b(&(0,3.0));
-    solver.insert_b(&(1,1.0));
-    
+    solver.insert_b(&(0, 3.0));
+    solver.insert_b(&(1, 1.0));
+
     let solution_0 = solver.solve().unwrap().clone();
-    
+
     solver.insert_a(&(0, 0, 1.0));
     solver.insert_a(&(0, 1, 1.0));
     solver.insert_a(&(1, 0, 1.0));
     solver.insert_a(&(1, 1, -1.0));
-    solver.insert_b(&(0,3.0));
-    solver.insert_b(&(1,1.0));
-    
+    solver.insert_b(&(0, 3.0));
+    solver.insert_b(&(1, 1.0));
+
     let solution_1 = solver.solve().unwrap().clone();
 
-    assert_eq!(solution_0,solution_1)
+    assert_eq!(solution_0, solution_1)
 }
 
 #[test]
@@ -229,19 +229,19 @@ fn insert_after_solve2() {
     solver.insert_a(&(0, 1, 1.0));
     solver.insert_a(&(1, 0, 1.0));
     solver.insert_a(&(1, 1, -1.0));
-    solver.insert_b(&(0,3.0));
-    solver.insert_b(&(1,1.0));
-    
+    solver.insert_b(&(0, 3.0));
+    solver.insert_b(&(1, 1.0));
+
     let solution_0 = solver.solve().unwrap().clone();
-    
+
     solver.insert_a(&(0, 0, 1.0));
     solver.insert_a(&(0, 0, 1.0));
     solver.insert_a(&(0, 1, 1.0));
     solver.insert_a(&(1, 0, 1.0));
     solver.insert_a(&(1, 1, -1.0));
-    solver.insert_b(&(0,3.0));
-    solver.insert_b(&(1,1.0));
-    
+    solver.insert_b(&(0, 3.0));
+    solver.insert_b(&(1, 1.0));
+
     let solution_1 = solver.solve().unwrap().clone();
 
     assert!(solution_0 != solution_1)
@@ -255,28 +255,28 @@ fn insert_after_solve3() {
     solver.insert_a(&(0, 1, 1.0));
     solver.insert_a(&(1, 0, 1.0));
     solver.insert_a(&(1, 1, -1.0));
-    solver.insert_b(&(0,3.0));
-    solver.insert_b(&(1,1.0));
-    
+    solver.insert_b(&(0, 3.0));
+    solver.insert_b(&(1, 1.0));
+
     let solution_0 = solver.solve().unwrap().clone();
-    
+
     solver.insert_a(&(0, 0, 1.0));
     solver.insert_a(&(0, 0, 1.0));
     solver.insert_a(&(0, 1, 1.0));
     solver.insert_a(&(1, 0, 1.0));
     solver.insert_a(&(1, 1, -1.0));
-    solver.insert_b(&(0,3.0));
-    solver.insert_b(&(1,1.0));
-    
+    solver.insert_b(&(0, 3.0));
+    solver.insert_b(&(1, 1.0));
+
     let _ = solver.solve().unwrap().clone();
-    
+
     solver.insert_a(&(0, 0, 1.0));
     solver.insert_a(&(0, 1, 1.0));
     solver.insert_a(&(1, 0, 1.0));
     solver.insert_a(&(1, 1, -1.0));
-    solver.insert_b(&(0,3.0));
-    solver.insert_b(&(1,1.0));
-    
+    solver.insert_b(&(0, 3.0));
+    solver.insert_b(&(1, 1.0));
+
     let solution_2 = solver.solve().unwrap().clone();
-    assert_eq!(solution_0,solution_2)
+    assert_eq!(solution_0, solution_2)
 }

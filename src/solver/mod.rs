@@ -1,14 +1,14 @@
-pub(crate) mod faer;
-pub(crate) mod nalgebra;
-pub(crate) mod rsparse;
+pub mod faer;
+pub mod nalgebra;
+pub mod rsparse;
 
 use clap::ValueEnum;
 use miette::Diagnostic;
 use thiserror::Error;
 
-pub(crate) use faer::FaerSolver;
-pub(crate) use nalgebra::NalgebraSolver;
-pub(crate) use rsparse::RSparseSolver;
+pub use faer::FaerSolver;
+pub use nalgebra::NalgebraSolver;
+pub use rsparse::RSparseSolver;
 
 use crate::spot::{ComplexNumeric, Numeric};
 
@@ -39,11 +39,7 @@ pub trait Solver {
         Self: Sized;
 
     /// Initialize the matrices and vectors to get the sparsity pattern.
-    fn init(
-        &mut self,
-        a_matrix: Vec<(usize, usize)>,
-        cplx_a_matrix: Vec<(usize, usize)>,
-    );
+    fn init(&mut self, a_matrix: Vec<(usize, usize)>, cplx_a_matrix: Vec<(usize, usize)>);
 
     /// Inserts a Value into the conductance matrix (`a`) of the Solver.
     fn insert_a(&mut self, a_trpl: &(usize, usize, Numeric));

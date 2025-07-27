@@ -3,12 +3,13 @@ use num::Zero;
 use super::{Solver, SolverError};
 use crate::spot::{ComplexNumeric, Numeric}; // Ensure these are correctly imported
 use na::LU;
+
+use nalgebra as na;
 #[cfg(test)]
 use nalgebra::{Dyn, Matrix, VecStorage};
-use nalgebra as na;
 
 /// A Solver implementation using the Nalgebra library.
-pub(crate) struct NalgebraSolver {
+pub struct NalgebraSolver {
     /// The conductance matrix `A`.
     a_mat: na::DMatrix<Numeric>,
     /// The vector `b`.
@@ -86,11 +87,7 @@ impl Solver for NalgebraSolver {
         Ok(&self.cplx_x_vec.data.as_vec())
     }
 
-    fn init(
-        &mut self,
-        a_matrix: Vec<(usize, usize)>,
-        cplx_a_matrix: Vec<(usize, usize)>,
-    ) {
+    fn init(&mut self, a_matrix: Vec<(usize, usize)>, cplx_a_matrix: Vec<(usize, usize)>) {
         a_matrix
             .iter()
             .for_each(|(row, col)| self.a_mat[(*row, *col)] = Numeric::zero());
@@ -114,7 +111,7 @@ impl NalgebraSolver {
     pub fn b_vec_len(&self) -> usize {
         self.b_vec.len()
     }
-    
+
     pub fn a_mat(&self) -> &Matrix<Numeric, Dyn, Dyn, VecStorage<Numeric, Dyn, Dyn>> {
         &self.a_mat
     }

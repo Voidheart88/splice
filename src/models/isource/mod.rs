@@ -54,7 +54,6 @@ impl ISourceBundle {
             }
         }
     }
-
 }
 
 #[cfg(test)]

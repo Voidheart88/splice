@@ -130,7 +130,6 @@ impl Mos0Bundle {
         }
     }
 
-
     pub fn g_idx(&self) -> Option<usize> {
         match &self.gate {
             Some(v) => Some(v.idx()),
