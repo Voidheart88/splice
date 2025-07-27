@@ -37,3 +37,22 @@ pub fn faer_insert_b_benchmark(c: &mut Criterion) {
         });
     });
 }
+
+pub fn faer_insert_a_1000_benchmark(c: &mut Criterion) {
+    let mut solver = FaerSolver::new(1000).unwrap();
+
+    let mut values = Vec::new();
+    for val in 0..1000 {
+        let row = val % 1000;
+        let col = (1000 - val) % 1000;
+        values.push((row, col, val as f64));
+    }
+
+    c.bench_function("Faer::insert a", |b| {
+        b.iter(|| {
+            for value in values.iter() {
+                solver.insert_a(&value);
+            }
+        });
+    });
+}
