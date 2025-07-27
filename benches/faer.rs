@@ -48,7 +48,7 @@ pub fn faer_insert_a_1000_benchmark(c: &mut Criterion) {
         values.push((row, col, val as f64));
     }
 
-    c.bench_function("Faer::insert a", |b| {
+    c.bench_function("Faer::insert a 10k", |b| {
         b.iter(|| {
             for value in values.iter() {
                 solver.insert_a(&value);
