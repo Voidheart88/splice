@@ -6,7 +6,7 @@ use na::LU;
 
 use nalgebra as na;
 #[cfg(test)]
-use nalgebra::{Dyn, Matrix, VecStorage};
+use nalgebra::DMatrix;
 
 /// A Solver implementation using the Nalgebra library.
 pub struct NalgebraSolver {
@@ -112,7 +112,7 @@ impl NalgebraSolver {
         self.b_vec.len()
     }
 
-    pub fn a_mat(&self) -> &Matrix<Numeric, Dyn, Dyn, VecStorage<Numeric, Dyn, Dyn>> {
+    pub fn a_mat(&self) -> &DMatrix<Numeric> {
         &self.a_mat
     }
 }
