@@ -5,7 +5,7 @@ use crate::models::{Element, ResistorBundle, Unit, VSourceBundle, Variable};
 use crate::sim::commands::SimulationCommand;
 use crate::sim::simulation_result::Sim;
 use crate::solver::{FaerSolver, NalgebraSolver, RSparseSolver};
-use crate::Simulator;
+use crate::sim::Simulator;
 
 #[test]
 fn init_sim_rsparse() {
