@@ -432,17 +432,13 @@ fn insert_after_solve3() {
         let initial_capacity_i = solver.sprs().i.capacity();
         let initial_capacity_x = solver.sprs().x.capacity();
 
-        // Zweite Füllung mit weniger Elementen, sollte keine Neuallokation verursachen
         let mut map2 = HashMap::new();
         map2.insert((0, 0), 1.0);
         map2.insert((1, 1), 2.0);
         solver.update_from_hashmap();
 
-        // Überprüfe, ob die Kapazität nicht verkleinert wurde (kann variieren, aber sollte nicht neu allozieren, wenn kleiner)
         assert!(solver.sprs().i.capacity() >= solver.sprs().nzmax);
         assert!(solver.sprs().x.capacity() >= solver.sprs().nzmax);
-        // Prüfe, ob die Kapazität zumindest die von den kleineren Daten abdeckt.
-        // Der genaue Wert kann variieren, da `shrink_to_fit` nicht automatisch aufgerufen wird.
         assert!(solver.sprs().i.capacity() <= initial_capacity_i);
         assert!(solver.sprs().x.capacity() <= initial_capacity_x);
 
