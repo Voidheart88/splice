@@ -101,3 +101,51 @@ pub fn bench_hashmap_get_mut(c: &mut Criterion) {
 
     group.finish();
 }
+
+pub fn bench_nohash_hashmap(c: &mut Criterion) {
+    let mut group = c.benchmark_group("No_hash_HashMap");
+
+    group.bench_function(format!("insert_{}", MAP_SIZE), |b| {
+        let mut map = HashMap::with_capacity(MAP_SIZE);
+        let mut keys_to_get: Vec<(u64, u64)> = Vec::with_capacity(MAP_SIZE);
+
+        for _ in 0..MAP_SIZE {
+            let key_row = rand::rng().random();
+            let key_col = rand::rng().random();
+            map.insert((key_row, key_col), key_row);
+            keys_to_get.push((key_row, key_col));
+        }
+
+        keys_to_get.shuffle(&mut rand::rng());
+
+        b.iter(|| {
+            for &key in keys_to_get.iter() {
+                let val = map.get_mut(&key).unwrap();
+                *val += 1;
+            }
+        });
+    });
+
+    group.bench_function(format!("get_mut_{}", LARGE_MAP_SIZE), |b| {
+        let mut map = HashMap::with_capacity(MAP_SIZE);
+        let mut keys_to_get: Vec<(u64, u64)> = Vec::with_capacity(MAP_SIZE);
+
+        for _ in 0..MAP_SIZE {
+            let key_row = rand::rng().random();
+            let key_col = rand::rng().random();
+            map.insert((key_row, key_col), key_row);
+            keys_to_get.push((key_row, key_col));
+        }
+
+        keys_to_get.shuffle(&mut rand::rng());
+
+        b.iter(|| {
+            for &key in keys_to_get.iter() {
+                let val = map.get_mut(&key).unwrap();
+                *val += 1;
+            }
+        });
+    });
+
+    group.finish();
+}
