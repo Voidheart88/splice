@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::{
     solver::{RSparseSolver, Solver},
     spot::ComplexNumeric,
@@ -33,8 +35,6 @@ fn init_solver() {
         .enumerate()
         .for_each(|(idx, val)| solver.insert_b(&(idx, *val)));
 
-    assert_eq!(solver.rows(), 3);
-    assert_eq!(solver.cols(), 3);
     assert_eq!(solver.b_vec_len(), 3);
 }
 
@@ -68,8 +68,6 @@ fn init_solver_cplx() {
         .enumerate()
         .for_each(|(idx, val)| solver.insert_cplx_b(&(idx, *val)));
 
-    assert_eq!(solver.cplx_cols(), 6);
-    assert_eq!(solver.cplx_rows(), 6);
     assert_eq!(solver.cplx_b_vec_len(), 6);
 }
 
@@ -250,21 +248,12 @@ fn insert_add_a() {
     solver.insert_a(&(1, 0, 2.0));
     solver.insert_a(&(1, 1, 1.0));
 
-    solver.a_mat_mut().sum_dupl();
-
-    let mut exp = rsparse::data::Trpl::new();
-    exp.append(0, 0, 5.0);
-    exp.append(0, 1, 5.0);
-    exp.append(1, 0, 5.0);
-    exp.append(1, 1, 5.0);
-
-    solver.a_mat_mut().sum_dupl();
     println!("{:?}", solver.a_mat());
 
-    assert_eq!(exp.get(0, 0), solver.a_mat().get(0, 0));
-    assert_eq!(exp.get(1, 0), solver.a_mat().get(1, 0));
-    assert_eq!(exp.get(0, 1), solver.a_mat().get(0, 1));
-    assert_eq!(exp.get(1, 1), solver.a_mat().get(1, 1));
+    assert_eq!(*solver.a_mat().get(&(0usize, 0usize)).unwrap(), 5.0);
+    assert_eq!(*solver.a_mat().get(&(1usize, 0usize)).unwrap(), 5.0);
+    assert_eq!(*solver.a_mat().get(&(0usize, 1usize)).unwrap(), 5.0);
+    assert_eq!(*solver.a_mat().get(&(1usize, 1usize)).unwrap(), 5.0);
 }
 
 #[test]
@@ -297,3 +286,170 @@ fn solve_small_electrical() {
     assert_eq!(solution[0], 10.0);
     assert_eq!(solution[1], -1.0);
 }
+
+#[test]
+fn insert_after_solve() {
+    let mut solver = RSparseSolver::new(2).unwrap();
+
+    solver.insert_a(&(0, 0, 1.0));
+    solver.insert_a(&(0, 1, 1.0));
+    solver.insert_a(&(1, 0, 1.0));
+    solver.insert_a(&(1, 1, -1.0));
+    solver.insert_b(&(0, 3.0));
+    solver.insert_b(&(1, 1.0));
+
+    let solution_0 = solver.solve().unwrap().clone();
+
+    solver.insert_a(&(0, 0, 1.0));
+    solver.insert_a(&(0, 1, 1.0));
+    solver.insert_a(&(1, 0, 1.0));
+    solver.insert_a(&(1, 1, -1.0));
+    solver.insert_b(&(0, 3.0));
+    solver.insert_b(&(1, 1.0));
+
+    let solution_1 = solver.solve().unwrap().clone();
+
+    assert_eq!(solution_0, solution_1)
+}
+
+#[test]
+fn insert_after_solve2() {
+    let mut solver = RSparseSolver::new(2).unwrap();
+
+    solver.insert_a(&(0, 0, 1.0));
+    solver.insert_a(&(0, 1, 1.0));
+    solver.insert_a(&(1, 0, 1.0));
+    solver.insert_a(&(1, 1, -1.0));
+    solver.insert_b(&(0, 3.0));
+    solver.insert_b(&(1, 1.0));
+
+    let solution_0 = solver.solve().unwrap().clone();
+
+    solver.insert_a(&(0, 0, 1.0));
+    solver.insert_a(&(0, 0, 1.0));
+    solver.insert_a(&(0, 1, 1.0));
+    solver.insert_a(&(1, 0, 1.0));
+    solver.insert_a(&(1, 1, -1.0));
+    solver.insert_b(&(0, 3.0));
+    solver.insert_b(&(1, 1.0));
+
+    let solution_1 = solver.solve().unwrap().clone();
+
+    assert!(solution_0 != solution_1)
+}
+
+#[test]
+fn insert_after_solve3() {
+    let mut solver = RSparseSolver::new(2).unwrap();
+
+    solver.insert_a(&(0, 0, 1.0));
+    solver.insert_a(&(0, 1, 1.0));
+    solver.insert_a(&(1, 0, 1.0));
+    solver.insert_a(&(1, 1, -1.0));
+    solver.insert_b(&(0, 3.0));
+    solver.insert_b(&(1, 1.0));
+
+    let solution_0 = solver.solve().unwrap().clone();
+
+    solver.insert_a(&(0, 0, 1.0));
+    solver.insert_a(&(0, 0, 1.0));
+    solver.insert_a(&(0, 1, 1.0));
+    solver.insert_a(&(1, 0, 1.0));
+    solver.insert_a(&(1, 1, -1.0));
+    solver.insert_b(&(0, 3.0));
+    solver.insert_b(&(1, 1.0));
+
+    let _ = solver.solve().unwrap().clone();
+
+    solver.insert_a(&(0, 0, 1.0));
+    solver.insert_a(&(0, 1, 1.0));
+    solver.insert_a(&(1, 0, 1.0));
+    solver.insert_a(&(1, 1, -1.0));
+    solver.insert_b(&(0, 3.0));
+    solver.insert_b(&(1, 1.0));
+
+    let solution_2 = solver.solve().unwrap().clone();
+    assert_eq!(solution_0, solution_2)
+}
+
+#[test]
+    fn test_update_from_hashmap_basic() {
+        let mut solver = RSparseSolver::new(3).unwrap();
+        solver.insert_a(&(0, 0, 1.0));
+        solver.insert_a(&(1, 1, 2.0));
+        solver.insert_a(&(2, 0, 3.0));
+        solver.insert_a(&(0, 2, 4.0));
+
+        solver.update_from_hashmap();
+
+        assert_eq!(solver.sprs().nzmax, 4);
+        assert_eq!(solver.sprs().m, 3);
+        assert_eq!(solver.sprs().n, 3);
+        assert_eq!(solver.sprs().p, vec![0, 2, 3, 4]);
+        assert_eq!(solver.sprs().i, vec![0, 2, 1, 0]);
+        assert_eq!(solver.sprs().x, vec![1.0, 3.0, 2.0, 4.0]);
+    }
+
+    #[test]
+    fn test_update_from_hashmap_empty() {
+        let mut solver = RSparseSolver::new(0).unwrap();
+        solver.update_from_hashmap();
+
+        assert_eq!(solver.sprs().nzmax, 0);
+        assert_eq!(solver.sprs().m, 0);
+        assert_eq!(solver.sprs().n, 0);
+        assert_eq!(solver.sprs().p, vec![0]);
+        assert!(solver.sprs().i.is_empty());
+        assert!(solver.sprs().x.is_empty());
+    }
+
+    #[test]
+    fn test_update_from_hashmap_single_element() {
+        let mut solver = RSparseSolver::new(7).unwrap();
+        solver.insert_a(&(5usize,7usize,100.0f64));
+        solver.update_from_hashmap();
+
+        assert_eq!(solver.sprs().nzmax, 1);
+        assert_eq!(solver.sprs().m, 6);
+        assert_eq!(solver.sprs().n, 8);
+        assert_eq!(solver.sprs().p, vec![0, 0, 0, 0, 0, 0, 0, 0, 1]);
+        assert_eq!(solver.sprs().i, vec![5]);
+        assert_eq!(solver.sprs().x, vec![100.0]);
+    }
+
+    #[test]
+    fn test_update_from_hashmap_reuse_capacity() {
+        let mut solver = RSparseSolver::new(100).unwrap();
+        let mut map1 = HashMap::new();
+        for r in 0..100 {
+            for c in 0..100 {
+                if (r + c) % 10 == 0 {
+                    map1.insert((r, c), (r + c) as f64);
+                }
+            }
+        }
+        solver.update_from_hashmap();
+        let initial_capacity_i = solver.sprs().i.capacity();
+        let initial_capacity_x = solver.sprs().x.capacity();
+
+        // Zweite Füllung mit weniger Elementen, sollte keine Neuallokation verursachen
+        let mut map2 = HashMap::new();
+        map2.insert((0, 0), 1.0);
+        map2.insert((1, 1), 2.0);
+        solver.update_from_hashmap();
+
+        // Überprüfe, ob die Kapazität nicht verkleinert wurde (kann variieren, aber sollte nicht neu allozieren, wenn kleiner)
+        assert!(solver.sprs().i.capacity() >= solver.sprs().nzmax);
+        assert!(solver.sprs().x.capacity() >= solver.sprs().nzmax);
+        // Prüfe, ob die Kapazität zumindest die von den kleineren Daten abdeckt.
+        // Der genaue Wert kann variieren, da `shrink_to_fit` nicht automatisch aufgerufen wird.
+        assert!(solver.sprs().i.capacity() <= initial_capacity_i);
+        assert!(solver.sprs().x.capacity() <= initial_capacity_x);
+
+        assert_eq!(solver.sprs().nzmax, 2);
+        assert_eq!(solver.sprs().m, 2);
+        assert_eq!(solver.sprs().n, 2);
+        assert_eq!(solver.sprs().p, vec![0, 1, 2]);
+        assert_eq!(solver.sprs().i, vec![0, 1]);
+        assert_eq!(solver.sprs().x, vec![1.0, 2.0]);
+    }

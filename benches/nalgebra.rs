@@ -1,12 +1,18 @@
 use std::{collections::HashMap, hash::Hash, hint::black_box};
 
 use criterion::Criterion;
-use rand::{rng, Rng};
 use nalgebra::{DMatrix, DVector};
+use rand::{rng, Rng};
 
-use splice::{solver::{NalgebraSolver, Solver}, spot::Numeric};
+use splice::{
+    solver::{NalgebraSolver, Solver},
+    spot::Numeric,
+};
 
-pub fn generate_solvable_system(n: usize, density: f64) -> (DMatrix<f64>, DVector<f64>, DVector<f64>) {
+pub fn generate_solvable_system(
+    n: usize,
+    density: f64,
+) -> (DMatrix<f64>, DVector<f64>, DVector<f64>) {
     let mut rng = rng();
 
     let mut l_entries = HashMap::new();
@@ -14,7 +20,8 @@ pub fn generate_solvable_system(n: usize, density: f64) -> (DMatrix<f64>, DVecto
         let diag_val = rng.random_range(0.5..2.0);
         l_entries.insert((i, i), diag_val);
 
-        for j in 0..i { // Fill lower triangle
+        for j in 0..i {
+            // Fill lower triangle
             if rng.random::<f64>() < density {
                 let val = rng.random_range(-1.0..1.0);
                 l_entries.insert((i, j), val);
@@ -23,13 +30,12 @@ pub fn generate_solvable_system(n: usize, density: f64) -> (DMatrix<f64>, DVecto
     }
 
     // Convert L from HashMap to CsMat for efficient multiplication
-    let mut a_mat: DMatrix<Numeric> = DMatrix::zeros(n,n);
-    
+    let mut a_mat: DMatrix<Numeric> = DMatrix::zeros(n, n);
+
     for ((row, col), val) in l_entries.iter() {
-        a_mat[(*row,*col)] = *val;
+        a_mat[(*row, *col)] = *val;
     }
 
-    
     let a_mat = a_mat.cross(&a_mat.transpose());
     let mut x_true_dense: DVector<f64> = DVector::zeros(n);
     for idx in 0..n {
@@ -42,7 +48,6 @@ pub fn generate_solvable_system(n: usize, density: f64) -> (DMatrix<f64>, DVecto
 
     (a_mat, b_sparse, x_true_dense)
 }
-
 
 pub fn nalgebra_insert_a_benchmark(c: &mut Criterion) {
     let mut solver = NalgebraSolver::new(3).unwrap();
@@ -100,10 +105,11 @@ pub fn nalgebra_insert_a_1000_benchmark(c: &mut Criterion) {
     });
 }
 
-pub fn nalgebra_solve(c: &mut Criterion) { 
-    const SIZE:usize = 10;
-    let (a_mat,b_vec,x_vec) = generate_solvable_system(SIZE,0.5);
+pub fn nalgebra_solve(c: &mut Criterion) {
+    const SIZE: usize = 10;
+    let (a_mat, b_vec, x_vec) = generate_solvable_system(SIZE, 0.5);
     let mut solver = NalgebraSolver::new(SIZE).unwrap();
+
     //for row in a_mat.rows().iter() {
     //    for idy in row.colums()
     //}

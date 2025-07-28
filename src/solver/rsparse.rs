@@ -1,6 +1,7 @@
 #![allow(unused)]
 
 use std::collections::HashMap;
+use std::hash::Hash;
 
 use super::{Solver, SolverError};
 use crate::models::{Pairs, Triples};
@@ -15,11 +16,11 @@ use rsparse::lusol;
 pub struct RSparseSolver {
     vars: usize,
     /// The conductance matrix `A` as a sparse matrix.
-    a: Trpl<Numeric>,
+    a_mat: HashMap<(usize, usize), Numeric>,
     /// The vector `b` as a dense vector.
-    b: Vec<Numeric>,
+    b_vec: Vec<Numeric>,
     /// The Solution vector `x`.
-    x: Vec<Numeric>,
+    x_vec: Vec<Numeric>,
 
     // Sparse Matrix Workspace
     sprs: Sprs<Numeric>,
@@ -27,11 +28,11 @@ pub struct RSparseSolver {
     lu: Nmrc<Numeric>,
 
     /// The conductance matrix `A` as a sparse matrix.
-    cplx_a: Trpl<Numeric>,
+    cplx_a_mat: HashMap<(usize, usize), ComplexNumeric>,
     /// The vector `b` as a dense vector.
-    cplx_b: Vec<Numeric>,
+    cplx_b_vec: Vec<Numeric>,
     /// The Solution vector `x`.
-    cplx_x: Vec<Complex<Numeric>>,
+    cplx_x_vec: Vec<Complex<Numeric>>,
 
     //Complex Sparse Matrix Workspace
     cplx_sprs: Sprs<Numeric>,
@@ -41,28 +42,28 @@ pub struct RSparseSolver {
 impl Solver for RSparseSolver {
     /// Creates a new instance of the Solver with the given number of variables.
     fn new(vars: usize) -> Result<Self, SolverError> {
-        let a = Trpl::new();
-        let b = vec![0.; vars];
-        let x = vec![0.; vars];
+        let a_mat = HashMap::new();
+        let b_vec = vec![0.; vars];
+        let x_vec = vec![0.; vars];
         let sprs = Sprs::new();
         let lu = Nmrc::new();
 
-        let cplx_a = Trpl::new();
-        let cplx_b = vec![0.; 2 * vars];
-        let cplx_x = Vec::with_capacity(2 * vars);
+        let cplx_a_mat = HashMap::new();
+        let cplx_b_vec = vec![0.; 2 * vars];
+        let cplx_x_vec = Vec::with_capacity(2 * vars);
         let cplx_sprs = Sprs::new();
 
         Ok(Self {
             vars,
-            a,
-            b,
-            x,
+            a_mat,
+            b_vec,
+            x_vec,
             sprs,
             symb: None,
             lu,
-            cplx_a,
-            cplx_b,
-            cplx_x,
+            cplx_a_mat,
+            cplx_b_vec,
+            cplx_x_vec,
             cplx_sprs,
             cplx_symb: None,
         })
@@ -70,56 +71,60 @@ impl Solver for RSparseSolver {
 
     fn insert_a(&mut self, a_mat: &(usize, usize, Numeric)) {
         let (row, col, val) = *a_mat;
-        self.a.append(row, col, val);
+        match self.a_mat.get_mut(&(row, col)) {
+            Some(v) => *v += val,
+            None => {
+                self.a_mat.insert((row, col), val);
+            }
+        };
     }
 
     fn insert_b(&mut self, b_vec: &(usize, Numeric)) {
         let (row, val) = *b_vec;
-        self.b[row] = val;
+        self.b_vec[row] = val;
     }
 
     fn insert_cplx_a(&mut self, a_mat: &(usize, usize, ComplexNumeric)) {
         let (row, col, val) = *a_mat;
-        let pivot = self.vars;
-
-        self.cplx_a.append(row, col, val.re);
-        self.cplx_a.append(row, col + pivot, -val.im);
-        self.cplx_a.append(row + pivot, col, val.im);
-        self.cplx_a.append(row + pivot, col + pivot, val.re);
+        match self.cplx_a_mat.get_mut(&(row, col)) {
+            Some(v) => *v += val,
+            None => {
+                self.cplx_a_mat.insert((row, col), val);
+            }
+        };
     }
 
     fn insert_cplx_b(&mut self, b_vec: &(usize, ComplexNumeric)) {
         let (row, val) = *b_vec;
-        let pivot = self.cplx_b.len() / 2;
-        self.cplx_b[row] = val.re;
-        self.cplx_b[row + pivot] = val.im;
+        let pivot = self.cplx_b_vec.len() / 2;
+        self.cplx_b_vec[row] = val.re;
+        self.cplx_b_vec[row + pivot] = val.im;
     }
 
     /// Solves the system of equations (Ax = B for x) and returns a reference to the solution.
     fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError> {
-        self.sprs.from_trpl(&self.a);
         if self.symb.is_none() {
             self.symb = Some(rsparse::sqr(&self.sprs, 1, false))
         }
         let mut symb = self.symb.take().unwrap();
         self.lu = rsparse::lu(&self.sprs, &mut symb, 1e-6).unwrap();
 
-        ipvec(self.sprs.n, &self.lu.pinv, &self.b, &mut self.x[..]);
-        rsparse::lsolve(&self.lu.l, &mut self.x);
-        rsparse::usolve(&self.lu.u, &mut self.x[..]);
-        ipvec(self.sprs.n, &symb.q, &self.x[..], &mut self.b[..]);
+        ipvec(self.sprs.n, &self.lu.pinv, &self.b_vec, &mut self.x_vec[..]);
+        rsparse::lsolve(&self.lu.l, &mut self.x_vec);
+        rsparse::usolve(&self.lu.u, &mut self.x_vec[..]);
+        ipvec(self.sprs.n, &symb.q, &self.x_vec[..], &mut self.b_vec[..]);
 
         self.symb = Some(symb);
-        Ok(&self.b)
+        Ok(&self.b_vec)
     }
 
     fn solve_cplx(&mut self) -> Result<&Vec<ComplexNumeric>, SolverError> {
         // Convert the triplet matrix to a sparse matrix
-        self.cplx_sprs.from_trpl(&self.cplx_a);
-        rsparse::lusol(&self.cplx_sprs, &mut self.cplx_b, 1, 1e-6);
-        self.cplx_x = self.real_vec_to_complex_vec();
+        //self.cplx_sprs.from_trpl(&self.cplx_a_mat);
+        rsparse::lusol(&self.cplx_sprs, &mut self.cplx_b_vec, 1, 1e-6);
+        self.cplx_x_vec = self.real_vec_to_complex_vec();
 
-        Ok(&self.cplx_x)
+        Ok(&self.cplx_x_vec)
     }
 
     fn init(&mut self, a_matrix: Vec<(usize, usize)>, cplx_a_matrix: Vec<(usize, usize)>) {
@@ -149,12 +154,73 @@ impl Solver for RSparseSolver {
 }
 
 impl RSparseSolver {
-    pub fn real_vec_to_complex_vec(&self) -> Vec<ComplexNumeric> {
+    fn real_vec_to_complex_vec(&self) -> Vec<ComplexNumeric> {
         let pivot = self.vars;
-        let real = &self.cplx_b[..pivot];
-        let imag = &self.cplx_b[pivot..];
+        let real = &self.cplx_b_vec[..pivot];
+        let imag = &self.cplx_b_vec[pivot..];
         let iter = real.iter().zip(imag.iter());
         iter.map(|(re, im)| Complex { re: *re, im: *im }).collect()
+    }
+
+    pub fn update_from_hashmap(&mut self) {
+        self.sprs.p.clear();
+        self.sprs.i.clear();
+        self.sprs.x.clear();
+
+        if self.a_mat.is_empty() {
+            self.sprs.nzmax = 0;
+            self.sprs.m = 0;
+            self.sprs.n = 0;
+            self.sprs.p.push(0);
+            return;
+        }
+
+        let mut max_row = 0;
+        let mut max_col = 0;
+        for ((r, c), _) in self.a_mat.iter() {
+            if *r > max_row {
+                max_row = *r;
+            }
+            if *c > max_col {
+                max_col = *c;
+            }
+        }
+
+        self.sprs.m = max_row + 1;
+        self.sprs.n = max_col + 1;
+
+        let mut entries: Vec<(usize, usize, Numeric)> = Vec::new();
+        self.a_mat.iter().for_each(|((row,col),val)| entries.push((*row,*col,*val)));
+
+        entries.sort_unstable_by(
+            |(r1, c1, _), (r2, c2, _)| {
+                if c1 != c2 {
+                    c1.cmp(c2)
+                } else {
+                    r1.cmp(r2)
+                }
+            },
+        );
+
+        self.sprs.nzmax = entries.len();
+        self.sprs.p.resize(self.sprs.n + 1, 0);
+        self.sprs.i.reserve(self.sprs.nzmax);
+        self.sprs.x.reserve(self.sprs.nzmax);
+
+        let mut current_col = 0;
+        for (idx, (row, col, val)) in entries.into_iter().enumerate() {
+            while col > current_col {
+                self.sprs.p[current_col + 1] = idx as isize;
+                current_col += 1;
+            }
+            self.sprs.i.push(row);
+            self.sprs.x.push(val);
+        }
+
+        while current_col < self.sprs.n {
+            self.sprs.p[current_col + 1] = self.sprs.nzmax as isize;
+            current_col += 1;
+        }
     }
 }
 
@@ -171,60 +237,47 @@ fn ipvec(n: usize, p: &Option<Vec<isize>>, b: &[Numeric], x: &mut [Numeric]) {
 #[cfg(test)]
 impl RSparseSolver {
     /// Returns the number of rows in the matrix `a_mat`.
-    pub fn rows(&self) -> usize {
-        self.a.n
-    }
-
-    /// Returns the number of columns in the matrix `a_mat`.
-    pub fn cols(&self) -> usize {
-        self.a.m
-    }
-
-    /// Returns the number of rows in the matrix `a_mat`.
-    pub fn cplx_rows(&self) -> usize {
-        self.cplx_a.n
-    }
-
-    /// Returns the number of columns in the matrix `a_mat`.
-    pub fn cplx_cols(&self) -> usize {
-        self.cplx_a.m
-    }
 
     /// Returns the length of the vector `b_vec`.
     pub fn b_vec_len(&self) -> usize {
-        self.b.len()
+        self.b_vec.len()
     }
 
     /// Returns the length of the vector `b_vec`.
     pub fn cplx_b_vec_len(&self) -> usize {
-        self.cplx_b.len()
+        self.cplx_b_vec.len()
     }
 
     /// Returns a reference to the matrix `a_mat`.
-    pub fn a_mat(&self) -> &Trpl<Numeric> {
-        &self.a
+    pub fn a_mat(&self) -> &HashMap<(usize, usize), Numeric> {
+        &self.a_mat
     }
 
     /// Returns a reference to the matrix `a_mat`.
-    pub fn a_mat_mut(&mut self) -> &mut Trpl<Numeric> {
-        &mut self.a
+    pub fn a_mat_mut(&mut self) -> &mut HashMap<(usize, usize), Numeric> {
+        &mut self.a_mat
     }
 
     /// Returns a reference to the vector `b_vec`.
     pub fn b_vec(&self) -> &Vec<Numeric> {
-        &self.b
+        &self.b_vec
     }
 
     /// Returns a reference to the matrix `cplx_a_mat`.
-    pub fn cplx_a_mat(&self) -> &Trpl<Numeric> {
-        &self.cplx_a
+    pub fn cplx_a_mat(&self) -> &HashMap<(usize, usize), ComplexNumeric> {
+        &self.cplx_a_mat
     }
 
     /// Returns a reference to the vector `cplx_b_vec`.
     pub fn cplx_b_vec(&self) -> &Vec<Numeric> {
-        &self.cplx_b
+        &self.cplx_b_vec
     }
 
+    /// Returns a reference to the vector `cplx_b_vec`.
+    pub fn sprs(&self) -> &Sprs<Numeric> {
+        &self.sprs
+    }
+    
     pub fn print_matrix_from_trpl(triple: Trpl<f64>) {
         let m = triple.m;
         let n = triple.n;
