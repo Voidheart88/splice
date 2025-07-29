@@ -1,4 +1,4 @@
-use std::{collections::HashMap, hash::Hash, hint::black_box};
+use std::{collections::HashMap, hint::black_box};
 
 use criterion::Criterion;
 use nalgebra::{DMatrix, DVector};
@@ -106,11 +106,23 @@ pub fn nalgebra_insert_a_1000_benchmark(c: &mut Criterion) {
 }
 
 pub fn nalgebra_solve(c: &mut Criterion) {
-    const SIZE: usize = 10;
-    let (a_mat, b_vec, x_vec) = generate_solvable_system(SIZE, 0.5);
-    let mut solver = NalgebraSolver::new(SIZE).unwrap();
+    c.bench_function("Nalgebra::solve a 10x10 linalg system", |b| {
+        const SIZE: usize = 10;
+        let (a_mat, b_vec, _x_vec) = generate_solvable_system(SIZE, 0.5);
+        let mut solver = NalgebraSolver::new(SIZE).unwrap();
 
-    //for row in a_mat.rows().iter() {
-    //    for idy in row.colums()
-    //}
+        for (idx, row) in a_mat.row_iter().enumerate() {
+            for (idy, val) in row.iter().enumerate() {
+                solver.insert_a(&(idx, idy, *val));
+            }
+        }
+
+        for (idx, entry) in b_vec.iter().enumerate() {
+            solver.insert_b(&(idx, *entry));
+        }
+
+        b.iter(|| {
+            black_box(solver.solve().unwrap());
+        });
+    });
 }
