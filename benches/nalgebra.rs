@@ -1,53 +1,57 @@
-use std::{collections::HashMap, hint::black_box};
+use std::collections::HashMap;
+use std::hint::black_box;
 
 use criterion::Criterion;
-use nalgebra::{DMatrix, DVector};
-use rand::{rng, Rng};
+use num::Zero;
+use num::One;
+use rand::rng;
+use rand::prelude::*;
 
-use splice::{
-    solver::{NalgebraSolver, Solver},
-    spot::Numeric,
-};
+use splice::solver::{NalgebraSolver, Solver};
+use splice::spot::Numeric;
 
-pub fn generate_solvable_system(
-    n: usize,
-    density: f64,
-) -> (DMatrix<f64>, DVector<f64>, DVector<f64>) {
+pub fn generate_solvable_system(n: usize, density: Numeric) -> (Vec<Vec<Numeric>>, Vec<Numeric>, Vec<Numeric>) {
     let mut rng = rng();
 
-    let mut l_entries = HashMap::new();
+    let mut l_entries: HashMap<(usize, usize), f64> = HashMap::new();
     for i in 0..n {
         let diag_val = rng.random_range(0.5..2.0);
         l_entries.insert((i, i), diag_val);
 
         for j in 0..i {
-            // Fill lower triangle
-            if rng.random::<f64>() < density {
-                let val = rng.random_range(-1.0..1.0);
+            if rng.random::<Numeric>() < density {
+                let val = rng.random_range(-Numeric::one()..Numeric::one());
                 l_entries.insert((i, j), val);
             }
         }
     }
 
-    // Convert L from HashMap to CsMat for efficient multiplication
-    let mut a_mat: DMatrix<Numeric> = DMatrix::zeros(n, n);
-
-    for ((row, col), val) in l_entries.iter() {
-        a_mat[(*row, *col)] = *val;
+    let mut l = vec![vec![Numeric::zero(); n]; n];
+    for (&(i, j), &val) in l_entries.iter() {
+        l[i][j] = val;
     }
 
-    let a_mat = a_mat.cross(&a_mat.transpose());
-    let mut x_true_dense: DVector<f64> = DVector::zeros(n);
-    for idx in 0..n {
-        x_true_dense[idx] = rng.random_range(-5.0..5.0);
+    let mut a = vec![vec![Numeric::zero(); n]; n];
+    for i in 0..n {
+        for j in 0..n {
+            for k in 0..n {
+                a[i][j] += l[i][k] * l[j][k];
+            }
+        }
     }
 
-    // Compute b = A * x_true
-    // Convert x_true_dense to a sparse vector for multiplication with CsMat
-    let b_sparse = a_mat.clone() * &x_true_dense;
+    let x_true: Vec<Numeric> = (0..n).map(|_| rng.random_range(-5.0..5.0)).collect();
 
-    (a_mat, b_sparse, x_true_dense)
+    let mut b = vec![Numeric::zero(); n];
+    for i in 0..n {
+        for j in 0..n {
+            b[i] += a[i][j] * x_true[j];
+        }
+    }
+
+    (a, b, x_true)
 }
+
 
 pub fn nalgebra_insert_a_benchmark(c: &mut Criterion) {
     let mut solver = NalgebraSolver::new(3).unwrap();
@@ -111,7 +115,7 @@ pub fn nalgebra_solve(c: &mut Criterion) {
         let (a_mat, b_vec, _x_vec) = generate_solvable_system(SIZE, 0.5);
         let mut solver = NalgebraSolver::new(SIZE).unwrap();
 
-        for (idx, row) in a_mat.row_iter().enumerate() {
+        for (idx, row) in a_mat.iter().enumerate() {
             for (idy, val) in row.iter().enumerate() {
                 solver.insert_a(&(idx, idy, *val));
             }
@@ -126,3 +130,4 @@ pub fn nalgebra_solve(c: &mut Criterion) {
         });
     });
 }
+

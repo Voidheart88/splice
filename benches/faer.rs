@@ -1,6 +1,57 @@
-use criterion::Criterion;
-use splice::{solver::FaerSolver, solver::Solver};
+use std::collections::HashMap;
 use std::hint::black_box;
+
+use criterion::Criterion;
+use num::Zero;
+use num::One;
+use rand::rng;
+use rand::prelude::*;
+
+use splice::solver::{FaerSolver, Solver};
+use splice::spot::*;
+
+
+pub fn generate_solvable_system(n: usize, density: Numeric) -> (Vec<Vec<Numeric>>, Vec<Numeric>, Vec<Numeric>) {
+    let mut rng = rng();
+
+    let mut l_entries: HashMap<(usize, usize), f64> = HashMap::new();
+    for i in 0..n {
+        let diag_val = rng.random_range(0.5..2.0);
+        l_entries.insert((i, i), diag_val);
+
+        for j in 0..i {
+            if rng.random::<Numeric>() < density {
+                let val = rng.random_range(-Numeric::one()..Numeric::one());
+                l_entries.insert((i, j), val);
+            }
+        }
+    }
+
+    let mut l = vec![vec![Numeric::zero(); n]; n];
+    for (&(i, j), &val) in l_entries.iter() {
+        l[i][j] = val;
+    }
+
+    let mut a = vec![vec![Numeric::zero(); n]; n];
+    for i in 0..n {
+        for j in 0..n {
+            for k in 0..n {
+                a[i][j] += l[i][k] * l[j][k];
+            }
+        }
+    }
+
+    let x_true: Vec<Numeric> = (0..n).map(|_| rng.random_range(-5.0..5.0)).collect();
+
+    let mut b = vec![Numeric::zero(); n];
+    for i in 0..n {
+        for j in 0..n {
+            b[i] += a[i][j] * x_true[j];
+        }
+    }
+
+    (a, b, x_true)
+}
 
 pub fn faer_insert_a_benchmark(c: &mut Criterion) {
     let mut solver = FaerSolver::new(3).unwrap();
@@ -57,3 +108,27 @@ pub fn faer_insert_a_1000_benchmark(c: &mut Criterion) {
         });
     });
 }
+
+
+pub fn faer_solve(c: &mut Criterion) {
+    c.bench_function("Faer::solve a 10x10 linalg system", |b| {
+        const SIZE: usize = 10;
+        let (a_mat, b_vec, _x_vec) = generate_solvable_system(SIZE, 0.5);
+        let mut solver = FaerSolver::new(SIZE).unwrap();
+
+        for (idx, row) in a_mat.iter().enumerate() {
+            for (idy, val) in row.iter().enumerate() {
+                solver.insert_a(&(idx, idy, *val));
+            }
+        }
+
+        for (idx, entry) in b_vec.iter().enumerate() {
+            solver.insert_b(&(idx, *entry));
+        }
+
+        b.iter(|| {
+            black_box(solver.solve().unwrap());
+        });
+    });
+}
+
