@@ -1,7 +1,5 @@
-use crate::{
-    solver::{NalgebraSolver, Solver},
-    spot::ComplexNumeric,
-};
+use crate::solver::{tests::generate_solvable_system, NalgebraSolver, Solver};
+use crate::spot::*;
 
 #[test]
 fn init_solver() {
@@ -206,4 +204,27 @@ fn insert_add_a_mat() {
     let a_mat = solver.a_mat();
 
     println!("{}", a_mat);
+}
+
+#[test]
+pub fn nalgebra_solve() {
+    const SIZE: usize = 10;
+    let (a_mat, b_vec, x_vec) = generate_solvable_system(SIZE, 0.5);
+    let mut solver = NalgebraSolver::new(SIZE).unwrap();
+
+    for (idx, row) in a_mat.iter().enumerate() {
+        for (idy, val) in row.iter().enumerate() {
+            solver.insert_a(&(idx, idy, *val));
+        }
+    }
+
+    for (idx, entry) in b_vec.iter().enumerate() {
+        solver.insert_b(&(idx, *entry));
+    }
+
+    let solution = solver.solve().unwrap();
+
+    for (idx, _) in solution.iter().enumerate() {
+        assert!((solution[idx] - x_vec[idx]) < 100.0 * Numeric::EPSILON);
+    }
 }

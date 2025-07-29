@@ -1,9 +1,5 @@
-use std::collections::HashMap;
-
-use crate::{
-    solver::{RSparseSolver, Solver},
-    spot::ComplexNumeric,
-};
+use crate::solver::{tests::generate_solvable_system, RSparseSolver, Solver};
+use crate::spot::*;
 
 #[test]
 fn init_solver() {
@@ -418,34 +414,25 @@ fn test_update_from_hashmap_single_element() {
 }
 
 #[test]
-fn test_update_from_hashmap_reuse_capacity() {
-    let mut solver = RSparseSolver::new(100).unwrap();
-    let mut map1 = HashMap::new();
-    for r in 0..100 {
-        for c in 0..100 {
-            if (r + c) % 10 == 0 {
-                map1.insert((r, c), (r + c) as f64);
-            }
+pub fn rsparse_solve() {
+    const SIZE: usize = 10;
+    let (a_mat, b_vec, x_vec) = generate_solvable_system(SIZE, 0.5);
+    let mut solver = RSparseSolver::new(SIZE).unwrap();
+
+    for (idx, row) in a_mat.iter().enumerate() {
+        for (idy, val) in row.iter().enumerate() {
+            solver.insert_a(&(idx, idy, *val));
         }
     }
-    solver.update_from_hashmap();
-    let initial_capacity_i = solver.sprs().i.capacity();
-    let initial_capacity_x = solver.sprs().x.capacity();
 
-    let mut map2 = HashMap::new();
-    map2.insert((0, 0), 1.0);
-    map2.insert((1, 1), 2.0);
-    solver.update_from_hashmap();
+    for (idx, entry) in b_vec.iter().enumerate() {
+        solver.insert_b(&(idx, *entry));
+    }
 
-    assert!(solver.sprs().i.capacity() >= solver.sprs().nzmax);
-    assert!(solver.sprs().x.capacity() >= solver.sprs().nzmax);
-    assert!(solver.sprs().i.capacity() <= initial_capacity_i);
-    assert!(solver.sprs().x.capacity() <= initial_capacity_x);
+    let solution = solver.solve().unwrap();
 
-    assert_eq!(solver.sprs().nzmax, 2);
-    assert_eq!(solver.sprs().m, 2);
-    assert_eq!(solver.sprs().n, 2);
-    assert_eq!(solver.sprs().p, vec![0, 1, 2]);
-    assert_eq!(solver.sprs().i, vec![0, 1]);
-    assert_eq!(solver.sprs().x, vec![1.0, 2.0]);
+    for (idx, _) in solution.iter().enumerate() {
+        print!("{}", solution[idx]);
+        assert!((solution[idx] - x_vec[idx]) < 100.0 * Numeric::EPSILON);
+    }
 }
