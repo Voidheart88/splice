@@ -190,7 +190,9 @@ impl RSparseSolver {
         self.sprs.n = max_col + 1;
 
         let mut entries: Vec<(usize, usize, Numeric)> = Vec::new();
-        self.a_mat.iter().for_each(|((row,col),val)| entries.push((*row,*col,*val)));
+        self.a_mat
+            .iter()
+            .for_each(|((row, col), val)| entries.push((*row, *col, *val)));
 
         entries.sort_unstable_by(
             |(r1, c1, _), (r2, c2, _)| {
@@ -277,7 +279,7 @@ impl RSparseSolver {
     pub fn sprs(&self) -> &Sprs<Numeric> {
         &self.sprs
     }
-    
+
     pub fn print_matrix_from_trpl(triple: Trpl<f64>) {
         let m = triple.m;
         let n = triple.n;

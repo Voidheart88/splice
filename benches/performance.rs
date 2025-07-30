@@ -1,5 +1,6 @@
 mod diode;
 mod faer;
+mod faer_sparse;
 mod hash_map;
 mod nalgebra;
 mod resistor;
@@ -16,6 +17,7 @@ use nalgebra::{
 };
 use resistor::resistor_triples_benchmark;
 
+use crate::faer_sparse::*;
 use crate::hash_map::bench_fxhash_get_mut;
 use crate::hash_map::bench_fxhash_insert;
 use crate::hash_map::bench_nohash_get_mut;
@@ -44,13 +46,16 @@ criterion_group!(
 criterion_group!(
     backend_benches,
     faer_insert_a_benchmark,
+    faer_sparse_insert_a_benchmark,
     rsparse_insert_a_benchmark,
     nalgebra_insert_a_benchmark,
     faer_insert_b_benchmark,
+    faer_sparse_insert_b_benchmark,
     rsparse_insert_b_benchmark,
     nalgebra_insert_b_benchmark,
     faer_insert_a_1000_benchmark,
+    faer_sparse_insert_a_1000_benchmark,
     rsparse_insert_a_1000_benchmark,
     nalgebra_insert_a_1000_benchmark,
 );
-criterion_main!(hashmap_benches);
+criterion_main!(backend_benches);

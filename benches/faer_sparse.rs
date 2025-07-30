@@ -1,9 +1,10 @@
-use criterion::Criterion;
-use splice::{solver::FaerSolver, solver::Solver};
 use std::hint::black_box;
 
-pub fn faer_insert_a_benchmark(c: &mut Criterion) {
-    let mut solver = FaerSolver::new(3).unwrap();
+use criterion::Criterion;
+use splice::solver::{faer_sparse::FaerSparseSolver, Solver};
+
+pub fn faer_sparse_insert_a_benchmark(c: &mut Criterion) {
+    let mut solver = FaerSparseSolver::new(3).unwrap();
 
     let mut values = Vec::new();
     for val in 0..10 {
@@ -12,7 +13,7 @@ pub fn faer_insert_a_benchmark(c: &mut Criterion) {
         values.push((row, col, val as f64));
     }
 
-    c.bench_function("Faer::insert a", |b| {
+    c.bench_function("FaerSparse::insert a", |b| {
         b.iter(|| {
             for value in values.iter() {
                 black_box(solver.insert_a(&value));
@@ -21,8 +22,8 @@ pub fn faer_insert_a_benchmark(c: &mut Criterion) {
     });
 }
 
-pub fn faer_insert_b_benchmark(c: &mut Criterion) {
-    let mut solver = FaerSolver::new(3).unwrap();
+pub fn faer_sparse_insert_b_benchmark(c: &mut Criterion) {
+    let mut solver = FaerSparseSolver::new(3).unwrap();
 
     let mut values = Vec::new();
     for val in 0..10 {
@@ -30,7 +31,7 @@ pub fn faer_insert_b_benchmark(c: &mut Criterion) {
         values.push((row, val as f64));
     }
 
-    c.bench_function("Faer::insert b", |b| {
+    c.bench_function("FaerSparse::insert b", |b| {
         b.iter(|| {
             for value in values.iter() {
                 black_box(solver.insert_b(&value));
@@ -39,8 +40,8 @@ pub fn faer_insert_b_benchmark(c: &mut Criterion) {
     });
 }
 
-pub fn faer_insert_a_1000_benchmark(c: &mut Criterion) {
-    let mut solver = FaerSolver::new(1000).unwrap();
+pub fn faer_sparse_insert_a_1000_benchmark(c: &mut Criterion) {
+    let mut solver = FaerSparseSolver::new(1000).unwrap();
 
     let mut values = Vec::new();
     for val in 0..1000 {
@@ -49,7 +50,7 @@ pub fn faer_insert_a_1000_benchmark(c: &mut Criterion) {
         values.push((row, col, val as f64));
     }
 
-    c.bench_function("Faer::insert a 10k", |b| {
+    c.bench_function("FaerSparse::insert a 10k", |b| {
         b.iter(|| {
             for value in values.iter() {
                 black_box(solver.insert_a(&value));

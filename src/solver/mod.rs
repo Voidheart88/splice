@@ -1,4 +1,5 @@
 pub mod faer;
+pub mod faer_sparse;
 pub mod nalgebra;
 pub mod rsparse;
 
@@ -29,6 +30,7 @@ pub enum Solvers {
     Rsparse,
     Nalgebra,
     Faer,
+    FaerSparse,
 }
 
 /// Trait defining the Solver interface.

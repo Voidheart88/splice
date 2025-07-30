@@ -1,5 +1,3 @@
-#![deny(unsafe_code)]
-
 pub mod backends;
 pub mod frontends;
 pub mod models;
@@ -76,6 +74,10 @@ pub fn run() -> Result<()> {
             sim.run()?
         }
         Solvers::Faer => {
+            let mut sim: Simulator<FaerSolver> = Simulator::from(sim);
+            sim.run()?
+        }
+        Solvers::FaerSparse => {
             let mut sim: Simulator<FaerSolver> = Simulator::from(sim);
             sim.run()?
         }
