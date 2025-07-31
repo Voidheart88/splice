@@ -1,10 +1,19 @@
+#[cfg(feature = "faer-in-place")]
 use faer::dyn_stack::MemBuffer;
+#[cfg(feature = "faer-in-place")]
 use faer::dyn_stack::MemStack;
+#[cfg(feature = "faer-in-place")]
 use faer::linalg::lu::partial_pivoting::factor::lu_in_place;
+#[cfg(feature = "faer-in-place")]
 use faer::linalg::lu::partial_pivoting::factor::lu_in_place_scratch;
+#[cfg(feature = "faer-in-place")]
 use faer::linalg::lu::partial_pivoting::factor::PartialPivLuParams;
+#[cfg(feature = "faer-in-place")]
 use faer::linalg::lu::partial_pivoting::solve::solve_in_place;
+#[cfg(feature = "faer-in-place")]
 use faer::linalg::lu::partial_pivoting::solve::solve_in_place_scratch;
+
+
 use faer::prelude::*;
 use num::Zero;
 
@@ -31,10 +40,15 @@ pub struct FaerSolver {
     /// The Solution vector
     cplx_x_vec: Vec<ComplexNumeric>,
     // Workspace
+    #[cfg(feature = "faer-in-place")]
     l_mat: Mat<Numeric>,
+    #[cfg(feature = "faer-in-place")]
     u_mat: Mat<Numeric>,
+    #[cfg(feature = "faer-in-place")]
     perm: Vec<usize>,
+    #[cfg(feature = "faer-in-place")]
     perm_inv: Vec<usize>,
+    #[cfg(feature = "faer-in-place")]
     x_vec_workspace: Mat<Numeric>,
 }
 
@@ -50,10 +64,15 @@ impl Solver for FaerSolver {
             cplx_a_mat: Mat::zeros(vars, vars),
             cplx_b_vec: Mat::full(vars, 1, c64 { re: 0.0, im: 0.0 }),
             cplx_x_vec: vec![num::Complex { re: 0.0, im: 0.0 }; vars],
+            #[cfg(feature = "faer-in-place")]
             l_mat: Mat::zeros(vars, vars),
+            #[cfg(feature = "faer-in-place")]
             u_mat: Mat::zeros(vars, vars),
+            #[cfg(feature = "faer-in-place")]
             perm: vec![0; vars],
+            #[cfg(feature = "faer-in-place")]
             perm_inv: vec![0; vars],
+            #[cfg(feature = "faer-in-place")]
             x_vec_workspace: Mat::full(vars, 1, 0.0),
         })
     }
