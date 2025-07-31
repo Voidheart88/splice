@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::hint::black_box;
 
+use criterion::BatchSize;
 use criterion::Criterion;
 use num::Zero;
 use num::One;
@@ -109,26 +110,93 @@ pub fn faer_insert_a_1000_benchmark(c: &mut Criterion) {
     });
 }
 
-
 pub fn faer_solve(c: &mut Criterion) {
-    c.bench_function("Faer::solve a 10x10 linalg system", |b| {
+    let mut group = c.benchmark_group("Faer::solve");
+
+    group.bench_function("Faer::solve random n=10,s=0.5 system", |b| {
         const SIZE: usize = 10;
-        let (a_mat, b_vec, _x_vec) = generate_solvable_system(SIZE, 0.5);
-        let mut solver = FaerSolver::new(SIZE).unwrap();
+        const SPARSITY: Numeric = 0.5;
 
-        for (idx, row) in a_mat.iter().enumerate() {
-            for (idy, val) in row.iter().enumerate() {
-                solver.insert_a(&(idx, idy, *val));
-            }
-        }
+        b.iter_batched(
+            || {
+                let (a_mat, b_vec, _x_vec) = generate_solvable_system(SIZE, SPARSITY);
+                let mut solver = FaerSolver::new(SIZE).unwrap();
 
-        for (idx, entry) in b_vec.iter().enumerate() {
-            solver.insert_b(&(idx, *entry));
-        }
+                for (idx, row) in a_mat.iter().enumerate() {
+                    for (idy, val) in row.iter().enumerate() {
+                        solver.insert_a(&(idx, idy, *val));
+                    }
+                }
 
-        b.iter(|| {
-            black_box(solver.solve().unwrap());
-        });
+                for (idx, entry) in b_vec.iter().enumerate() {
+                    solver.insert_b(&(idx, *entry));
+                }
+
+                solver
+            },
+            |mut solver| {
+                black_box(solver.solve().unwrap());
+            },
+            BatchSize::SmallInput,
+        );
     });
+    
+    group.bench_function("Faer::solve random n=100,s=0.1 system", |b| {
+        const SIZE: usize = 100;
+        const SPARSITY: Numeric = 0.1;
+
+        b.iter_batched(
+            || {
+                let (a_mat, b_vec, _x_vec) = generate_solvable_system(SIZE, SPARSITY);
+                let mut solver = FaerSolver::new(SIZE).unwrap();
+
+                for (idx, row) in a_mat.iter().enumerate() {
+                    for (idy, val) in row.iter().enumerate() {
+                        solver.insert_a(&(idx, idy, *val));
+                    }
+                }
+
+                for (idx, entry) in b_vec.iter().enumerate() {
+                    solver.insert_b(&(idx, *entry));
+                }
+
+                solver
+            },
+            |mut solver| {
+                black_box(solver.solve().unwrap());
+            },
+            BatchSize::SmallInput,
+        );
+    });
+    
+    group.measurement_time(std::time::Duration::from_secs(300));
+    group.bench_function("Faer::solve random n=1000,s=0.01 system", |b| {
+        const SIZE: usize = 1000;
+        const SPARSITY: Numeric = 0.01;
+        b.iter_batched(
+            || {
+                let (a_mat, b_vec, _x_vec) = generate_solvable_system(SIZE, SPARSITY);
+                let mut solver = FaerSolver::new(SIZE).unwrap();
+
+                for (idx, row) in a_mat.iter().enumerate() {
+                    for (idy, val) in row.iter().enumerate() {
+                        solver.insert_a(&(idx, idy, *val));
+                    }
+                }
+
+                for (idx, entry) in b_vec.iter().enumerate() {
+                    solver.insert_b(&(idx, *entry));
+                }
+
+                solver
+            },
+            |mut solver| {
+                black_box(solver.solve().unwrap());
+            },
+            BatchSize::SmallInput,
+        );
+    });
+
+    group.finish();
 }
 
