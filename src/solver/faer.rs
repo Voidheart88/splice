@@ -80,6 +80,7 @@ impl Solver for FaerSolver {
         *value = *value + val;
     }
 
+    #[cfg(feature = "faer-in-place")]
     fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError> {
         let params = PartialPivLuParams {
             recursion_threshold: 2,
@@ -133,11 +134,10 @@ impl Solver for FaerSolver {
             .flat_map(|row| row.iter_mut())
             .for_each(|val| *val = Numeric::zero());
 
-        println!("{:?}", self.b_vec);
-
         Ok(&self.x_vec)
     }
-    /*
+    
+    #[cfg(not(feature = "faer-in-place"))]
     fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError> {
         let lu = self.a_mat.partial_piv_lu();
         let res = lu.solve(&self.b_vec);
@@ -157,7 +157,7 @@ impl Solver for FaerSolver {
 
         Ok(&self.x_vec)
     }
-    */
+
     fn solve_cplx(&mut self) -> Result<&Vec<ComplexNumeric>, SolverError> {
         let lu = self.cplx_a_mat.partial_piv_lu();
         let res = lu.solve(&self.cplx_b_vec);

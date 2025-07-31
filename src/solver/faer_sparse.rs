@@ -1,6 +1,7 @@
 use faer::prelude::*;
 use faer::sparse::linalg::LuError;
-use faer::sparse::{SymbolicSparseColMat, Triplet};
+use faer::sparse::Triplet;
+use faer::sparse::SparseColMat;
 use num::Zero;
 
 use super::{Solver, SolverError};
@@ -25,12 +26,6 @@ pub struct FaerSparseSolver {
 
     /// The Solution vector
     cplx_x_vec: Vec<ComplexNumeric>,
-
-    // Workspace
-    symb: Option<SymbolicSparseColMat<usize, usize, usize>>,
-    argsort: Option<faer::sparse::Argsort<usize>>,
-    cplx_symb: Option<SymbolicSparseColMat<usize, usize, usize>>,
-    cplx_argsort: Option<faer::sparse::Argsort<usize>>,
 }
 
 impl Solver for FaerSparseSolver {
@@ -45,10 +40,6 @@ impl Solver for FaerSparseSolver {
             cplx_a_mat: Vec::new(),
             cplx_b_vec: Mat::full(vars, 1, c64 { re: 0.0, im: 0.0 }),
             cplx_x_vec: vec![num::Complex { re: 0.0, im: 0.0 }; vars],
-            symb: None,
-            argsort: None,
-            cplx_symb: None,
-            cplx_argsort: None,
         })
     }
 
@@ -119,30 +110,7 @@ impl Solver for FaerSparseSolver {
         Ok(&self.cplx_x_vec)
     }
 
-    fn init(&mut self, a_matrix: Vec<(usize, usize)>, cplx_a_matrix: Vec<(usize, usize)>) {
-        let pairs: Vec<faer::sparse::Pair<usize, usize>> = a_matrix
-            .iter()
-            .map(|(row, col)| (faer::sparse::Pair::new(*row, *col)))
-            .collect();
-
-        let (symb, argsort) =
-            SymbolicSparseColMat::try_new_from_indices(a_matrix.len(), a_matrix.len(), &pairs)
-                .unwrap();
-
-        self.symb = Some(symb);
-        self.argsort = Some(argsort);
-
-        let pairs: Vec<faer::sparse::Pair<usize, usize>> = cplx_a_matrix
-            .iter()
-            .map(|(row, col)| (faer::sparse::Pair::new(*row, *col)))
-            .collect();
-
-        let (symb, argsort) =
-            SymbolicSparseColMat::try_new_from_indices(a_matrix.len(), a_matrix.len(), &pairs)
-                .unwrap();
-
-        self.cplx_symb = Some(symb);
-        self.cplx_argsort = Some(argsort);
+    fn init(&mut self, _a_matrix: Vec<(usize, usize)>, _cplx_a_matrix: Vec<(usize, usize)>) {
     }
 }
 

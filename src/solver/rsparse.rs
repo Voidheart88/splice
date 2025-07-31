@@ -7,6 +7,7 @@ use super::{Solver, SolverError};
 use crate::models::{Pairs, Triples};
 use crate::spot::*;
 use log::trace;
+use log::warn;
 use num::complex::ComplexFloat;
 use num::{Complex, Zero};
 use rsparse::data::{Nmrc, Sprs, Symb, Trpl};
@@ -107,6 +108,8 @@ impl Solver for RSparseSolver {
             self.symb = Some(rsparse::sqr(&self.sprs, 1, false))
         }
         let mut symb = self.symb.take().unwrap();
+        
+        
         self.lu = rsparse::lu(&self.sprs, &mut symb, 1e-6).unwrap();
 
         ipvec(self.sprs.n, &self.lu.pinv, &self.b_vec, &mut self.x_vec[..]);
@@ -119,8 +122,6 @@ impl Solver for RSparseSolver {
     }
 
     fn solve_cplx(&mut self) -> Result<&Vec<ComplexNumeric>, SolverError> {
-        // Convert the triplet matrix to a sparse matrix
-        //self.cplx_sprs.from_trpl(&self.cplx_a_mat);
         rsparse::lusol(&self.cplx_sprs, &mut self.cplx_b_vec, 1, 1e-6);
         self.cplx_x_vec = self.real_vec_to_complex_vec();
 
@@ -162,6 +163,7 @@ impl RSparseSolver {
         iter.map(|(re, im)| Complex { re: *re, im: *im }).collect()
     }
 
+    /// Updates the sparse workspace from the hashmap
     pub fn update_from_hashmap(&mut self) {
         self.sprs.p.clear();
         self.sprs.i.clear();
@@ -295,7 +297,8 @@ impl RSparseSolver {
             if row < m && col < n as isize {
                 matrix[row][col as usize] = x[k];
             } else {
-                eprintln!(
+
+                warn!(
                     "Warning: Index out of bounds detected for element at index {}. Skipping.",
                     k
                 );

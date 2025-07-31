@@ -52,3 +52,7 @@ opt-level = 3
 [[bench]]
 name = "performance"
 harness = false
+
+[features]
+default = []
+faer-in-place = []

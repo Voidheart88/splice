@@ -49,6 +49,6 @@ criterion_group!(
     nalgebra_insert_a_1000_benchmark,
 );
 
-criterion_group!(backend_solve, nalgebra_solve, faer_solve,);
+criterion_group!(backend_solve, nalgebra_solve, faer_solve, faer_sparse_solve);
 
 criterion_main!(backend_solve);
