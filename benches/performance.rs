@@ -16,10 +16,6 @@ use crate::nalgebra::*;
 use crate::resistor::*;
 use crate::rsparse::*;
 
-
-
-
-
 criterion_group!(
     hashmap_benches,
     bench_hashmap_insert,
@@ -53,10 +49,6 @@ criterion_group!(
     nalgebra_insert_a_1000_benchmark,
 );
 
-criterion_group!(
-    backend_solve,
-    nalgebra_solve,
-    faer_solve,
-);
+criterion_group!(backend_solve, nalgebra_solve, faer_solve,);
 
 criterion_main!(backend_solve);

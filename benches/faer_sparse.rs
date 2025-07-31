@@ -1,8 +1,8 @@
 use std::hint::black_box;
 
 use criterion::Criterion;
-use splice::solver::Solver;
 use splice::solver::faer_sparse::FaerSparseSolver;
+use splice::solver::Solver;
 
 pub fn faer_sparse_insert_a_benchmark(c: &mut Criterion) {
     let mut solver = FaerSparseSolver::new(3).unwrap();

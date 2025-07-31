@@ -1,4 +1,3 @@
-
 use faer::dyn_stack::MemBuffer;
 use faer::dyn_stack::MemStack;
 use faer::linalg::lu::partial_pivoting::factor::lu_in_place;
@@ -83,34 +82,34 @@ impl Solver for FaerSolver {
 
     fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError> {
         let params = PartialPivLuParams {
-        				recursion_threshold: 2,
-        				blocksize: 2,
-        				..faer::Auto::<f64>::auto()
-        			};
-        let lu_memory = lu_in_place_scratch::<usize,Numeric>(
-            self.a_mat.nrows(), 
-            self.a_mat.ncols(), 
-            Par::Seq, 
+            recursion_threshold: 2,
+            blocksize: 2,
+            ..faer::Auto::<f64>::auto()
+        };
+        let lu_memory = lu_in_place_scratch::<usize, Numeric>(
+            self.a_mat.nrows(),
+            self.a_mat.ncols(),
+            Par::Seq,
             params.into(),
         );
-        
-        let solve_memory = solve_in_place_scratch::<usize,Numeric>(
-            self.a_mat.nrows(), 
-            self.a_mat.ncols(), 
+
+        let solve_memory = solve_in_place_scratch::<usize, Numeric>(
+            self.a_mat.nrows(),
+            self.a_mat.ncols(),
             Par::Seq,
         );
 
         // allocate the scratch space
         let mut memory = MemBuffer::new(lu_memory.or(solve_memory));
         let stack = MemStack::new(&mut memory);
-        
-        let (_,row_perm) = lu_in_place(
+
+        let (_, row_perm) = lu_in_place(
             self.a_mat.as_mut(),
             &mut self.perm,
             &mut self.perm_inv,
             Par::Seq,
             stack,
-            params.into(), 
+            params.into(),
         );
         self.x_vec_workspace = self.b_vec.to_owned();
         solve_in_place(
@@ -134,8 +133,8 @@ impl Solver for FaerSolver {
             .flat_map(|row| row.iter_mut())
             .for_each(|val| *val = Numeric::zero());
 
-        println!("{:?}",self.b_vec);
-        
+        println!("{:?}", self.b_vec);
+
         Ok(&self.x_vec)
     }
     /*
@@ -157,7 +156,7 @@ impl Solver for FaerSolver {
             .for_each(|val| *val = Numeric::zero());
 
         Ok(&self.x_vec)
-    }    
+    }
     */
     fn solve_cplx(&mut self) -> Result<&Vec<ComplexNumeric>, SolverError> {
         let lu = self.cplx_a_mat.partial_piv_lu();

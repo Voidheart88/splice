@@ -3,16 +3,18 @@ use std::hint::black_box;
 
 use criterion::BatchSize;
 use criterion::Criterion;
-use num::Zero;
 use num::One;
-use rand::rng;
+use num::Zero;
 use rand::prelude::*;
+use rand::rng;
 
 use splice::solver::{FaerSolver, Solver};
 use splice::spot::*;
 
-
-pub fn generate_solvable_system(n: usize, density: Numeric) -> (Vec<Vec<Numeric>>, Vec<Numeric>, Vec<Numeric>) {
+pub fn generate_solvable_system(
+    n: usize,
+    density: Numeric,
+) -> (Vec<Vec<Numeric>>, Vec<Numeric>, Vec<Numeric>) {
     let mut rng = rng();
 
     let mut l_entries: HashMap<(usize, usize), f64> = HashMap::new();
@@ -140,7 +142,7 @@ pub fn faer_solve(c: &mut Criterion) {
             BatchSize::SmallInput,
         );
     });
-    
+
     group.bench_function("Faer::solve random n=100,s=0.1 system", |b| {
         const SIZE: usize = 100;
         const SPARSITY: Numeric = 0.1;
@@ -168,7 +170,7 @@ pub fn faer_solve(c: &mut Criterion) {
             BatchSize::SmallInput,
         );
     });
-    
+
     group.measurement_time(std::time::Duration::from_secs(300));
     group.bench_function("Faer::solve random n=1000,s=0.01 system", |b| {
         const SIZE: usize = 1000;
@@ -199,4 +201,3 @@ pub fn faer_solve(c: &mut Criterion) {
 
     group.finish();
 }
-

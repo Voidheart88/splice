@@ -4,14 +4,16 @@ mod rsparse;
 
 use std::collections::HashMap;
 
+use num::{One, Zero};
 use rand::prelude::*;
 use rand::rng;
-use num::{Zero,One};
 
 use crate::spot::*;
 
-
-pub fn generate_solvable_system(n: usize, density: Numeric) -> (Vec<Vec<Numeric>>, Vec<Numeric>, Vec<Numeric>) {
+pub fn generate_solvable_system(
+    n: usize,
+    density: Numeric,
+) -> (Vec<Vec<Numeric>>, Vec<Numeric>, Vec<Numeric>) {
     let mut rng = rng();
 
     let mut l_entries: HashMap<(usize, usize), f64> = HashMap::new();
