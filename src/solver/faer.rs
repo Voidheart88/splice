@@ -1,14 +1,12 @@
+
 use faer::dyn_stack::MemBuffer;
 use faer::dyn_stack::MemStack;
-use faer::linalg::lu;
 use faer::linalg::lu::partial_pivoting::factor::lu_in_place;
 use faer::linalg::lu::partial_pivoting::factor::lu_in_place_scratch;
 use faer::linalg::lu::partial_pivoting::factor::PartialPivLuParams;
-use faer::linalg::lu::partial_pivoting::solve;
 use faer::linalg::lu::partial_pivoting::solve::solve_in_place;
+use faer::linalg::lu::partial_pivoting::solve::solve_in_place_scratch;
 use faer::prelude::*;
-use faer::Auto;
-use faer::Spec;
 use num::Zero;
 
 use super::{Solver, SolverError};
@@ -36,8 +34,8 @@ pub struct FaerSolver {
     // Workspace
     l_mat: Mat<Numeric>,
     u_mat: Mat<Numeric>,
-    row_perm_fwd: Vec<usize>,
-    row_perm_bwd: Vec<usize>,
+    perm: Vec<usize>,
+    perm_inv: Vec<usize>,
     x_vec_workspace: Mat<Numeric>,
 }
 
@@ -55,8 +53,8 @@ impl Solver for FaerSolver {
             cplx_x_vec: vec![num::Complex { re: 0.0, im: 0.0 }; vars],
             l_mat: Mat::zeros(vars, vars),
             u_mat: Mat::zeros(vars, vars),
-            row_perm_fwd: vec![0; vars],
-            row_perm_bwd: vec![0; vars],
+            perm: vec![0; vars],
+            perm_inv: vec![0; vars],
             x_vec_workspace: Mat::full(vars, 1, 0.0),
         })
     }
@@ -84,20 +82,47 @@ impl Solver for FaerSolver {
     }
 
     fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError> {
-        
-        let params  = PartialPivLuParams::auto(); 
-        let spec = Spec::new(params);
+        let params = PartialPivLuParams {
+        				recursion_threshold: 2,
+        				blocksize: 2,
+        				..faer::Auto::<f64>::auto()
+        			};
         let lu_memory = lu_in_place_scratch::<usize,Numeric>(
             self.a_mat.nrows(), 
             self.a_mat.ncols(), 
             Par::Seq, 
-            spec,
+            params.into(),
         );
         
+        let solve_memory = solve_in_place_scratch::<usize,Numeric>(
+            self.a_mat.nrows(), 
+            self.a_mat.ncols(), 
+            Par::Seq,
+        );
+
+        // allocate the scratch space
+        let mut memory = MemBuffer::new(lu_memory.or(solve_memory));
+        let stack = MemStack::new(&mut memory);
         
-        
-        
-        for (idx, val) in self.b_vec.col_as_slice(0).iter().enumerate() {
+        let (_,row_perm) = lu_in_place(
+            self.a_mat.as_mut(),
+            &mut self.perm,
+            &mut self.perm_inv,
+            Par::Seq,
+            stack,
+            params.into(), 
+        );
+        self.x_vec_workspace = self.b_vec.to_owned();
+        solve_in_place(
+            self.l_mat.as_ref(),
+            self.u_mat.as_ref(),
+            row_perm,
+            self.x_vec_workspace.as_mut(),
+            Par::Seq,
+            stack,
+        );
+
+        for (idx, val) in self.x_vec_workspace.col_as_slice(0).iter().enumerate() {
             self.x_vec[idx] = *val;
         }
         self.a_mat

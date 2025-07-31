@@ -10,6 +10,7 @@ use criterion::{criterion_group, criterion_main};
 
 use crate::diode::*;
 use crate::faer::*;
+use crate::faer_sparse::*;
 use crate::hash_map::*;
 use crate::nalgebra::*;
 use crate::resistor::*;

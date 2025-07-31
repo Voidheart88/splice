@@ -8,6 +8,7 @@ use miette::Diagnostic;
 use thiserror::Error;
 
 pub use faer::FaerSolver;
+pub use faer_sparse::FaerSparseSolver;
 pub use nalgebra::NalgebraSolver;
 pub use rsparse::RSparseSolver;
 
