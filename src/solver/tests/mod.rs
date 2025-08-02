@@ -54,3 +54,30 @@ pub fn generate_solvable_system(
 
     (a, b, x_true)
 }
+
+fn calculate_f(x: &Vec<Numeric>) -> Vec<Numeric> {
+    let x0 = x[0];
+    let x1 = x[1];
+
+    let f0 = x0.powi(2) + x1.powi(2) - 4.0;
+    let f1 = x0 - x1.powi(2) - 1.0;
+
+    vec![f0, f1]
+}
+
+fn calculate_jacobian(x: &Vec<Numeric>) -> HashMap<(usize, usize), Numeric> {
+    let x0 = x[0];
+    let x1 = x[1];
+
+    let mut jacobian = HashMap::new();
+    jacobian.insert((0, 0), 2.0 * x0);
+    jacobian.insert((0, 1), 2.0 * x1);
+    jacobian.insert((1, 0), 1.0);
+    jacobian.insert((1, 1), -2.0 * x1);
+
+    jacobian
+}
+
+fn norm(vec: &Vec<Numeric>) -> Numeric {
+    Numeric::sqrt(vec.iter().map(|val| val * val).sum())
+}

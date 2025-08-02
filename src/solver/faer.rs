@@ -1,18 +1,11 @@
 #[cfg(feature = "faer-in-place")]
-use faer::dyn_stack::MemBuffer;
-#[cfg(feature = "faer-in-place")]
-use faer::dyn_stack::MemStack;
-#[cfg(feature = "faer-in-place")]
-use faer::linalg::lu::partial_pivoting::factor::lu_in_place;
-#[cfg(feature = "faer-in-place")]
-use faer::linalg::lu::partial_pivoting::factor::lu_in_place_scratch;
-#[cfg(feature = "faer-in-place")]
-use faer::linalg::lu::partial_pivoting::factor::PartialPivLuParams;
-#[cfg(feature = "faer-in-place")]
-use faer::linalg::lu::partial_pivoting::solve::solve_in_place;
-#[cfg(feature = "faer-in-place")]
-use faer::linalg::lu::partial_pivoting::solve::solve_in_place_scratch;
-
+use faer::{
+    dyn_stack::{MemBuffer, MemStack},
+    linalg::lu::partial_pivoting::{
+        factor::{lu_in_place, lu_in_place_scratch, PartialPivLuParams},
+        solve::{solve_in_place, solve_in_place_scratch},
+    },
+};
 
 use faer::prelude::*;
 use num::Zero;
@@ -155,7 +148,7 @@ impl Solver for FaerSolver {
 
         Ok(&self.x_vec)
     }
-    
+
     #[cfg(not(feature = "faer-in-place"))]
     fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError> {
         let lu = self.a_mat.partial_piv_lu();

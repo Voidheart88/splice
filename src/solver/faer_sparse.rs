@@ -1,7 +1,7 @@
 use faer::prelude::*;
 use faer::sparse::linalg::LuError;
-use faer::sparse::Triplet;
 use faer::sparse::SparseColMat;
+use faer::sparse::Triplet;
 use num::Zero;
 
 use super::{Solver, SolverError};
@@ -110,8 +110,7 @@ impl Solver for FaerSparseSolver {
         Ok(&self.cplx_x_vec)
     }
 
-    fn init(&mut self, _a_matrix: Vec<(usize, usize)>, _cplx_a_matrix: Vec<(usize, usize)>) {
-    }
+    fn init(&mut self, _a_matrix: Vec<(usize, usize)>, _cplx_a_matrix: Vec<(usize, usize)>) {}
 }
 
 impl From<LuError> for SolverError {

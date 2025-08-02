@@ -1,4 +1,5 @@
-use crate::solver::{tests::generate_solvable_system, RSparseSolver, Solver};
+use crate::solver::tests::*;
+use crate::solver::{RSparseSolver, Solver};
 use crate::spot::*;
 
 #[test]
@@ -128,12 +129,12 @@ fn solve_small_2() {
 
     assert!(
         (solution[0] - 2.0).abs() < epsilon,
-        "Erwartet x=2.0, aber ist {}",
+        "Expected x=2.0, put is {}",
         solution[0]
     );
     assert!(
         (solution[1] - 1.0).abs() < epsilon,
-        "Erwartet y=1.0, aber ist {}",
+        "Expected y=1.0, put is {}",
         solution[1]
     );
 }
@@ -435,4 +436,129 @@ pub fn rsparse_solve() {
         print!("{}", solution[idx]);
         assert!((solution[idx] - x_vec[idx]) < 100.0 * Numeric::EPSILON);
     }
+}
+
+#[test]
+pub fn rsparse_update_sprs() {
+    let mut solver = RSparseSolver::new(3).unwrap();
+    solver.insert_a(&(0, 0, 1.0));
+    solver.insert_a(&(1, 1, 1.0));
+    solver.insert_a(&(2, 2, 1.0));
+    solver.update_from_hashmap();
+
+    assert_eq!(solver.sprs().nzmax, 3);
+    assert_eq!(solver.sprs().m, 3);
+    assert_eq!(solver.sprs().n, 3);
+    assert_eq!(solver.sprs().p, Vec::from([0, 1, 2, 3]));
+    assert_eq!(solver.sprs().i, Vec::from([0, 1, 2]));
+    assert_eq!(solver.sprs().x, Vec::from([1.0, 1.0, 1.0]));
+}
+
+#[test]
+pub fn rsparse_update_b_vec() {
+    let mut solver = RSparseSolver::new(3).unwrap();
+    solver.insert_b(&(0, 1.0));
+    solver.insert_b(&(1, 2.0));
+    solver.insert_b(&(2, 3.0));
+    solver.update_from_hashmap();
+
+    assert_eq!(solver.b_vec().len(), 3);
+    assert_eq!(solver.b_vec(), &Vec::from([1.0, 2.0, 3.0]));
+}
+
+#[test]
+fn insert_after_solve_test() {
+    let mut solver = RSparseSolver::new(2).unwrap();
+
+    solver.insert_a(&(0, 0, 1.0));
+    solver.insert_a(&(0, 1, 1.0));
+    solver.insert_a(&(1, 0, 1.0));
+    solver.insert_a(&(1, 1, -1.0));
+    solver.insert_b(&(0, 3.0));
+    solver.insert_b(&(1, 1.0));
+
+    println!("a_mat: {:?}", solver.a_mat());
+    println!("b_vec: {:?}", solver.b_vec());
+    println!("x_vec: {:?}", solver.x_vec());
+    let solution_0 = solver.solve().unwrap().clone();
+    println!("a_mat: {:?}", solver.a_mat());
+    println!("b_vec: {:?}", solver.b_vec());
+    println!("x_vec: {:?}", solver.x_vec());
+
+    solver.insert_a(&(0, 0, 1.0));
+    solver.insert_a(&(0, 1, 1.0));
+    solver.insert_a(&(1, 0, 1.0));
+    solver.insert_a(&(1, 1, -1.0));
+    solver.insert_b(&(0, 3.0));
+    solver.insert_b(&(1, 1.0));
+
+    let solution_1 = solver.solve().unwrap().clone();
+
+    assert_eq!(solution_0, solution_1)
+}
+
+#[test]
+pub fn newton_raphson_test() {
+    const SIZE: usize = 2;
+
+    let mut x_current = vec![1.5, 1.5];
+
+    let max_iterations = 100;
+    let tolerance = 1.0e-6;
+
+    println!("Startschätzung: {:?}", x_current);
+
+    for iter in 0..max_iterations {
+        let f_val = calculate_f(&x_current);
+        let jacobian_mat = calculate_jacobian(&x_current);
+
+        if norm(&f_val) < tolerance {
+            println!("Converged after {} iterations.", iter);
+            break;
+        }
+
+        let rhs: Vec<Numeric> = f_val.iter().map(|val| -val).collect();
+        let mut solver = RSparseSolver::new(SIZE).unwrap();
+
+        for r in 0..SIZE {
+            for c in 0..SIZE {
+                solver.insert_a(&(r, c, jacobian_mat[&(r, c)]));
+            }
+        }
+
+        for r in 0..SIZE {
+            solver.insert_b(&(r, rhs[r]));
+        }
+
+        let dx_vec = match solver.solve() {
+            Ok(sol) => sol,
+            Err(e) => {
+                panic!("Solver Error: {e}");
+            }
+        };
+
+        x_current
+            .iter_mut()
+            .enumerate()
+            .for_each(|(idx, val)| *val += dx_vec[idx]);
+
+        println!(
+            "Iteration {}: x = {:?}, |F(x)| = {}",
+            iter,
+            x_current,
+            norm(&f_val)
+        );
+
+        if iter == max_iterations - 1 {
+            println!("Maximale Iterationen erreicht ohne Konvergenz.");
+        }
+    }
+
+    let expected_x0 = 1.7912878;
+    let expected_x1 = 0.8895436;
+
+    assert!((x_current[0] - expected_x0).abs() < tolerance);
+    assert!((x_current[1] - expected_x1).abs() < tolerance);
+
+    println!("Solution: {:?}", x_current);
 }

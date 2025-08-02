@@ -14,6 +14,7 @@ use rsparse::data::{Nmrc, Sprs, Symb, Trpl};
 use rsparse::lusol;
 
 /// A Solver implementation using the Faer library.
+#[derive(Debug)]
 pub struct RSparseSolver {
     vars: usize,
     /// The conductance matrix `A` as a sparse matrix.
@@ -82,7 +83,7 @@ impl Solver for RSparseSolver {
 
     fn insert_b(&mut self, b_vec: &(usize, Numeric)) {
         let (row, val) = *b_vec;
-        self.b_vec[row] = val;
+        self.b_vec[row] += val;
     }
 
     fn insert_cplx_a(&mut self, a_mat: &(usize, usize, ComplexNumeric)) {
@@ -98,17 +99,17 @@ impl Solver for RSparseSolver {
     fn insert_cplx_b(&mut self, b_vec: &(usize, ComplexNumeric)) {
         let (row, val) = *b_vec;
         let pivot = self.cplx_b_vec.len() / 2;
-        self.cplx_b_vec[row] = val.re;
-        self.cplx_b_vec[row + pivot] = val.im;
+        self.cplx_b_vec[row] += val.re;
+        self.cplx_b_vec[row + pivot] += val.im;
     }
 
     /// Solves the system of equations (Ax = B for x) and returns a reference to the solution.
     fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError> {
+        self.update_from_hashmap();
         if self.symb.is_none() {
             self.symb = Some(rsparse::sqr(&self.sprs, 1, false))
         }
         let mut symb = self.symb.take().unwrap();
-        
         
         self.lu = rsparse::lu(&self.sprs, &mut symb, 1e-6).unwrap();
 
@@ -117,8 +118,10 @@ impl Solver for RSparseSolver {
         rsparse::usolve(&self.lu.u, &mut self.x_vec[..]);
         ipvec(self.sprs.n, &symb.q, &self.x_vec[..], &mut self.b_vec[..]);
 
+        self.a_mat.clear();
+        self.b_vec.iter_mut().for_each(|val| *val = Numeric::zero());
         self.symb = Some(symb);
-        Ok(&self.b_vec)
+        Ok(&self.x_vec)
     }
 
     fn solve_cplx(&mut self) -> Result<&Vec<ComplexNumeric>, SolverError> {
@@ -267,6 +270,11 @@ impl RSparseSolver {
         &self.b_vec
     }
 
+    /// Returns a reference to the vector `b_vec`.
+    pub fn x_vec(&self) -> &Vec<Numeric> {
+        &self.x_vec
+    }
+
     /// Returns a reference to the matrix `cplx_a_mat`.
     pub fn cplx_a_mat(&self) -> &HashMap<(usize, usize), ComplexNumeric> {
         &self.cplx_a_mat
@@ -297,7 +305,6 @@ impl RSparseSolver {
             if row < m && col < n as isize {
                 matrix[row][col as usize] = x[k];
             } else {
-
                 warn!(
                     "Warning: Index out of bounds detected for element at index {}. Skipping.",
                     k
