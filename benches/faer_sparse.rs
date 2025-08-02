@@ -115,9 +115,9 @@ pub fn faer_sparse_insert_a_1000_benchmark(c: &mut Criterion) {
 }
 
 pub fn faer_sparse_solve(c: &mut Criterion) {
-    let mut group = c.benchmark_group("Faer::solve");
+    let mut group = c.benchmark_group("FaerSparse::solve");
 
-    group.bench_function("Faer::solve random n=10,s=0.5 system", |b| {
+    group.bench_function("FaerSparse::solve random n=10,s=0.5 system", |b| {
         const SIZE: usize = 10;
         const SPARSITY: Numeric = 0.5;
 
@@ -145,38 +145,10 @@ pub fn faer_sparse_solve(c: &mut Criterion) {
         );
     });
 
-    group.bench_function("Faer::solve random n=100,s=0.1 system", |b| {
+    group.bench_function("FaerSparse::solve random n=100,s=0.1 system", |b| {
         const SIZE: usize = 100;
         const SPARSITY: Numeric = 0.1;
 
-        b.iter_batched(
-            || {
-                let (a_mat, b_vec, _x_vec) = generate_solvable_system(SIZE, SPARSITY);
-                let mut solver = FaerSparseSolver::new(SIZE).unwrap();
-
-                for (idx, row) in a_mat.iter().enumerate() {
-                    for (idy, val) in row.iter().enumerate() {
-                        solver.insert_a(&(idx, idy, *val));
-                    }
-                }
-
-                for (idx, entry) in b_vec.iter().enumerate() {
-                    solver.insert_b(&(idx, *entry));
-                }
-
-                solver
-            },
-            |mut solver| {
-                black_box(solver.solve().unwrap());
-            },
-            BatchSize::SmallInput,
-        );
-    });
-
-    group.measurement_time(std::time::Duration::from_secs(300));
-    group.bench_function("Faer::solve random n=1000,s=0.01 system", |b| {
-        const SIZE: usize = 1000;
-        const SPARSITY: Numeric = 0.01;
         b.iter_batched(
             || {
                 let (a_mat, b_vec, _x_vec) = generate_solvable_system(SIZE, SPARSITY);

@@ -35,6 +35,7 @@ criterion_group!(
 
 criterion_group!(
     backend_benches,
+    nalgebra_update,
     faer_insert_a_benchmark,
     faer_sparse_insert_a_benchmark,
     rsparse_insert_a_benchmark,
@@ -49,6 +50,14 @@ criterion_group!(
     nalgebra_insert_a_1000_benchmark,
 );
 
-criterion_group!(backend_solve, nalgebra_solve, faer_solve, faer_sparse_solve);
+criterion_group!(
+    backend_solve,
+    nalgebra_solve,
+    faer_solve,
+    faer_sparse_solve,
+    rsparse_solve
+);
 
-criterion_main!(backend_solve);
+
+
+criterion_main!(backend_benches);

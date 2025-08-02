@@ -171,34 +171,5 @@ pub fn nalgebra_solve(c: &mut Criterion) {
         );
     });
 
-    group.measurement_time(std::time::Duration::from_secs(300));
-    group.bench_function("Nalgebra::solve random n=1000,s=0.01 system", |b| {
-        const SIZE: usize = 1000;
-        const SPARSITY: Numeric = 0.01;
-
-        b.iter_batched(
-            || {
-                let (a_mat, b_vec, _x_vec) = generate_solvable_system(SIZE, SPARSITY);
-                let mut solver = NalgebraSolver::new(SIZE).unwrap();
-
-                for (idx, row) in a_mat.iter().enumerate() {
-                    for (idy, val) in row.iter().enumerate() {
-                        solver.insert_a(&(idx, idy, *val));
-                    }
-                }
-
-                for (idx, entry) in b_vec.iter().enumerate() {
-                    solver.insert_b(&(idx, *entry));
-                }
-
-                solver
-            },
-            |mut solver| {
-                black_box(solver.solve().unwrap());
-            },
-            BatchSize::SmallInput,
-        );
-    });
-
     group.finish();
 }
