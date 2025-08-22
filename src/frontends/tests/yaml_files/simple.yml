@@ -1,0 +1,15 @@
+circuit:
+  elements:
+    - name: R1
+      type: resistor
+      nodes: [n1, n2]
+      value: 100.0
+    - name: V1
+      type: voltage_source
+      nodes: [n1, 0]
+      value: 5.0
+  simulations:
+    - type: transient
+      parameters:
+        step: 1e-6
+        stop: 10e-3

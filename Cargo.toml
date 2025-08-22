@@ -23,6 +23,8 @@ pest_derive = "2.8"
 pest = "2.8"
 plotters = "0.3"
 num = "0.4.3"
+serde = { version = "1.0", features = ["derive"] }
+serde_yml = "0.0.*"
 
 # Solver
 nalgebra = "0.33"

@@ -63,7 +63,7 @@ pub fn run() -> Result<()> {
     info!("Read schematic");
     let frontend: Box<dyn Frontend> = match cli.frontend {
         Frontends::Spice => Box::new(SpiceFrontend::new(pth.clone())),
-        Frontends::Yml => Box::new(YmlFrontend::new(pth.clone())),
+        Frontends::Yaml => Box::new(YamlFrontend::new_from_path(pth.clone())),
         Frontends::Json => Box::new(JsonFrontend::new(pth.clone())),
         Frontends::Network => Box::new(NetworkFrontend::new()),
         Frontends::Kicad => Box::new(KicadFrontend::new()),

@@ -1,18 +1,31 @@
-use crate::FrontendError;
+use super::{Frontend, FrontendError, Simulation, Element};
 
-use super::Frontend;
-use super::Simulation;
+pub struct YamlFrontend {
+    
+}
 
-pub struct YmlFrontend {}
+impl YamlFrontend {
+    pub fn new_from_path(path: String) -> Self {
+        Self {}
+    }
+    
+    pub fn new_from_string(yaml_string: String) -> Self {
+        Self {}
+    }
 
-impl Frontend for YmlFrontend {
-    fn simulation(&self) -> Result<Simulation, FrontendError> {
+    fn parse_yaml(&self) -> Result<Vec<Element>, FrontendError> {
         Err(FrontendError::Unimplemented)
     }
 }
 
-impl YmlFrontend {
-    pub fn new(_: String) -> Self {
-        Self {}
+impl Frontend for YamlFrontend {
+    fn simulation(&self) -> Result<Simulation, FrontendError> {
+        let elements = self.parse_yaml()?;
+        Ok(Simulation {
+            commands: Vec::new(),
+            options: Vec::new(),
+            elements,
+            variables: Vec::new(),
+        })
     }
 }

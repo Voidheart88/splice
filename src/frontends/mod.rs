@@ -17,12 +17,12 @@ pub(crate) use json::JsonFrontend;
 pub(crate) use kicad::KicadFrontend;
 pub(crate) use network::NetworkFrontend;
 pub(crate) use spice::SpiceFrontend;
-pub(crate) use yml::YmlFrontend;
+pub(crate) use yml::YamlFrontend;
 
 #[derive(Copy, Clone, ValueEnum, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Frontends {
     Spice,
-    Yml,
+    Yaml,
     Json,
     Network,
     Kicad,
