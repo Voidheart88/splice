@@ -247,19 +247,18 @@ impl SpiceFrontend {
     ) {
         let element = element.into_inner().nth(0).unwrap();
         match element.as_rule() {
-            Rule::ELE_VSOURCE => self.process_vsource(element, variables, elements, var_map),
-            Rule::ELE_ISOURCE => self.process_isource(element, variables, elements, var_map),
-            Rule::ELE_RESISTOR => self.process_resistor(element, variables, elements, var_map),
-            Rule::ELE_CAPACITOR => self.process_capacitor(element, variables, elements, var_map),
-            Rule::ELE_INDUCTOR => self.process_inductor(element, variables, elements, var_map),
-            Rule::ELE_DIODE => self.process_diode(element, variables, elements, var_map),
-            Rule::ELE_MOSFET => self.process_mosfet(element, variables, elements, var_map),
+            Rule::ELE_VSOURCE => Self::process_vsource(element, variables, elements, var_map),
+            Rule::ELE_ISOURCE => Self::process_isource(element, variables, elements, var_map),
+            Rule::ELE_RESISTOR => Self::process_resistor(element, variables, elements, var_map),
+            Rule::ELE_CAPACITOR => Self::process_capacitor(element, variables, elements, var_map),
+            Rule::ELE_INDUCTOR => Self::process_inductor(element, variables, elements, var_map),
+            Rule::ELE_DIODE => Self::process_diode(element, variables, elements, var_map),
+            Rule::ELE_MOSFET => Self::process_mosfet(element, variables, elements, var_map),
             _ => {}
         }
     }
 
     fn process_vsource(
-        &self,
         element: Pair<Rule>,
         variables: &mut Vec<Variable>,
         elements: &mut Vec<Element>,
@@ -310,7 +309,6 @@ impl SpiceFrontend {
     /// Vsource
     /// vx node0 node1 value
     fn process_isource(
-        &self,
         element: Pair<Rule>,
         variables: &mut Vec<Variable>,
         elements: &mut Vec<Element>,
@@ -348,7 +346,6 @@ impl SpiceFrontend {
     }
 
     fn process_resistor(
-        &self,
         element: Pair<Rule>,
         variables: &mut Vec<Variable>,
         elements: &mut Vec<Element>,
@@ -385,7 +382,6 @@ impl SpiceFrontend {
     }
 
     fn process_capacitor(
-        &self,
         element: Pair<Rule>,
         variables: &mut Vec<Variable>,
         elements: &mut Vec<Element>,
@@ -422,7 +418,6 @@ impl SpiceFrontend {
     }
 
     fn process_inductor(
-        &self,
         element: Pair<Rule>,
         variables: &mut Vec<Variable>,
         elements: &mut Vec<Element>,
@@ -459,7 +454,6 @@ impl SpiceFrontend {
     }
 
     fn process_diode(
-        &self,
         element: Pair<Rule>,
         variables: &mut Vec<Variable>,
         elements: &mut Vec<Element>,
@@ -490,7 +484,6 @@ impl SpiceFrontend {
     }
 
     fn process_mosfet(
-        &self,
         element: Pair<Rule>,
         variables: &mut Vec<Variable>,
         elements: &mut Vec<Element>,
@@ -553,4 +546,8 @@ impl From<pest::error::Error<Rule>> for FrontendError {
     fn from(value: pest::error::Error<Rule>) -> Self {
         FrontendError::PestError(format!("{}", value))
     }
+}
+
+pub(crate) trait IntoSpiceElement {
+    fn into_element();
 }
