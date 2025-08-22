@@ -60,6 +60,10 @@ pub enum FrontendError {
     #[error("Parse Command Error")]
     #[diagnostic(help("{0}"))]
     ParseCommandError(String),
+    
+    #[error("FileReadError")]
+    #[diagnostic(help("{0}"))]
+    FileReadError(String)
 }
 
 impl From<io::Error> for FrontendError {
@@ -83,7 +87,7 @@ pub struct SelectFrontend {}
 
 impl SelectFrontend {
     /// Automatically select a frontend from a file extension
-    pub fn from_path(pth: String) -> Result<Box<dyn Frontend>, FrontendError> {
+    pub fn try_from_path(pth: String) -> Result<Box<dyn Frontend>, FrontendError> {
         let end = pth.split(".").last().unwrap();
         match end {
             "yml" => Err(FrontendError::Unimplemented),
