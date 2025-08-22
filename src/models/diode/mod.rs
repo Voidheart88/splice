@@ -1,3 +1,7 @@
+/// The Diode Module. As every module this module encapsulates exerything regarding a resistor bundle
+/// This includes parsing from various formats as well as the conductance-behaviour.
+pub(crate) mod spice;
+
 use std::sync::Arc;
 
 use num::{One, Zero};

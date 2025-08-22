@@ -1,3 +1,7 @@
+/// The Vsource Module. As every module this module encapsulates exerything regarding a Vsource bundle
+/// This includes parsing from various formats as well as the conductance-behaviour.
+pub(crate) mod spice;
+
 use std::sync::Arc;
 
 use num::{Complex, One, Zero};

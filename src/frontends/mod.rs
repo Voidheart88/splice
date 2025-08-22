@@ -4,7 +4,9 @@ pub(crate) mod network;
 pub(crate) mod spice;
 pub(crate) mod yaml;
 
+use std::collections::HashMap;
 use std::io;
+use std::sync::Arc;
 
 use clap::ValueEnum;
 use miette::Diagnostic;
@@ -123,6 +125,29 @@ impl TryFrom<&str> for ACMode {
             _ => Err(FrontendError::ParseError(value.into())),
         }
     }
+}
+
+pub(crate) fn get_variable(
+    inp: &str,
+    unit: Unit,
+    variables: &mut Vec<Variable>,
+    var_map: &mut HashMap<Arc<str>, usize>,
+) -> Option<Variable> {
+    if inp == "0" {
+        return None;
+    }
+
+    let inp_arc = Arc::from(inp);
+
+    if let Some(&index) = var_map.get(&inp_arc) {
+        return Some(variables[index].clone());
+    }
+
+    let new_variable = Variable::new(inp_arc.clone(), unit, variables.len());
+    var_map.insert(inp_arc, variables.len());
+    variables.push(new_variable.clone());
+
+    Some(new_variable)
 }
 
 #[cfg(test)]

@@ -8,7 +8,7 @@ use log::trace;
 use pest::{iterators::Pair, Parser};
 use pest_derive::Parser;
 
-use crate::frontends::{Frontend, FrontendError, Simulation};
+use crate::frontends::{get_variable, Frontend, FrontendError, Simulation};
 use crate::models::VSourceBundle;
 use crate::sim::commands::{ACMode, SimulationCommand};
 use crate::sim::options::SimulationOption;
@@ -247,298 +247,25 @@ impl SpiceFrontend {
     ) {
         let element = element.into_inner().nth(0).unwrap();
         match element.as_rule() {
-            Rule::ELE_VSOURCE => Self::process_vsource(element, variables, elements, var_map),
-            Rule::ELE_ISOURCE => Self::process_isource(element, variables, elements, var_map),
-            Rule::ELE_RESISTOR => Self::process_resistor(element, variables, elements, var_map),
-            Rule::ELE_CAPACITOR => Self::process_capacitor(element, variables, elements, var_map),
-            Rule::ELE_INDUCTOR => Self::process_inductor(element, variables, elements, var_map),
-            Rule::ELE_DIODE => Self::process_diode(element, variables, elements, var_map),
-            Rule::ELE_MOSFET => Self::process_mosfet(element, variables, elements, var_map),
+            Rule::ELE_VSOURCE => {
+                VSourceBundle::process(element, variables, elements, var_map)
+            }
+            Rule::ELE_ISOURCE => {
+                ISourceBundle::process(element, variables, elements, var_map)
+            }
+            Rule::ELE_RESISTOR => {
+                ResistorBundle::process(element, variables, elements, var_map)
+            }
+            Rule::ELE_CAPACITOR => {
+                CapacitorBundle::process(element, variables, elements, var_map)
+            }
+            Rule::ELE_INDUCTOR => {
+                InductorBundle::process(element, variables, elements, var_map)
+            }
+            Rule::ELE_DIODE => DiodeBundle::process(element, variables, elements, var_map),
+            Rule::ELE_MOSFET => Mos0Bundle::process(element, variables, elements, var_map),
             _ => {}
         }
-    }
-
-    fn process_vsource(
-        element: Pair<Rule>,
-        variables: &mut Vec<Variable>,
-        elements: &mut Vec<Element>,
-        var_map: &mut HashMap<Arc<str>, usize>,
-    ) {
-        let ele = element.as_str();
-        let offset = element.as_span().start();
-        let mut inner = element.into_inner();
-        //extract Name
-        let name = inner.next().unwrap().as_span().end() - offset;
-        let name = &ele[0..name];
-
-        //extract Node0
-        let node0 = inner.next().unwrap().as_span();
-        let node0 = &ele[node0.start() - offset..node0.end() - offset];
-
-        //extract Node1
-        let node1 = inner.next().unwrap().as_span();
-        let node1 = &ele[node1.start() - offset..node1.end() - offset];
-
-        //extract Value
-        let value = inner.next().unwrap().as_span();
-        let value = ele[value.start() - offset..value.end() - offset]
-            .parse::<Numeric>()
-            .unwrap();
-
-        let ac_value = if let Some(val) = inner.next() {
-            let val = val.as_str().split(" ").nth(1).unwrap();
-            let val = val.parse().unwrap();
-            Some(val)
-        } else {
-            None
-        };
-
-        let src = VSourceBundle::new(
-            Arc::from(name),
-            Self::get_variable(&format!("{name}#branch"), Unit::Ampere, variables, var_map)
-                .unwrap(),
-            Self::get_variable(node0, Unit::Volt, variables, var_map),
-            Self::get_variable(node1, Unit::Volt, variables, var_map),
-            value,
-            ac_value,
-        );
-
-        elements.push(Element::VSource(src));
-    }
-
-    /// Vsource
-    /// vx node0 node1 value
-    fn process_isource(
-        element: Pair<Rule>,
-        variables: &mut Vec<Variable>,
-        elements: &mut Vec<Element>,
-        var_map: &mut HashMap<Arc<str>, usize>,
-    ) {
-        let ele = element.as_str();
-        let offset = element.as_span().start();
-        let mut inner = element.into_inner();
-        //extract Name
-        let name = inner.next().unwrap().as_span().end() - offset;
-        let name = &ele[0..name];
-
-        //extract Node0
-        let node0 = inner.next().unwrap().as_span();
-        let node0 = &ele[node0.start() - offset..node0.end() - offset];
-
-        //extract Node1
-        let node1 = inner.next().unwrap().as_span();
-        let node1 = &ele[node1.start() - offset..node1.end() - offset];
-
-        //extract Value
-        let value = inner.next().unwrap().as_span();
-        let value = ele[value.start() - offset..value.end() - offset]
-            .parse::<Numeric>()
-            .unwrap();
-
-        let src = ISourceBundle::new(
-            Arc::from(name),
-            Self::get_variable(node0, Unit::Volt, variables, var_map),
-            Self::get_variable(node1, Unit::Volt, variables, var_map),
-            value,
-        );
-
-        elements.push(Element::ISource(src));
-    }
-
-    fn process_resistor(
-        element: Pair<Rule>,
-        variables: &mut Vec<Variable>,
-        elements: &mut Vec<Element>,
-        var_map: &mut HashMap<Arc<str>, usize>,
-    ) {
-        let ele = element.as_str();
-        let offset = element.as_span().start();
-        let mut inner = element.into_inner();
-        //extract Name
-        let name = inner.next().unwrap().as_span().end() - offset;
-        let name = &ele[0..name];
-
-        //extract Node0
-        let node0 = inner.next().unwrap().as_span();
-        let node0 = &ele[node0.start() - offset..node0.end() - offset];
-
-        //extract Node1
-        let node1 = inner.next().unwrap().as_span();
-        let node1 = &ele[node1.start() - offset..node1.end() - offset];
-
-        //extract Value
-        let value = inner.next().unwrap().as_span();
-        let value = ele[value.start() - offset..value.end() - offset]
-            .parse::<Numeric>()
-            .unwrap();
-
-        let res = ResistorBundle::new(
-            Arc::from(name),
-            Self::get_variable(node0, Unit::Volt, variables, var_map),
-            Self::get_variable(node1, Unit::Volt, variables, var_map),
-            value,
-        );
-        elements.push(Element::Resistor(res));
-    }
-
-    fn process_capacitor(
-        element: Pair<Rule>,
-        variables: &mut Vec<Variable>,
-        elements: &mut Vec<Element>,
-        var_map: &mut HashMap<Arc<str>, usize>,
-    ) {
-        let ele = element.as_str();
-        let offset = element.as_span().start();
-        let mut inner = element.into_inner();
-        //extract Name
-        let name = inner.next().unwrap().as_span().end() - offset;
-        let name = &ele[0..name];
-
-        //extract Node0
-        let node0 = inner.next().unwrap().as_span();
-        let node0 = &ele[node0.start() - offset..node0.end() - offset];
-
-        //extract Node1
-        let node1 = inner.next().unwrap().as_span();
-        let node1 = &ele[node1.start() - offset..node1.end() - offset];
-
-        //extract Value
-        let value = inner.next().unwrap().as_span();
-        let value = ele[value.start() - offset..value.end() - offset]
-            .parse::<Numeric>()
-            .unwrap();
-
-        let cap = CapacitorBundle::new(
-            Arc::from(name),
-            Self::get_variable(node0, Unit::Volt, variables, var_map),
-            Self::get_variable(node1, Unit::Volt, variables, var_map),
-            value,
-        );
-        elements.push(Element::Capacitor(cap));
-    }
-
-    fn process_inductor(
-        element: Pair<Rule>,
-        variables: &mut Vec<Variable>,
-        elements: &mut Vec<Element>,
-        var_map: &mut HashMap<Arc<str>, usize>,
-    ) {
-        let ele = element.as_str();
-        let offset = element.as_span().start();
-        let mut inner = element.into_inner();
-        //extract Name
-        let name = inner.next().unwrap().as_span().end() - offset;
-        let name = &ele[0..name];
-
-        //extract Node0
-        let node0 = inner.next().unwrap().as_span();
-        let node0 = &ele[node0.start() - offset..node0.end() - offset];
-
-        //extract Node1
-        let node1 = inner.next().unwrap().as_span();
-        let node1 = &ele[node1.start() - offset..node1.end() - offset];
-
-        //extract Value
-        let value = inner.next().unwrap().as_span();
-        let value = ele[value.start() - offset..value.end() - offset]
-            .parse::<Numeric>()
-            .unwrap();
-
-        let ind = InductorBundle::new(
-            Arc::from(name),
-            Self::get_variable(node0, Unit::Volt, variables, var_map),
-            Self::get_variable(node1, Unit::Volt, variables, var_map),
-            value,
-        );
-        elements.push(Element::Inductor(ind));
-    }
-
-    fn process_diode(
-        element: Pair<Rule>,
-        variables: &mut Vec<Variable>,
-        elements: &mut Vec<Element>,
-        var_map: &mut HashMap<Arc<str>, usize>,
-    ) {
-        let ele = element.as_str();
-        let offset = element.as_span().start();
-        let mut inner = element.into_inner();
-        //extract Name
-        let name = inner.next().unwrap().as_span().end() - offset;
-        let name = &ele[0..name];
-
-        //extract Node0
-        let node0 = inner.next().unwrap().as_span();
-        let node0 = &ele[node0.start() - offset..node0.end() - offset];
-
-        //extract Node1
-        let node1 = inner.next().unwrap().as_span();
-        let node1 = &ele[node1.start() - offset..node1.end() - offset];
-
-        let dio = DiodeBundle::new(
-            Arc::from(name),
-            Self::get_variable(node0, Unit::Volt, variables, var_map),
-            Self::get_variable(node1, Unit::Volt, variables, var_map),
-            None,
-        );
-        elements.push(Element::Diode(dio));
-    }
-
-    fn process_mosfet(
-        element: Pair<Rule>,
-        variables: &mut Vec<Variable>,
-        elements: &mut Vec<Element>,
-        var_map: &mut HashMap<Arc<str>, usize>,
-    ) {
-        let ele = element.as_str();
-        let offset = element.as_span().start();
-        let mut inner = element.into_inner();
-        //extract Name
-        let name = inner.next().unwrap().as_span().end() - offset;
-        let name = &ele[0..name];
-
-        //extract gate node
-        let gate_node = inner.next().unwrap().as_span();
-        let gate_node = &ele[gate_node.start() - offset..gate_node.end() - offset];
-
-        //extract drain node
-        let drain_node = inner.next().unwrap().as_span();
-        let drain_node = &ele[drain_node.start() - offset..drain_node.end() - offset];
-
-        //extract drain node
-        let source_node = inner.next().unwrap().as_span();
-        let source_node = &ele[source_node.start() - offset..source_node.end() - offset];
-
-        let mosfet = Mos0Bundle::new(
-            Arc::from(name),
-            Self::get_variable(gate_node, Unit::Volt, variables, var_map),
-            Self::get_variable(drain_node, Unit::Volt, variables, var_map),
-            Self::get_variable(source_node, Unit::Volt, variables, var_map),
-            None,
-        );
-        elements.push(Element::Mos0(mosfet));
-    }
-
-    fn get_variable(
-        inp: &str,
-        unit: Unit,
-        variables: &mut Vec<Variable>,
-        var_map: &mut HashMap<Arc<str>, usize>,
-    ) -> Option<Variable> {
-        if inp == "0" {
-            return None;
-        }
-
-        let inp_arc = Arc::from(inp);
-
-        if let Some(&index) = var_map.get(&inp_arc) {
-            return Some(variables[index].clone());
-        }
-
-        let new_variable = Variable::new(inp_arc.clone(), unit, variables.len());
-        var_map.insert(inp_arc, variables.len());
-        variables.push(new_variable.clone());
-
-        Some(new_variable)
     }
 }
 
@@ -548,6 +275,11 @@ impl From<pest::error::Error<Rule>> for FrontendError {
     }
 }
 
-pub(crate) trait IntoSpiceElement {
-    fn into_element();
+pub(crate) trait ProcessSpiceElement {
+    fn process(
+        element: Pair<Rule>,
+        variables: &mut Vec<Variable>,
+        elements: &mut Vec<Element>,
+        var_map: &mut HashMap<Arc<str>, usize>,
+    );
 }

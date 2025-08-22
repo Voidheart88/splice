@@ -64,7 +64,7 @@ impl Solver for FaerSparseSolver {
         let value = self.cplx_b_vec.get_mut(row, 0);
         *value = *value + val;
     }
-    
+
     fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError> {
         let a_mat =
             SparseColMat::try_new_from_triplets(self.x_vec.len(), self.x_vec.len(), &self.a_mat)

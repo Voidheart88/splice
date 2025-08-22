@@ -172,7 +172,6 @@ pub fn rsparse_solve(c: &mut Criterion) {
     group.finish();
 }
 
-
 pub fn nalgebra_update(c: &mut Criterion) {
     let mut group = c.benchmark_group("Rsparse::update");
 
@@ -186,9 +185,8 @@ pub fn nalgebra_update(c: &mut Criterion) {
                     let row = idx;
                     let col = SIZE - idx;
                     let val = (idx % 10) as f64;
-                    
-                    solver.insert_a(&(row,col,val));
-                    
+
+                    solver.insert_a(&(row, col, val));
                 }
                 solver
             },
@@ -199,7 +197,6 @@ pub fn nalgebra_update(c: &mut Criterion) {
         );
     });
 
-    
     group.bench_function("Rsparse::update n=100", |b| {
         const SIZE: usize = 100;
 
@@ -210,9 +207,8 @@ pub fn nalgebra_update(c: &mut Criterion) {
                     let row = idx;
                     let col = SIZE - idx;
                     let val = (idx % 10) as f64;
-                    
-                    solver.insert_a(&(row,col,val));
-                    
+
+                    solver.insert_a(&(row, col, val));
                 }
                 solver
             },
@@ -222,8 +218,7 @@ pub fn nalgebra_update(c: &mut Criterion) {
             BatchSize::SmallInput,
         );
     });
-    
-    
+
     group.bench_function("Rsparse::update n=1000", |b| {
         const SIZE: usize = 10;
 
@@ -234,9 +229,8 @@ pub fn nalgebra_update(c: &mut Criterion) {
                     let row = idx;
                     let col = SIZE - idx;
                     let val = (idx % 10) as f64;
-                    
-                    solver.insert_a(&(row,col,val));
-                    
+
+                    solver.insert_a(&(row, col, val));
                 }
                 solver
             },
@@ -246,6 +240,6 @@ pub fn nalgebra_update(c: &mut Criterion) {
             BatchSize::SmallInput,
         );
     });
-    
+
     group.finish();
 }

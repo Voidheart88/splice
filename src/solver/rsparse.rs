@@ -110,7 +110,7 @@ impl Solver for RSparseSolver {
             self.symb = Some(rsparse::sqr(&self.sprs, 1, false))
         }
         let mut symb = self.symb.take().unwrap();
-        
+
         self.lu = rsparse::lu(&self.sprs, &mut symb, 1e-6).unwrap();
 
         ipvec(self.sprs.n, &self.lu.pinv, &self.b_vec, &mut self.x_vec[..]);

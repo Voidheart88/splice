@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use super::{Frontend, FrontendError, Simulation, Element};
-use crate::models::{DiodeBundle, ResistorBundle, Unit, Variable};
+use super::{Element, Frontend, FrontendError, Simulation};
 use crate::models::resistor::yaml::YamlResistor;
+use crate::models::{Unit, Variable};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -13,35 +13,26 @@ enum YamlElement {
 }
 
 #[derive(Deserialize)]
-pub struct YamlSimulation {
-    
-}
+pub struct YamlSimulation {}
 
-pub struct YamlFrontend {
-    
-}
+pub struct YamlFrontend {}
 
 impl YamlFrontend {
     pub fn new_from_path(path: String) -> Self {
         Self {}
     }
-    
+
     pub fn new_from_string(yaml_string: String) -> Self {
-        
-        
         Self {}
     }
-    
-    fn parse_element(elem: YamlElement,variables: &mut Vec<Variable>,var_map: &mut HashMap<Arc<str>, usize>,) -> Result<Element, FrontendError> {
+
+    fn parse_element(
+        elem: YamlElement,
+        variables: &mut Vec<Variable>,
+        var_map: &mut HashMap<Arc<str>, usize>,
+    ) -> Result<Element, FrontendError> {
         match elem {
-            YamlElement::Resistor(r) => {
-                Ok(Element::Resistor(ResistorBundle::new(
-                    Arc::from(r.name),
-                    Self::get_variable(&r.node0, Unit::Volt, variables, var_map),
-                    Self::get_variable(&r.node1, Unit::Volt, variables, var_map),
-                    r.value.into(),
-                )))
-            }
+            YamlElement::Resistor(r) => Ok(r.into()),
         }
     }
 
@@ -67,7 +58,7 @@ impl YamlFrontend {
 
         Some(new_variable)
     }
-    
+
     fn parse_yaml(&self) -> Result<Vec<Element>, FrontendError> {
         Err(FrontendError::Unimplemented)
     }

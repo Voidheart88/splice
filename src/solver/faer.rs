@@ -79,8 +79,8 @@ impl Solver for FaerSolver {
             .for_each(|val| *val = Numeric::zero());
 
         Ok(&self.x_vec)
-    }    
-    
+    }
+
     fn solve_cplx(&mut self) -> Result<&Vec<ComplexNumeric>, SolverError> {
         let lu = self.cplx_a_mat.partial_piv_lu();
         let res = lu.solve(&self.cplx_b_vec);

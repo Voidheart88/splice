@@ -17,7 +17,10 @@ use frontends::*;
 use sim::Simulator;
 use solver::{FaerSolver, NalgebraSolver, RSparseSolver, Solvers};
 
-use crate::{sim::{simulation_result::SimulationResults, SimulatorError}, solver::{FaerSparseSolver, Solver}};
+use crate::{
+    sim::{simulation_result::SimulationResults, SimulatorError},
+    solver::{FaerSparseSolver, Solver},
+};
 
 #[derive(Debug, Error, Diagnostic)]
 enum ApplicationError {
@@ -44,10 +47,10 @@ struct Cli {
     path: Option<String>,
 }
 
-fn run_sim<T: Solver>(sim:Simulation)-> Result<SimulationResults, SimulatorError> {
+fn run_sim<T: Solver>(sim: Simulation) -> Result<SimulationResults, SimulatorError> {
     let mut sim: Simulator<T> = Simulator::from(sim);
     sim.run()
-} 
+}
 
 pub fn run() -> Result<()> {
     let cli = Cli::parse();

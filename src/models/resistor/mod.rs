@@ -1,6 +1,6 @@
 /// The Resistor Module. As every module this module encapsulates exerything regarding a resistor bundle
 /// This includes parsing from various formats as well as the conductance-behaviour.
-
+pub(crate) mod spice;
 pub(crate) mod yaml;
 
 use std::sync::Arc;
