@@ -1,12 +1,14 @@
 circuit:
   elements:
-    - name: R1
-      type: resistor
-      nodes: [n1, n2]
+    - type: resistor
+      name: R1
+      node_0: n1
+      node_1: n2
       value: 100.0
-    - name: V1
-      type: voltage_source
-      nodes: [n1, 0]
+    - type: voltage_source
+      name: V1      
+      node_0: n1
+      node_1: n2
       value: 5.0
   simulations:
     - type: transient
