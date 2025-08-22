@@ -1,0 +1,50 @@
+elements:
+  - type: resistor
+    name: R1
+    node0: n1
+    node1: n2
+    value: 100.0
+  - type: vsource
+    name: V1      
+    node0: n1
+    node1: n2
+    value: 5.0
+  - type: isource
+    name: I1      
+    node0: n1
+    node1: n2
+    value: 5.0
+  - type: inductor
+    name: L1
+    node0: n1
+    node1: n2
+    value: 1.0
+  - type: capacitor
+    name: C1
+    node0: n1
+    node1: n2
+    value: 1.0
+  - type: diode
+    name: D1
+    anode: n1
+    cathode: n2
+  - type: mosfet
+    name: M1
+    drain: n1
+    gate: n2
+    source: n3
+    body: n4
+simulations:      
+  - type: op
+  - type: dc
+    source: V1
+    vstart: 0.0
+    vstop: 10.0
+    vstep: 1.0
+    second_source: None
+  - type: ac
+    source: V1
+    fstart: 1.0
+    fend: 10.0
+    fstep: 1.0
+    mode: "lin"

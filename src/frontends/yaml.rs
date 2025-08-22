@@ -30,7 +30,7 @@ pub enum YamlElement {
     Capacitor(YamlCapacitor),
     #[serde(rename = "vsource")]
     VSource(YamlVSource),
-    #[serde(rename = "csource")]
+    #[serde(rename = "isource")]
     ISource(YamlISource),
     #[serde(rename = "diode")]
     Diode(YamlDiode),
@@ -62,9 +62,9 @@ pub struct YamlDC {
 #[derive(Debug, Deserialize)]
 #[serde(tag = "type", rename = "simulations")]
 pub struct YamlAC {
-    start: f64,
-    stop: f64,
-    step: usize,
+    fstart: f64,
+    fstop: f64,
+    fstep: usize,
 }
 
 #[derive(Default, Debug, Deserialize)]
@@ -173,9 +173,9 @@ impl YamlFrontend {
 
     fn process_ac(commands: &mut Vec<SimulationCommand>, yamlac: YamlAC) {
         commands.push(SimulationCommand::Ac(
-            yamlac.start,
-            yamlac.stop,
-            yamlac.step,
+            yamlac.fstart,
+            yamlac.fstop,
+            yamlac.fstep,
             ACMode::Dec,
         ))
     }

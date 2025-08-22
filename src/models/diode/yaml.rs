@@ -11,9 +11,8 @@ use crate::{
 #[derive(Debug, Deserialize)]
 pub struct YamlDiode {
     pub name: String,
-    pub node0: String,
-    pub node1: String,
-    pub value: Numeric,
+    pub anode: String,
+    pub cathode: String,
 }
 
 impl ProcessYamlElement for YamlDiode {
@@ -25,8 +24,8 @@ impl ProcessYamlElement for YamlDiode {
     ) {
         let res = DiodeBundle::new(
             Arc::from(self.name.as_str()),
-            get_variable(self.node0.as_str(), Unit::Volt, variables, var_map),
-            get_variable(self.node1.as_str(), Unit::Volt, variables, var_map),
+            get_variable(self.anode.as_str(), Unit::Volt, variables, var_map),
+            get_variable(self.cathode.as_str(), Unit::Volt, variables, var_map),
             None,
         );
         elements.push(Element::Diode(res));
