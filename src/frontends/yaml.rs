@@ -26,9 +26,6 @@ impl YamlFrontend {
         let mut elements: Vec<Element> = Vec::new();
         let mut variables: Vec<Variable> = Vec::new();
         let mut var_map:HashMap<Arc<str>, usize> = HashMap::new();
-        
-        
-        
         Self {}
     }
 
