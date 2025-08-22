@@ -2,8 +2,6 @@ use std::sync::Arc;
 
 use num::{Complex, One, Zero};
 
-use crate::models::triples::TripleIdx;
-
 use super::*;
 
 /// A structure representing a bundle of voltage sources.

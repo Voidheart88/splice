@@ -3,9 +3,7 @@ use std::sync::Arc;
 use num::traits::FloatConst;
 use num::{Complex, One, Zero};
 
-use crate::models::triples::TripleIdx;
 use crate::spot::*;
-
 use super::*;
 
 /// A structure representing a bundle of inductors.

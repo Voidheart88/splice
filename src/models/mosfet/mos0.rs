@@ -2,8 +2,6 @@ use std::sync::Arc;
 
 use num::Zero;
 
-use crate::models::triples::TripleIdx;
-
 use super::super::*;
 
 /// A structure representing a Mos0 Mosfet.

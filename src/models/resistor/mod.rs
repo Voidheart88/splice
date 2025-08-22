@@ -1,10 +1,14 @@
+/// The Resistor Module. As every module this module encapsulates exerything regarding a resistor bundle
+/// This includes parsing from various formats as well as the conductance-behaviour.
+
+pub(crate) mod yaml;
+
 use std::sync::Arc;
 
 use num::{Complex, One, Zero};
 
-use crate::models::triples::TripleIdx;
-
 use super::*;
+
 /// A structure representing a bundle of resistors.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct ResistorBundle {

@@ -4,7 +4,6 @@ use num::traits::FloatConst;
 use num::{Complex, One, Zero};
 
 use super::*;
-use crate::models::triples::TripleIdx;
 use crate::spot::*;
 
 /// A structure representing a bundle of capacitors.

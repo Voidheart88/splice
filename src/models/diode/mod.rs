@@ -3,7 +3,6 @@ use std::sync::Arc;
 use num::{One, Zero};
 
 use super::*;
-use crate::models::triples::TripleIdx;
 use crate::spot::*;
 
 /// A structure representing a Diode with all their options.
