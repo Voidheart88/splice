@@ -106,7 +106,7 @@ fn network_loop(solver: Solvers){
         let frontend = NetworkFrontend::new();
         let sim = match frontend.simulation(){
             Ok(sim) => sim,
-            Err(_) => continue,
+            Err(_) => continue, // Restart server on error. Maybe send an error to the socket?
         };
 
         let results = match solver {
@@ -118,10 +118,13 @@ fn network_loop(solver: Solvers){
 
         let results = match results {
             Ok(res) => res,
-            Err(_) => continue,
+            Err(_) => continue, // Restart server on error. Maybe send an error to the socket?
         };
         
         let out = NetworkBackend::new();
-        out.output(results);
+        match out.output(results) {
+            Ok(_) => {},
+            Err(_) => continue, // Restart server on error. Maybe send an error to the socket?
+        };
     }    
 }
