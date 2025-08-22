@@ -56,6 +56,10 @@ pub fn run() -> Result<()> {
     let cli = Cli::parse();
 
     simple_logger::init_with_level(cli.verbose).unwrap();
+    
+    if cli.frontend == Frontends::Network && cli.backend == Backends::Network {
+        network_loop(cli.solver);
+    }
 
     info!("Splice - a blazingly fast circuit simulator");
     let pth = match cli.path {
@@ -95,4 +99,29 @@ pub fn run() -> Result<()> {
 
     info!("Finished without Errors");
     Ok(())
+}
+
+fn network_loop(solver: Solvers){
+    loop {
+        let frontend = NetworkFrontend::new();
+        let sim = match frontend.simulation(){
+            Ok(sim) => sim,
+            Err(_) => continue,
+        };
+
+        let results = match solver {
+            Solvers::Rsparse => run_sim::<RSparseSolver>(sim),
+            Solvers::Nalgebra => run_sim::<NalgebraSolver>(sim),
+            Solvers::Faer => run_sim::<FaerSolver>(sim),
+            Solvers::FaerSparse => run_sim::<FaerSparseSolver>(sim),
+        };
+
+        let results = match results {
+            Ok(res) => res,
+            Err(_) => continue,
+        };
+        
+        let out = NetworkBackend::new();
+        out.output(results);
+    }    
 }
