@@ -2,7 +2,7 @@ pub(crate) mod json;
 pub(crate) mod kicad;
 pub(crate) mod network;
 pub(crate) mod spice;
-pub(crate) mod yml;
+pub(crate) mod yaml;
 
 use std::io;
 
@@ -17,7 +17,7 @@ pub(crate) use json::JsonFrontend;
 pub(crate) use kicad::KicadFrontend;
 pub(crate) use network::NetworkFrontend;
 pub(crate) use spice::SpiceFrontend;
-pub(crate) use yml::YamlFrontend;
+pub(crate) use yaml::YamlFrontend;
 
 #[derive(Copy, Clone, ValueEnum, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Frontends {

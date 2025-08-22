@@ -1,4 +1,12 @@
 use super::{Frontend, FrontendError, Simulation, Element};
+use serde::Deserialize;
+
+
+#[derive(Deserialize)]
+pub struct YamlElement {
+    
+}
+
 
 pub struct YamlFrontend {
     
