@@ -60,10 +60,10 @@ pub enum FrontendError {
     #[error("Parse Command Error")]
     #[diagnostic(help("{0}"))]
     ParseCommandError(String),
-    
+
     #[error("FileReadError")]
     #[diagnostic(help("{0}"))]
-    FileReadError(String)
+    FileReadError(String),
 }
 
 impl From<io::Error> for FrontendError {

@@ -29,13 +29,6 @@ pub(crate) enum SimulatorError {
     #[error("{0}")]
     BackendError(SolverError),
 
-    //#[error("The constant part of the conductance matrix is empty")]
-    //#[diagnostic(help("This is a severe error! Send your circuit to Github"))]
-    //ConstantMatrixEmpty,
-
-    //#[error("The constant part of the vector is empty")]
-    //#[diagnostic(help("This is a severe error! Send your circuit to Github"))]
-    //ConstantVectorEmpty,
     #[error("The Simulation did not converge after MAXITER steps")]
     #[diagnostic(help("Try reducing the convergence settings by increasing VECTOL"))]
     NonConvergentMaxIter,
@@ -56,7 +49,7 @@ pub(super) struct Simulator<SO: Solver> {
     elements: Vec<Element>,
     /// The simulation commands to be executed.
     commands: Vec<SimulationCommand>,
-    /// The simulation commands to be executed.
+    /// The simulation options for the backend.
     options: Vec<SimulationOption>,
     /// The variables used in the simulation.
     vars: Vec<Variable>,

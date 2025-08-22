@@ -56,7 +56,7 @@ pub fn run() -> Result<()> {
     let cli = Cli::parse();
 
     simple_logger::init_with_level(cli.verbose).unwrap();
-    
+
     if cli.frontend == Frontends::Network && cli.backend == Backends::Network {
         network_loop(cli.solver);
     }
@@ -70,11 +70,11 @@ pub fn run() -> Result<()> {
     info!("Read schematic");
     let frontend: Box<dyn Frontend> = match cli.frontend {
         Frontends::Spice => Box::new(SpiceFrontend::new(pth.clone())),
-        Frontends::Yaml => Box::new(YamlFrontend::new_from_path(pth.clone())),
+        Frontends::Yaml => Box::new(YamlFrontend::try_new_from_path(pth.clone())?),
         Frontends::Json => Box::new(JsonFrontend::new(pth.clone())),
         Frontends::Network => Box::new(NetworkFrontend::new()),
         Frontends::Kicad => Box::new(KicadFrontend::new()),
-        Frontends::Select => SelectFrontend::from_path(pth.clone())?,
+        Frontends::Select => SelectFrontend::try_from_path(pth.clone())?,
     };
 
     let sim = frontend.simulation()?;
@@ -101,10 +101,10 @@ pub fn run() -> Result<()> {
     Ok(())
 }
 
-fn network_loop(solver: Solvers){
+fn network_loop(solver: Solvers) {
     loop {
         let frontend = NetworkFrontend::new();
-        let sim = match frontend.simulation(){
+        let sim = match frontend.simulation() {
             Ok(sim) => sim,
             Err(_) => continue, // Restart server on error. Maybe send an error to the socket?
         };
@@ -120,11 +120,11 @@ fn network_loop(solver: Solvers){
             Ok(res) => res,
             Err(_) => continue, // Restart server on error. Maybe send an error to the socket?
         };
-        
+
         let out = NetworkBackend::new();
         match out.output(results) {
-            Ok(_) => {},
+            Ok(_) => {}
             Err(_) => continue, // Restart server on error. Maybe send an error to the socket?
         };
-    }    
+    }
 }
