@@ -4,6 +4,8 @@ use std::sync::Arc;
 use super::{Element, Frontend, FrontendError, Simulation};
 use crate::models::resistor::yaml::YamlResistor;
 use crate::models::{Unit, Variable};
+use crate::sim::commands::SimulationCommand;
+use crate::sim::options::SimulationOption;
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -19,6 +21,14 @@ pub struct YamlFrontend {}
 
 impl YamlFrontend {
     pub fn new_from_path(path: String) -> Self {
+        let mut commands: Vec<SimulationCommand> = Vec::new();
+        let mut options:Vec<SimulationOption> = Vec::new();
+        let mut elements: Vec<Element> = Vec::new();
+        let mut variables: Vec<Variable> = Vec::new();
+        let mut var_map:HashMap<Arc<str>, usize> = HashMap::new();
+        
+        
+        
         Self {}
     }
 
@@ -34,29 +44,6 @@ impl YamlFrontend {
         match elem {
             YamlElement::Resistor(r) => Ok(r.into()),
         }
-    }
-
-    fn get_variable(
-        inp: &str,
-        unit: Unit,
-        variables: &mut Vec<Variable>,
-        var_map: &mut HashMap<Arc<str>, usize>,
-    ) -> Option<Variable> {
-        if inp == "0" {
-            return None;
-        }
-
-        let inp_arc = Arc::from(inp);
-
-        if let Some(&index) = var_map.get(&inp_arc) {
-            return Some(variables[index].clone());
-        }
-
-        let new_variable = Variable::new(inp_arc.clone(), unit, variables.len());
-        var_map.insert(inp_arc, variables.len());
-        variables.push(new_variable.clone());
-
-        Some(new_variable)
     }
 
     fn parse_yaml(&self) -> Result<Vec<Element>, FrontendError> {

@@ -8,7 +8,7 @@ use log::trace;
 use pest::{iterators::Pair, Parser};
 use pest_derive::Parser;
 
-use crate::frontends::{get_variable, Frontend, FrontendError, Simulation};
+use crate::frontends::{Frontend, FrontendError, Simulation};
 use crate::models::VSourceBundle;
 use crate::sim::commands::{ACMode, SimulationCommand};
 use crate::sim::options::SimulationOption;
@@ -16,7 +16,7 @@ use crate::spot::*;
 
 use super::{
     CapacitorBundle, DiodeBundle, Element, ISourceBundle, InductorBundle, Mos0Bundle,
-    ResistorBundle, Unit, Variable,
+    ResistorBundle, Variable,
 };
 
 #[derive(Parser)]
@@ -247,21 +247,11 @@ impl SpiceFrontend {
     ) {
         let element = element.into_inner().nth(0).unwrap();
         match element.as_rule() {
-            Rule::ELE_VSOURCE => {
-                VSourceBundle::process(element, variables, elements, var_map)
-            }
-            Rule::ELE_ISOURCE => {
-                ISourceBundle::process(element, variables, elements, var_map)
-            }
-            Rule::ELE_RESISTOR => {
-                ResistorBundle::process(element, variables, elements, var_map)
-            }
-            Rule::ELE_CAPACITOR => {
-                CapacitorBundle::process(element, variables, elements, var_map)
-            }
-            Rule::ELE_INDUCTOR => {
-                InductorBundle::process(element, variables, elements, var_map)
-            }
+            Rule::ELE_VSOURCE => VSourceBundle::process(element, variables, elements, var_map),
+            Rule::ELE_ISOURCE => ISourceBundle::process(element, variables, elements, var_map),
+            Rule::ELE_RESISTOR => ResistorBundle::process(element, variables, elements, var_map),
+            Rule::ELE_CAPACITOR => CapacitorBundle::process(element, variables, elements, var_map),
+            Rule::ELE_INDUCTOR => InductorBundle::process(element, variables, elements, var_map),
             Rule::ELE_DIODE => DiodeBundle::process(element, variables, elements, var_map),
             Rule::ELE_MOSFET => Mos0Bundle::process(element, variables, elements, var_map),
             _ => {}
