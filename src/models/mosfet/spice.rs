@@ -3,7 +3,6 @@ use std::sync::Arc;
 use crate::frontends::get_variable;
 use crate::frontends::spice::ProcessSpiceElement;
 use crate::models::{Element, Mos0Bundle, Unit};
-use crate::spot::*;
 
 impl ProcessSpiceElement for Mos0Bundle {
     fn process(

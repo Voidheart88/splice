@@ -2,11 +2,9 @@ use std::sync::Arc;
 
 use serde::Deserialize;
 
-use crate::{
-    frontends::{get_variable, yaml::ProcessYamlElement},
-    models::{Element, InductorBundle, Unit},
-    spot::Numeric,
-};
+use crate::spot::*;
+use crate::models::{Element, InductorBundle, Unit};
+use crate::frontends::{get_variable, yaml::ProcessYamlElement};
 
 #[derive(Debug, Deserialize)]
 pub struct YamlInductor {

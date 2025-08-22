@@ -2,11 +2,8 @@ use std::sync::Arc;
 
 use serde::Deserialize;
 
-use crate::{
-    frontends::{get_variable, yaml::ProcessYamlElement},
-    models::{Element, Mos0Bundle, Unit},
-    spot::Numeric,
-};
+use crate::frontends::{get_variable, yaml::ProcessYamlElement};
+use crate::models::{Element, Mos0Bundle, Unit};
 
 #[derive(Debug, Deserialize)]
 pub struct YamlMos0 {

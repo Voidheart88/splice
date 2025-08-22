@@ -2,11 +2,8 @@ use std::sync::Arc;
 
 use serde::Deserialize;
 
-use crate::{
-    frontends::{get_variable, yaml::ProcessYamlElement},
-    models::{DiodeBundle, Element, Unit},
-    spot::Numeric,
-};
+use crate::models::{DiodeBundle, Element, Unit};
+use crate::frontends::{get_variable, yaml::ProcessYamlElement};
 
 #[derive(Debug, Deserialize)]
 pub struct YamlDiode {

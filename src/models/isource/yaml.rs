@@ -2,11 +2,9 @@ use std::sync::Arc;
 
 use serde::Deserialize;
 
-use crate::{
-    frontends::{get_variable, yaml::ProcessYamlElement},
-    models::{Element, ISourceBundle, Unit},
-    spot::Numeric,
-};
+use crate::frontends::{get_variable, yaml::ProcessYamlElement};
+use crate::models::{Element, ISourceBundle, Unit};
+use crate::spot::*;
 
 #[derive(Debug, Deserialize)]
 pub struct YamlISource {
@@ -14,7 +12,6 @@ pub struct YamlISource {
     pub node0: String,
     pub node1: String,
     pub value: Numeric,
-    pub ac_value: Option<Numeric>,
 }
 
 impl ProcessYamlElement for YamlISource {

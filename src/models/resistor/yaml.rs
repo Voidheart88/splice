@@ -2,11 +2,9 @@ use std::sync::Arc;
 
 use serde::Deserialize;
 
-use crate::{
-    frontends::{get_variable, yaml::ProcessYamlElement},
-    models::{Element, ResistorBundle, Unit},
-    spot::Numeric,
-};
+use crate::spot::Numeric;
+use crate::models::{Element, ResistorBundle, Unit};
+use crate::frontends::{get_variable, yaml::ProcessYamlElement};
 
 #[derive(Debug, Deserialize)]
 pub struct YamlResistor {
