@@ -90,8 +90,8 @@ impl SelectFrontend {
     pub fn try_from_path(pth: String) -> Result<Box<dyn Frontend>, FrontendError> {
         let end = pth.split(".").last().unwrap();
         match end {
-            "yml" => Err(FrontendError::Unimplemented),
-            "yaml" => Err(FrontendError::Unimplemented),
+            "yml" => Ok(Box::new(YamlFrontend::try_new_from_path(pth)?)),
+            "yaml" => Ok(Box::new(YamlFrontend::try_new_from_path(pth)?)),
             "json" => Err(FrontendError::Unimplemented),
             "kicad_sch" => Err(FrontendError::Unimplemented),
             "cir" => Ok(Box::new(SpiceFrontend::new(pth))),
