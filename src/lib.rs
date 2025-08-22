@@ -17,6 +17,8 @@ use frontends::*;
 use sim::Simulator;
 use solver::{FaerSolver, NalgebraSolver, RSparseSolver, Solvers};
 
+use crate::{sim::{simulation_result::SimulationResults, SimulatorError}, solver::{FaerSparseSolver, Solver}};
+
 #[derive(Debug, Error, Diagnostic)]
 enum ApplicationError {
     #[error("No Path given")]
@@ -41,6 +43,11 @@ struct Cli {
 
     path: Option<String>,
 }
+
+fn run_sim<T: Solver>(sim:Simulation)-> Result<SimulationResults, SimulatorError> {
+    let mut sim: Simulator<T> = Simulator::from(sim);
+    sim.run()
+} 
 
 pub fn run() -> Result<()> {
     let cli = Cli::parse();
@@ -67,22 +74,10 @@ pub fn run() -> Result<()> {
 
     info!("Simulate!");
     let results = match cli.solver {
-        Solvers::Rsparse => {
-            let mut sim: Simulator<RSparseSolver> = Simulator::from(sim);
-            sim.run()?
-        }
-        Solvers::Nalgebra => {
-            let mut sim: Simulator<NalgebraSolver> = Simulator::from(sim);
-            sim.run()?
-        }
-        Solvers::Faer => {
-            let mut sim: Simulator<FaerSolver> = Simulator::from(sim);
-            sim.run()?
-        }
-        Solvers::FaerSparse => {
-            let mut sim: Simulator<FaerSolver> = Simulator::from(sim);
-            sim.run()?
-        }
+        Solvers::Rsparse => run_sim::<RSparseSolver>(sim)?,
+        Solvers::Nalgebra => run_sim::<NalgebraSolver>(sim)?,
+        Solvers::Faer => run_sim::<FaerSolver>(sim)?,
+        Solvers::FaerSparse => run_sim::<FaerSparseSolver>(sim)?,
     };
 
     let out: Box<dyn Backend> = match cli.backend {
