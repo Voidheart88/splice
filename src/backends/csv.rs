@@ -90,7 +90,7 @@ impl CsvBackend {
                 let mut value_str = String::new();
                 for (var, val) in step_data {
                     if &var.name() == header {
-                        value_str = format!("{}", val);
+                        value_str = format!("{val}");
                         break;
                     }
                 }
@@ -117,8 +117,8 @@ impl CsvBackend {
 
         let mut header_row = vec!["Frequency".to_string()];
         for header in &headers {
-            header_row.push(format!("{} (Real)", header));
-            header_row.push(format!("{} (Imag)", header));
+            header_row.push(format!("{header} (Real)"));
+            header_row.push(format!("{header} (Imag)"));
         }
         println!("{}", header_row.join(","));
 

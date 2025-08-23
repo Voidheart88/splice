@@ -92,7 +92,7 @@ impl PlotBackend {
         // Add the suffix before the extension
         let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
         let parent = path.parent().unwrap_or(Path::new(""));
-        let new_file_name = format!("{}_dc.svg", stem);
+        let new_file_name = format!("{stem}_dc.svg");
         path = parent.join(new_file_name);
 
         let root = SVGBackend::new(&path, (1440, 900)).into_drawing_area();
