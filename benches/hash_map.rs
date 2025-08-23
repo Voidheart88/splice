@@ -12,7 +12,7 @@ const LARGE_MAP_SIZE: usize = 1_000_000;
 pub fn bench_hashmap_insert(c: &mut Criterion) {
     let mut group = c.benchmark_group("HashMap_Insert");
 
-    group.bench_function(format!("insert_{}", MAP_SIZE), |b| {
+    group.bench_function(format!("insert_{MAP_SIZE}"), |b| {
         let mut map = HashMap::with_capacity(MAP_SIZE);
         let mut keys_to_get: Vec<(u64, u64)> = Vec::with_capacity(MAP_SIZE);
 
@@ -33,7 +33,7 @@ pub fn bench_hashmap_insert(c: &mut Criterion) {
         });
     });
 
-    group.bench_function(format!("insert_{}", LARGE_MAP_SIZE), |b| {
+    group.bench_function(format!("insert_{LARGE_MAP_SIZE}"), |b| {
         let mut map = HashMap::with_capacity(MAP_SIZE);
         let mut keys_to_get: Vec<(u64, u64)> = Vec::with_capacity(MAP_SIZE);
 
@@ -60,7 +60,7 @@ pub fn bench_hashmap_insert(c: &mut Criterion) {
 pub fn bench_hashmap_get_mut(c: &mut Criterion) {
     let mut group = c.benchmark_group("HashMap_GetMut");
 
-    group.bench_function(format!("get_mut_{}", MAP_SIZE), |b| {
+    group.bench_function(format!("get_mut_{MAP_SIZE}"), |b| {
         let mut map = HashMap::with_capacity(MAP_SIZE);
         let mut keys_to_get: Vec<(u64, u64)> = Vec::with_capacity(MAP_SIZE);
 
@@ -81,7 +81,7 @@ pub fn bench_hashmap_get_mut(c: &mut Criterion) {
         });
     });
 
-    group.bench_function(format!("get_mut_{}", LARGE_MAP_SIZE), |b| {
+    group.bench_function(format!("get_mut_{LARGE_MAP_SIZE}"), |b| {
         let mut map = HashMap::with_capacity(MAP_SIZE);
         let mut keys_to_get: Vec<(u64, u64)> = Vec::with_capacity(MAP_SIZE);
 
@@ -113,7 +113,7 @@ fn make_key(row: u32, col: u32) -> u64 {
 pub fn bench_nohash_get_mut(c: &mut Criterion) {
     let mut group = c.benchmark_group("No_hash_get_mut");
 
-    group.bench_function(format!("get_mut_{}", MAP_SIZE), |b| {
+    group.bench_function(format!("get_mut_{MAP_SIZE}"), |b| {
         let mut map: HashMap<u64, u64, BuildNoHashHasher<u64>> =
             HashMap::with_hasher(BuildNoHashHasher::default());
 
@@ -136,7 +136,7 @@ pub fn bench_nohash_get_mut(c: &mut Criterion) {
         });
     });
 
-    group.bench_function(format!("get_mut_{}", LARGE_MAP_SIZE), |b| {
+    group.bench_function(format!("get_mut_{LARGE_MAP_SIZE}"), |b| {
         let mut map: HashMap<u64, u64, BuildNoHashHasher<u64>> =
             HashMap::with_hasher(BuildNoHashHasher::default());
 
@@ -165,7 +165,7 @@ pub fn bench_nohash_get_mut(c: &mut Criterion) {
 pub fn bench_nohash_insert(c: &mut Criterion) {
     let mut group = c.benchmark_group("No_hash_insert");
 
-    group.bench_function(format!("insert_{}", MAP_SIZE), |b| {
+    group.bench_function(format!("insert_{MAP_SIZE}"), |b| {
         let mut map: HashMap<u64, u64, BuildNoHashHasher<u64>> =
             HashMap::with_hasher(BuildNoHashHasher::default());
 
@@ -188,7 +188,7 @@ pub fn bench_nohash_insert(c: &mut Criterion) {
         });
     });
 
-    group.bench_function(format!("insert_{}", LARGE_MAP_SIZE), |b| {
+    group.bench_function(format!("insert_{LARGE_MAP_SIZE}"), |b| {
         let mut map: HashMap<u64, u64, BuildNoHashHasher<u64>> =
             HashMap::with_hasher(BuildNoHashHasher::default());
 
@@ -217,7 +217,7 @@ pub fn bench_nohash_insert(c: &mut Criterion) {
 pub fn bench_fxhash_insert(c: &mut Criterion) {
     let mut group = c.benchmark_group("fxhash_insert");
 
-    group.bench_function(format!("insert_{}", MAP_SIZE), |b| {
+    group.bench_function(format!("insert_{MAP_SIZE}"), |b| {
         let mut map: FxHashMap<(u64, u64), u64> = FxHashMap::default();
 
         let mut keys_to_get: Vec<(u64, u64)> = Vec::with_capacity(MAP_SIZE);
@@ -239,7 +239,7 @@ pub fn bench_fxhash_insert(c: &mut Criterion) {
         });
     });
 
-    group.bench_function(format!("insert_{}", LARGE_MAP_SIZE), |b| {
+    group.bench_function(format!("insert_{LARGE_MAP_SIZE}"), |b| {
         let mut map: FxHashMap<(u64, u64), u64> = FxHashMap::default();
 
         let mut keys_to_get: Vec<(u64, u64)> = Vec::with_capacity(LARGE_MAP_SIZE);
@@ -267,7 +267,7 @@ pub fn bench_fxhash_insert(c: &mut Criterion) {
 pub fn bench_fxhash_get_mut(c: &mut Criterion) {
     let mut group = c.benchmark_group("fxhash_get_mut");
 
-    group.bench_function(format!("insert_{}", MAP_SIZE), |b| {
+    group.bench_function(format!("insert_{MAP_SIZE}"), |b| {
         let mut map: FxHashMap<(u64, u64), u64> = FxHashMap::default();
 
         let mut keys_to_get: Vec<(u64, u64)> = Vec::with_capacity(MAP_SIZE);
@@ -289,7 +289,7 @@ pub fn bench_fxhash_get_mut(c: &mut Criterion) {
         });
     });
 
-    group.bench_function(format!("insert_{}", LARGE_MAP_SIZE), |b| {
+    group.bench_function(format!("insert_{LARGE_MAP_SIZE}"), |b| {
         let mut map: FxHashMap<(u64, u64), u64> = FxHashMap::default();
 
         let mut keys_to_get: Vec<(u64, u64)> = Vec::with_capacity(LARGE_MAP_SIZE);
