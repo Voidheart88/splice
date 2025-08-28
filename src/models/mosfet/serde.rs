@@ -2,18 +2,18 @@ use std::sync::Arc;
 
 use serde::Deserialize;
 
-use crate::frontends::{get_variable, yaml::ProcessYamlElement};
+use crate::frontends::{get_variable, serde::ProcessSerdeElement};
 use crate::models::{Element, Mos0Bundle, Unit};
 
 #[derive(Debug, Deserialize)]
-pub struct YamlMos0 {
+pub struct SerdeMos0 {
     pub name: String,
     pub gate: String,
     pub drain: String,
     pub source: String,
 }
 
-impl ProcessYamlElement for YamlMos0 {
+impl ProcessSerdeElement for SerdeMos0 {
     fn process(
         &self,
         variables: &mut Vec<crate::models::Variable>,

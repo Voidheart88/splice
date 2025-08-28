@@ -4,17 +4,17 @@ use serde::Deserialize;
 
 use crate::spot::Numeric;
 use crate::models::{CapacitorBundle, Element, Unit};
-use crate::frontends::{get_variable, yaml::ProcessYamlElement};
+use crate::frontends::{get_variable, serde::ProcessSerdeElement};
 
 #[derive(Debug, Deserialize)]
-pub struct YamlCapacitor {
+pub struct SerdeCapacitor {
     pub name: String,
     pub node0: String,
     pub node1: String,
     pub value: Numeric,
 }
 
-impl ProcessYamlElement for YamlCapacitor {
+impl ProcessSerdeElement for SerdeCapacitor {
     fn process(
         &self,
         variables: &mut Vec<crate::models::Variable>,

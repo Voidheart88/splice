@@ -1,8 +1,7 @@
-pub(crate) mod json;
 pub(crate) mod kicad;
 pub(crate) mod network;
 pub(crate) mod spice;
-pub(crate) mod yaml;
+pub(crate) mod serde;
 
 use std::collections::HashMap;
 use std::io;
@@ -13,13 +12,12 @@ use miette::Diagnostic;
 use thiserror::Error;
 
 use crate::models::*;
-use crate::sim::commands::{ACMode, SimulationCommand};
+use crate::sim::commands::SimulationCommand;
 use crate::sim::options::SimulationOption;
-pub(crate) use json::JsonFrontend;
 pub(crate) use kicad::KicadFrontend;
 pub(crate) use network::NetworkFrontend;
 pub(crate) use spice::SpiceFrontend;
-pub(crate) use yaml::YamlFrontend;
+pub(crate) use serde::SerdeFrontend;
 
 #[derive(Copy, Clone, ValueEnum, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Frontends {
@@ -91,8 +89,8 @@ impl SelectFrontend {
     pub fn try_from_path(pth: String) -> Result<Box<dyn Frontend>, FrontendError> {
         let end = pth.split(".").last().unwrap();
         match end {
-            "yml" => Ok(Box::new(YamlFrontend::try_new_from_path(pth)?)),
-            "yaml" => Ok(Box::new(YamlFrontend::try_new_from_path(pth)?)),
+            "yml" => Ok(Box::new(SerdeFrontend::try_new_from_path(pth)?)),
+            "yaml" => Ok(Box::new(SerdeFrontend::try_new_from_path(pth)?)),
             "json" => Err(FrontendError::Unimplemented),
             "kicad_sch" => Err(FrontendError::Unimplemented),
             "cir" => Ok(Box::new(SpiceFrontend::new(pth))),

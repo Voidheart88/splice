@@ -5,13 +5,13 @@ use std::sync::Arc;
 
 use super::{Element, Frontend, FrontendError, Simulation};
 
-use crate::models::capacitor::yaml::YamlCapacitor;
-use crate::models::diode::yaml::YamlDiode;
-use crate::models::inductor::yaml::YamlInductor;
-use crate::models::isource::yaml::YamlISource;
-use crate::models::mosfet::yaml::YamlMos0;
-use crate::models::resistor::yaml::YamlResistor;
-use crate::models::vsource::yaml::YamlVSource;
+use crate::models::capacitor::serde::SerdeCapacitor;
+use crate::models::diode::serde::SerdeDiode;
+use crate::models::inductor::serde::SerdeInductor;
+use crate::models::isource::serde::SerdeISource;
+use crate::models::mosfet::serde::SerdeMos0;
+use crate::models::resistor::serde::SerdeResistor;
+use crate::models::vsource::serde::SerdeVSource;
 use crate::models::Variable;
 use crate::sim::commands::ACMode;
 use crate::sim::commands::SimulationCommand;
@@ -21,38 +21,38 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 #[serde(tag = "type")]
-pub enum YamlElement {
+pub enum SerdeElement {
     #[serde(rename = "resistor")]
-    Resistor(YamlResistor),
+    Resistor(SerdeResistor),
     #[serde(rename = "inductor")]
-    Inductor(YamlInductor),
+    Inductor(SerdeInductor),
     #[serde(rename = "capacitor")]
-    Capacitor(YamlCapacitor),
+    Capacitor(SerdeCapacitor),
     #[serde(rename = "vsource")]
-    VSource(YamlVSource),
+    VSource(SerdeVSource),
     #[serde(rename = "isource")]
-    ISource(YamlISource),
+    ISource(SerdeISource),
     #[serde(rename = "diode")]
-    Diode(YamlDiode),
+    Diode(SerdeDiode),
     #[serde(rename = "mosfet")]
-    Mosfet(YamlMos0),
+    Mosfet(SerdeMos0),
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(tag = "type", rename = "simulations")]
-pub enum YamlSimulation {
+pub enum SerdeSimulation {
     #[serde(rename = "op")]
     OP,
     #[serde(rename = "dc")]
-    DC(YamlDC),
+    DC(SerdeDC),
     #[serde(rename = "ac")]
-    AC(YamlAC),
+    AC(SerdeAC),
     #[serde(rename = "tran")]
     TRAN,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct YamlDC {
+pub struct SerdeDC {
     source: String,
     vstart: Numeric,
     vstop: Numeric,
@@ -61,7 +61,7 @@ pub struct YamlDC {
 
 #[derive(Debug, Deserialize)]
 #[serde(tag = "type", rename = "simulations")]
-pub struct YamlAC {
+pub struct SerdeAC {
     fstart: Numeric,
     fstop: Numeric,
     fstep: usize,
@@ -69,27 +69,27 @@ pub struct YamlAC {
 
 #[derive(Default, Debug, Deserialize)]
 #[serde(rename = "option")]
-pub struct YamlOption {
+pub struct SerdeOption {
     pub out: String,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename = "circuit")]
-pub struct YamlCircuit {
-    pub elements: Vec<YamlElement>,
-    pub simulations: Vec<YamlSimulation>,
+pub struct SerdeCircuit {
+    pub elements: Vec<SerdeElement>,
+    pub simulations: Vec<SerdeSimulation>,
     #[serde(default)]
-    pub options: Vec<YamlOption>,
+    pub options: Vec<SerdeOption>,
 }
 
-pub struct YamlFrontend {
+pub struct SerdeFrontend {
     commands: Vec<SimulationCommand>,
     options: Vec<SimulationOption>,
     elements: Vec<Element>,
     variables: Vec<Variable>,
 }
 
-impl YamlFrontend {
+impl SerdeFrontend {
     pub fn try_new_from_path(path: String) -> Result<Self, FrontendError> {
         let mut circuit_string = String::new();
         match File::open(path) {
@@ -107,45 +107,45 @@ impl YamlFrontend {
         let mut variables: Vec<Variable> = Vec::new();
         let mut var_map: HashMap<Arc<str>, usize> = HashMap::new();
 
-        let yaml: YamlCircuit = match serde_yml::from_str(&yaml_string) {
+        let circuit: SerdeCircuit = match serde_yml::from_str(&yaml_string) {
             Ok(yaml) => yaml,
             Err(err) => return Err(FrontendError::ParseError(format!("{}", err))),
         };
 
-        for element in yaml.elements {
+        for element in circuit.elements {
             match element {
-                YamlElement::Resistor(ele) => {
+                SerdeElement::Resistor(ele) => {
                     ele.process(&mut variables, &mut elements, &mut var_map)
                 }
-                YamlElement::Inductor(ele) => {
+                SerdeElement::Inductor(ele) => {
                     ele.process(&mut variables, &mut elements, &mut var_map)
                 }
-                YamlElement::Capacitor(ele) => {
+                SerdeElement::Capacitor(ele) => {
                     ele.process(&mut variables, &mut elements, &mut var_map)
                 }
-                YamlElement::VSource(ele) => {
+                SerdeElement::VSource(ele) => {
                     ele.process(&mut variables, &mut elements, &mut var_map)
                 }
-                YamlElement::ISource(ele) => {
+                SerdeElement::ISource(ele) => {
                     ele.process(&mut variables, &mut elements, &mut var_map)
                 }
-                YamlElement::Diode(ele) => ele.process(&mut variables, &mut elements, &mut var_map),
-                YamlElement::Mosfet(ele) => {
+                SerdeElement::Diode(ele) => ele.process(&mut variables, &mut elements, &mut var_map),
+                SerdeElement::Mosfet(ele) => {
                     ele.process(&mut variables, &mut elements, &mut var_map)
                 }
             };
         }
 
-        for simulation in yaml.simulations {
+        for simulation in circuit.simulations {
             match simulation {
-                YamlSimulation::OP => Self::process_op(&mut commands),
-                YamlSimulation::DC(yamldc) => Self::process_dc(&mut commands, yamldc),
-                YamlSimulation::AC(yamlac) => Self::process_ac(&mut commands, yamlac),
-                YamlSimulation::TRAN => Self::process_tran(&mut commands),
+                SerdeSimulation::OP => Self::process_op(&mut commands),
+                SerdeSimulation::DC(yamldc) => Self::process_dc(&mut commands, yamldc),
+                SerdeSimulation::AC(yamlac) => Self::process_ac(&mut commands, yamlac),
+                SerdeSimulation::TRAN => Self::process_tran(&mut commands),
             };
         }
 
-        for option in yaml.options {
+        for option in circuit.options {
             Self::process_out(&mut options, option);
         }
 
@@ -161,7 +161,7 @@ impl YamlFrontend {
         commands.push(SimulationCommand::Op)
     }
 
-    fn process_dc(commands: &mut Vec<SimulationCommand>, yamldc: YamlDC) {
+    fn process_dc(commands: &mut Vec<SimulationCommand>, yamldc: SerdeDC) {
         commands.push(SimulationCommand::Dc(
             Arc::from(yamldc.source),
             yamldc.vstart,
@@ -171,7 +171,7 @@ impl YamlFrontend {
         ));
     }
 
-    fn process_ac(commands: &mut Vec<SimulationCommand>, yamlac: YamlAC) {
+    fn process_ac(commands: &mut Vec<SimulationCommand>, yamlac: SerdeAC) {
         commands.push(SimulationCommand::Ac(
             yamlac.fstart,
             yamlac.fstop,
@@ -184,12 +184,12 @@ impl YamlFrontend {
         todo!()
     }
 
-    fn process_out(options: &mut Vec<SimulationOption>, option: YamlOption) {
+    fn process_out(options: &mut Vec<SimulationOption>, option: SerdeOption) {
         options.push(SimulationOption::Out(vec![Arc::from(option.out.as_str())]))
     }
 }
 
-impl Frontend for YamlFrontend {
+impl Frontend for SerdeFrontend {
     fn simulation(&self) -> Result<Simulation, FrontendError> {
         Ok(Simulation {
             commands: self.commands.clone(),
@@ -200,7 +200,7 @@ impl Frontend for YamlFrontend {
     }
 }
 
-pub(crate) trait ProcessYamlElement {
+pub(crate) trait ProcessSerdeElement {
     fn process(
         &self,
         variables: &mut Vec<Variable>,
