@@ -220,6 +220,7 @@ fn solve_small_electrical() {
 
     let b_vector = [0.0, 10.0];
 
+    let b_vector = vec![0.0, 10.0];
     let mut solver = RSparseSolver::new(3).unwrap();
 
     a_matrix.iter().for_each(|trpl| solver.insert_a(trpl));
@@ -459,14 +460,14 @@ pub fn newton_raphson_test() {
     let max_iterations = 100;
     let tolerance = 1.0e-6;
 
-    println!("Startschätzung: {:?}", x_current);
+    println!("Startschätzung: {x_current:?}");
 
     for iter in 0..max_iterations {
         let f_val = calculate_f(&x_current);
         let jacobian_mat = calculate_jacobian(&x_current);
 
         if norm(&f_val) < tolerance {
-            println!("Converged after {} iterations.", iter);
+            println!("Converged after {iter} iterations.");
             break;
         }
 
@@ -513,5 +514,5 @@ pub fn newton_raphson_test() {
     assert!((x_current[0] - expected_x0).abs() < tolerance);
     assert!((x_current[1] - expected_x1).abs() < tolerance);
 
-    println!("Solution: {:?}", x_current);
+    println!("Solution: {x_current:?}");
 }

@@ -14,8 +14,8 @@ impl KicadFrontend {
     pub fn new() -> Self {
         Self {}
     }
-    
-    pub fn try_new_from_path(_path: String) -> Result<Self,FrontendError> {
+
+    pub fn try_new_from_path(_path: String) -> Result<Self, FrontendError> {
         Err(FrontendError::Unimplemented)
     }
 }
