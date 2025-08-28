@@ -172,7 +172,7 @@ fn insert_add_a_mat() {
 
     let a_mat = solver.a_mat();
 
-    println!("{}", a_mat);
+    println!("{a_mat}");
 }
 
 #[test]
@@ -207,14 +207,14 @@ pub fn newton_raphson_test() {
     let max_iterations = 100;
     let tolerance = 1.0e-6;
 
-    println!("Startschätzung: {:?}", x_current);
+    println!("Startschätzung: {x_current:?}");
 
     for iter in 0..max_iterations {
         let f_val = calculate_f(&x_current);
         let jacobian_mat = calculate_jacobian(&x_current);
 
         if norm(&f_val) < tolerance {
-            println!("Converged after {} iterations.", iter);
+            println!("Converged after {iter} iterations.");
             break;
         }
 
@@ -227,7 +227,11 @@ pub fn newton_raphson_test() {
             }
         }
 
+<<<<<<< HEAD
         rhs.iter().enumerate().take(SIZE).for_each(|(r, _)| {
+=======
+        for (r, _) in rhs.iter().enumerate().take(SIZE) {
+>>>>>>> 499ff56 ("refactor: Rearrange and format tests (rsparse, rlinear)")
             solver.insert_b(&(r, rhs[r]));
         });
 
@@ -261,5 +265,5 @@ pub fn newton_raphson_test() {
     assert!((x_current[0] - expected_x0).abs() < tolerance);
     assert!((x_current[1] - expected_x1).abs() < tolerance);
 
-    println!("Solution: {:?}", x_current);
+    println!("Solution: {x_current:?}");
 }

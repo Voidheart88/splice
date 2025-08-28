@@ -100,7 +100,7 @@ fn solve_small_2() {
 
     let solution = match solver.solve() {
         Ok(solution) => solution,
-        Err(err) => panic!("Error: {}", err),
+        Err(err) => panic!("Error: {err}"),
     };
 
     let epsilon = 1e-9;
@@ -480,9 +480,15 @@ pub fn newton_raphson_test() {
             }
         }
 
+<<<<<<< HEAD
         rhs.iter().enumerate().take(SIZE).for_each(|(r, _)| {
             solver.insert_b(&(r, rhs[r]));
         });
+=======
+        for (r, value) in rhs.iter().take(SIZE).enumerate() {
+            solver.insert_b(&(r, *value));
+        }
+>>>>>>> 499ff56 ("refactor: Rearrange and format tests (rsparse, rlinear)")
 
         let dx_vec = match solver.solve() {
             Ok(sol) => sol,
