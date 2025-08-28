@@ -116,14 +116,9 @@ fn solve_no_solution() {
 #[should_panic]
 fn solve_infinite_solutions_dependent() {
     let a_matrix_elements = [(0, 0, 1.0), (0, 1, 1.0), (1, 0, 2.0), (1, 1, 2.0)];
-<<<<<<< HEAD
 
     let b_vector_elements = [3.0, 6.0];
 
-=======
-
-    let b_vector_elements = [3.0, 6.0];
->>>>>>> 21842e4 (refactor: removed unnessesary vecs from tests)
     let mut solver = FaerSolver::new(2).unwrap();
 
     a_matrix_elements
@@ -330,18 +325,12 @@ pub fn newton_raphson_test() {
             }
         }
 
-<<<<<<< HEAD
         rhs.iter()
             .enumerate()
             .take(SIZE)
             .for_each(|(r, _)| {
                 solver.insert_b(&(r, rhs[r]));
             });
-=======
-        for (r, _) in rhs.iter().enumerate().take(SIZE) {
-            solver.insert_b(&(r, rhs[r]));
-        }
->>>>>>> 21842e4 (refactor: removed unnessesary vecs from tests)
 
         let dx_vec = match solver.solve() {
             Ok(sol) => sol,
