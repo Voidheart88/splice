@@ -121,6 +121,10 @@ fn solve_small_2() {
 #[should_panic]
 fn solve_no_solution() {
     let a_matrix_elements = [(0, 0, 1.0), (0, 1, 1.0), (1, 0, 1.0), (1, 1, 1.0)];
+<<<<<<< HEAD
+=======
+
+>>>>>>> d55e65b ("refactors: reorganize sparse matrix implementation for improved performance")
     let b_vector_elements = [3.0, 5.0];
 
     let mut solver = RSparseSolver::new(2).unwrap();
@@ -217,10 +221,13 @@ fn insert_add_a() {
 #[test]
 fn solve_small_electrical() {
     let a_matrix = [(0, 0, 1.0 / 10.0), (0, 1, 1.0), (1, 0, 1.0), (1, 1, 0.0)];
+<<<<<<< HEAD
 
     let b_vector = [0.0, 10.0];
+=======
+>>>>>>> d55e65b ("refactors: reorganize sparse matrix implementation for improved performance")
 
-    let b_vector = vec![0.0, 10.0];
+    let b_vector = [0.0, 10.0];
     let mut solver = RSparseSolver::new(3).unwrap();
 
     a_matrix.iter().for_each(|trpl| solver.insert_a(trpl));
@@ -479,10 +486,17 @@ pub fn newton_raphson_test() {
                 solver.insert_a(&(r, c, jacobian_mat[&(r, c)]));
             }
         }
+<<<<<<< HEAD
 
         rhs.iter().enumerate().take(SIZE).for_each(|(r, _)| {
             solver.insert_b(&(r, rhs[r]));
         });
+=======
+        
+        for (r, value) in rhs.iter().take(SIZE).enumerate() {
+            solver.insert_b(&(r, *value));
+        }
+>>>>>>> d55e65b ("refactors: reorganize sparse matrix implementation for improved performance")
 
         let dx_vec = match solver.solve() {
             Ok(sol) => sol,
