@@ -190,7 +190,7 @@ impl PlotBackend {
                     chart
                         .draw_series(LineSeries::new(
                             var.iter().enumerate().map(|(x, &v)| (x as u32, v)),
-                            &LIGHTBLUE,
+                            LIGHTBLUE,
                         ))?
                         .label("Voltage")
                         .legend(|(x, y)| PathElement::new(vec![(x - 10, y), (x + 10, y)], BLUE));
@@ -199,7 +199,7 @@ impl PlotBackend {
                     chart
                         .draw_series(LineSeries::new(
                             var.iter().enumerate().map(|(x, &v)| (x as u32, -v)),
-                            &RED_500,
+                            RED_500,
                         ))?
                         .label("Current")
                         .legend(|(x, y)| PathElement::new(vec![(x - 10, y), (x + 10, y)], BLUE));
@@ -237,7 +237,7 @@ impl PlotBackend {
         // Add the suffix before the extension
         let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
         let parent = path.parent().unwrap_or(Path::new(""));
-        let new_file_name = format!("{}_ac.svg", stem);
+        let new_file_name = format!("{stem}_ac.svg");
         path = parent.join(new_file_name);
 
         let root = SVGBackend::new(&path, (1440, 900)).into_drawing_area();
@@ -440,7 +440,7 @@ impl PlotBackend {
 
         if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
             let parent = path.parent().unwrap_or_else(|| Path::new(""));
-            let new_file_name = format!("{}_op.svg", stem);
+            let new_file_name = format!("{stem}_op.svg");
             path = parent.join(new_file_name);
         }
 

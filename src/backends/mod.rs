@@ -34,7 +34,7 @@ pub enum BackendError {
 
 impl From<DrawingAreaErrorKind<std::io::Error>> for BackendError {
     fn from(err: DrawingAreaErrorKind<std::io::Error>) -> Self {
-        BackendError::PlotError(format!("{:?}", err))
+        BackendError::PlotError(format!("{err:?}"))
     }
 }
 
