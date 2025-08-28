@@ -19,8 +19,9 @@ pub(crate) use network::NetworkFrontend;
 pub(crate) use serde::SerdeFrontend;
 pub(crate) use spice::SpiceFrontend;
 
+/// Supported frontends for CLI selection.
 #[derive(Copy, Clone, ValueEnum, PartialEq, Eq, PartialOrd, Ord)]
-pub enum Frontends {
+pub(crate) enum Frontends {
     Spice,
     Yaml,
     Json,
@@ -99,7 +100,7 @@ pub struct SelectFrontend {}
 impl SelectFrontend {
     /// Automatically select a frontend from a file extension
     pub fn try_from_path(pth: String) -> Result<Box<dyn Frontend>, FrontendError> {
-        let end = pth.split(".").last().unwrap();
+        let end = pth.split(".").last().ok_or(FrontendError::FrontendNotFound)?;
         match end {
             "yml" => Ok(Box::new(SerdeFrontend::try_new_from_path(
                 pth,

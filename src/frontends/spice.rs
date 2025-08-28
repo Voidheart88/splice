@@ -163,16 +163,9 @@ impl SpiceFrontend {
     fn process_dc(&self, command: Pair<Rule>, commands: &mut Vec<SimulationCommand>) {
         let mut inner = command.into_inner();
 
-        //extract Name
         let source = inner.next().unwrap().as_str();
-
-        //extract vstart
         let vstart = inner.next().unwrap().as_str().parse::<Numeric>().unwrap();
-
-        //extract vend
         let vend = inner.next().unwrap().as_str().parse::<Numeric>().unwrap();
-
-        //extract vstep
         let vstep = inner.next().unwrap().as_str().parse::<Numeric>().unwrap();
 
         let src2 = inner.next();
@@ -192,14 +185,9 @@ impl SpiceFrontend {
 
         let mut src2 = src2.into_inner();
 
-        //extract Name
         let source2 = src2.next().unwrap().as_str();
-
-        //extract Name
         let vstart2 = src2.next().unwrap().as_str().parse::<Numeric>().unwrap();
-        //extract Name
         let vend2 = src2.next().unwrap().as_str().parse::<Numeric>().unwrap();
-        //extract Name
         let vstep2 = src2.next().unwrap().as_str().parse::<Numeric>().unwrap();
 
         commands.push(SimulationCommand::Dc(
