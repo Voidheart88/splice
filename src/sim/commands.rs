@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::spot::*;
+use crate::{frontends::FrontendError, spot::*};
 
 /// Represents different simulation commands in a circuit simulator.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
@@ -28,4 +28,17 @@ pub enum ACMode {
     Lin,
     Dec,
     Oct,
+}
+
+impl TryFrom<&str> for ACMode {
+    type Error = FrontendError;
+
+    fn try_from(value: &str) -> Result<Self, FrontendError> {
+        match value.to_lowercase().as_str() {
+            "dec" => Ok(ACMode::Dec),
+            "lin" => Ok(ACMode::Lin),
+            "oct" => Ok(ACMode::Oct),
+            _ => Err(FrontendError::ParseError(value.into())),
+        }
+    }
 }

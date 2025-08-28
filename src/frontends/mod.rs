@@ -83,6 +83,7 @@ impl From<std::num::ParseIntError> for FrontendError {
         FrontendError::ParseCommandError(format!("{}", error))
     }
 }
+
 pub struct SelectFrontend {}
 
 impl SelectFrontend {
@@ -116,19 +117,6 @@ pub trait Frontend {
     /// a circuit.
     /// This Simulation consists of a vector with CircuitElements and a vector of commands
     fn simulation(&self) -> Result<Simulation, FrontendError>;
-}
-
-impl TryFrom<&str> for ACMode {
-    type Error = FrontendError;
-
-    fn try_from(value: &str) -> Result<Self, FrontendError> {
-        match value.to_lowercase().as_str() {
-            "dec" => Ok(ACMode::Dec),
-            "lin" => Ok(ACMode::Lin),
-            "oct" => Ok(ACMode::Oct),
-            _ => Err(FrontendError::ParseError(value.into())),
-        }
-    }
 }
 
 pub(crate) fn get_variable(
