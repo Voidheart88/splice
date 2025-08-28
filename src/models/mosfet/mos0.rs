@@ -40,10 +40,7 @@ impl Mos0Bundle {
         source: Option<Variable>,
         options: Option<Mos0Options>,
     ) -> Mos0Bundle {
-        let options = match options {
-            Some(v) => v,
-            None => Mos0Options::default(),
-        };
+        let options = options.unwrap_or_default();
 
         Mos0Bundle {
             name,
@@ -60,7 +57,7 @@ impl Mos0Bundle {
     }
 
     /// Returns a reference to the triples representing matrix A.
-    pub fn triples(&self, x_vec: &Vec<Numeric>) -> Triples<Numeric, 4> {
+    pub fn triples(&self, x_vec: &[Numeric]) -> Triples<Numeric, 4> {
         let kp = self.options.kp;
         let vt0 = self.options.vt0;
         let g_voltage = match self.g_idx() {
@@ -105,7 +102,7 @@ impl Mos0Bundle {
     }
 
     /// Returns a reference to the pairs representing vector b.
-    pub fn pairs(&self, x_vec: &Vec<Numeric>) -> Pairs<Numeric, 2> {
+    pub fn pairs(&self, x_vec: &[Numeric]) -> Pairs<Numeric, 2> {
         let kp = self.options.kp;
         let vt0 = self.options.vt0;
         let g_voltage = match self.g_idx() {
@@ -129,23 +126,14 @@ impl Mos0Bundle {
     }
 
     pub fn g_idx(&self) -> Option<usize> {
-        match &self.gate {
-            Some(v) => Some(v.idx()),
-            None => None,
-        }
+        self.gate.as_ref().map(|v| v.idx())
     }
 
     pub fn d_idx(&self) -> Option<usize> {
-        match &self.drain {
-            Some(v) => Some(v.idx()),
-            None => None,
-        }
+        self.drain.as_ref().map(|v| v.idx())
     }
 
     pub fn s_idx(&self) -> Option<usize> {
-        match &self.source {
-            Some(v) => Some(v.idx()),
-            None => None,
-        }
+        self.source.as_ref().map(|v| v.idx())
     }
 }

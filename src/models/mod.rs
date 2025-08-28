@@ -27,6 +27,7 @@ pub use self::vsource::VSourceBundle;
 /// An Enum representing the Unit of the Value - Nessecary for
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub enum Unit {
+    None,
     Volt,
     Ampere,
 }
@@ -36,6 +37,7 @@ impl Display for Unit {
         match self {
             Unit::Volt => write!(f, "V"),
             Unit::Ampere => write!(f, "A"),
+            Unit::None => write!(f, " "),
         }
     }
 }
@@ -61,11 +63,11 @@ impl Variable {
     }
 
     pub fn name(&self) -> Arc<str> {
-        return self.0.clone();
+        self.0.clone()
     }
 
     pub fn unit(&self) -> Unit {
-        return self.1;
+        self.1
     }
 
     pub fn idx(&self) -> usize {
@@ -123,15 +125,13 @@ impl Element {
 
     /// Returns the time variant pairs of the element, if applicable.
     pub(crate) fn get_time_variant_pairs(&self) -> Option<Pairs<Numeric, 2>> {
-        match self {
-            _ => None,
-        }
+        None
     }
 
     /// Returns the nonlinear triples. Nonlinear Triples are Dependend on Vector x
     pub(crate) fn get_nonlinear_triples(
         &self,
-        x_vec: &Vec<Numeric>,
+        x_vec: &[Numeric],
     ) -> Option<Triples<Numeric, 4>> {
         match self {
             Element::Diode(ele) => Some(ele.triples(x_vec)),
@@ -141,7 +141,7 @@ impl Element {
     }
 
     /// Returns the nonlinear pairs of the element, if applicable.
-    pub(crate) fn get_nonlinear_pairs(&self, x_vec: &Vec<Numeric>) -> Option<Pairs<Numeric, 2>> {
+    pub(crate) fn get_nonlinear_pairs(&self, x_vec: &[Numeric]) -> Option<Pairs<Numeric, 2>> {
         match self {
             Element::Diode(ele) => Some(ele.pairs(x_vec)),
             Element::Mos0(ele) => Some(ele.pairs(x_vec)),
@@ -151,11 +151,7 @@ impl Element {
 
     /// Checks if the element is nonlinear.
     pub(crate) fn is_nonlinear(&self) -> bool {
-        match self {
-            Element::Diode(_) => true,
-            Element::Mos0(_) => true,
-            _ => false,
-        }
+        matches!(self, Element::Diode(_) | Element::Mos0(_))
     }
 
     /// Returns the ac triples. Ac Triples are dependend on f

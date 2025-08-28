@@ -82,7 +82,7 @@ impl<'a, T, const N: usize> Iterator for PairsIter<'a, T, N> {
     }
 }
 
-impl<'a, T, const N: usize> ExactSizeIterator for PairsIter<'a, T, N> {
+impl<T, const N: usize> ExactSizeIterator for PairsIter<'_, T, N> {
     fn len(&self) -> usize {
         self.pairs.length - self.current
     }
@@ -103,6 +103,9 @@ impl<'a, T, const N: usize> IntoIterator for &'a Pairs<T, N> {
 #[cfg(test)]
 impl<T, const N: usize> Pairs<T, N> {
     pub fn len(&self) -> usize {
-        return self.length;
+        self.length
+    }
+    pub fn is_empty(&self) -> bool {
+        self.length == 0
     }
 }

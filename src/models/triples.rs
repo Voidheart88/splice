@@ -82,7 +82,7 @@ impl<'a, T, const N: usize> Iterator for TriplesIter<'a, T, N> {
     }
 }
 
-impl<'a, T, const N: usize> ExactSizeIterator for TriplesIter<'a, T, N> {
+impl<T, const N: usize> ExactSizeIterator for TriplesIter<'_, T, N> {
     fn len(&self) -> usize {
         self.triples.length - self.current
     }
@@ -135,6 +135,9 @@ impl<const N: usize> TripleIdx<N> {
 #[cfg(test)]
 impl<T, const N: usize> Triples<T, N> {
     pub fn len(&self) -> usize {
-        return self.length;
+        self.length
+    }
+    pub fn is_empty(&self) -> bool {
+        self.length == 0
     }
 }

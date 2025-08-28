@@ -243,8 +243,6 @@ fn ipvec(n: usize, p: &Option<Vec<isize>>, b: &[Numeric], x: &mut [Numeric]) {
 
 #[cfg(test)]
 impl RSparseSolver {
-    /// Returns the number of rows in the matrix `a_mat`.
-
     /// Returns the length of the vector `b_vec`.
     pub fn b_vec_len(&self) -> usize {
         self.b_vec.len()

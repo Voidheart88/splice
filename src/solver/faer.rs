@@ -48,7 +48,7 @@ impl Solver for FaerSolver {
     fn insert_b(&mut self, b_vec: &(usize, Numeric)) {
         let (row, val) = *b_vec;
         let value = self.b_vec.get_mut(row, 0);
-        *value = *value + val;
+        *value += val;
     }
 
     fn insert_cplx_a(&mut self, a_mat: &(usize, usize, ComplexNumeric)) {
@@ -59,7 +59,7 @@ impl Solver for FaerSolver {
     fn insert_cplx_b(&mut self, b_vec: &(usize, ComplexNumeric)) {
         let (row, val) = *b_vec;
         let value = self.cplx_b_vec.get_mut(row, 0);
-        *value = *value + val;
+        *value += val;
     }
     fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError> {
         let lu = self.a_mat.partial_piv_lu();

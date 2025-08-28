@@ -73,7 +73,7 @@ impl Solver for NalgebraSolver {
             None => return Err(SolverError::MatrixNonInvertible),
         };
 
-        Ok(&self.x_vec.data.as_vec())
+        Ok(self.x_vec.data.as_vec())
     }
 
     fn solve_cplx(&mut self) -> Result<&Vec<ComplexNumeric>, SolverError> {
@@ -84,7 +84,7 @@ impl Solver for NalgebraSolver {
             None => return Err(SolverError::MatrixNonInvertible),
         };
 
-        Ok(&self.cplx_x_vec.data.as_vec())
+        Ok(self.cplx_x_vec.data.as_vec())
     }
 
     fn init(&mut self, a_matrix: Vec<(usize, usize)>, cplx_a_matrix: Vec<(usize, usize)>) {

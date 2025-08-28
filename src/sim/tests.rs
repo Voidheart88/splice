@@ -36,10 +36,10 @@ fn init_sim_rsparse() {
     let variables = vec![branch_1, node_1];
 
     let sim = Simulation {
-        commands: commands,
-        options: options,
-        elements: elements,
-        variables: variables,
+         commands,
+         options,
+         elements,
+         variables,
     };
 
     let mut simulator: Simulator<RSparseSolver> = Simulator::from(sim.clone());
@@ -89,10 +89,10 @@ fn init_sim_faer() {
     let variables = vec![branch_1, node_1];
 
     let sim = Simulation {
-        commands: commands,
-        options: options,
-        elements: elements,
-        variables: variables,
+        commands,
+        options,
+        elements,
+        variables,
     };
 
     let mut simulator: Simulator<FaerSolver> = Simulator::from(sim.clone());
@@ -142,10 +142,10 @@ fn init_sim_nalgebra() {
     let variables = vec![branch_1, node_1];
 
     let sim = Simulation {
-        commands: commands,
-        options: options,
-        elements: elements,
-        variables: variables,
+        commands,
+        options,
+        elements,
+        variables,
     };
 
     let mut simulator: Simulator<NalgebraSolver> = Simulator::from(sim.clone());

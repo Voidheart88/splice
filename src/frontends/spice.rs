@@ -45,17 +45,14 @@ impl Frontend for SpiceFrontend {
         let mut var_map = HashMap::new();
 
         for pair in parse_result.into_inner() {
-            match pair.as_rule() {
-                Rule::DIRECTIVE => self.process_directive(
-                    pair,
-                    &mut commands,
-                    &mut options,
-                    &mut elements,
-                    &mut variables,
-                    &mut var_map,
-                ),
-                _ => {}
-            }
+            if pair.as_rule() == Rule::DIRECTIVE { self.process_directive(
+                             pair,
+                             &mut commands,
+                             &mut options,
+                             &mut elements,
+                             &mut variables,
+                             &mut var_map,
+                         ) }
         }
 
         trace!("Check Schematic!");
@@ -151,12 +148,9 @@ impl SpiceFrontend {
             .unwrap();
 
         for pair in parse_result.into_inner() {
-            match pair.as_rule() {
-                Rule::DIRECTIVE => {
-                    self.process_directive(pair, commands, options, elements, variables, var_map)
-                }
-                _ => {}
-            }
+            if pair.as_rule() == Rule::DIRECTIVE {
+                             self.process_directive(pair, commands, options, elements, variables, var_map)
+                         }
         }
     }
 
@@ -180,17 +174,18 @@ impl SpiceFrontend {
         let vstep = inner.next().unwrap().as_str().parse::<Numeric>().unwrap();
 
         let src2 = inner.next();
-        let src2 = if src2.is_none() {
-            commands.push(SimulationCommand::Dc(
-                Arc::from(source),
-                vstart,
-                vend,
-                vstep,
-                None,
-            ));
-            return;
-        } else {
-            src2.unwrap()
+        let src2 = match src2 {
+            None => {
+                commands.push(SimulationCommand::Dc(
+                    Arc::from(source),
+                    vstart,
+                    vend,
+                    vstep,
+                    None,
+                ));
+                return;
+            }
+            Some(src) => src,
         };
 
         let mut src2 = src2.into_inner();

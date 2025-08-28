@@ -47,16 +47,16 @@ pub fn generate_solvable_system(
     let x_true: Vec<Numeric> = (0..n).map(|_| rng.random_range(-5.0..5.0)).collect();
 
     let mut b = vec![Numeric::zero(); n];
-    for i in 0..n {
-        for j in 0..n {
-            b[i] += a[i][j] * x_true[j];
-        }
-    }
+    (0..n).for_each(|i| {
+        b[i] = (0..n)
+            .map(|j| a[i][j] * x_true[j])
+            .sum();
+    });
 
     (a, b, x_true)
 }
 
-fn calculate_f(x: &Vec<Numeric>) -> Vec<Numeric> {
+fn calculate_f(x: &[Numeric]) -> Vec<Numeric> {
     let x0 = x[0];
     let x1 = x[1];
 
@@ -66,7 +66,7 @@ fn calculate_f(x: &Vec<Numeric>) -> Vec<Numeric> {
     vec![f0, f1]
 }
 
-fn calculate_jacobian(x: &Vec<Numeric>) -> HashMap<(usize, usize), Numeric> {
+fn calculate_jacobian(x: &[Numeric]) -> HashMap<(usize, usize), Numeric> {
     let x0 = x[0];
     let x1 = x[1];
 
@@ -79,6 +79,6 @@ fn calculate_jacobian(x: &Vec<Numeric>) -> HashMap<(usize, usize), Numeric> {
     jacobian
 }
 
-fn norm(vec: &Vec<Numeric>) -> Numeric {
+fn norm(vec: &[Numeric]) -> Numeric {
     Numeric::sqrt(vec.iter().map(|val| val * val).sum())
 }

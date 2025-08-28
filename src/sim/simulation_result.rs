@@ -11,17 +11,8 @@ pub enum Sim {
     Ac(Vec<(Numeric, Vec<(Variable, Complex<Numeric>)>)>),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct SimulationResults {
     pub options: Vec<SimulationOption>,
     pub results: Vec<Sim>,
-}
-
-impl Default for SimulationResults {
-    fn default() -> Self {
-        Self {
-            options: Default::default(),
-            results: Default::default(),
-        }
-    }
 }

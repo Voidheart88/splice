@@ -2,6 +2,7 @@ use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
 use full_palette::{LIGHTBLUE, RED_500};
+use plotters::style::full_palette::GREEN_500;
 use plotters::{
     backend::SVGBackend,
     prelude::*,
@@ -163,8 +164,8 @@ impl PlotBackend {
             .x_desc("Voltage Steps")
             .x_label_style(("sans-serif", 15).into_font().color(&WHITE))
             .y_label_style(("sans-serif", 15).into_font().color(&WHITE))
-            .bold_line_style(&GREY_400)
-            .light_line_style(&GREY_800)
+            .bold_line_style(GREY_400)
+            .light_line_style(GREY_800)
             .draw()?;
 
         // Create a series containing both voltage and current data
@@ -192,7 +193,7 @@ impl PlotBackend {
                             &LIGHTBLUE,
                         ))?
                         .label("Voltage")
-                        .legend(|(x, y)| PathElement::new(vec![(x - 10, y), (x + 10, y)], &BLUE));
+                        .legend(|(x, y)| PathElement::new(vec![(x - 10, y), (x + 10, y)], BLUE));
                 }
                 Unit::Ampere => {
                     chart
@@ -201,7 +202,16 @@ impl PlotBackend {
                             &RED_500,
                         ))?
                         .label("Current")
-                        .legend(|(x, y)| PathElement::new(vec![(x - 10, y), (x + 10, y)], &BLUE));
+                        .legend(|(x, y)| PathElement::new(vec![(x - 10, y), (x + 10, y)], BLUE));
+                }
+                Unit::None => {
+                    chart
+                        .draw_series(LineSeries::new(
+                            var.iter().enumerate().map(|(x, &v)| (x as u32, -v)),
+                            &GREEN_500,
+                        ))?
+                        .label(" ")
+                        .legend(|(x, y)| PathElement::new(vec![(x - 10, y), (x + 10, y)], BLUE));
                 }
             };
         }
@@ -209,8 +219,8 @@ impl PlotBackend {
         // Configure and draw the legend
         chart
             .configure_series_labels()
-            .background_style(&WHITE.mix(0.8))
-            .border_style(&BLACK)
+            .background_style(WHITE.mix(0.8))
+            .border_style(BLACK)
             .draw()?;
 
         root.present()?;
@@ -219,7 +229,7 @@ impl PlotBackend {
 
     fn plot_ac(
         &self,
-        data: &Vec<(Numeric, Vec<(Variable, ComplexNumeric)>)>,
+        data: &[(Numeric, Vec<(Variable, ComplexNumeric)>)],
     ) -> Result<(), BackendError> {
         let mut path = PathBuf::from(&self.pth);
         path.set_extension("svg");
@@ -289,8 +299,8 @@ impl PlotBackend {
             .x_desc("Frequency Steps")
             .x_label_style(("sans-serif", 15).into_font().color(&WHITE))
             .y_label_style(("sans-serif", 15).into_font().color(&WHITE))
-            .bold_line_style(&GREY_400)
-            .light_line_style(&GREY_800)
+            .bold_line_style(GREY_400)
+            .light_line_style(GREY_800)
             .draw()?;
 
         let mut chart_phase = ChartBuilder::on(&lower)
@@ -310,8 +320,8 @@ impl PlotBackend {
             .x_desc("Frequency Steps")
             .x_label_style(("sans-serif", 15).into_font().color(&WHITE))
             .y_label_style(("sans-serif", 15).into_font().color(&WHITE))
-            .bold_line_style(&GREY_400)
-            .light_line_style(&GREY_800)
+            .bold_line_style(GREY_400)
+            .light_line_style(GREY_800)
             .draw()?;
 
         // Create a series containing both gain and phase data
@@ -341,19 +351,28 @@ impl PlotBackend {
                     chart_gain
                         .draw_series(LineSeries::new(
                             var.iter().enumerate().map(|(x, &v)| (x as u32, v)),
-                            &BLUE,
+                            BLUE,
                         ))?
                         .label(format!("Voltage {}", idx + 1))
-                        .legend(|(x, y)| PathElement::new(vec![(x - 10, y), (x + 10, y)], &BLUE));
+                        .legend(|(x, y)| PathElement::new(vec![(x - 10, y), (x + 10, y)], BLUE));
                 }
                 Unit::Ampere => {
                     chart_gain
                         .draw_series(LineSeries::new(
                             var.iter().enumerate().map(|(x, &v)| (x as u32, v)),
-                            &RED,
+                            RED,
                         ))?
                         .label(format!("Current {}", idx + 1))
-                        .legend(|(x, y)| PathElement::new(vec![(x - 10, y), (x + 10, y)], &RED));
+                        .legend(|(x, y)| PathElement::new(vec![(x - 10, y), (x + 10, y)], RED));
+                }
+                Unit::None => {
+                    chart_gain
+                        .draw_series(LineSeries::new(
+                            var.iter().enumerate().map(|(x, &v)| (x as u32, v)),
+                            GREEN,
+                        ))?
+                        .label(format!("Current {}", idx + 1))
+                        .legend(|(x, y)| PathElement::new(vec![(x - 10, y), (x + 10, y)], RED));
                 }
             };
         }
@@ -364,19 +383,28 @@ impl PlotBackend {
                     chart_phase
                         .draw_series(LineSeries::new(
                             var.iter().enumerate().map(|(x, &v)| (x as u32, v)),
-                            &BLUE,
+                            BLUE,
                         ))?
                         .label(format!("Voltage {}", idx + 1))
-                        .legend(|(x, y)| PathElement::new(vec![(x - 10, y), (x + 10, y)], &BLUE));
+                        .legend(|(x, y)| PathElement::new(vec![(x - 10, y), (x + 10, y)], BLUE));
                 }
                 Unit::Ampere => {
                     chart_phase
                         .draw_series(LineSeries::new(
                             var.iter().enumerate().map(|(x, &v)| (x as u32, v)),
-                            &RED,
+                            RED,
                         ))?
                         .label(format!("Current {}", idx + 1))
-                        .legend(|(x, y)| PathElement::new(vec![(x - 10, y), (x + 10, y)], &RED));
+                        .legend(|(x, y)| PathElement::new(vec![(x - 10, y), (x + 10, y)], RED));
+                }
+                Unit::None => {
+                    chart_phase
+                        .draw_series(LineSeries::new(
+                            var.iter().enumerate().map(|(x, &v)| (x as u32, v)),
+                            RED,
+                        ))?
+                        .label(format!("Value {}", idx + 1))
+                        .legend(|(x, y)| PathElement::new(vec![(x - 10, y), (x + 10, y)], RED));
                 }
             };
         }
@@ -384,14 +412,14 @@ impl PlotBackend {
         // Configure and draw the legend for both charts
         chart_gain
             .configure_series_labels()
-            .background_style(&WHITE.mix(0.8))
-            .border_style(&BLACK)
+            .background_style(WHITE.mix(0.8))
+            .border_style(BLACK)
             .draw()?;
 
         chart_phase
             .configure_series_labels()
-            .background_style(&WHITE.mix(0.8))
-            .border_style(&BLACK)
+            .background_style(WHITE.mix(0.8))
+            .border_style(BLACK)
             .draw()?;
 
         root.present()?;
@@ -407,7 +435,7 @@ impl PlotBackend {
     /// # Returns
     ///
     /// A `Result` which is `Ok` if the plotting operation succeeds, or an `BackendError` if it fails.
-    fn plot_op(&self, data: &Vec<(Variable, Numeric)>) -> Result<(), BackendError> {
+    fn plot_op(&self, data: &[(Variable, Numeric)]) -> Result<(), BackendError> {
         let mut path = PathBuf::from(&self.pth);
 
         if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
@@ -453,8 +481,8 @@ impl PlotBackend {
             .x_desc("Variables")
             .x_label_style(("sans-serif", 15).into_font().color(&WHITE))
             .y_label_style(("sans-serif", 15).into_font().color(&WHITE))
-            .bold_line_style(&GREY_400)
-            .light_line_style(&GREY_800)
+            .bold_line_style(GREY_400)
+            .light_line_style(GREY_800)
             .draw()?;
 
         let values = data

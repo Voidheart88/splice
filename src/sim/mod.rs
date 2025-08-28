@@ -63,8 +63,10 @@ impl<SO: Solver> Simulator<SO> {
         self.init_solver();
 
         let commands = self.commands.clone();
-        let mut results = SimulationResults::default();
-        results.options = self.options.clone();
+        let mut results = SimulationResults {
+            options: self.options.clone(),
+            ..Default::default()
+        };
         for com in commands {
             let error = self.execute_command(&com);
             match error {
@@ -124,7 +126,6 @@ impl<SO: Solver> Simulator<SO> {
 
         // Use an iterator for the iterations
         let result = (0..MAXITER)
-            .into_iter()
             .map(|run| {
                 trace!("Iteration: {run}");
                 trace!("Set matrix");
@@ -382,7 +383,7 @@ impl<SO: Solver> Simulator<SO> {
             .for_each(|pair| self.solver.insert_b(&pair));
     }
 
-    fn build_nonlinear_a_mat(&mut self, x_vec: &Vec<Numeric>) {
+    fn build_nonlinear_a_mat(&mut self, x_vec: &[Numeric]) {
         self.elements
             .iter()
             .filter_map(|ele| ele.get_nonlinear_triples(x_vec))
@@ -390,7 +391,7 @@ impl<SO: Solver> Simulator<SO> {
             .for_each(|triplet| self.solver.insert_a(&triplet));
     }
 
-    fn build_nonlinear_b_vec(&mut self, x_vec: &Vec<Numeric>) {
+    fn build_nonlinear_b_vec(&mut self, x_vec: &[Numeric]) {
         self.elements
             .iter()
             .filter_map(|ele| ele.get_nonlinear_pairs(x_vec))
@@ -461,12 +462,7 @@ impl<SO: Solver> Simulator<SO> {
         acc
     }
 
-    fn has_converged(
-        &self,
-        x_old: &Vec<Numeric>,
-        x_new: &Vec<Numeric>,
-        tolerance: Numeric,
-    ) -> bool {
+    fn has_converged(&self, x_old: &[Numeric], x_new: &[Numeric], tolerance: Numeric) -> bool {
         x_old
             .iter()
             .zip(x_new.iter())

@@ -48,7 +48,7 @@ pub enum SerdeSimulation {
     #[serde(rename = "ac")]
     AC(SerdeAC),
     #[serde(rename = "tran")]
-    TRAN,
+    Tran,
 }
 
 #[derive(Debug, Deserialize)]
@@ -151,7 +151,7 @@ impl SerdeFrontend {
                 SerdeSimulation::OP => Self::process_op(&mut commands),
                 SerdeSimulation::DC(serdedc) => Self::process_dc(&mut commands, serdedc),
                 SerdeSimulation::AC(serdeac) => Self::process_ac(&mut commands, serdeac),
-                SerdeSimulation::TRAN => Self::process_tran(&mut commands),
+                SerdeSimulation::Tran => Self::process_tran(&mut commands),
             };
         }
 
@@ -190,7 +190,7 @@ impl SerdeFrontend {
         ))
     }
 
-    fn process_tran(_commands: &mut Vec<SimulationCommand>) {
+    fn process_tran(_commands: &mut [SimulationCommand]) {
         todo!()
     }
 

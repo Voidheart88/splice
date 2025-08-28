@@ -45,7 +45,7 @@ impl CapacitorBundle {
             name,
             node0,
             node1,
-            value: value.into(),
+            value,
         }
     }
 
@@ -56,18 +56,12 @@ impl CapacitorBundle {
 
     /// Returns the index of node0 if it exists.
     pub fn node0_idx(&self) -> Option<usize> {
-        match &self.node0 {
-            Some(v) => Some(v.idx()),
-            None => None,
-        }
+        self.node0.as_ref().map(|v| v.idx())
     }
 
     /// Returns the index of node1 if it exists.
     pub fn node1_idx(&self) -> Option<usize> {
-        match &self.node1 {
-            Some(v) => Some(v.idx()),
-            None => None,
-        }
+        self.node1.as_ref().map(|v| v.idx())
     }
 
     /// Returns a reference to the triples representing matrix A.
@@ -79,8 +73,7 @@ impl CapacitorBundle {
                 self.node1_idx().unwrap(),
                 self.node1_idx().unwrap(),
                 Numeric::zero(),
-            )
-                .into()]);
+            )]);
         };
         let node1_idx = if let Some(idx) = self.node1_idx() {
             idx
@@ -102,14 +95,13 @@ impl CapacitorBundle {
             idx
         } else {
             return Triples::new(&[(
-                self.node1_idx().unwrap(),
-                self.node1_idx().unwrap(),
-                Complex {
-                    re: Numeric::zero(),
-                    im: -(Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
-                },
-            )
-                .into()]);
+                             self.node1_idx().unwrap(),
+                             self.node1_idx().unwrap(),
+                             Complex {
+                                 re: Numeric::zero(),
+                                 im: -(Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
+                             },
+                         )]);
         };
         let node1_idx = if let Some(idx) = self.node1_idx() {
             idx

@@ -39,7 +39,7 @@ impl ISourceBundle {
             name,
             node0,
             node1,
-            value: value,
+            value,
         }
     }
 

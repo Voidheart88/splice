@@ -43,7 +43,7 @@ impl InductorBundle {
             name,
             node0,
             node1,
-            value: value,
+            value,
         }
     }
 
@@ -95,18 +95,12 @@ impl InductorBundle {
 
     /// Returns the index of node0 if it exists.
     pub fn node0_idx(&self) -> Option<usize> {
-        match &self.node0 {
-            Some(v) => Some(v.idx()),
-            None => None,
-        }
+        self.node0.as_ref().map(|v| v.idx())
     }
 
     /// Returns the index of node1 if it exists.
     pub fn node1_idx(&self) -> Option<usize> {
-        match &self.node1 {
-            Some(v) => Some(v.idx()),
-            None => None,
-        }
+        self.node1.as_ref().map(|v| v.idx())
     }
 
     /// Returns the triples representing the inductor's contribution to matrix A.

@@ -40,10 +40,7 @@ impl Bjt0Bundle {
         emitter: Option<Variable>,
         value: Option<Bjt0Options>,
     ) -> Bjt0Bundle {
-        let value = match value {
-            Some(v) => v,
-            None => Bjt0Options::default(),
-        };
+        let value = value.unwrap_or_default();
 
         Bjt0Bundle {
             name,
@@ -60,33 +57,24 @@ impl Bjt0Bundle {
     }
 
     /// Returns a reference to the triples representing matrix A.
-    pub fn triples(&self, _x_vec: &Vec<Numeric>) -> Triples<Numeric, 4> {
+    pub fn triples(&self, _x_vec: &[Numeric]) -> Triples<Numeric, 4> {
         todo!()
     }
 
     /// Returns a reference to the pairs representing vector b.
-    pub fn pairs(&self, _x_vec: &Vec<Numeric>) -> Pairs<Numeric, 2> {
+    pub fn pairs(&self, _x_vec: &[Numeric]) -> Pairs<Numeric, 2> {
         todo!()
     }
 
     pub fn b_idx(&self) -> Option<usize> {
-        match &self.base {
-            Some(v) => Some(v.idx()),
-            None => None,
-        }
+        self.base.as_ref().map(|v| v.idx())
     }
 
     pub fn c_idx(&self) -> Option<usize> {
-        match &self.collector {
-            Some(v) => Some(v.idx()),
-            None => None,
-        }
+        self.collector.as_ref().map(|v| v.idx())
     }
 
     pub fn e_idx(&self) -> Option<usize> {
-        match &self.emitter {
-            Some(v) => Some(v.idx()),
-            None => None,
-        }
+        self.emitter.as_ref().map(|v| v.idx())
     }
 }

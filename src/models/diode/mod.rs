@@ -58,10 +58,7 @@ impl DiodeBundle {
         cathode: Option<Variable>,
         value: Option<DiodeOptions>,
     ) -> DiodeBundle {
-        let value = match value {
-            Some(v) => v,
-            None => DiodeOptions::default(),
-        };
+        let value = value.unwrap_or_default();
 
         DiodeBundle {
             name,
@@ -77,7 +74,7 @@ impl DiodeBundle {
     }
 
     /// Returns a reference to the triples representing matrix A.
-    pub fn triples(&self, x_vec: &Vec<Numeric>) -> Triples<Numeric, 4> {
+    pub fn triples(&self, x_vec: &[Numeric]) -> Triples<Numeric, 4> {
         let a_voltage = match self.a_idx() {
             Some(idx) => x_vec[idx],
             None => Numeric::zero(),
@@ -127,7 +124,7 @@ impl DiodeBundle {
     }
 
     /// Returns a reference to the pairs representing vector b.
-    pub fn pairs(&self, x_vec: &Vec<Numeric>) -> Pairs<Numeric, 2> {
+    pub fn pairs(&self, x_vec: &[Numeric]) -> Pairs<Numeric, 2> {
         let a_voltage = match self.a_idx() {
             Some(idx) => x_vec[idx],
             None => Numeric::zero(),
@@ -163,17 +160,11 @@ impl DiodeBundle {
     }
 
     pub fn a_idx(&self) -> Option<usize> {
-        match &self.anode {
-            Some(v) => Some(v.idx()),
-            None => None,
-        }
+        self.anode.as_ref().map(|v| v.idx())
     }
 
     pub fn c_idx(&self) -> Option<usize> {
-        match &self.cathode {
-            Some(v) => Some(v.idx()),
-            None => None,
-        }
+        self.cathode.as_ref().map(|v| v.idx())
     }
 }
 

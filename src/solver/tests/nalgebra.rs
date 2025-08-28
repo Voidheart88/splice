@@ -4,25 +4,19 @@ use crate::spot::*;
 
 #[test]
 fn init_solver() {
-    let mut a_matrix = Vec::new();
+    let a_matrix = [
+        (0, 0, 1.0),
+        (0, 1, 2.0),
+        (0, 2, 3.0),
+        (1, 0, 4.0),
+        (1, 1, 5.0),
+        (1, 2, 6.0),
+        (2, 0, 7.0),
+        (2, 1, 8.0),
+        (2, 2, 9.0),
+    ];
 
-    a_matrix.push((0, 0, 1.0));
-    a_matrix.push((0, 1, 2.0));
-    a_matrix.push((0, 2, 3.0));
-
-    a_matrix.push((1, 0, 4.0));
-    a_matrix.push((1, 1, 5.0));
-    a_matrix.push((1, 2, 6.0));
-
-    a_matrix.push((2, 0, 7.0));
-    a_matrix.push((2, 1, 8.0));
-    a_matrix.push((2, 2, 9.0));
-
-    let mut b_vector = Vec::new();
-
-    b_vector.push(1.0);
-    b_vector.push(2.0);
-    b_vector.push(3.0);
+    let b_vector = [1.0, 2.0, 3.0];
 
     let mut solver = NalgebraSolver::new(3).unwrap();
 
@@ -39,17 +33,9 @@ fn init_solver() {
 
 #[test]
 fn solve_small() {
-    let mut a_matrix = Vec::new();
+    let a_matrix = [(0, 0, 5.0), (0, 1, 2.0), (1, 0, 5.0), (1, 1, -2.0)];
 
-    a_matrix.push((0, 0, 5.0));
-    a_matrix.push((0, 1, 2.0));
-    a_matrix.push((1, 0, 5.0));
-    a_matrix.push((1, 1, -2.0));
-
-    let mut b_vector = Vec::new();
-
-    b_vector.push(7.0);
-    b_vector.push(3.0);
+    let b_vector = [7.0, 3.0];
 
     let mut solver = NalgebraSolver::new(2).unwrap();
 
@@ -69,15 +55,9 @@ fn solve_small() {
 
 #[test]
 fn solve_small_2() {
-    let mut a_matrix_elements = Vec::new();
-    a_matrix_elements.push((0, 0, 1.0));
-    a_matrix_elements.push((0, 1, 1.0));
-    a_matrix_elements.push((1, 0, 1.0));
-    a_matrix_elements.push((1, 1, -1.0));
+    let a_matrix_elements = [(0, 0, 1.0), (0, 1, 1.0), (1, 0, 1.0), (1, 1, -1.0)];
 
-    let mut b_vector_elements = Vec::new();
-    b_vector_elements.push(3.0);
-    b_vector_elements.push(1.0);
+    let b_vector_elements = [3.0, 1.0];
 
     let mut solver = NalgebraSolver::new(2).unwrap();
 
@@ -111,15 +91,9 @@ fn solve_small_2() {
 #[test]
 #[should_panic]
 fn solve_no_solution() {
-    let mut a_matrix_elements = Vec::new();
-    a_matrix_elements.push((0, 0, 1.0));
-    a_matrix_elements.push((0, 1, 1.0));
-    a_matrix_elements.push((1, 0, 1.0));
-    a_matrix_elements.push((1, 1, 1.0));
+    let a_matrix_elements = [(0, 0, 1.0), (0, 1, 1.0), (1, 0, 1.0), (1, 1, 1.0)];
 
-    let mut b_vector_elements = Vec::new();
-    b_vector_elements.push(3.0);
-    b_vector_elements.push(5.0);
+    let b_vector_elements = [3.0, 5.0];
 
     let mut solver = NalgebraSolver::new(2).unwrap();
 
@@ -140,15 +114,9 @@ fn solve_no_solution() {
 #[test]
 #[should_panic]
 fn solve_infinite_solutions_dependent() {
-    let mut a_matrix_elements = Vec::new();
-    a_matrix_elements.push((0, 0, 1.0));
-    a_matrix_elements.push((0, 1, 1.0));
-    a_matrix_elements.push((1, 0, 2.0));
-    a_matrix_elements.push((1, 1, 2.0));
+    let a_matrix_elements = [(0, 0, 1.0), (0, 1, 1.0), (1, 0, 2.0), (1, 1, 2.0)];
 
-    let mut b_vector_elements = Vec::new();
-    b_vector_elements.push(3.0);
-    b_vector_elements.push(6.0);
+    let b_vector_elements = [3.0, 6.0];
     let mut solver = NalgebraSolver::new(2).unwrap();
 
     a_matrix_elements
@@ -167,17 +135,17 @@ fn solve_infinite_solutions_dependent() {
 
 #[test]
 fn solve_complex_small_wo_imag() {
-    let mut a_matrix = Vec::new();
+    let a_matrix = [
+        (0, 0, ComplexNumeric { re: 5.0, im: 0.0 }),
+        (0, 1, ComplexNumeric { re: 2.0, im: 0.0 }),
+        (1, 0, ComplexNumeric { re: 5.0, im: 0.0 }),
+        (1, 1, ComplexNumeric { re: -2.0, im: 0.0 }),
+    ];
 
-    a_matrix.push((0, 0, ComplexNumeric { re: 5.0, im: 0.0 }));
-    a_matrix.push((0, 1, ComplexNumeric { re: 2.0, im: 0.0 }));
-    a_matrix.push((1, 0, ComplexNumeric { re: 5.0, im: 0.0 }));
-    a_matrix.push((1, 1, ComplexNumeric { re: -2.0, im: 0.0 }));
-
-    let mut b_vector = Vec::new();
-
-    b_vector.push(ComplexNumeric { re: 7.0, im: 0.0 });
-    b_vector.push(ComplexNumeric { re: 3.0, im: 0.0 });
+    let b_vector = [
+        ComplexNumeric { re: 7.0, im: 0.0 },
+        ComplexNumeric { re: 3.0, im: 0.0 },
+    ];
 
     let mut solver = NalgebraSolver::new(3).unwrap();
 
@@ -197,7 +165,7 @@ fn solve_complex_small_wo_imag() {
 
 #[test]
 fn insert_add_a_mat() {
-    let a_matrix = vec![(0, 0, 1.0), (0, 0, 1.0)];
+    let a_matrix = [(0, 0, 1.0), (0, 0, 1.0)];
 
     let mut solver = NalgebraSolver::new(3).unwrap();
     a_matrix.iter().for_each(|trpl| solver.insert_a(trpl));
