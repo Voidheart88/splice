@@ -70,7 +70,7 @@ fn solve_small_2() {
 
     let solution = match solver.solve() {
         Ok(solution) => solution,
-        Err(err) => panic!("Error: {}", err),
+        Err(err) => panic!("Error: {err}"),
     };
 
     let epsilon = 1e-9;
