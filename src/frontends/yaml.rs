@@ -62,8 +62,8 @@ pub struct YamlDC {
 #[derive(Debug, Deserialize)]
 #[serde(tag = "type", rename = "simulations")]
 pub struct YamlAC {
-    fstart: f64,
-    fstop: f64,
+    fstart: Numeric,
+    fstop: Numeric,
     fstep: usize,
 }
 
