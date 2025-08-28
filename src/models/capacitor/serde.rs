@@ -2,9 +2,9 @@ use std::sync::Arc;
 
 use serde::Deserialize;
 
-use crate::spot::Numeric;
-use crate::models::{CapacitorBundle, Element, Unit};
 use crate::frontends::{get_variable, serde::ProcessSerdeElement};
+use crate::models::{CapacitorBundle, Element, Unit};
+use crate::spot::Numeric;
 
 #[derive(Debug, Deserialize)]
 pub struct SerdeCapacitor {

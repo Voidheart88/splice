@@ -1,12 +1,11 @@
-/// The Diode - yaml parsing module
-
-use std::sync::Arc;
 use std::collections::HashMap;
+/// The Diode - yaml parsing module
+use std::sync::Arc;
 
 use serde::Deserialize;
 
-use crate::models::{DiodeBundle, Element, Unit};
 use crate::frontends::{get_variable, serde::ProcessSerdeElement};
+use crate::models::{DiodeBundle, Element, Unit};
 
 #[derive(Debug, Deserialize)]
 pub struct SerdeDiode {

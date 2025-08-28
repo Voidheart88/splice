@@ -89,27 +89,35 @@ pub struct SerdeFrontend {
     variables: Vec<Variable>,
 }
 
+pub(crate) enum SerdeFormat {
+    Yaml,
+    Json,
+}
+
 impl SerdeFrontend {
-    pub fn try_new_from_path(path: String) -> Result<Self, FrontendError> {
+    pub fn try_new_from_path(path: String, format: SerdeFormat) -> Result<Self, FrontendError> {
         let mut circuit_string = String::new();
         match File::open(path) {
             Ok(mut file) => file.read_to_string(&mut circuit_string)?,
             Err(err) => return Err(FrontendError::FileReadError(format!("{}", err))),
         };
 
-        Self::try_new_from_string(circuit_string)
+        Self::try_new_from_string(circuit_string, format)
     }
 
-    pub fn try_new_from_string(yaml_string: String) -> Result<Self, FrontendError> {
+    pub fn try_new_from_string(
+        circuit_string: String,
+        format: SerdeFormat,
+    ) -> Result<Self, FrontendError> {
         let mut commands: Vec<SimulationCommand> = Vec::new();
         let mut options: Vec<SimulationOption> = Vec::new();
         let mut elements: Vec<Element> = Vec::new();
         let mut variables: Vec<Variable> = Vec::new();
         let mut var_map: HashMap<Arc<str>, usize> = HashMap::new();
 
-        let circuit: SerdeCircuit = match serde_yml::from_str(&yaml_string) {
-            Ok(yaml) => yaml,
-            Err(err) => return Err(FrontendError::ParseError(format!("{}", err))),
+        let circuit: SerdeCircuit = match format {
+            SerdeFormat::Yaml => serde_yml::from_str(&circuit_string)?,
+            SerdeFormat::Json => serde_json::from_str(&circuit_string)?,
         };
 
         for element in circuit.elements {
@@ -129,7 +137,9 @@ impl SerdeFrontend {
                 SerdeElement::ISource(ele) => {
                     ele.process(&mut variables, &mut elements, &mut var_map)
                 }
-                SerdeElement::Diode(ele) => ele.process(&mut variables, &mut elements, &mut var_map),
+                SerdeElement::Diode(ele) => {
+                    ele.process(&mut variables, &mut elements, &mut var_map)
+                }
                 SerdeElement::Mosfet(ele) => {
                     ele.process(&mut variables, &mut elements, &mut var_map)
                 }
@@ -139,8 +149,8 @@ impl SerdeFrontend {
         for simulation in circuit.simulations {
             match simulation {
                 SerdeSimulation::OP => Self::process_op(&mut commands),
-                SerdeSimulation::DC(yamldc) => Self::process_dc(&mut commands, yamldc),
-                SerdeSimulation::AC(yamlac) => Self::process_ac(&mut commands, yamlac),
+                SerdeSimulation::DC(serdedc) => Self::process_dc(&mut commands, serdedc),
+                SerdeSimulation::AC(serdeac) => Self::process_ac(&mut commands, serdeac),
                 SerdeSimulation::TRAN => Self::process_tran(&mut commands),
             };
         }
@@ -161,21 +171,21 @@ impl SerdeFrontend {
         commands.push(SimulationCommand::Op)
     }
 
-    fn process_dc(commands: &mut Vec<SimulationCommand>, yamldc: SerdeDC) {
+    fn process_dc(commands: &mut Vec<SimulationCommand>, serdedc: SerdeDC) {
         commands.push(SimulationCommand::Dc(
-            Arc::from(yamldc.source),
-            yamldc.vstart,
-            yamldc.vstop,
-            yamldc.vstep,
+            Arc::from(serdedc.source),
+            serdedc.vstart,
+            serdedc.vstop,
+            serdedc.vstep,
             None,
         ));
     }
 
-    fn process_ac(commands: &mut Vec<SimulationCommand>, yamlac: SerdeAC) {
+    fn process_ac(commands: &mut Vec<SimulationCommand>, serdeac: SerdeAC) {
         commands.push(SimulationCommand::Ac(
-            yamlac.fstart,
-            yamlac.fstop,
-            yamlac.fstep,
+            serdeac.fstart,
+            serdeac.fstop,
+            serdeac.fstep,
             ACMode::Dec,
         ))
     }

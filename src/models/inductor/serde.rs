@@ -2,9 +2,9 @@ use std::sync::Arc;
 
 use serde::Deserialize;
 
-use crate::spot::*;
-use crate::models::{Element, InductorBundle, Unit};
 use crate::frontends::{get_variable, serde::ProcessSerdeElement};
+use crate::models::{Element, InductorBundle, Unit};
+use crate::spot::*;
 
 #[derive(Debug, Deserialize)]
 pub struct SerdeInductor {

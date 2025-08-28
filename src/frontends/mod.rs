@@ -1,7 +1,7 @@
 pub(crate) mod kicad;
 pub(crate) mod network;
-pub(crate) mod spice;
 pub(crate) mod serde;
+pub(crate) mod spice;
 
 use std::collections::HashMap;
 use std::io;
@@ -16,8 +16,8 @@ use crate::sim::commands::SimulationCommand;
 use crate::sim::options::SimulationOption;
 pub(crate) use kicad::KicadFrontend;
 pub(crate) use network::NetworkFrontend;
-pub(crate) use spice::SpiceFrontend;
 pub(crate) use serde::SerdeFrontend;
+pub(crate) use spice::SpiceFrontend;
 
 #[derive(Copy, Clone, ValueEnum, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Frontends {
@@ -82,6 +82,18 @@ impl From<std::num::ParseIntError> for FrontendError {
     }
 }
 
+impl From<serde_json::Error> for FrontendError {
+    fn from(error: serde_json::Error) -> Self {
+        FrontendError::ParseCommandError(format!("{}", error))
+    }
+}
+
+impl From<serde_yml::Error> for FrontendError {
+    fn from(error: serde_yml::Error) -> Self {
+        FrontendError::ParseCommandError(format!("{}", error))
+    }
+}
+
 pub struct SelectFrontend {}
 
 impl SelectFrontend {
@@ -89,9 +101,18 @@ impl SelectFrontend {
     pub fn try_from_path(pth: String) -> Result<Box<dyn Frontend>, FrontendError> {
         let end = pth.split(".").last().unwrap();
         match end {
-            "yml" => Ok(Box::new(SerdeFrontend::try_new_from_path(pth)?)),
-            "yaml" => Ok(Box::new(SerdeFrontend::try_new_from_path(pth)?)),
-            "json" => Err(FrontendError::Unimplemented),
+            "yml" => Ok(Box::new(SerdeFrontend::try_new_from_path(
+                pth,
+                serde::SerdeFormat::Yaml,
+            )?)),
+            "yaml" => Ok(Box::new(SerdeFrontend::try_new_from_path(
+                pth,
+                serde::SerdeFormat::Yaml,
+            )?)),
+            "json" => Ok(Box::new(SerdeFrontend::try_new_from_path(
+                pth,
+                serde::SerdeFormat::Json,
+            )?)),
             "kicad_sch" => Err(FrontendError::Unimplemented),
             "cir" => Ok(Box::new(SpiceFrontend::new(pth))),
             "lib" => Ok(Box::new(SpiceFrontend::new(pth))),
