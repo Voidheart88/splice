@@ -99,7 +99,7 @@ impl SerdeFrontend {
         let mut circuit_string = String::new();
         match File::open(path) {
             Ok(mut file) => file.read_to_string(&mut circuit_string)?,
-            Err(err) => return Err(FrontendError::FileReadError(format!("{}", err))),
+            Err(err) => return Err(FrontendError::FileReadError(format!("{err}"))),
         };
 
         Self::try_new_from_string(circuit_string, format)

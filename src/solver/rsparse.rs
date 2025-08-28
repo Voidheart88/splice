@@ -303,8 +303,7 @@ impl RSparseSolver {
             if row < m && col < n as isize {
                 matrix[row][col as usize] = x[k];
             } else {
-                warn!( "Warning: Index out of bounds detected for element at index {k}. Skipping.",
-                );
+                warn!("Warning: Index out of bounds detected for element at index {k}. Skipping.",);
             }
         }
 

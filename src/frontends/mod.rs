@@ -67,19 +67,19 @@ pub enum FrontendError {
 
 impl From<io::Error> for FrontendError {
     fn from(error: io::Error) -> Self {
-        FrontendError::IoError(format!("{}", error))
+        FrontendError::IoError(format!("{error}"))
     }
 }
 
 impl From<std::num::ParseFloatError> for FrontendError {
     fn from(error: std::num::ParseFloatError) -> Self {
-        FrontendError::ParseCommandError(format!("{}", error))
+        FrontendError::ParseCommandError(format!("{error}"))
     }
 }
 
 impl From<std::num::ParseIntError> for FrontendError {
     fn from(error: std::num::ParseIntError) -> Self {
-        FrontendError::ParseCommandError(format!("{}", error))
+        FrontendError::ParseCommandError(format!("{error}"))
     }
 }
 

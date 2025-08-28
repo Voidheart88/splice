@@ -246,7 +246,7 @@ impl SpiceFrontend {
 
 impl From<pest::error::Error<Rule>> for FrontendError {
     fn from(value: pest::error::Error<Rule>) -> Self {
-        FrontendError::PestError(format!("{}", value))
+        FrontendError::PestError(format!("{value}"))
     }
 }
 

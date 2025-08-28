@@ -353,7 +353,7 @@ fn parse_regression1() {
     assert_eq!(elements.len(), 5);
     assert_eq!(commands.len(), 1);
 
-    println!("{elements:?}", );
+    println!("{elements:?}",);
 }
 
 #[test]
