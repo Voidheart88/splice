@@ -46,8 +46,8 @@ pub fn generate_solvable_system(
 
     let mut b = vec![Numeric::zero(); n];
     for i in 0..n {
-        for j in 0..n {
-            b[i] += a[i][j] * x_true[j];
+        for (j, val) in x_true.iter().enumerate().take(n) {
+            b[i] += a[i][j] * val;
         }
     }
 
@@ -67,7 +67,8 @@ pub fn rsparse_insert_a_benchmark(c: &mut Criterion) {
     c.bench_function("Rsparse::insert a", |b| {
         b.iter(|| {
             for value in values.iter() {
-                black_box(solver.insert_a(&value));
+                solver.insert_a(value);
+                black_box(());
             }
         });
     });
@@ -85,7 +86,8 @@ pub fn rsparse_insert_b_benchmark(c: &mut Criterion) {
     c.bench_function("Rsparse::insert b", |b| {
         b.iter(|| {
             for value in values.iter() {
-                black_box(solver.insert_b(&value));
+                solver.insert_b(value);
+                black_box(());
             }
         });
     });
@@ -104,7 +106,8 @@ pub fn rsparse_insert_a_1000_benchmark(c: &mut Criterion) {
     c.bench_function("Rsparse::insert a 10k", |b| {
         b.iter(|| {
             for value in values.iter() {
-                black_box(solver.insert_a(&value));
+                solver.insert_a(value);
+                black_box(());
             }
         });
     });
@@ -191,7 +194,8 @@ pub fn nalgebra_update(c: &mut Criterion) {
                 solver
             },
             |mut solver| {
-                black_box(solver.update_from_hashmap());
+                solver.update_from_hashmap();
+                black_box(());
             },
             BatchSize::SmallInput,
         );
@@ -213,7 +217,8 @@ pub fn nalgebra_update(c: &mut Criterion) {
                 solver
             },
             |mut solver| {
-                black_box(solver.update_from_hashmap());
+                solver.update_from_hashmap();
+                black_box(());
             },
             BatchSize::SmallInput,
         );
@@ -235,7 +240,8 @@ pub fn nalgebra_update(c: &mut Criterion) {
                 solver
             },
             |mut solver| {
-                black_box(solver.update_from_hashmap());
+                solver.update_from_hashmap();
+                black_box(());
             },
             BatchSize::SmallInput,
         );

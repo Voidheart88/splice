@@ -45,14 +45,16 @@ impl Frontend for SpiceFrontend {
         let mut var_map = HashMap::new();
 
         for pair in parse_result.into_inner() {
-            if pair.as_rule() == Rule::DIRECTIVE { self.process_directive(
-                             pair,
-                             &mut commands,
-                             &mut options,
-                             &mut elements,
-                             &mut variables,
-                             &mut var_map,
-                         ) }
+            if pair.as_rule() == Rule::DIRECTIVE {
+                self.process_directive(
+                    pair,
+                    &mut commands,
+                    &mut options,
+                    &mut elements,
+                    &mut variables,
+                    &mut var_map,
+                )
+            }
         }
 
         trace!("Check Schematic!");
@@ -149,8 +151,8 @@ impl SpiceFrontend {
 
         for pair in parse_result.into_inner() {
             if pair.as_rule() == Rule::DIRECTIVE {
-                             self.process_directive(pair, commands, options, elements, variables, var_map)
-                         }
+                self.process_directive(pair, commands, options, elements, variables, var_map)
+            }
         }
     }
 

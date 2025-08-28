@@ -36,10 +36,10 @@ fn init_sim_rsparse() {
     let variables = vec![branch_1, node_1];
 
     let sim = Simulation {
-         commands,
-         options,
-         elements,
-         variables,
+        commands,
+        options,
+        elements,
+        variables,
     };
 
     let mut simulator: Simulator<RSparseSolver> = Simulator::from(sim.clone());

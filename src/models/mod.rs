@@ -129,10 +129,7 @@ impl Element {
     }
 
     /// Returns the nonlinear triples. Nonlinear Triples are Dependend on Vector x
-    pub(crate) fn get_nonlinear_triples(
-        &self,
-        x_vec: &[Numeric],
-    ) -> Option<Triples<Numeric, 4>> {
+    pub(crate) fn get_nonlinear_triples(&self, x_vec: &[Numeric]) -> Option<Triples<Numeric, 4>> {
         match self {
             Element::Diode(ele) => Some(ele.triples(x_vec)),
             Element::Mos0(ele) => Some(ele.triples(x_vec)),

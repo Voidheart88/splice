@@ -311,7 +311,7 @@ impl RSparseSolver {
         }
 
         // Print the matrix in a formatted way.
-        for row in 0..m {
+        for (row,_) in matrix.iter().enumerate().take(m) {
             print!("[");
             for col in 0..n {
                 print!("{:>8.2}", matrix[row][col]); // Format to 2 decimal places, right-aligned, 8 chars wide

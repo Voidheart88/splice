@@ -95,13 +95,13 @@ impl CapacitorBundle {
             idx
         } else {
             return Triples::new(&[(
-                             self.node1_idx().unwrap(),
-                             self.node1_idx().unwrap(),
-                             Complex {
-                                 re: Numeric::zero(),
-                                 im: -(Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
-                             },
-                         )]);
+                self.node1_idx().unwrap(),
+                self.node1_idx().unwrap(),
+                Complex {
+                    re: Numeric::zero(),
+                    im: -(Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
+                },
+            )]);
         };
         let node1_idx = if let Some(idx) = self.node1_idx() {
             idx

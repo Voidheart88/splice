@@ -227,9 +227,9 @@ pub fn newton_raphson_test() {
             }
         }
 
-        for r in 0..SIZE {
+        rhs.iter().enumerate().take(SIZE).for_each(|(r, _)| {
             solver.insert_b(&(r, rhs[r]));
-        }
+        });
 
         let dx_vec = match solver.solve() {
             Ok(sol) => sol,

@@ -48,9 +48,7 @@ pub fn generate_solvable_system(
 
     let mut b = vec![Numeric::zero(); n];
     (0..n).for_each(|i| {
-        b[i] = (0..n)
-            .map(|j| a[i][j] * x_true[j])
-            .sum();
+        b[i] = (0..n).map(|j| a[i][j] * x_true[j]).sum();
     });
 
     (a, b, x_true)
