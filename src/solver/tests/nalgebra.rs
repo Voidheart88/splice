@@ -227,13 +227,9 @@ pub fn newton_raphson_test() {
             }
         }
 
-<<<<<<< HEAD
-        rhs.iter().enumerate().take(SIZE).for_each(|(r, _)| {
-=======
         for (r, _) in rhs.iter().enumerate().take(SIZE) {
->>>>>>> 499ff56 ("refactor: Rearrange and format tests (rsparse, rlinear)")
             solver.insert_b(&(r, rhs[r]));
-        });
+        }
 
         let dx_vec = match solver.solve() {
             Ok(sol) => sol,

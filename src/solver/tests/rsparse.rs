@@ -217,10 +217,8 @@ fn insert_add_a() {
 #[test]
 fn solve_small_electrical() {
     let a_matrix = [(0, 0, 1.0 / 10.0), (0, 1, 1.0), (1, 0, 1.0), (1, 1, 0.0)];
-
     let b_vector = [0.0, 10.0];
 
-    let b_vector = [0.0, 10.0];
     let mut solver = RSparseSolver::new(3).unwrap();
 
     a_matrix.iter().for_each(|trpl| solver.insert_a(trpl));
@@ -480,15 +478,9 @@ pub fn newton_raphson_test() {
             }
         }
 
-<<<<<<< HEAD
-        rhs.iter().enumerate().take(SIZE).for_each(|(r, _)| {
-            solver.insert_b(&(r, rhs[r]));
+        rhs.iter().enumerate().take(SIZE).for_each(|(r, val)| {
+            solver.insert_b(&(r, *val));
         });
-=======
-        for (r, value) in rhs.iter().take(SIZE).enumerate() {
-            solver.insert_b(&(r, *value));
-        }
->>>>>>> 499ff56 ("refactor: Rearrange and format tests (rsparse, rlinear)")
 
         let dx_vec = match solver.solve() {
             Ok(sol) => sol,

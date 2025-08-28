@@ -85,13 +85,13 @@ impl From<std::num::ParseIntError> for FrontendError {
 
 impl From<serde_json::Error> for FrontendError {
     fn from(error: serde_json::Error) -> Self {
-        FrontendError::ParseCommandError(format!("{}", error))
+        FrontendError::ParseCommandError(format!("{error}"))
     }
 }
 
 impl From<serde_yml::Error> for FrontendError {
     fn from(error: serde_yml::Error) -> Self {
-        FrontendError::ParseCommandError(format!("{}", error))
+        FrontendError::ParseCommandError(format!("{error}"))
     }
 }
 
@@ -117,7 +117,7 @@ impl SelectFrontend {
                 pth,
                 serde::SerdeFormat::Json,
             )?)),
-            "kicad_sch" => Err(FrontendError::Unimplemented),
+            "kicad_sch" => Ok(Box::new(KicadFrontend::try_new_from_path(pth)?)),
             "cir" => Ok(Box::new(SpiceFrontend::new(pth))),
             "lib" => Ok(Box::new(SpiceFrontend::new(pth))),
             _ => Err(FrontendError::FrontendNotFound),

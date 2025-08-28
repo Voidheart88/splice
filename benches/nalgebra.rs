@@ -48,7 +48,7 @@ pub fn generate_solvable_system(
 
     let mut b = vec![Numeric::zero(); n];
     for i in 0..n {
-        for (j,val) in x_true.iter().enumerate().take(n) {
+        for (j, val) in x_true.iter().enumerate().take(n) {
             b[i] += a[i][j] * val;
         }
     }
