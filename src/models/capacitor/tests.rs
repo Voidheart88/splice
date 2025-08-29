@@ -166,7 +166,7 @@ fn test_triple_idx_both_nodes() {
 fn test_triple_idx_node0_none() {
     let cap = CapacitorBundle::new(Arc::from("C1"), None, make_var(1), 1.0);
     let idx = cap.triple_idx().unwrap();
-    assert_eq!(idx.data().len(), 1);
+    assert_eq!(idx.len(), 1);
     assert_eq!(idx.data()[0], (1, 1));
 }
 
@@ -174,7 +174,7 @@ fn test_triple_idx_node0_none() {
 fn test_triple_idx_node1_none() {
     let cap = CapacitorBundle::new(Arc::from("C1"), make_var(0), None, 1.0);
     let idx = cap.triple_idx().unwrap();
-    assert_eq!(idx.data().len(), 1);
+    assert_eq!(idx.len(), 1);
     assert_eq!(idx.data()[0], (0, 0));
 }
 

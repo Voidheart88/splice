@@ -141,3 +141,13 @@ impl<T, const N: usize> Triples<T, N> {
         self.length == 0
     }
 }
+
+#[cfg(test)]
+impl<const N: usize> TripleIdx<N> {
+    pub fn len(&self) -> usize {
+        self.length
+    }
+    pub fn is_empty(&self) -> bool {
+        self.length == 0
+    }
+}

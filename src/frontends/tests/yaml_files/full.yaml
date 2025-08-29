@@ -40,11 +40,11 @@ simulations:
     source: V1
     vstart: 0.0
     vstop: 10.0
-    vstep: 1.0
+    vstep: 1
     second_source: None
   - type: ac
     source: V1
     fstart: 1.0
-    fend: 10.0
-    fstep: 1.0
+    fstop: 10.0
+    fstep: 1
     mode: "lin"
