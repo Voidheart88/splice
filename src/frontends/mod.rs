@@ -142,6 +142,24 @@ pub trait Frontend {
     fn simulation(&self) -> Result<Simulation, FrontendError>;
 }
 
+/// Looks up or creates a variable in a variable pool.
+///
+/// This function checks the `var_map` HashMap for a variable with the name `inp`.
+/// If the variable exists, it is returned.
+/// If not, a new variable with the name `inp`, the specified `unit`, and a unique ID (based on the current length of `variables`) is created,
+/// added to the `variables` vector and `var_map`, and then returned.
+///
+/// # Arguments
+///
+/// * `inp` - The name of the variable to look up or create, as a string slice.
+/// * `unit` - The unit of the variable (type `Unit`).
+/// * `variables` - A mutable reference to the vector storing all variables.
+/// * `var_map` - A mutable reference to the HashMap mapping variable names to their indices in `variables`.
+///
+/// # Returns
+///
+/// * `Some(Variable)` - If `inp` is not "0" (The Reference-Node), returns the found or newly created variable.
+/// * `None` - If `inp` is "0" (The Reference-Node), returns `None` because the Variable isnt needed.
 pub(crate) fn get_variable(
     inp: &str,
     unit: Unit,

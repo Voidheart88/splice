@@ -19,6 +19,8 @@ use crate::sim::options::SimulationOption;
 use crate::spot::*;
 use serde::Deserialize;
 
+/// Represents the types of electrical elements that can be defined in a circuit.
+/// Each variant corresponds to a specific circuit element (e.g., resistor, capacitor).
 #[derive(Debug, Deserialize)]
 #[serde(tag = "type")]
 pub enum SerdeElement {
@@ -38,6 +40,8 @@ pub enum SerdeElement {
     Mosfet(SerdeMos0),
 }
 
+/// Represents the types of simulations that can be performed on a circuit.
+/// Each variant corresponds to a specific simulation type (e.g., OP, DC, AC, transient).
 #[derive(Debug, Deserialize)]
 #[serde(tag = "type", rename = "simulations")]
 pub enum SerdeSimulation {
@@ -51,6 +55,8 @@ pub enum SerdeSimulation {
     Tran,
 }
 
+/// Configuration for a DC sweep simulation.
+/// Specifies the source, start voltage, stop voltage, and step size.
 #[derive(Debug, Deserialize)]
 pub struct SerdeDC {
     source: String,
@@ -59,6 +65,8 @@ pub struct SerdeDC {
     vstep: Numeric,
 }
 
+/// Configuration for an AC analysis simulation.
+/// Specifies the start frequency, stop frequency, and number of steps.
 #[derive(Debug, Deserialize)]
 #[serde(tag = "type", rename = "simulations")]
 pub struct SerdeAC {
@@ -67,12 +75,17 @@ pub struct SerdeAC {
     fstep: usize,
 }
 
+/// Represents simulation output options.
+/// Currently only supports specifying output variables.
 #[derive(Default, Debug, Deserialize)]
 #[serde(rename = "option")]
 pub struct SerdeOption {
+    /// The output variable or node to save.
     pub out: String,
 }
 
+/// Represents a circuit defined in a serialization format (e.g., YAML or JSON).
+/// Contains a list of elements, simulations, and options.
 #[derive(Debug, Deserialize)]
 #[serde(rename = "circuit")]
 pub struct SerdeCircuit {
@@ -82,6 +95,8 @@ pub struct SerdeCircuit {
     pub options: Vec<SerdeOption>,
 }
 
+/// Frontend for parsing and processing circuit definitions from serialized formats (YAML/JSON).
+/// Converts serialized circuit data into internal representations for simulation.
 pub struct SerdeFrontend {
     commands: Vec<SimulationCommand>,
     options: Vec<SimulationOption>,
@@ -89,12 +104,25 @@ pub struct SerdeFrontend {
     variables: Vec<Variable>,
 }
 
+/// Specifies the serialization format for the circuit definition.
 pub(crate) enum SerdeFormat {
+    /// YAML format.
     Yaml,
+    /// JSON format.
     Json,
 }
 
 impl SerdeFrontend {
+    /// Attempts to create a new `SerdeFrontend` by reading a circuit definition from a file.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - The path to the file containing the circuit definition.
+    /// * `format` - The format of the file (YAML or JSON).
+    ///
+    /// # Returns
+    ///
+    /// * `Result<Self, FrontendError>` - A new `SerdeFrontend` instance if successful, or an error.
     pub fn try_new_from_path(path: String, format: SerdeFormat) -> Result<Self, FrontendError> {
         let mut circuit_string = String::new();
         match File::open(path) {
@@ -105,6 +133,16 @@ impl SerdeFrontend {
         Self::try_new_from_string(circuit_string, format)
     }
 
+    /// Attempts to create a new `SerdeFrontend` by parsing a circuit definition from a string.
+    ///
+    /// # Arguments
+    ///
+    /// * `circuit_string` - The string containing the circuit definition.
+    /// * `format` - The format of the string (YAML or JSON).
+    ///
+    /// # Returns
+    ///
+    /// * `Result<Self, FrontendError>` - A new `SerdeFrontend` instance if successful, or an error.
     pub fn try_new_from_string(
         circuit_string: String,
         format: SerdeFormat,
@@ -167,10 +205,12 @@ impl SerdeFrontend {
         })
     }
 
+    /// Processes an operating point analysis simulation.
     fn process_op(commands: &mut Vec<SimulationCommand>) {
         commands.push(SimulationCommand::Op)
     }
 
+    /// Processes a DC sweep simulation.
     fn process_dc(commands: &mut Vec<SimulationCommand>, serdedc: SerdeDC) {
         commands.push(SimulationCommand::Dc(
             Arc::from(serdedc.source),
@@ -181,6 +221,7 @@ impl SerdeFrontend {
         ));
     }
 
+    /// Processes an AC analysis simulation.
     fn process_ac(commands: &mut Vec<SimulationCommand>, serdeac: SerdeAC) {
         commands.push(SimulationCommand::Ac(
             serdeac.fstart,
@@ -190,10 +231,12 @@ impl SerdeFrontend {
         ))
     }
 
+    /// Processes a transient analysis simulation.
     fn process_tran(_commands: &mut [SimulationCommand]) {
         todo!()
     }
 
+    /// Processes output options.
     fn process_out(options: &mut Vec<SimulationOption>, option: SerdeOption) {
         options.push(SimulationOption::Out(vec![Arc::from(option.out.as_str())]))
     }
@@ -210,7 +253,15 @@ impl Frontend for SerdeFrontend {
     }
 }
 
+/// Trait for processing serialized circuit elements into internal representations.
 pub(crate) trait ProcessSerdeElement {
+    /// Processes the element, updating the provided vectors and hashmap.
+    ///
+    /// # Arguments
+    ///
+    /// * `variables` - A mutable reference to the vector of variables.
+    /// * `elements` - A mutable reference to the vector of elements.
+    /// * `var_map` - A mutable reference to the hashmap mapping variable names to indices.
     fn process(
         &self,
         variables: &mut Vec<Variable>,
