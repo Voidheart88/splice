@@ -58,4 +58,4 @@ criterion_group!(
     rsparse_solve
 );
 
-criterion_main!(backend_benches,backend_solve,model_benches);
+criterion_main!(backend_benches, backend_solve, model_benches);
