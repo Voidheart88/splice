@@ -38,7 +38,6 @@ fn test_triples() {
     assert_eq!(capacitor_bundle.triples().len(), 4);
 }
 
-// Hilfsfunktion, um eine Variable für Tests zu erstellen
 fn make_var(index: usize) -> Option<Variable> {
     Some(Variable::new(Arc::from("test"), Unit::None, index))
 }

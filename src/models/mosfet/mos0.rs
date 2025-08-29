@@ -40,14 +40,12 @@ impl Mos0Bundle {
         source: Option<Variable>,
         options: Option<Mos0Options>,
     ) -> Mos0Bundle {
-        let options = options.unwrap_or_default();
-
         Mos0Bundle {
             name,
             gate,
             drain,
             source,
-            options,
+            options: options.unwrap_or_default(),
         }
     }
 
