@@ -194,29 +194,23 @@ impl<SO: Solver> Simulator<SO> {
         let mut x_prev: Vec<Numeric> = self.find_op()?.iter().map(|op| op.1).collect();
     
         while t <= *tstop {
-            // 1. Aktualisiere die zeitabhängigen Matrizen und Vektoren für den aktuellen Zeitschritt
-            //self.build_time_variant_a_mat(Some(tstep));
-            //self.build_time_variant_b_vec();
-    
-            // 2. Berücksichtige nichtlineare und konstante Anteile
+            self.build_time_variant_a_mat(Some(tstep));
+            self.build_time_variant_b_vec();
+
             self.build_constant_a_mat();
             self.build_constant_b_vec();
             self.build_nonlinear_a_mat(&x_prev);
             self.build_nonlinear_b_vec(&x_prev);
     
-            // 3. Löse das System für den aktuellen Zeitschritt
             let x_new = self.solver.solve()?.clone();
     
-            // 4. Prüfe auf Konvergenz (optional, falls Iteration nötig ist)
             if self.has_converged(&x_prev, &x_new, VECTOL) {
-                // 5. Speichere die Ergebnisse für diesen Zeitschritt
                 let res = self.add_var_name(x_new.clone());
                 tran_results.push((t, res));
             } else {
                 return Err(SimulatorError::NonConvergentMaxIter);
             }
     
-            // 6. Aktualisiere den Zustand für den nächsten Zeitschritt
             x_prev = x_new;
             t += tstep;
         }
