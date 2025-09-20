@@ -28,6 +28,7 @@ impl Backend for CsvBackend {
                 Sim::Op(res) => Self::output_op(res),
                 Sim::Dc(res) => Self::output_dc(res, options.clone()),
                 Sim::Ac(res) => Self::output_ac(res),
+                Sim::Tran(res) => Self::output_tran(res),
             }
         }
         Ok(())
@@ -91,6 +92,43 @@ impl CsvBackend {
                 for (var, val) in step_data {
                     if &var.name() == header {
                         value_str = format!("{val}");
+                        break;
+                    }
+                }
+                values.push(value_str);
+            }
+            println!("{}", values.join(","));
+        }
+    }
+    
+    /// Outputs Transient simulation results in CSV format.
+    ///
+    /// # Arguments
+    ///
+    /// * `data` - A vector of tuples, where each tuple contains a timestep and a vector of tuples with variables and their numeric values.
+    fn output_tran(data: &Vec<(Numeric, Vec<(Variable, Numeric)>)>) {
+        let mut headers: HashSet<Arc<str>> = HashSet::new();
+        for (_, step_data) in data {
+            for (var, _) in step_data {
+                headers.insert(var.name());
+            }
+        }
+        let mut headers: Vec<_> = headers.into_iter().collect();
+        headers.sort();
+        
+        let mut header_row = vec!["Time".to_string()];
+        for header in &headers {
+            header_row.push(format!("{header}"));
+        }
+        println!("{}", header_row.join(","));
+    
+        for (step_time, step_data) in data.iter() {
+            let mut values = vec![format!("{}", step_time)];
+            for header in &headers {
+                let mut value_str = String::new();
+                for (var, val) in step_data {
+                    if &var.name() == header {
+                        value_str = format!("{}", val);
                         break;
                     }
                 }

@@ -64,28 +64,34 @@ impl CapacitorBundle {
         self.node1.as_ref().map(|v| v.idx())
     }
 
+    
     /// Returns a reference to the triples representing matrix A.
-    pub fn triples(&self) -> Triples<Numeric, 4> {
+    pub fn triples(&self,delta_t: Option<&Numeric>) -> Triples<Numeric, 4> {
+        let equivalent_conductance = match delta_t {
+            Some(delta_t) => self.value / delta_t,
+            None => Numeric::zero(),
+        };
+        
         let node0_idx = if let Some(idx) = self.node0_idx() {
             idx
         } else {
             return Triples::new(&[(
                 self.node1_idx().unwrap(),
                 self.node1_idx().unwrap(),
-                Numeric::zero(),
+                equivalent_conductance,
             )]);
         };
         let node1_idx = if let Some(idx) = self.node1_idx() {
             idx
         } else {
-            return Triples::new(&[(node0_idx, node0_idx, Numeric::zero())]);
+            return Triples::new(&[(node0_idx, node0_idx, equivalent_conductance)]);
         };
 
         Triples::new(&[
-            (node0_idx, node0_idx, Numeric::zero()),
-            (node1_idx, node1_idx, Numeric::zero()),
-            (node0_idx, node1_idx, Numeric::zero()),
-            (node1_idx, node0_idx, Numeric::zero()),
+            (node0_idx, node0_idx, equivalent_conductance),
+            (node1_idx, node1_idx, equivalent_conductance),
+            (node0_idx, node1_idx, -equivalent_conductance),
+            (node1_idx, node0_idx, -equivalent_conductance),
         ])
     }
 

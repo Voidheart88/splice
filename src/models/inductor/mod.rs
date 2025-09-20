@@ -53,28 +53,39 @@ impl InductorBundle {
     }
 
     /// Returns the triples representing the inductor's contribution to matrix A.
-    pub fn triples(&self) -> Triples<Numeric, 4> {
+    /// If `delta_t` is provided, the transient resistance is calculated using Euler integration.
+    ///
+    /// # Arguments
+    ///
+    /// * `delta_t` - Optional time step for transient simulation.
+    pub fn triples(&self, delta_t: Option<&Numeric>) -> Triples<Numeric, 4> {
+        // Äquivalenter Leitwert für die Induktivität
+        let equivalent_conductance = match delta_t {
+            Some(dt) => dt / self.value,  // L / delta_t → Leitwert = delta_t / L
+            None => DEFAULT_CONDUCTANCE,   // Standardwert für DC/AC-Analyse
+        };
+    
         let node0_idx = if let Some(node) = &self.node0 {
             node.idx()
         } else {
             return Triples::new(&[(
                 self.node1.as_ref().unwrap().idx(),
                 self.node1.as_ref().unwrap().idx(),
-                DEFAULT_CONDUCTANCE,
+                equivalent_conductance,
             )]);
         };
-
+    
         let node1_idx = if let Some(node) = &self.node1 {
             node.idx()
         } else {
-            return Triples::new(&[(node0_idx, node0_idx, DEFAULT_CONDUCTANCE)]);
+            return Triples::new(&[(node0_idx, node0_idx, equivalent_conductance)]);
         };
-
+    
         Triples::new(&[
-            (node0_idx, node0_idx, DEFAULT_CONDUCTANCE),
-            (node1_idx, node1_idx, DEFAULT_CONDUCTANCE),
-            (node0_idx, node1_idx, DEFAULT_CONDUCTANCE),
-            (node1_idx, node0_idx, DEFAULT_CONDUCTANCE),
+            (node0_idx, node0_idx, equivalent_conductance),
+            (node1_idx, node1_idx, equivalent_conductance),
+            (node0_idx, node1_idx, -equivalent_conductance),
+            (node1_idx, node0_idx, -equivalent_conductance),
         ])
     }
 

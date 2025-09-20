@@ -115,10 +115,10 @@ impl Element {
     }
 
     /// Returns the time variant triples of the element, if applicable.
-    pub(crate) fn get_time_variant_triples(&self) -> Option<Triples<Numeric, 4>> {
+    pub(crate) fn get_time_variant_triples(&self,delta_t:Option<&Numeric>) -> Option<Triples<Numeric, 4>> {
         match self {
-            Element::Capacitor(ele) => Some(ele.triples()),
-            Element::Inductor(ele) => Some(ele.triples()),
+            Element::Capacitor(ele) => Some(ele.triples(delta_t)),
+            Element::Inductor(ele) => Some(ele.triples(delta_t)),
             _ => None,
         }
     }

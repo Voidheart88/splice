@@ -211,8 +211,12 @@ impl SpiceFrontend {
         commands.push(SimulationCommand::Ac(fstart, fend, step, mode))
     }
 
-    fn process_tran(&self, _: Pair<Rule>, commands: &mut Vec<SimulationCommand>) {
-        commands.push(SimulationCommand::Tran)
+    fn process_tran(&self, command: Pair<Rule>, commands: &mut Vec<SimulationCommand>) {
+        let mut inner = command.into_inner();
+        let tstop = inner.next().unwrap().as_str().parse::<Numeric>().unwrap();
+        let tstep = inner.next().unwrap().as_str().parse::<Numeric>().unwrap();
+        
+        commands.push(SimulationCommand::Tran(tstop,tstep))
     }
 
     fn process_out(&self, option: Pair<Rule>, options: &mut Vec<SimulationOption>) {

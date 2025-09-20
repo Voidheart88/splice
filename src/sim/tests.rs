@@ -50,6 +50,7 @@ fn init_sim_rsparse() {
         Sim::Op(items) => items,
         Sim::Dc(_) => todo!(),
         Sim::Ac(_) => todo!(),
+        Sim::Tran(_) => todo!(),
     };
 
     let branch_curr = result[0].clone();
@@ -103,6 +104,7 @@ fn init_sim_faer() {
         Sim::Op(items) => items,
         Sim::Dc(_) => todo!(),
         Sim::Ac(_) => todo!(),
+        Sim::Tran(_) => todo!(),
     };
 
     let branch_curr = result[0].clone();
@@ -156,6 +158,7 @@ fn init_sim_nalgebra() {
         Sim::Op(items) => items,
         Sim::Dc(_) => todo!(),
         Sim::Ac(_) => todo!(),
+        Sim::Tran(_) => todo!(),
     };
 
     let branch_curr = result[0].clone();

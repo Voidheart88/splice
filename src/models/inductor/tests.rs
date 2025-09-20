@@ -24,5 +24,5 @@ fn test_name() {
 fn test_triples() {
     let node1 = Variable::new(Arc::from("1"), Unit::Volt, 1);
     let inductor_bundle = InductorBundle::new(Arc::from("InductorBundle3"), None, Some(node1), 0.0);
-    assert_eq!(inductor_bundle.triples().len(), 1);
+    assert_eq!(inductor_bundle.triples(None).len(), 1);
 }

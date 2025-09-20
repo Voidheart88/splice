@@ -10,7 +10,7 @@ fn test_new_capacitor_bundle() {
     );
 
     assert_eq!(*capacitor_bundle.name(), *"CapacitorBundle1");
-    assert_eq!(capacitor_bundle.triples().len(), 1);
+    assert_eq!(capacitor_bundle.triples(None).len(), 1);
     assert_eq!(capacitor_bundle.value, 5.0);
 }
 
@@ -35,7 +35,7 @@ fn test_triples() {
         0.0,
     );
 
-    assert_eq!(capacitor_bundle.triples().len(), 4);
+    assert_eq!(capacitor_bundle.triples(None).len(), 4);
 }
 
 fn make_var(index: usize) -> Option<Variable> {
@@ -75,7 +75,7 @@ fn test_node_indices_none() {
 #[test]
 fn test_triples_both_nodes() {
     let cap = CapacitorBundle::new(Arc::from("C1"), make_var(0), make_var(1), 1.0);
-    let triples = cap.triples();
+    let triples = cap.triples(None);
     assert_eq!(triples.len(), 4);
     assert_eq!(triples[0], (0, 0, Numeric::zero()));
     assert_eq!(triples[1], (1, 1, Numeric::zero()));
@@ -86,7 +86,7 @@ fn test_triples_both_nodes() {
 #[test]
 fn test_triples_node0_none() {
     let cap = CapacitorBundle::new(Arc::from("C1"), None, make_var(1), 1.0);
-    let triples = cap.triples();
+    let triples = cap.triples(None);
     assert_eq!(triples.len(), 1);
     assert_eq!(triples[0], (1, 1, Numeric::zero()));
 }
@@ -94,7 +94,7 @@ fn test_triples_node0_none() {
 #[test]
 fn test_triples_node1_none() {
     let cap = CapacitorBundle::new(Arc::from("C1"), make_var(0), None, 1.0);
-    let triples = cap.triples();
+    let triples = cap.triples(None);
     assert_eq!(triples.len(), 1);
     assert_eq!(triples[0], (0, 0, Numeric::zero()));
 }
@@ -181,4 +181,79 @@ fn test_triple_idx_node1_none() {
 fn test_triple_idx_both_none() {
     let cap = CapacitorBundle::new(Arc::from("C1"), None, None, 1.0);
     assert!(cap.triple_idx().is_none());
+}
+
+#[test]
+fn test_transient_triples_both_nodes() {
+    let cap = CapacitorBundle::new(Arc::from("C1"), make_var(0), make_var(1), 2.0);
+    let delta_t = 0.01;
+    let triples = cap.triples(Some(&delta_t));
+
+    let expected_conductance = 200.0;
+
+    assert_eq!(triples.len(), 4);
+    assert_eq!(triples[0].0, 0);
+    assert_eq!(triples[0].1, 0);
+    assert_eq!(triples[0].2, expected_conductance);
+    assert_eq!(triples[1].0, 1);
+    assert_eq!(triples[1].1, 1);
+    assert_eq!(triples[1].2, expected_conductance);
+    assert_eq!(triples[2].0, 0);
+    assert_eq!(triples[2].1, 1);
+    assert_eq!(triples[2].2, -expected_conductance);
+    assert_eq!(triples[3].0, 1);
+    assert_eq!(triples[3].1, 0);
+    assert_eq!(triples[3].2, -expected_conductance);
+}
+
+#[test]
+fn test_transient_triples_node0_none() {
+    let cap = CapacitorBundle::new(Arc::from("C1"), None, make_var(1), 2.0);
+    let delta_t = 0.01;
+    let triples = cap.triples(Some(&delta_t));
+
+    assert_eq!(triples.len(), 1);
+    assert_eq!(triples[0].0, 1);
+    assert_eq!(triples[0].1, 1);
+    assert_eq!(triples[0].2, 200.0);
+}
+
+#[test]
+fn test_transient_triples_node1_none() {
+    let cap = CapacitorBundle::new(Arc::from("C1"), make_var(0), None, 2.0);
+    let delta_t = 0.01;
+    let triples = cap.triples(Some(&delta_t));
+
+    assert_eq!(triples.len(), 1);
+    assert_eq!(triples[0].0, 0);
+    assert_eq!(triples[0].1, 0);
+    assert_eq!(triples[0].2, 200.0);
+}
+
+#[test]
+fn test_transient_triples_zero_capacitance() {
+    let cap = CapacitorBundle::new(Arc::from("C1"), make_var(0), make_var(1), 0.0);
+    let delta_t = 0.01;
+    let triples = cap.triples(Some(&delta_t));
+
+    assert_eq!(triples.len(), 4);
+    assert_eq!(triples[0].2, Numeric::zero());
+    assert_eq!(triples[1].2, Numeric::zero());
+    assert_eq!(triples[2].2, Numeric::zero());
+    assert_eq!(triples[3].2, Numeric::zero());
+}
+
+#[test]
+fn test_transient_triples_large_delta_t() {
+    let cap = CapacitorBundle::new(Arc::from("C1"), make_var(0), make_var(1), 1.0);
+    let delta_t = 100.0;
+    let triples = cap.triples(Some(&delta_t));
+
+    let expected_conductance = 0.01;
+
+    assert_eq!(triples.len(), 4);
+    assert_eq!(triples[0].2, expected_conductance);
+    assert_eq!(triples[1].2, expected_conductance);
+    assert_eq!(triples[2].2, -expected_conductance);
+    assert_eq!(triples[3].2, -expected_conductance);
 }

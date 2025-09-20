@@ -68,6 +68,7 @@ impl PlotBackend {
             Sim::Op(data) => self.plot_op(data)?,
             Sim::Dc(data) => self.plot_dc(data, options)?,
             Sim::Ac(data) => self.plot_ac(data)?,
+            Sim::Tran(data) => self.plot_tran(data)?,
         }
         Ok(())
     }
@@ -227,6 +228,127 @@ impl PlotBackend {
         Ok(())
     }
 
+    /// Plots the transient simulation results.
+    ///
+    /// # Parameters
+    ///
+    /// - `data`: A reference to a vector of tuples where each tuple contains a timestep and a vector of tuples with `Variable` and `Numeric`.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` which is `Ok` if the plotting operation succeeds, or an `BackendError` if it fails.
+    fn plot_tran(
+        &self,
+        data: &Vec<(Numeric, Vec<(Variable, Numeric)>)>,
+    ) -> Result<(), BackendError> {
+        let mut path = PathBuf::from(&self.pth);
+        path.set_extension("svg");
+        let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
+        let parent = path.parent().unwrap_or(Path::new(""));
+        let new_file_name = format!("{stem}_tran.svg");
+        path = parent.join(new_file_name);
+    
+        let root = SVGBackend::new(&path, (1440, 900)).into_drawing_area();
+        root.fill(&BLACK)?;
+    
+        let (min_y, max_y) = data
+            .iter()
+            .flat_map(|(_, vars)| vars.iter().map(|(_, val)| *val))
+            .fold((None, None), |(min, max), val| {
+                (
+                    Some(min.map_or(val, |y: Numeric| y.min(val))),
+                    Some(max.map_or(val, |y: Numeric| y.max(val))),
+                )
+            });
+    
+        let (min_y, max_y) = match (min_y, max_y) {
+            (None, None) => return Err(BackendError::PlotError("Plot empty".into())),
+            (None, Some(v)) => (Numeric::MIN, v),
+            (Some(v), None) => (v, Numeric::MAX),
+            (Some(v1), Some(v2)) => (v1, v2),
+        };
+    
+        let (min_x, max_x) = data
+            .iter()
+            .map(|(time, _)| *time)
+            .fold((None, None), |(min, max), val| {
+                (
+                    Some(min.map_or(val, |y: Numeric| y.min(val))),
+                    Some(max.map_or(val, |y: Numeric| y.max(val))),
+                )
+            });
+    
+        let (min_x, max_x) = match (min_x, max_x) {
+            (None, None) => return Err(BackendError::PlotError("Plot empty".into())),
+            (None, Some(v)) => (Numeric::MIN, v),
+            (Some(v), None) => (v, Numeric::MAX),
+            (Some(v1), Some(v2)) => (v1, v2),
+        };
+    
+        let mut chart = ChartBuilder::on(&root)
+            .x_label_area_size(35)
+            .y_label_area_size(40)
+            .margin(5)
+            .caption(
+                "Transient Analysis Results",
+                ("sans-serif", 50.0).into_font().color(&WHITE),
+            )
+            .build_cartesian_2d(min_x..max_x, min_y..max_y)?;
+    
+        chart
+            .configure_mesh()
+            .x_labels(10)
+            .y_labels(10)
+            .x_desc("Time")
+            .y_desc("Value")
+            .x_label_style(("sans-serif", 15).into_font().color(&WHITE))
+            .y_label_style(("sans-serif", 15).into_font().color(&WHITE))
+            .bold_line_style(GREY_400)
+            .light_line_style(GREY_800)
+            .draw()?;
+    
+        let var_count = data[0].1.len();
+        for var_idx in 0..var_count {
+            let var_name = data[0].1[var_idx].0.name().to_string();
+            let unit = data[0].1[var_idx].0.unit();
+    
+            let points: Vec<(Numeric, Numeric)> = data
+                .iter()
+                .map(|(time, vars)| (*time, vars[var_idx].1))
+                .collect();
+    
+            match unit {
+                Unit::Volt => {
+                    chart
+                        .draw_series(LineSeries::new(points, BLUE))?
+                        .label(format!("{} (Voltage)", var_name))
+                        .legend(|(x, y)| PathElement::new(vec![(x - 10, y), (x + 10, y)], BLUE));
+                }
+                Unit::Ampere => {
+                    chart
+                        .draw_series(LineSeries::new(points, RED))?
+                        .label(format!("{} (Current)", var_name))
+                        .legend(|(x, y)| PathElement::new(vec![(x - 10, y), (x + 10, y)], RED));
+                }
+                Unit::None => {
+                    chart
+                        .draw_series(LineSeries::new(points, GREEN))?
+                        .label(format!("{} (Value)", var_name))
+                        .legend(|(x, y)| PathElement::new(vec![(x - 10, y), (x + 10, y)], GREEN));
+                }
+            };
+        }
+    
+        chart
+            .configure_series_labels()
+            .background_style(WHITE.mix(0.8))
+            .border_style(BLACK)
+            .draw()?;
+    
+        root.present()?;
+        Ok(())
+    }
+    
     fn plot_ac(
         &self,
         data: &[(Numeric, Vec<(Variable, ComplexNumeric)>)],

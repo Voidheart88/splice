@@ -8,7 +8,7 @@ use std::sync::Arc;
 use itertools::Itertools;
 use log::{info, trace};
 use miette::Diagnostic;
-use num::{Complex, One};
+use num::{Complex, One, Zero};
 use options::SimulationOption;
 use thiserror::Error;
 
@@ -22,10 +22,6 @@ use simulation_result::SimulationResults;
 
 #[derive(Debug, Error, Diagnostic)]
 pub(crate) enum SimulatorError {
-    #[error("This Operation is not implemented")]
-    #[diagnostic(help("Try helping by implementing this operation!"))]
-    Unimplemented,
-
     #[error("{0}")]
     BackendError(SolverError),
 
@@ -99,7 +95,7 @@ impl<SO: Solver> Simulator<SO> {
     fn execute_command(&mut self, comm: &SimulationCommand) -> Result<Sim, SimulatorError> {
         let res = match comm {
             SimulationCommand::Op => self.run_op()?,
-            SimulationCommand::Tran => self.run_tran()?,
+            SimulationCommand::Tran(tstop,tstep) => self.run_tran(tstop,tstep)?,
             SimulationCommand::Ac(fstart, fend, steps, options) => {
                 self.run_ac(fstart, fend, steps, options)?
             }
@@ -188,11 +184,20 @@ impl<SO: Solver> Simulator<SO> {
             .collect_vec()
     }
 
-    fn run_tran(&mut self) -> Result<Sim, SimulatorError> {
-        self.build_time_variant_a_mat();
-        self.build_time_variant_b_vec();
-
-        Err(SimulatorError::Unimplemented)
+    
+    fn run_tran(&mut self, tstop: &Numeric, tstep: &Numeric) -> Result<Sim, SimulatorError> {
+        info!("Run transient analysis");
+        let mut t = Numeric::zero();
+        let tran_results = Vec::new();
+    
+        while t <= *tstop {
+            self.build_time_variant_a_mat(Some(tstep));
+            self.build_time_variant_b_vec();
+            
+            t += tstep;
+        }
+    
+        Ok(Sim::Tran(tran_results))
     }
 
     fn run_ac(
@@ -275,7 +280,6 @@ impl<SO: Solver> Simulator<SO> {
             None => return Err(SimulatorError::VoltageSourceNotFound(srcnam.to_string())),
         };
 
-        // Safe the original voltage for later use
         let voltage_0 = self
             .elements
             .get_mut(vsource1_idx)
@@ -367,10 +371,10 @@ impl<SO: Solver> Simulator<SO> {
             .for_each(|pair| self.solver.insert_b(&pair));
     }
 
-    fn build_time_variant_a_mat(&mut self) {
+    fn build_time_variant_a_mat(&mut self, delta_t:Option<&Numeric>) {
         self.elements
             .iter()
-            .filter_map(|ele| ele.get_time_variant_triples())
+            .filter_map(|ele| ele.get_time_variant_triples(delta_t))
             .flat_map(|triples| triples.data())
             .for_each(|triplet| self.solver.insert_a(&triplet));
     }

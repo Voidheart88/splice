@@ -8,16 +8,16 @@ pub enum SimulationCommand {
     /// Represents an operating point analysis command.
     Op,
     /// Represents a transient analysis command.
-    Tran,
+    Tran(Numeric, Numeric), //Transient (Stop Time, Timestep)
     /// Represents an AC analysis command.
     Ac(Numeric, Numeric, usize, ACMode),
     /// Represents a DC analysis command.
     Dc(
-        Arc<str>,
-        Numeric,
-        Numeric,
-        Numeric,
-        Option<(Arc<str>, Numeric, Numeric, Numeric)>,
+        Arc<str>, // DC Source Name
+        Numeric,  // Start Value
+        Numeric,  // Stop Value
+        Numeric,  // Step Value
+        Option<(Arc<str>, Numeric, Numeric, Numeric)>, // Optional second Source
     ),
 }
 
