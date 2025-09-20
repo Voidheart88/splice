@@ -95,7 +95,7 @@ impl<SO: Solver> Simulator<SO> {
     fn execute_command(&mut self, comm: &SimulationCommand) -> Result<Sim, SimulatorError> {
         let res = match comm {
             SimulationCommand::Op => self.run_op()?,
-            SimulationCommand::Tran(tstop,tstep) => self.run_tran(tstop,tstep)?,
+            SimulationCommand::Tran(tstep,tstop) => self.run_tran(tstep,tstop)?,
             SimulationCommand::Ac(fstart, fend, steps, options) => {
                 self.run_ac(fstart, fend, steps, options)?
             }
@@ -185,20 +185,45 @@ impl<SO: Solver> Simulator<SO> {
     }
 
     
-    fn run_tran(&mut self, tstop: &Numeric, tstep: &Numeric) -> Result<Sim, SimulatorError> {
+    fn run_tran(&mut self, tstep: &Numeric, tstop: &Numeric) -> Result<Sim, SimulatorError> {
         info!("Run transient analysis");
+    
         let mut t = Numeric::zero();
-        let tran_results = Vec::new();
+        let mut tran_results = Vec::new();
+        // Initialisiere den Startzustand (z. B. durch eine OP-Analyse)
+        let mut x_prev: Vec<Numeric> = self.find_op()?.iter().map(|op| op.1).collect();
     
         while t <= *tstop {
-            self.build_time_variant_a_mat(Some(tstep));
-            self.build_time_variant_b_vec();
-            
+            // 1. Aktualisiere die zeitabhängigen Matrizen und Vektoren für den aktuellen Zeitschritt
+            //self.build_time_variant_a_mat(Some(tstep));
+            //self.build_time_variant_b_vec();
+    
+            // 2. Berücksichtige nichtlineare und konstante Anteile
+            self.build_constant_a_mat();
+            self.build_constant_b_vec();
+            self.build_nonlinear_a_mat(&x_prev);
+            self.build_nonlinear_b_vec(&x_prev);
+    
+            // 3. Löse das System für den aktuellen Zeitschritt
+            let x_new = self.solver.solve()?.clone();
+    
+            // 4. Prüfe auf Konvergenz (optional, falls Iteration nötig ist)
+            if self.has_converged(&x_prev, &x_new, VECTOL) {
+                // 5. Speichere die Ergebnisse für diesen Zeitschritt
+                let res = self.add_var_name(x_new.clone());
+                tran_results.push((t, res));
+            } else {
+                return Err(SimulatorError::NonConvergentMaxIter);
+            }
+    
+            // 6. Aktualisiere den Zustand für den nächsten Zeitschritt
+            x_prev = x_new;
             t += tstep;
         }
     
         Ok(Sim::Tran(tran_results))
     }
+
 
     fn run_ac(
         &mut self,

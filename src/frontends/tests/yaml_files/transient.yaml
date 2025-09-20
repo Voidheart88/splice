@@ -1,0 +1,14 @@
+elements:
+  - type: resistor
+    name: R1
+    node0: "n1"
+    node1: "0"
+    value: 10.0
+  - type: vsource
+    name: V1      
+    node0: "n1"
+    node1: "0"
+    value: 10.0
+simulations:      
+  - type: tran
+  

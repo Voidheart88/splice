@@ -48,3 +48,6 @@ simulations:
     fstop: 10.0
     fstep: 1
     mode: "lin"
+  - type: tran
+    tstep: 1e-9
+    tend: 1e-6

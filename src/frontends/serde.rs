@@ -52,7 +52,7 @@ pub enum SerdeSimulation {
     #[serde(rename = "ac")]
     AC(SerdeAC),
     #[serde(rename = "tran")]
-    Tran,
+    Tran(SerdeTran),
 }
 
 /// Configuration for a DC sweep simulation.
@@ -73,6 +73,15 @@ pub struct SerdeAC {
     fstart: Numeric,
     fstop: Numeric,
     fstep: usize,
+}
+
+/// Configuration for an AC analysis simulation.
+/// Specifies the start frequency, stop frequency, and number of steps.
+#[derive(Debug, Deserialize)]
+#[serde(tag = "type", rename = "simulations")]
+pub struct SerdeTran {
+    tstep: Numeric,
+    tend: Numeric,
 }
 
 /// Represents simulation output options.
@@ -189,7 +198,7 @@ impl SerdeFrontend {
                 SerdeSimulation::OP => Self::process_op(&mut commands),
                 SerdeSimulation::DC(serdedc) => Self::process_dc(&mut commands, serdedc),
                 SerdeSimulation::AC(serdeac) => Self::process_ac(&mut commands, serdeac),
-                SerdeSimulation::Tran => Self::process_tran(&mut commands),
+                SerdeSimulation::Tran(serdetran) => Self::process_tran(&mut commands,serdetran),
             };
         }
 
@@ -232,8 +241,11 @@ impl SerdeFrontend {
     }
 
     /// Processes a transient analysis simulation.
-    fn process_tran(_commands: &mut [SimulationCommand]) {
-        todo!()
+    fn process_tran(commands: &mut Vec<SimulationCommand>, serdetran:SerdeTran) {
+        commands.push(SimulationCommand::Tran(
+            serdetran.tstep,
+            serdetran.tend,
+        ))
     }
 
     /// Processes output options.
