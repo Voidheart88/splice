@@ -190,7 +190,6 @@ impl<SO: Solver> Simulator<SO> {
     
         let mut t = Numeric::zero();
         let mut tran_results = Vec::new();
-        // Initialisiere den Startzustand (z. B. durch eine OP-Analyse)
         let mut x_prev: Vec<Numeric> = self.find_op()?.iter().map(|op| op.1).collect();
     
         while t <= *tstop {
