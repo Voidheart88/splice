@@ -173,7 +173,7 @@ impl<SO: Solver> Simulator<SO> {
         solution
             .into_iter()
             .enumerate()
-            .map(|(idx, var)| (self.vars[idx].clone(), var)) // CLONE — this only clones the arc
+            .map(|(idx, var)| (self.vars[idx].clone(), var))
             .collect_vec()
     }
 
