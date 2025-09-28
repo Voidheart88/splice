@@ -194,10 +194,10 @@ impl<SO: Solver> Simulator<SO> {
     
         while t <= *tstop {
             self.build_time_variant_a_mat(Some(tstep));
-            self.build_time_variant_b_vec();
 
             self.build_constant_a_mat();
             self.build_constant_b_vec();
+
             self.build_nonlinear_a_mat(&x_prev);
             self.build_nonlinear_b_vec(&x_prev);
     
