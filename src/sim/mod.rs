@@ -25,9 +25,9 @@ pub(crate) enum SimulatorError {
     #[error("{0}")]
     BackendError(SolverError),
 
-    #[error("The Simulation did not converge after MAXITER steps")]
-    #[diagnostic(help("Try reducing the convergence settings by increasing VECTOL"))]
-    NonConvergentMaxIter,
+    #[error("The Simulation did not converge after {max_iter} steps (VECTOL={tol})")]
+    #[diagnostic(help("Try increasing VECTOL (current: {tol}) or check for unstable elements"))]
+    NonConvergentMaxIter { max_iter: usize, tol: Numeric },
 
     #[error("Source {0} not found")]
     #[diagnostic(help("Check the source in your .dc command"))]
@@ -157,7 +157,7 @@ impl<SO: Solver> Simulator<SO> {
         match result {
             Some(Ok(res)) => Ok(res),
             Some(Err(err)) => Err(err),
-            None => Err(SimulatorError::NonConvergentMaxIter),
+            None => Err(SimulatorError::NonConvergentMaxIter{ max_iter: MAXITER, tol: VECTOL}),
         }
     }
 
@@ -207,7 +207,7 @@ impl<SO: Solver> Simulator<SO> {
                 let res = self.add_var_name(x_new.clone());
                 tran_results.push((t, res));
             } else {
-                return Err(SimulatorError::NonConvergentMaxIter);
+                return Err(SimulatorError::NonConvergentMaxIter{ max_iter: MAXITER, tol: VECTOL});
             }
     
             x_prev = x_new;
@@ -370,7 +370,7 @@ impl<SO: Solver> Simulator<SO> {
         }
 
         // If not converged after maximum iterations, return an error
-        Err(SimulatorError::NonConvergentMaxIter)
+        Err(SimulatorError::NonConvergentMaxIter{ max_iter: MAXITER, tol: VECTOL})
     }
 
     fn build_constant_a_mat(&mut self) {
