@@ -24,13 +24,8 @@ fn parse_resistor1() {
     assert_eq!(elements.len(), 1);
     assert_eq!(commands.len(), 0);
     let res = match &elements[0] {
-        crate::frontends::Element::Capacitor(_) => panic!(),
-        crate::frontends::Element::Inductor(_) => panic!(),
         crate::frontends::Element::Resistor(ele) => ele,
-        crate::frontends::Element::Mos0(_) => panic!(),
-        crate::frontends::Element::Diode(_) => panic!(),
-        crate::frontends::Element::VSource(_) => panic!(),
-        crate::frontends::Element::ISource(_) => panic!(),
+        _ => panic!(),
     };
 
     let expected = ResistorBundle::new(
@@ -59,22 +54,12 @@ fn parse_resistor2() {
     assert_eq!(elements.len(), 2);
     assert_eq!(commands.len(), 0);
     let res1 = match &elements[0] {
-        crate::frontends::Element::Capacitor(_) => panic!(),
-        crate::frontends::Element::Inductor(_) => panic!(),
         crate::frontends::Element::Resistor(ele) => ele,
-        crate::frontends::Element::Diode(_) => panic!(),
-        crate::frontends::Element::Mos0(_) => panic!(),
-        crate::frontends::Element::VSource(_) => panic!(),
-        crate::frontends::Element::ISource(_) => panic!(),
+        _ => panic!(),
     };
     let res2 = match &elements[1] {
-        crate::frontends::Element::Capacitor(_) => panic!(),
-        crate::frontends::Element::Inductor(_) => panic!(),
         crate::frontends::Element::Resistor(ele) => ele,
-        crate::frontends::Element::Diode(_) => panic!(),
-        crate::frontends::Element::Mos0(_) => panic!(),
-        crate::frontends::Element::VSource(_) => panic!(),
-        crate::frontends::Element::ISource(_) => panic!(),
+        _ => panic!(),
     };
     let expected1 = ResistorBundle::new(
         Arc::from("R1"),
@@ -108,13 +93,8 @@ fn parse_vsource1() {
     assert_eq!(elements.len(), 1);
     assert_eq!(commands.len(), 0);
     let vsource = match &elements[0] {
-        crate::frontends::Element::Capacitor(_) => panic!(),
-        crate::frontends::Element::Inductor(_) => panic!(),
-        crate::frontends::Element::Resistor(_) => panic!(),
-        crate::frontends::Element::Diode(_) => panic!(),
-        crate::frontends::Element::Mos0(_) => panic!(),
         crate::frontends::Element::VSource(ele) => ele,
-        crate::frontends::Element::ISource(_) => panic!(),
+        _ => panic!(),
     };
 
     let expected1 = VSourceBundle::new(
@@ -145,22 +125,12 @@ fn parse_vsource2() {
     assert_eq!(elements.len(), 3);
     assert_eq!(commands.len(), 1);
     let vsource1 = match &elements[0] {
-        crate::frontends::Element::Capacitor(_) => panic!(),
-        crate::frontends::Element::Inductor(_) => panic!(),
-        crate::frontends::Element::Resistor(_) => panic!(),
-        crate::frontends::Element::Diode(_) => panic!(),
-        crate::frontends::Element::Mos0(_) => panic!(),
         crate::frontends::Element::VSource(ele) => ele,
-        crate::frontends::Element::ISource(_) => panic!(),
+        _ => panic!(),
     };
     let vsource2 = match &elements[1] {
-        crate::frontends::Element::Capacitor(_) => panic!(),
-        crate::frontends::Element::Inductor(_) => panic!(),
-        crate::frontends::Element::Resistor(_) => panic!(),
-        crate::frontends::Element::Diode(_) => panic!(),
-        crate::frontends::Element::Mos0(_) => panic!(),
         crate::frontends::Element::VSource(ele) => ele,
-        crate::frontends::Element::ISource(_) => panic!(),
+        _ => panic!(),
     };
 
     let expected1 = VSourceBundle::new(
@@ -203,22 +173,12 @@ fn parse_vr() {
     assert_eq!(elements.len(), 2);
     assert_eq!(commands.len(), 0);
     let vsource = match &elements[0] {
-        crate::frontends::Element::Capacitor(_) => panic!(),
-        crate::frontends::Element::Inductor(_) => panic!(),
-        crate::frontends::Element::Resistor(_) => panic!(),
-        crate::frontends::Element::Diode(_) => panic!(),
-        crate::frontends::Element::Mos0(_) => panic!(),
         crate::frontends::Element::VSource(ele) => ele,
-        crate::frontends::Element::ISource(_) => panic!(),
+        _ => panic!(),
     };
     let res = match &elements[1] {
-        crate::frontends::Element::Capacitor(_) => panic!(),
-        crate::frontends::Element::Inductor(_) => panic!(),
         crate::frontends::Element::Resistor(ele) => ele,
-        crate::frontends::Element::Diode(_) => panic!(),
-        crate::frontends::Element::Mos0(_) => panic!(),
-        crate::frontends::Element::VSource(_) => panic!(),
-        crate::frontends::Element::ISource(_) => panic!(),
+        _ => panic!(),
     };
     let expected1 = VSourceBundle::new(
         Arc::from("V1"),
@@ -269,13 +229,8 @@ fn parse_diode1() {
     assert_eq!(elements.len(), 1);
     assert_eq!(commands.len(), 0);
     let res = match &elements[0] {
-        crate::frontends::Element::Capacitor(_) => panic!(),
-        crate::frontends::Element::Inductor(_) => panic!(),
-        crate::frontends::Element::Resistor(_) => panic!(),
         crate::frontends::Element::Diode(ele) => ele,
-        crate::frontends::Element::Mos0(_) => panic!(),
-        crate::frontends::Element::VSource(_) => panic!(),
-        crate::frontends::Element::ISource(_) => panic!(),
+        _ => panic!(),
     };
 
     let expected = DiodeBundle::new(
@@ -303,22 +258,12 @@ fn parse_diode2() {
     assert_eq!(elements.len(), 2);
     assert_eq!(commands.len(), 0);
     let res1 = match &elements[0] {
-        crate::frontends::Element::Capacitor(_) => panic!(),
-        crate::frontends::Element::Inductor(_) => panic!(),
-        crate::frontends::Element::Resistor(_) => panic!(),
         crate::frontends::Element::Diode(ele) => ele,
-        crate::frontends::Element::Mos0(_) => panic!(),
-        crate::frontends::Element::VSource(_) => panic!(),
-        crate::frontends::Element::ISource(_) => panic!(),
+        _ => panic!(),
     };
     let res2 = match &elements[1] {
-        crate::frontends::Element::Capacitor(_) => panic!(),
-        crate::frontends::Element::Inductor(_) => panic!(),
-        crate::frontends::Element::Resistor(_) => panic!(),
         crate::frontends::Element::Diode(ele) => ele,
-        crate::frontends::Element::Mos0(_) => panic!(),
-        crate::frontends::Element::VSource(_) => panic!(),
-        crate::frontends::Element::ISource(_) => panic!(),
+        _ => panic!(),
     };
     let expected1 = DiodeBundle::new(
         Arc::from("D1"),
@@ -371,13 +316,8 @@ fn parse_isource1() {
     assert_eq!(elements.len(), 1);
     assert_eq!(commands.len(), 0);
     let isource = match &elements[0] {
-        crate::frontends::Element::Capacitor(_) => panic!(),
-        crate::frontends::Element::Inductor(_) => panic!(),
-        crate::frontends::Element::Resistor(_) => panic!(),
-        crate::frontends::Element::Diode(_) => panic!(),
-        crate::frontends::Element::Mos0(_) => panic!(),
-        crate::frontends::Element::VSource(_) => panic!(),
         crate::frontends::Element::ISource(ele) => ele,
+        _ => panic!(),
     };
 
     let expected1 = ISourceBundle::new(
@@ -406,13 +346,8 @@ fn parse_isource2() {
     assert_eq!(elements.len(), 2);
     assert_eq!(commands.len(), 0);
     let isource = match &elements[0] {
-        crate::frontends::Element::Capacitor(_) => panic!(),
-        crate::frontends::Element::Inductor(_) => panic!(),
-        crate::frontends::Element::Resistor(_) => panic!(),
-        crate::frontends::Element::Diode(_) => panic!(),
-        crate::frontends::Element::Mos0(_) => panic!(),
-        crate::frontends::Element::VSource(_) => panic!(),
         crate::frontends::Element::ISource(ele) => ele,
+        _ => panic!(),
     };
 
     let expected1 = ISourceBundle::new(
@@ -423,13 +358,8 @@ fn parse_isource2() {
     );
 
     let resistor = match &elements[1] {
-        crate::frontends::Element::Capacitor(_) => panic!(),
-        crate::frontends::Element::Inductor(_) => panic!(),
         crate::frontends::Element::Resistor(ele) => ele,
-        crate::frontends::Element::Diode(_) => panic!(),
-        crate::frontends::Element::Mos0(_) => panic!(),
-        crate::frontends::Element::VSource(_) => panic!(),
-        crate::frontends::Element::ISource(_) => panic!(),
+        _ => panic!(),
     };
 
     let expected2 = ResistorBundle::new(
@@ -464,13 +394,8 @@ fn parse_with_include() {
 
     // Test the first element (ISource)
     let isource = match &elements[0] {
-        crate::frontends::Element::Capacitor(_) => panic!(),
-        crate::frontends::Element::Inductor(_) => panic!(),
-        crate::frontends::Element::Resistor(_) => panic!(),
-        crate::frontends::Element::Diode(_) => panic!(),
-        crate::frontends::Element::Mos0(_) => panic!(),
-        crate::frontends::Element::VSource(_) => panic!(),
         crate::frontends::Element::ISource(ele) => ele,
+        _ => panic!(),
     };
 
     let expected1 = ISourceBundle::new(
@@ -484,13 +409,8 @@ fn parse_with_include() {
 
     // Test the second element (Resistor)
     let resistor = match &elements[1] {
-        crate::frontends::Element::Capacitor(_) => panic!(),
-        crate::frontends::Element::Inductor(_) => panic!(),
         crate::frontends::Element::Resistor(ele) => ele,
-        crate::frontends::Element::Diode(_) => panic!(),
-        crate::frontends::Element::Mos0(_) => panic!(),
-        crate::frontends::Element::VSource(_) => panic!(),
-        crate::frontends::Element::ISource(_) => panic!(),
+        _ => panic!(),
     };
 
     let expected2 = ResistorBundle::new(
@@ -808,6 +728,24 @@ fn parse_minimal_circuit() {
 #[test]
 fn parse_minimal_tran() {
     let main_path = "src/frontends/tests/spice_files/parse_tran.cir";
+    let parser = SpiceFrontend::new(main_path.to_string());
+
+    let Simulation {
+        commands,
+        options,
+        elements,
+        variables,
+    } = parser.simulation().unwrap();
+
+    println!("{commands:?}");
+    println!("{options:?}");
+    println!("{elements:?}");
+    println!("{variables:?}");
+}
+
+#[test]
+fn parse_gain() {
+    let main_path = "src/frontends/tests/spice_files/parse_gain.cir";
     let parser = SpiceFrontend::new(main_path.to_string());
 
     let Simulation {

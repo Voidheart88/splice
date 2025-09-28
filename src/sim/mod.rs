@@ -5,7 +5,7 @@ pub(crate) mod simulation_result;
 use std::fmt::{self, Debug};
 use std::sync::Arc;
 
-use itertools::Itertools;
+use itertools::{izip, Itertools};
 use log::{info, trace};
 use miette::Diagnostic;
 use num::{Complex, One, Zero};
@@ -29,7 +29,7 @@ pub(crate) enum SimulatorError {
     #[diagnostic(help("Try increasing VECTOL (current: {tol}) or check for unstable elements"))]
     NonConvergentMaxIter { max_iter: usize, tol: Numeric },
 
-    #[error("Source {0} not found")]
+    #[error("Voltage source {0} not found")]
     #[diagnostic(help("Check the source in your .dc command"))]
     VoltageSourceNotFound(String),
 }
@@ -166,12 +166,11 @@ impl<SO: Solver> Simulator<SO> {
     }
 
     fn add_var_name(&self, solution: Vec<Numeric>) -> Vec<(Variable, Numeric)> {
-        solution
-            .into_iter()
-            .enumerate()
-            .map(|(idx, var)| (self.vars[idx].clone(), var))
+        izip!(&self.vars, solution)
+            .map(|(var, val)| (var.clone(), val))
             .collect_vec()
     }
+
 
     fn add_complex_var_name(
         &self,
@@ -194,6 +193,7 @@ impl<SO: Solver> Simulator<SO> {
     
         while t <= *tstop {
             self.build_time_variant_a_mat(Some(tstep));
+            self.build_time_variant_b_vec();
 
             self.build_constant_a_mat();
             self.build_constant_b_vec();
@@ -447,13 +447,10 @@ impl<SO: Solver> Simulator<SO> {
             match element {
                 Element::VSource(vsource) => {
                     let value = vsource.value();
-                    let node0_idx: Option<usize> = vsource.node0_idx();
-                    let node1_idx = vsource.node1_idx();
-
-                    if let Some(node0_idx) = node0_idx {
+                    if let Some(node0_idx) = vsource.node0_idx() {
                         local_guess[node0_idx] = -value;
                     }
-                    if let Some(node1_idx) = node1_idx {
+                    if let Some(node1_idx) = vsource.node1_idx() {
                         local_guess[node1_idx] = value;
                     }
                 }

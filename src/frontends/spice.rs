@@ -16,7 +16,7 @@ use crate::spot::*;
 
 use super::{
     CapacitorBundle, DiodeBundle, Element, ISourceBundle, InductorBundle, Mos0Bundle,
-    ResistorBundle, Variable,
+    ResistorBundle, GainBundle, Variable,
 };
 
 #[derive(Parser)]
@@ -243,6 +243,7 @@ impl SpiceFrontend {
             Rule::ELE_INDUCTOR => InductorBundle::process(element, variables, elements, var_map),
             Rule::ELE_DIODE => DiodeBundle::process(element, variables, elements, var_map),
             Rule::ELE_MOSFET => Mos0Bundle::process(element, variables, elements, var_map),
+            Rule::ELE_GAIN => GainBundle::process(element, variables, elements, var_map),
             _ => {}
         }
     }

@@ -8,10 +8,10 @@ pub mod pairs;
 pub mod resistor;
 pub mod triples;
 pub mod vsource;
+pub mod gain;
 
 use core::fmt::Display;
 use std::sync::Arc;
-
 use crate::spot::*;
 
 pub use self::capacitor::CapacitorBundle;
@@ -23,8 +23,9 @@ pub use self::pairs::Pairs;
 pub use self::resistor::ResistorBundle;
 pub use self::triples::{TripleIdx, Triples};
 pub use self::vsource::VSourceBundle;
+pub use self::gain::GainBundle;
 
-/// An Enum representing the Unit of the Value - Nessecary for
+/// An Enum representing the Unit of the Value - Necessary for parsing and display.
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub enum Unit {
     None,
@@ -48,16 +49,6 @@ pub struct Variable(Arc<str>, Unit, usize);
 
 impl Variable {
     /// Creates a new `Variable` object.
-    ///
-    /// # Arguments
-    ///
-    /// * `name` - The name of the variable.
-    /// * `unit` - The unit of the variable.
-    /// * `index` - The index of the variable.
-    ///
-    /// # Returns
-    ///
-    /// A new `Variable` object.
     pub fn new(name: Arc<str>, unit: Unit, index: usize) -> Self {
         Variable(name, unit, index)
     }
@@ -77,10 +68,7 @@ impl Variable {
 
 impl From<(Arc<str>, Unit, usize)> for Variable {
     fn from(value: (Arc<str>, Unit, usize)) -> Self {
-        let name = value.0;
-        let unit = value.1;
-        let idx = value.2;
-        Self(name, unit, idx)
+        Self(value.0, value.1, value.2)
     }
 }
 
@@ -94,13 +82,16 @@ pub enum Element {
     Mos0(Mos0Bundle),
     VSource(VSourceBundle),
     ISource(ISourceBundle),
+    Gain(GainBundle),
 }
 
 impl Element {
+    /// Returns the constant triples of the element, if applicable.
     pub(crate) fn get_constant_triples(&self) -> Option<Triples<Numeric, 4>> {
         match self {
             Element::VSource(ele) => Some(ele.triples()),
             Element::Resistor(ele) => Some(ele.triples()),
+            Element::Gain(ele) => Some(ele.triples()), // Gain ist linear und konstant
             _ => None,
         }
     }
@@ -115,7 +106,7 @@ impl Element {
     }
 
     /// Returns the time variant triples of the element, if applicable.
-    pub(crate) fn get_time_variant_triples(&self,delta_t:Option<&Numeric>) -> Option<Triples<Numeric, 4>> {
+    pub(crate) fn get_time_variant_triples(&self, delta_t: Option<&Numeric>) -> Option<Triples<Numeric, 4>> {
         match self {
             Element::Capacitor(ele) => Some(ele.triples(delta_t)),
             Element::Inductor(ele) => Some(ele.triples(delta_t)),
@@ -128,7 +119,7 @@ impl Element {
         None
     }
 
-    /// Returns the nonlinear triples. Nonlinear Triples are Dependend on Vector x
+    /// Returns the nonlinear triples. Nonlinear Triples are dependent on Vector x.
     pub(crate) fn get_nonlinear_triples(&self, x_vec: &[Numeric]) -> Option<Triples<Numeric, 4>> {
         match self {
             Element::Diode(ele) => Some(ele.triples(x_vec)),
@@ -151,20 +142,21 @@ impl Element {
         matches!(self, Element::Diode(_) | Element::Mos0(_))
     }
 
-    /// Returns the ac triples. Ac Triples are dependend on f
+    /// Returns the AC triples. AC Triples are dependent on frequency f.
     pub(crate) fn get_ac_triples(&self, freq: Numeric) -> Option<Triples<ComplexNumeric, 4>> {
         match self {
             Element::Diode(_) => None,
             Element::Mos0(_) => None,
             Element::Capacitor(cap) => Some(cap.ac_triples(freq)),
             Element::Inductor(ind) => Some(ind.ac_triples(freq)),
-            Element::Resistor(red) => Some(red.ac_triples()),
+            Element::Resistor(res) => Some(res.ac_triples()),
             Element::VSource(vsource) => Some(vsource.ac_triples()),
+            Element::Gain(gain) => Some(gain.ac_triples()), // Gain für AC-Analyse
             Element::ISource(_) => None,
         }
     }
 
-    /// Returns the ac pairs of the element, if applicable.
+    /// Returns the AC pairs of the element, if applicable.
     pub(crate) fn get_ac_pairs(&self, _freq: Numeric) -> Option<Pairs<ComplexNumeric, 2>> {
         match self {
             Element::Diode(_) => None,
@@ -174,6 +166,7 @@ impl Element {
             Element::Resistor(_) => None,
             Element::VSource(ele) => Some(ele.ac_pairs()),
             Element::ISource(_) => None,
+            Element::Gain(_) => None, // Gain hat keine AC-Pairs
         }
     }
 
@@ -187,10 +180,11 @@ impl Element {
             Element::Mos0(ele) => ele.name(),
             Element::VSource(ele) => ele.name(),
             Element::ISource(ele) => ele.name(),
+            Element::Gain(ele) => ele.name(),
         }
     }
 
-    /// Returns the name of the element.
+    /// Returns the indices of the triples for the element.
     pub(crate) fn get_triple_indices(&self) -> Option<TripleIdx<4>> {
         match self {
             Element::Capacitor(ele) => ele.triple_idx(),
@@ -199,11 +193,12 @@ impl Element {
             Element::Diode(ele) => ele.triple_idx(),
             Element::Mos0(ele) => ele.triple_idx(),
             Element::VSource(ele) => ele.triple_idx(),
+            Element::Gain(ele) => ele.triple_idx(), // Gain hat einen Triple-Index
             Element::ISource(_) => None,
         }
     }
 
-    /// Returns the ac triples. Ac Triples are dependend on f
+    /// Returns the indices of the complex triples for the element.
     pub(crate) fn get_cplx_triple_indices(&self) -> Option<TripleIdx<4>> {
         match self {
             Element::Diode(_) => None,
@@ -212,6 +207,7 @@ impl Element {
             Element::Inductor(ind) => ind.triple_idx(),
             Element::Resistor(res) => res.triple_idx(),
             Element::VSource(vsource) => vsource.triple_idx(),
+            Element::Gain(ele) => ele.triple_idx(),
             Element::ISource(_) => None,
         }
     }

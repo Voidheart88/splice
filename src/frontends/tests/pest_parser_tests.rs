@@ -12,6 +12,16 @@ fn process_minimal_vsource() {
 }
 
 #[test]
+fn process_gain() {
+    let input = "A1 0 1 gain 10";
+    let test = SpiceParser::parse(Rule::SPICE, input)
+        .expect("unsuccessful parse")
+        .next()
+        .unwrap();
+    println!("{test:?}")
+}
+
+#[test]
 fn process_whitespace() {
     let input = "R1 0 \t 1 10";
     SpiceParser::parse(Rule::SPICE, input)

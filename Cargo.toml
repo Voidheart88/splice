@@ -36,6 +36,7 @@ faer = "0.22"
 criterion = { version = "0.7", features = ["html_reports"] }
 assert_float_eq = "1.1"
 rand = "0.9"
+proptest = "1.8"
 
 [profile.release]
 opt-level = 3

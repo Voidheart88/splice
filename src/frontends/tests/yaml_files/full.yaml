@@ -34,6 +34,11 @@ elements:
     gate: n2
     source: n3
     body: n4
+  - type: gain
+    name: gain1
+    input: in1
+    output: out1
+    value: 2.0
 simulations:      
   - type: op
   - type: dc

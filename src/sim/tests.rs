@@ -7,6 +7,7 @@ use crate::sim::simulation_result::Sim;
 use crate::sim::Simulator;
 use crate::solver::{FaerSolver, NalgebraSolver, RSparseSolver};
 
+
 #[test]
 fn init_sim_rsparse() {
     let commands = vec![SimulationCommand::Op];

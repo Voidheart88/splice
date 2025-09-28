@@ -12,6 +12,7 @@ use crate::models::isource::serde::SerdeISource;
 use crate::models::mosfet::serde::SerdeMos0;
 use crate::models::resistor::serde::SerdeResistor;
 use crate::models::vsource::serde::SerdeVSource;
+use crate::models::gain::serde::SerdeGain;
 use crate::models::Variable;
 use crate::sim::commands::ACMode;
 use crate::sim::commands::SimulationCommand;
@@ -38,6 +39,8 @@ pub enum SerdeElement {
     Diode(SerdeDiode),
     #[serde(rename = "mosfet")]
     Mosfet(SerdeMos0),
+    #[serde(rename = "gain")]
+    Gain(SerdeGain),
 }
 
 /// Represents the types of simulations that can be performed on a circuit.
@@ -188,6 +191,9 @@ impl SerdeFrontend {
                     ele.process(&mut variables, &mut elements, &mut var_map)
                 }
                 SerdeElement::Mosfet(ele) => {
+                    ele.process(&mut variables, &mut elements, &mut var_map)
+                }
+                SerdeElement::Gain(ele) => {
                     ele.process(&mut variables, &mut elements, &mut var_map)
                 }
             };
