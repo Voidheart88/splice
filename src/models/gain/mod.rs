@@ -58,7 +58,7 @@ impl GainBundle {
             Some(idx) => idx,
             None => return Triples::new(&[]),
         };
-        Triples::new(&[(output_idx, input_idx, self.value)])
+        Triples::new(&[(output_idx, input_idx, -self.value)])
     }
 
     /// Returns the indices for the triples in matrix A.
@@ -80,7 +80,7 @@ impl GainBundle {
             Some(idx) => idx,
             None => return Triples::new(&[]),
         };
-        Triples::new(&[(output_idx, input_idx, ComplexNumeric{re: self.value, im: 0.0})])
+        Triples::new(&[(output_idx, input_idx, ComplexNumeric{re: -self.value, im: 0.0})])
     }
 
     /// Returns the pairs representing the vector b for the gain.

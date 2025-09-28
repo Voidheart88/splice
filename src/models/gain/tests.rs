@@ -7,12 +7,12 @@ fn test_new_gain_bundle() {
         Arc::from("GainBundle1"),
         Some(Variable::new(Arc::from("Input"), Unit::Volt, 0)),
         Some(Variable::new(Arc::from("Output"), Unit::Volt, 1)),
-        2.0,  // Verstärkungsfaktor
+        2.0,
     );
 
     assert_eq!(*gain_bundle.name(), *"GainBundle1");
-    assert_eq!(gain_bundle.triples().len(), 1);  // Ein Eintrag in der Matrix A
-    assert_eq!(gain_bundle.pairs(&[]).len(), 0);     // Keine konstanten Terme
+    assert_eq!(gain_bundle.triples().len(), 1);
+    assert_eq!(gain_bundle.pairs(&[]).len(), 0);
     assert_eq!(gain_bundle.value, 2.0);
 }
 
@@ -40,11 +40,10 @@ fn test_triples() {
     let triples = gain_bundle.triples();
     assert_eq!(triples.len(), 1);
 
-    // Überprüfe, ob der Eintrag korrekt ist
     let (row, col, value) = triples.data()[0];
-    assert_eq!(row, 1);    // Output-Knoten
-    assert_eq!(col, 0);    // Input-Knoten
-    assert_eq!(value, 4.0); // Verstärkungsfaktor
+    assert_eq!(row, 1);    
+    assert_eq!(col, 0);    
+    assert_eq!(value, -4.0);
 }
 
 #[test]
@@ -57,7 +56,7 @@ fn test_triples_missing_input() {
     );
 
     let triples = gain_bundle.triples();
-    assert_eq!(triples.len(), 0);  // Keine Triples, wenn Input fehlt
+    assert_eq!(triples.len(), 0);
 }
 
 #[test]
@@ -70,7 +69,7 @@ fn test_triples_missing_output() {
     );
 
     let triples = gain_bundle.triples();
-    assert_eq!(triples.len(), 0);  // Keine Triples, wenn Output fehlt
+    assert_eq!(triples.len(), 0);
 }
 
 #[test]
@@ -83,7 +82,7 @@ fn test_pairs() {
     );
 
     let pairs = gain_bundle.pairs(&[0.7, 0.0]);
-    assert_eq!(pairs.len(), 0);  // Keine konstanten Terme für Gain
+    assert_eq!(pairs.len(), 0);
 }
 
 #[test]
