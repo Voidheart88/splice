@@ -1,3 +1,6 @@
+/// The Sine Source  as Spice file: 
+/// <Name> <Node0> <Node1> sin[e] <dc_offset> <amplitude> <frequency> <phase>
+
 use std::sync::Arc;
 use crate::frontends::spice::ProcessSpiceElement;
 use crate::models::{VSourceSinBundle, Element, Unit, Variable};

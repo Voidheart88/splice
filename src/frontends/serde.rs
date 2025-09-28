@@ -34,7 +34,7 @@ pub enum SerdeElement {
     Capacitor(SerdeCapacitor),
     #[serde(rename = "vsource")]
     VSource(SerdeVSource),
-    #[serde(rename = "vsource_sin")]
+    #[serde(rename = "vsource_sine")]
     VSourceSin(SerdeVSourceSin),
     #[serde(rename = "isource")]
     ISource(SerdeISource),

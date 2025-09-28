@@ -241,3 +241,23 @@ fn process_out_option3() {
         .next()
         .unwrap();
 }
+
+#[test]
+fn process_sine() {
+    let input = "V1 0 1 sine 0 10 10 0";
+    let test = SpiceParser::parse(Rule::SPICE, input)
+        .expect("unsuccessful parse")
+        .next()
+        .unwrap();
+    println!("{test:?}")
+}
+
+#[test]
+fn process_sine2() {
+    let input = "V1 0 1 sin 0 10 10 0";
+    let test = SpiceParser::parse(Rule::SPICE, input)
+        .expect("unsuccessful parse")
+        .next()
+        .unwrap();
+    println!("{test:?}")
+}
