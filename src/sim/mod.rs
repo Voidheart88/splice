@@ -192,8 +192,8 @@ impl<SO: Solver> Simulator<SO> {
         let mut x_prev: Vec<Numeric> = self.find_op()?.iter().map(|op| op.1).collect();
     
         while t <= *tstop {
-            self.build_time_variant_a_mat(Some(tstep));
-            self.build_time_variant_b_vec();
+            self.build_time_variant_a_mat(tstep);
+            self.build_time_variant_b_vec(tstep);
 
             self.build_constant_a_mat();
             self.build_constant_b_vec();
@@ -376,7 +376,7 @@ impl<SO: Solver> Simulator<SO> {
             .for_each(|pair| self.solver.insert_b(&pair));
     }
 
-    fn build_time_variant_a_mat(&mut self, delta_t:Option<&Numeric>) {
+    fn build_time_variant_a_mat(&mut self, delta_t:&Numeric) {
         self.elements
             .iter()
             .filter_map(|ele| ele.get_time_variant_triples(delta_t))
@@ -384,10 +384,10 @@ impl<SO: Solver> Simulator<SO> {
             .for_each(|triplet| self.solver.insert_a(&triplet));
     }
 
-    fn build_time_variant_b_vec(&mut self) {
+    fn build_time_variant_b_vec(&mut self, delta_t:&Numeric) {
         self.elements
             .iter()
-            .filter_map(|ele| ele.get_time_variant_pairs())
+            .filter_map(|ele| ele.get_time_variant_pairs(delta_t))
             .flat_map(|pairs| pairs.data())
             .for_each(|pair| self.solver.insert_b(&pair));
     }

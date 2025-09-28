@@ -12,6 +12,7 @@ use crate::models::isource::serde::SerdeISource;
 use crate::models::mosfet::serde::SerdeMos0;
 use crate::models::resistor::serde::SerdeResistor;
 use crate::models::vsource::serde::SerdeVSource;
+use crate::models::vsource_sine::serde::SerdeVSourceSin;
 use crate::models::gain::serde::SerdeGain;
 use crate::models::Variable;
 use crate::sim::commands::ACMode;
@@ -33,6 +34,8 @@ pub enum SerdeElement {
     Capacitor(SerdeCapacitor),
     #[serde(rename = "vsource")]
     VSource(SerdeVSource),
+    #[serde(rename = "vsource_sin")]
+    VSourceSin(SerdeVSourceSin),
     #[serde(rename = "isource")]
     ISource(SerdeISource),
     #[serde(rename = "diode")]
@@ -182,6 +185,9 @@ impl SerdeFrontend {
                     ele.process(&mut variables, &mut elements, &mut var_map)
                 }
                 SerdeElement::VSource(ele) => {
+                    ele.process(&mut variables, &mut elements, &mut var_map)
+                }
+                SerdeElement::VSourceSin(ele) => {
                     ele.process(&mut variables, &mut elements, &mut var_map)
                 }
                 SerdeElement::ISource(ele) => {

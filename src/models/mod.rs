@@ -8,6 +8,7 @@ pub mod pairs;
 pub mod resistor;
 pub mod triples;
 pub mod vsource;
+pub mod vsource_sine;
 pub mod gain;
 
 use core::fmt::Display;
@@ -23,6 +24,7 @@ pub use self::pairs::Pairs;
 pub use self::resistor::ResistorBundle;
 pub use self::triples::{TripleIdx, Triples};
 pub use self::vsource::VSourceBundle;
+pub use self::vsource_sine::VSourceSinBundle;
 pub use self::gain::GainBundle;
 
 /// An Enum representing the Unit of the Value - Necessary for parsing and display.
@@ -81,6 +83,7 @@ pub enum Element {
     Diode(DiodeBundle),
     Mos0(Mos0Bundle),
     VSource(VSourceBundle),
+    VSourceSin(VSourceSinBundle),
     ISource(ISourceBundle),
     Gain(GainBundle),
 }
@@ -106,17 +109,20 @@ impl Element {
     }
 
     /// Returns the time variant triples of the element, if applicable.
-    pub(crate) fn get_time_variant_triples(&self, delta_t: Option<&Numeric>) -> Option<Triples<Numeric, 4>> {
+    pub(crate) fn get_time_variant_triples(&self, delta_t: &Numeric) -> Option<Triples<Numeric, 4>> {
         match self {
-            Element::Capacitor(ele) => Some(ele.triples(delta_t)),
-            Element::Inductor(ele) => Some(ele.triples(delta_t)),
+            Element::Capacitor(ele) => Some(ele.triples(Some(delta_t))),
+            Element::Inductor(ele) => Some(ele.triples(Some(delta_t))),
             _ => None,
         }
     }
 
     /// Returns the time variant pairs of the element, if applicable.
-    pub(crate) fn get_time_variant_pairs(&self) -> Option<Pairs<Numeric, 2>> {
-        None
+    pub(crate) fn get_time_variant_pairs(&self, delta_t: &Numeric) -> Option<Pairs<Numeric, 2>> {
+        match self {
+            Element::VSourceSin(ele) => Some(ele.pairs(Some(delta_t))),
+            _ => None,
+        }
     }
 
     /// Returns the nonlinear triples. Nonlinear Triples are dependent on Vector x.
@@ -151,8 +157,9 @@ impl Element {
             Element::Inductor(ind) => Some(ind.ac_triples(freq)),
             Element::Resistor(res) => Some(res.ac_triples()),
             Element::VSource(vsource) => Some(vsource.ac_triples()),
-            Element::Gain(gain) => Some(gain.ac_triples()), // Gain für AC-Analyse
+            Element::Gain(gain) => Some(gain.ac_triples()),
             Element::ISource(_) => None,
+            Element::VSourceSin(_) => None,
         }
     }
 
@@ -166,7 +173,8 @@ impl Element {
             Element::Resistor(_) => None,
             Element::VSource(ele) => Some(ele.ac_pairs()),
             Element::ISource(_) => None,
-            Element::Gain(_) => None, // Gain hat keine AC-Pairs
+            Element::Gain(_) => None,
+            Element::VSourceSin(_) => None,
         }
     }
 
@@ -181,6 +189,7 @@ impl Element {
             Element::VSource(ele) => ele.name(),
             Element::ISource(ele) => ele.name(),
             Element::Gain(ele) => ele.name(),
+            Element::VSourceSin(ele) => ele.name(),
         }
     }
 
@@ -193,8 +202,9 @@ impl Element {
             Element::Diode(ele) => ele.triple_idx(),
             Element::Mos0(ele) => ele.triple_idx(),
             Element::VSource(ele) => ele.triple_idx(),
-            Element::Gain(ele) => ele.triple_idx(), // Gain hat einen Triple-Index
+            Element::Gain(ele) => ele.triple_idx(),
             Element::ISource(_) => None,
+            Element::VSourceSin(ele) => ele.triple_idx(),
         }
     }
 
@@ -209,6 +219,7 @@ impl Element {
             Element::VSource(vsource) => vsource.triple_idx(),
             Element::Gain(ele) => ele.triple_idx(),
             Element::ISource(_) => None,
+            Element::VSourceSin(ele) => ele.triple_idx(),
         }
     }
 }

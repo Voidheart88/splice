@@ -9,6 +9,7 @@ use pest::{iterators::Pair, Parser};
 use pest_derive::Parser;
 
 use crate::frontends::{Frontend, FrontendError, Simulation};
+use crate::models::vsource_sine::VSourceSinBundle;
 use crate::models::VSourceBundle;
 use crate::sim::commands::{ACMode, SimulationCommand};
 use crate::sim::options::SimulationOption;
@@ -236,6 +237,7 @@ impl SpiceFrontend {
     ) {
         let element = element.into_inner().nth(0).unwrap();
         match element.as_rule() {
+            Rule::ELE_VSOURCE_SIN => VSourceSinBundle::process(element, variables, elements, var_map),
             Rule::ELE_VSOURCE => VSourceBundle::process(element, variables, elements, var_map),
             Rule::ELE_ISOURCE => ISourceBundle::process(element, variables, elements, var_map),
             Rule::ELE_RESISTOR => ResistorBundle::process(element, variables, elements, var_map),
