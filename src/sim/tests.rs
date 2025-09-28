@@ -169,3 +169,55 @@ fn init_sim_nalgebra() {
     assert_eq!(branch_curr, branch_curr_exp);
     assert_eq!(node_vol, node_vol_exp);
 }
+
+#[test]
+fn run_sim_tran() {
+    let commands = vec![SimulationCommand::Tran(1.0, 10.0)];
+    let options = vec![];
+
+    let node_1 = Variable::new(Arc::from("1"), Unit::Volt, 1);
+    let branch_1 = Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0);
+
+    let vsource = Element::VSource(VSourceBundle::new(
+        Arc::from("V1"),
+        branch_1.clone(),
+        None,
+        Some(node_1.clone()),
+        10.0,
+        None,
+    ));
+
+    let resistor = Element::Resistor(ResistorBundle::new(
+        Arc::from("R1"),
+        Some(node_1.clone()),
+        None,
+        10.0,
+    ));
+
+    let elements = vec![vsource, resistor];
+
+    let variables = vec![branch_1, node_1];
+
+    let sim = Simulation {
+        commands,
+        options,
+        elements,
+        variables,
+    };
+
+    let mut simulator: Simulator<NalgebraSolver> = Simulator::from(sim.clone());
+
+    let result = simulator.run().unwrap();
+
+    let result = match result.results[0].clone() {
+        Sim::Tran(res) => res,
+        _ => todo!(),
+    };
+
+    for res in result {
+        let time = res.0;
+        let curr = res.1[0].1;
+        let vol = res.1[1].1;
+        println!("{time}, {curr:?}, {vol:?}")
+    } 
+}

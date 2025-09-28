@@ -217,7 +217,6 @@ impl<SO: Solver> Simulator<SO> {
         Ok(Sim::Tran(tran_results))
     }
 
-
     fn run_ac(
         &mut self,
         fstart: &Numeric,
@@ -305,26 +304,21 @@ impl<SO: Solver> Simulator<SO> {
             .expect("Element should be a VSource");
 
         let mut dc_results = Vec::new();
-        // Iterate over the voltage range
         let mut voltage = *vstart;
 
         while voltage <= *vstop {
             {
-                // Set the voltage source to the current value
                 let source = match &mut self.elements[vsource1_idx] {
                     Element::VSource(ref mut vs) => vs,
                     _ => unreachable!(),
                 };
                 source.set_voltage(voltage);
             }
-            // Perform the operating point analysis
             dc_results.push(self.find_op()?);
-            // Increment the voltage
             voltage += vstep;
         }
 
         {
-            // Restore the original voltage
             let source = match &mut self.elements[vsource1_idx] {
                 Element::VSource(ref mut vs) => vs,
                 _ => unreachable!(),
@@ -336,7 +330,6 @@ impl<SO: Solver> Simulator<SO> {
     }
 
     fn find_op(&mut self) -> Result<Vec<(Variable, Numeric)>, SimulatorError> {
-        // Check for nonlinear elements
         self.build_constant_a_mat();
         self.build_constant_b_vec();
 
@@ -346,7 +339,6 @@ impl<SO: Solver> Simulator<SO> {
             return Ok(res);
         }
 
-        // Build the initial guess
         let mut x = self.generate_initial_guess();
 
         for _ in 0..MAXITER {
@@ -355,21 +347,16 @@ impl<SO: Solver> Simulator<SO> {
             self.build_nonlinear_a_mat(&x);
             self.build_nonlinear_b_vec(&x);
 
-            // Solve for the new x
             let x_new = self.solver.solve()?.clone();
 
-            // Check for convergence
             if self.has_converged(&x, &x_new, VECTOL) {
-                // If converged, store the result
                 let res = self.add_var_name(x_new.clone());
                 return Ok(res);
             }
 
-            // Update x for the next iteration
             x = x_new;
         }
 
-        // If not converged after maximum iterations, return an error
         Err(SimulatorError::NonConvergentMaxIter{ max_iter: MAXITER, tol: VECTOL})
     }
 
