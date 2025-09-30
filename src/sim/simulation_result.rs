@@ -13,7 +13,7 @@ pub enum Sim {
     /// DC Analysis Results
     Dc(Vec<Vec<(Variable, Numeric)>>),
     /// Transient Analysis Results (current Timestep,Vec with <(Variable,Value)>)
-    Tran(Vec<(Numeric,Vec<(Variable, Numeric)>)>),
+    Tran(Vec<(Numeric, Vec<(Variable, Numeric)>)>),
     /// AC Analysis Results
     Ac(Vec<BodeValue>),
 }

@@ -7,7 +7,6 @@ use crate::sim::simulation_result::Sim;
 use crate::sim::Simulator;
 use crate::solver::{FaerSolver, NalgebraSolver, RSparseSolver};
 
-
 #[test]
 fn init_sim_rsparse() {
     let commands = vec![SimulationCommand::Op];
@@ -219,5 +218,5 @@ fn run_sim_tran() {
         let curr = res.1[0].1;
         let vol = res.1[1].1;
         println!("{time}, {curr:?}, {vol:?}")
-    } 
+    }
 }

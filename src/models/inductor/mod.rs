@@ -61,10 +61,10 @@ impl InductorBundle {
     pub fn triples(&self, delta_t: Option<&Numeric>) -> Triples<Numeric, 4> {
         // Äquivalenter Leitwert für die Induktivität
         let equivalent_conductance = match delta_t {
-            Some(dt) => dt / self.value,  // L / delta_t → Leitwert = delta_t / L
-            None => DEFAULT_CONDUCTANCE,   // Standardwert für DC/AC-Analyse
+            Some(dt) => dt / self.value, // L / delta_t → Leitwert = delta_t / L
+            None => DEFAULT_CONDUCTANCE, // Standardwert für DC/AC-Analyse
         };
-    
+
         let node0_idx = if let Some(node) = &self.node0 {
             node.idx()
         } else {
@@ -74,13 +74,13 @@ impl InductorBundle {
                 equivalent_conductance,
             )]);
         };
-    
+
         let node1_idx = if let Some(node) = &self.node1 {
             node.idx()
         } else {
             return Triples::new(&[(node0_idx, node0_idx, equivalent_conductance)]);
         };
-    
+
         Triples::new(&[
             (node0_idx, node0_idx, equivalent_conductance),
             (node1_idx, node1_idx, equivalent_conductance),

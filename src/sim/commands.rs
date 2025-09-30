@@ -13,10 +13,10 @@ pub enum SimulationCommand {
     Ac(Numeric, Numeric, usize, ACMode),
     /// Represents a DC analysis command.
     Dc(
-        Arc<str>, // DC Source Name
-        Numeric,  // Start Value
-        Numeric,  // Stop Value
-        Numeric,  // Step Value
+        Arc<str>,                                      // DC Source Name
+        Numeric,                                       // Start Value
+        Numeric,                                       // Stop Value
+        Numeric,                                       // Step Value
         Option<(Arc<str>, Numeric, Numeric, Numeric)>, // Optional second Source
     ),
 }

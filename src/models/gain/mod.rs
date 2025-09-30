@@ -1,9 +1,9 @@
 pub(crate) mod serde;
 pub(crate) mod spice;
 
-use std::sync::Arc;
 use super::*;
 use crate::spot::*;
+use std::sync::Arc;
 
 /// A structure representing a Gain with all its options.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
@@ -64,13 +64,11 @@ impl GainBundle {
     /// Returns the indices for the triples in matrix A.
     pub fn triple_idx(&self) -> Option<TripleIdx<4>> {
         match (self.input_idx(), self.output_idx()) {
-            (Some(input_idx), Some(output_idx)) => {
-                Some(TripleIdx::new(&[(output_idx, input_idx)]))
-            }
+            (Some(input_idx), Some(output_idx)) => Some(TripleIdx::new(&[(output_idx, input_idx)])),
             _ => None,
         }
     }
-    
+
     pub fn ac_triples(&self) -> Triples<ComplexNumeric, 4> {
         let input_idx = match self.input_idx() {
             Some(idx) => idx,
@@ -80,7 +78,14 @@ impl GainBundle {
             Some(idx) => idx,
             None => return Triples::new(&[]),
         };
-        Triples::new(&[(output_idx, input_idx, ComplexNumeric{re: -self.value, im: 0.0})])
+        Triples::new(&[(
+            output_idx,
+            input_idx,
+            ComplexNumeric {
+                re: -self.value,
+                im: 0.0,
+            },
+        )])
     }
 
     /// Returns the pairs representing the vector b for the gain.

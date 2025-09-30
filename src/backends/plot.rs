@@ -247,10 +247,10 @@ impl PlotBackend {
         let parent = path.parent().unwrap_or(Path::new(""));
         let new_file_name = format!("{stem}_tran.svg");
         path = parent.join(new_file_name);
-    
+
         let root = SVGBackend::new(&path, (1440, 900)).into_drawing_area();
         root.fill(&BLACK)?;
-    
+
         let (min_y, max_y) = data
             .iter()
             .flat_map(|(_, vars)| vars.iter().map(|(_, val)| *val))
@@ -260,31 +260,31 @@ impl PlotBackend {
                     Some(max.map_or(val, |y: Numeric| y.max(val))),
                 )
             });
-    
+
         let (min_y, max_y) = match (min_y, max_y) {
             (None, None) => return Err(BackendError::PlotError("Plot empty".into())),
             (None, Some(v)) => (Numeric::MIN, v),
             (Some(v), None) => (v, Numeric::MAX),
             (Some(v1), Some(v2)) => (v1, v2),
         };
-    
-        let (min_x, max_x) = data
-            .iter()
-            .map(|(time, _)| *time)
-            .fold((None, None), |(min, max), val| {
-                (
-                    Some(min.map_or(val, |y: Numeric| y.min(val))),
-                    Some(max.map_or(val, |y: Numeric| y.max(val))),
-                )
-            });
-    
+
+        let (min_x, max_x) =
+            data.iter()
+                .map(|(time, _)| *time)
+                .fold((None, None), |(min, max), val| {
+                    (
+                        Some(min.map_or(val, |y: Numeric| y.min(val))),
+                        Some(max.map_or(val, |y: Numeric| y.max(val))),
+                    )
+                });
+
         let (min_x, max_x) = match (min_x, max_x) {
             (None, None) => return Err(BackendError::PlotError("Plot empty".into())),
             (None, Some(v)) => (Numeric::MIN, v),
             (Some(v), None) => (v, Numeric::MAX),
             (Some(v1), Some(v2)) => (v1, v2),
         };
-    
+
         let mut chart = ChartBuilder::on(&root)
             .x_label_area_size(35)
             .y_label_area_size(40)
@@ -294,7 +294,7 @@ impl PlotBackend {
                 ("sans-serif", 50.0).into_font().color(&WHITE),
             )
             .build_cartesian_2d(min_x..max_x, min_y..max_y)?;
-    
+
         chart
             .configure_mesh()
             .x_labels(10)
@@ -306,17 +306,17 @@ impl PlotBackend {
             .bold_line_style(GREY_400)
             .light_line_style(GREY_800)
             .draw()?;
-    
+
         let var_count = data[0].1.len();
         for var_idx in 0..var_count {
             let var_name = data[0].1[var_idx].0.name().to_string();
             let unit = data[0].1[var_idx].0.unit();
-    
+
             let points: Vec<(Numeric, Numeric)> = data
                 .iter()
                 .map(|(time, vars)| (*time, vars[var_idx].1))
                 .collect();
-    
+
             match unit {
                 Unit::Volt => {
                     chart
@@ -338,17 +338,17 @@ impl PlotBackend {
                 }
             };
         }
-    
+
         chart
             .configure_series_labels()
             .background_style(WHITE.mix(0.8))
             .border_style(BLACK)
             .draw()?;
-    
+
         root.present()?;
         Ok(())
     }
-    
+
     fn plot_ac(
         &self,
         data: &[(Numeric, Vec<(Variable, ComplexNumeric)>)],

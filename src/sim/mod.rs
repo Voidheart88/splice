@@ -2,21 +2,29 @@ pub(crate) mod commands;
 pub(crate) mod options;
 pub(crate) mod simulation_result;
 
+mod ac;
+mod dc;
+mod op;
+mod tran;
+
 use std::fmt::{self, Debug};
 use std::sync::Arc;
 
 use itertools::{izip, Itertools};
-use log::{info, trace};
 use miette::Diagnostic;
-use num::{Complex, One, Zero};
+use num::{Complex, One};
 use options::SimulationOption;
 use thiserror::Error;
 
 use crate::models::{Element, Variable};
+use crate::sim::ac::AcSimulation;
+use crate::sim::dc::DcSimulation;
+use crate::sim::op::OpSimulation;
+use crate::sim::tran::TranSimulation;
 use crate::solver::{Solver, SolverError};
 use crate::spot::*;
 use crate::Simulation;
-use commands::{ACMode, SimulationCommand};
+use commands::SimulationCommand;
 use simulation_result::Sim;
 use simulation_result::SimulationResults;
 
@@ -95,7 +103,7 @@ impl<SO: Solver> Simulator<SO> {
     fn execute_command(&mut self, comm: &SimulationCommand) -> Result<Sim, SimulatorError> {
         let res = match comm {
             SimulationCommand::Op => self.run_op()?,
-            SimulationCommand::Tran(tstep,tstop) => self.run_tran(tstep,tstop)?,
+            SimulationCommand::Tran(tstep, tstop) => self.run_tran(tstep, tstop)?,
             SimulationCommand::Ac(fstart, fend, steps, options) => {
                 self.run_ac(fstart, fend, steps, options)?
             }
@@ -104,61 +112,6 @@ impl<SO: Solver> Simulator<SO> {
             }
         };
         Ok(res)
-    }
-
-    fn run_op(&mut self) -> Result<Sim, SimulatorError> {
-        info!("Run operating point analysis");
-
-        if !self.has_nonlinear_elements() {
-            self.build_constant_a_mat();
-            self.build_constant_b_vec();
-            let x_vec = self.solver.solve()?.clone();
-            let res = self.add_var_name(x_vec);
-            return Ok(Sim::Op(res));
-        }
-
-        // Build the initial guess
-        let mut x = self.generate_initial_guess();
-
-        // Use an iterator for the iterations
-        let result = (0..MAXITER)
-            .map(|run| {
-                trace!("Iteration: {run}");
-                trace!("Set matrix");
-                self.build_constant_a_mat();
-                self.build_constant_b_vec();
-                self.build_nonlinear_a_mat(&x);
-                self.build_nonlinear_b_vec(&x);
-                trace!("Solve matrix");
-                // Solve for the new x
-                let x_new = match self.solver.solve().cloned() {
-                    // FIXME — This should only be cloned if converged.
-                    Ok(solution) => solution,
-                    Err(err) => return Some(Err(err.into())),
-                };
-
-                trace!("Check convergence matrix");
-                // Check for convergence
-                if self.has_converged(&x, &x_new, VECTOL) {
-                    // If converged, store the result
-                    let res = self.add_var_name(x_new);
-                    return Some(Ok(Sim::Op(res)));
-                }
-
-                trace!("Update x");
-                // Update x for the next iteration
-                x = x_new;
-
-                None
-            })
-            .find_map(|result| result);
-
-        // If not converged after maximum iterations, return an error
-        match result {
-            Some(Ok(res)) => Ok(res),
-            Some(Err(err)) => Err(err),
-            None => Err(SimulatorError::NonConvergentMaxIter{ max_iter: MAXITER, tol: VECTOL}),
-        }
     }
 
     fn has_nonlinear_elements(&self) -> bool {
@@ -171,7 +124,6 @@ impl<SO: Solver> Simulator<SO> {
             .collect_vec()
     }
 
-
     fn add_complex_var_name(
         &self,
         solution: Vec<Complex<Numeric>>,
@@ -181,152 +133,6 @@ impl<SO: Solver> Simulator<SO> {
             .enumerate()
             .map(|(idx, var)| (self.vars[idx].clone(), var))
             .collect_vec()
-    }
-
-    
-    fn run_tran(&mut self, tstep: &Numeric, tstop: &Numeric) -> Result<Sim, SimulatorError> {
-        info!("Run transient analysis");
-    
-        let mut t = Numeric::zero();
-        let mut tran_results = Vec::new();
-        let mut x_prev: Vec<Numeric> = self.find_op()?.iter().map(|op| op.1).collect();
-    
-        while t <= *tstop {
-            self.build_time_variant_a_mat(tstep);
-            self.build_time_variant_b_vec(tstep);
-
-            self.build_constant_a_mat();
-            self.build_constant_b_vec();
-
-            self.build_nonlinear_a_mat(&x_prev);
-            self.build_nonlinear_b_vec(&x_prev);
-    
-            let x_new = self.solver.solve()?.clone();
-    
-            if self.has_converged(&x_prev, &x_new, VECTOL) {
-                let res = self.add_var_name(x_new.clone());
-                tran_results.push((t, res));
-            } else {
-                return Err(SimulatorError::NonConvergentMaxIter{ max_iter: MAXITER, tol: VECTOL});
-            }
-    
-            x_prev = x_new;
-            t += tstep;
-        }
-    
-        Ok(Sim::Tran(tran_results))
-    }
-
-    fn run_ac(
-        &mut self,
-        fstart: &Numeric,
-        fend: &Numeric,
-        steps: &usize,
-        ac_option: &ACMode,
-    ) -> Result<Sim, SimulatorError> {
-        info!("Run ac analysis");
-        info!("Find operating point");
-        self.find_op()?;
-
-        //Calculate frequencies in the range from [fstart;fend]
-        let freqs: Vec<Numeric> = match ac_option {
-            ACMode::Lin => {
-                let step_size = (fend - fstart) / (*steps as Numeric);
-                (0..=*steps)
-                    .map(|i| fstart + i as Numeric * step_size)
-                    .collect()
-            }
-            ACMode::Dec => {
-                let log_fstart = fstart.log10();
-                let log_fend = fend.log10();
-                let step_size = (log_fend - log_fstart) / (*steps as Numeric);
-                (0..=*steps)
-                    .map(|i| NUMERIC_TEN.powf(log_fstart + i as Numeric * step_size))
-                    .collect()
-            }
-            ACMode::Oct => {
-                let oct_fstart = fstart.log2();
-                let oct_fend = fend.log2();
-                let step_size = (oct_fend - oct_fstart) / (*steps as Numeric);
-                (0..=*steps)
-                    .map(|i| NUMERIC_TWO.powf(oct_fstart + i as Numeric * step_size))
-                    .collect()
-            }
-        };
-
-        info!("Run analysis");
-
-        let mut ac_results = Vec::new();
-        for freq in freqs {
-            self.build_ac_a_mat(freq);
-            self.build_ac_b_vec(freq);
-
-            let x_new = match self.solver.solve_cplx().cloned() {
-                Ok(solution) => solution,
-                Err(err) => return Err(err.into()),
-            };
-
-            let x_new = self.add_complex_var_name(x_new);
-
-            ac_results.push((freq, x_new))
-        }
-
-        Ok(Sim::Ac(ac_results))
-    }
-
-    /// Executes a DC analysis.
-    ///
-    /// This method performs a DC analysis.
-    fn run_dc(
-        &mut self,
-        srcnam: &Arc<str>,
-        vstart: &Numeric,
-        vstop: &Numeric,
-        vstep: &Numeric,
-        _optional: &Option<(Arc<str>, Numeric, Numeric, Numeric)>,
-    ) -> Result<Sim, SimulatorError> {
-        let vsource1_idx = self
-            .elements
-            .iter()
-            .enumerate()
-            .find(|&(_, element)| is_vsource_with_name(element, srcnam))
-            .map(|(index, _)| index);
-
-        let vsource1_idx = match vsource1_idx {
-            Some(index) => index,
-            None => return Err(SimulatorError::VoltageSourceNotFound(srcnam.to_string())),
-        };
-
-        let voltage_0 = self
-            .elements
-            .get_mut(vsource1_idx)
-            .and_then(get_vsource_value)
-            .expect("Element should be a VSource");
-
-        let mut dc_results = Vec::new();
-        let mut voltage = *vstart;
-
-        while voltage <= *vstop {
-            {
-                let source = match &mut self.elements[vsource1_idx] {
-                    Element::VSource(ref mut vs) => vs,
-                    _ => unreachable!(),
-                };
-                source.set_voltage(voltage);
-            }
-            dc_results.push(self.find_op()?);
-            voltage += vstep;
-        }
-
-        {
-            let source = match &mut self.elements[vsource1_idx] {
-                Element::VSource(ref mut vs) => vs,
-                _ => unreachable!(),
-            };
-            source.set_voltage(voltage_0);
-        }
-
-        Ok(Sim::Dc(dc_results))
     }
 
     fn find_op(&mut self) -> Result<Vec<(Variable, Numeric)>, SimulatorError> {
@@ -357,7 +163,10 @@ impl<SO: Solver> Simulator<SO> {
             x = x_new;
         }
 
-        Err(SimulatorError::NonConvergentMaxIter{ max_iter: MAXITER, tol: VECTOL})
+        Err(SimulatorError::NonConvergentMaxIter {
+            max_iter: MAXITER,
+            tol: VECTOL,
+        })
     }
 
     fn build_constant_a_mat(&mut self) {
@@ -376,7 +185,7 @@ impl<SO: Solver> Simulator<SO> {
             .for_each(|pair| self.solver.insert_b(&pair));
     }
 
-    fn build_time_variant_a_mat(&mut self, delta_t:&Numeric) {
+    fn build_time_variant_a_mat(&mut self, delta_t: &Numeric) {
         self.elements
             .iter()
             .filter_map(|ele| ele.get_time_variant_triples(delta_t))
@@ -384,7 +193,7 @@ impl<SO: Solver> Simulator<SO> {
             .for_each(|triplet| self.solver.insert_a(&triplet));
     }
 
-    fn build_time_variant_b_vec(&mut self, delta_t:&Numeric) {
+    fn build_time_variant_b_vec(&mut self, delta_t: &Numeric) {
         self.elements
             .iter()
             .filter_map(|ele| ele.get_time_variant_pairs(delta_t))

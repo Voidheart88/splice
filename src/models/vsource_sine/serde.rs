@@ -1,8 +1,8 @@
+use crate::frontends::{get_variable, serde::ProcessSerdeElement};
+use crate::models::{Element, Unit, VSourceSinBundle, Variable};
+use serde::Deserialize;
 use std::collections::HashMap;
 use std::sync::Arc;
-use serde::Deserialize;
-use crate::frontends::{get_variable, serde::ProcessSerdeElement};
-use crate::models::{VSourceSinBundle, Element, Unit, Variable};
 
 #[derive(Debug, Deserialize)]
 pub struct SerdeVSourceSin {
@@ -23,7 +23,11 @@ impl ProcessSerdeElement for SerdeVSourceSin {
         elements: &mut Vec<Element>,
         var_map: &mut HashMap<Arc<str>, usize>,
     ) {
-        let branch = Variable::new(Arc::from(format!("branch_{}", self.name)), Unit::Ampere, variables.len());
+        let branch = Variable::new(
+            Arc::from(format!("branch_{}", self.name)),
+            Unit::Ampere,
+            variables.len(),
+        );
         variables.push(branch.clone());
 
         let node0 = get_variable(self.node0.as_str(), Unit::Volt, variables, var_map);

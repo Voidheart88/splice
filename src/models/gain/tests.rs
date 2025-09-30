@@ -41,8 +41,8 @@ fn test_triples() {
     assert_eq!(triples.len(), 1);
 
     let (row, col, value) = triples.data()[0];
-    assert_eq!(row, 1);    
-    assert_eq!(col, 0);    
+    assert_eq!(row, 1);
+    assert_eq!(col, 0);
     assert_eq!(value, -4.0);
 }
 

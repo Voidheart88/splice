@@ -111,7 +111,7 @@ fn solve_no_solution() {
         panic!("expected")
     }
     if result.unwrap().iter().any(|val| val.is_infinite()) {
-            panic!("expected")
+        panic!("expected")
     }
 }
 

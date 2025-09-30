@@ -2,9 +2,9 @@ pub(crate) mod serde;
 /// The VSourceSin Module. This module encapsulates everything regarding a sinusoidal voltage source bundle.
 pub(crate) mod spice;
 
-use std::sync::Arc;
-use num::{Complex, Zero, One};
 use super::*;
+use num::{Complex, One, Zero};
+use std::sync::Arc;
 
 /// A structure representing a sinusoidal voltage source.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
@@ -221,7 +221,9 @@ impl VSourceSinBundle {
 
     /// Returns the pairs representing vector b.
     pub fn pairs(&self, time: Option<&Numeric>) -> Pairs<Numeric, 2> {
-        let value = self.dc_offset + self.amplitude * (2.0 * std::f64::consts::PI * self.frequency * time.unwrap() + self.phase).sin();
+        let value = self.dc_offset
+            + self.amplitude
+                * (2.0 * std::f64::consts::PI * self.frequency * time.unwrap() + self.phase).sin();
         Pairs::new(&[(self.branch_idx(), value)])
     }
 

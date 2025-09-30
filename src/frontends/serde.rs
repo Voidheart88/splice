@@ -7,13 +7,13 @@ use super::{Element, Frontend, FrontendError, Simulation};
 
 use crate::models::capacitor::serde::SerdeCapacitor;
 use crate::models::diode::serde::SerdeDiode;
+use crate::models::gain::serde::SerdeGain;
 use crate::models::inductor::serde::SerdeInductor;
 use crate::models::isource::serde::SerdeISource;
 use crate::models::mosfet::serde::SerdeMos0;
 use crate::models::resistor::serde::SerdeResistor;
 use crate::models::vsource::serde::SerdeVSource;
 use crate::models::vsource_sine::serde::SerdeVSourceSin;
-use crate::models::gain::serde::SerdeGain;
 use crate::models::Variable;
 use crate::sim::commands::ACMode;
 use crate::sim::commands::SimulationCommand;
@@ -199,9 +199,7 @@ impl SerdeFrontend {
                 SerdeElement::Mosfet(ele) => {
                     ele.process(&mut variables, &mut elements, &mut var_map)
                 }
-                SerdeElement::Gain(ele) => {
-                    ele.process(&mut variables, &mut elements, &mut var_map)
-                }
+                SerdeElement::Gain(ele) => ele.process(&mut variables, &mut elements, &mut var_map),
             };
         }
 
@@ -210,7 +208,7 @@ impl SerdeFrontend {
                 SerdeSimulation::OP => Self::process_op(&mut commands),
                 SerdeSimulation::DC(serdedc) => Self::process_dc(&mut commands, serdedc),
                 SerdeSimulation::AC(serdeac) => Self::process_ac(&mut commands, serdeac),
-                SerdeSimulation::Tran(serdetran) => Self::process_tran(&mut commands,serdetran),
+                SerdeSimulation::Tran(serdetran) => Self::process_tran(&mut commands, serdetran),
             };
         }
 
@@ -253,11 +251,8 @@ impl SerdeFrontend {
     }
 
     /// Processes a transient analysis simulation.
-    fn process_tran(commands: &mut Vec<SimulationCommand>, serdetran:SerdeTran) {
-        commands.push(SimulationCommand::Tran(
-            serdetran.tstep,
-            serdetran.tend,
-        ))
+    fn process_tran(commands: &mut Vec<SimulationCommand>, serdetran: SerdeTran) {
+        commands.push(SimulationCommand::Tran(serdetran.tstep, serdetran.tend))
     }
 
     /// Processes output options.

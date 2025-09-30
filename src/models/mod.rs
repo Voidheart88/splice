@@ -1,6 +1,7 @@
 pub mod bjt;
 pub mod capacitor;
 pub mod diode;
+pub mod gain;
 pub mod inductor;
 pub mod isource;
 pub mod mosfet;
@@ -9,14 +10,14 @@ pub mod resistor;
 pub mod triples;
 pub mod vsource;
 pub mod vsource_sine;
-pub mod gain;
 
+use crate::spot::*;
 use core::fmt::Display;
 use std::sync::Arc;
-use crate::spot::*;
 
 pub use self::capacitor::CapacitorBundle;
 pub use self::diode::DiodeBundle;
+pub use self::gain::GainBundle;
 pub use self::inductor::InductorBundle;
 pub use self::isource::ISourceBundle;
 pub use self::mosfet::Mos0Bundle;
@@ -25,7 +26,6 @@ pub use self::resistor::ResistorBundle;
 pub use self::triples::{TripleIdx, Triples};
 pub use self::vsource::VSourceBundle;
 pub use self::vsource_sine::VSourceSinBundle;
-pub use self::gain::GainBundle;
 
 /// An Enum representing the Unit of the Value - Necessary for parsing and display.
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
@@ -109,7 +109,10 @@ impl Element {
     }
 
     /// Returns the time variant triples of the element, if applicable.
-    pub(crate) fn get_time_variant_triples(&self, delta_t: &Numeric) -> Option<Triples<Numeric, 4>> {
+    pub(crate) fn get_time_variant_triples(
+        &self,
+        delta_t: &Numeric,
+    ) -> Option<Triples<Numeric, 4>> {
         match self {
             Element::Capacitor(ele) => Some(ele.triples(Some(delta_t))),
             Element::Inductor(ele) => Some(ele.triples(Some(delta_t))),

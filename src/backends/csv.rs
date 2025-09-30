@@ -100,7 +100,7 @@ impl CsvBackend {
             println!("{}", values.join(","));
         }
     }
-    
+
     /// Outputs Transient simulation results in CSV format.
     ///
     /// # Arguments
@@ -115,13 +115,13 @@ impl CsvBackend {
         }
         let mut headers: Vec<_> = headers.into_iter().collect();
         headers.sort();
-        
+
         let mut header_row = vec!["Time".to_string()];
         for header in &headers {
             header_row.push(format!("{header}"));
         }
         println!("{}", header_row.join(","));
-    
+
         for (step_time, step_data) in data.iter() {
             let mut values = vec![format!("{}", step_time)];
             for header in &headers {

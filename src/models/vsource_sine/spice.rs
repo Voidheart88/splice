@@ -1,10 +1,9 @@
-/// The Sine Source  as Spice file: 
-/// <Name> <Node0> <Node1> sin[e] <dc_offset> <amplitude> <frequency> <phase>
-
-use std::sync::Arc;
-use crate::frontends::spice::ProcessSpiceElement;
-use crate::models::{VSourceSinBundle, Element, Unit, Variable};
 use crate::frontends::get_variable;
+use crate::frontends::spice::ProcessSpiceElement;
+use crate::models::{Element, Unit, VSourceSinBundle, Variable};
+/// The Sine Source  as Spice file:
+/// <Name> <Node0> <Node1> sin[e] <dc_offset> <amplitude> <frequency> <phase>
+use std::sync::Arc;
 
 impl ProcessSpiceElement for VSourceSinBundle {
     fn process(
@@ -31,7 +30,11 @@ impl ProcessSpiceElement for VSourceSinBundle {
         let frequency = sin_params[3].parse::<f64>().unwrap();
         let phase = sin_params[4].parse::<f64>().unwrap();
 
-        let branch = Variable::new(Arc::from(format!("branch_{}", name)), Unit::Ampere, variables.len());
+        let branch = Variable::new(
+            Arc::from(format!("branch_{}", name)),
+            Unit::Ampere,
+            variables.len(),
+        );
         variables.push(branch.clone());
 
         let node0_var = get_variable(node0_str, Unit::Volt, variables, var_map);

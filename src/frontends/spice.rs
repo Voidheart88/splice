@@ -16,8 +16,8 @@ use crate::sim::options::SimulationOption;
 use crate::spot::*;
 
 use super::{
-    CapacitorBundle, DiodeBundle, Element, ISourceBundle, InductorBundle, Mos0Bundle,
-    ResistorBundle, GainBundle, Variable,
+    CapacitorBundle, DiodeBundle, Element, GainBundle, ISourceBundle, InductorBundle, Mos0Bundle,
+    ResistorBundle, Variable,
 };
 
 #[derive(Parser)]
@@ -216,8 +216,8 @@ impl SpiceFrontend {
         let mut inner = command.into_inner();
         let tstep = inner.next().unwrap().as_str().parse::<Numeric>().unwrap();
         let tstop = inner.next().unwrap().as_str().parse::<Numeric>().unwrap();
-        
-        commands.push(SimulationCommand::Tran(tstep,tstop))
+
+        commands.push(SimulationCommand::Tran(tstep, tstop))
     }
 
     fn process_out(&self, option: Pair<Rule>, options: &mut Vec<SimulationOption>) {
@@ -237,7 +237,9 @@ impl SpiceFrontend {
     ) {
         let element = element.into_inner().nth(0).unwrap();
         match element.as_rule() {
-            Rule::ELE_VSOURCE_SIN => VSourceSinBundle::process(element, variables, elements, var_map),
+            Rule::ELE_VSOURCE_SIN => {
+                VSourceSinBundle::process(element, variables, elements, var_map)
+            }
             Rule::ELE_VSOURCE => VSourceBundle::process(element, variables, elements, var_map),
             Rule::ELE_ISOURCE => ISourceBundle::process(element, variables, elements, var_map),
             Rule::ELE_RESISTOR => ResistorBundle::process(element, variables, elements, var_map),
