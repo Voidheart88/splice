@@ -1,3 +1,18 @@
+
+## 0.4.3
+Cangelog:
+  - added sine Source
+  - added gain block
+  - refactored a lot of code here
+  - fixed a whole lot of lints
+  - 
+
+Roadmap:
+  - BJT model
+  - JFET model
+  - More Blocks like Gain
+  - Selectable Node Units (Like rps/rpm)
+  
 ## 0.4.2
 Cangelog:
   - added options
