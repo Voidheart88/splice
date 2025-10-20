@@ -237,10 +237,7 @@ impl PlotBackend {
     /// # Returns
     ///
     /// A `Result` which is `Ok` if the plotting operation succeeds, or an `BackendError` if it fails.
-    fn plot_tran(
-        &self,
-        data: &[(Numeric, Vec<(Variable, Numeric)>)],
-    ) -> Result<(), BackendError> {
+    fn plot_tran(&self, data: &[(Numeric, Vec<(Variable, Numeric)>)]) -> Result<(), BackendError> {
         let mut path = PathBuf::from(&self.pth);
         path.set_extension("svg");
         let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("");

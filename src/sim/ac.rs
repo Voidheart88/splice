@@ -2,8 +2,8 @@ use crate::sim::commands::ACMode;
 use crate::sim::simulation_result::Sim;
 use crate::sim::SimulatorError;
 use crate::solver::Solver;
-use crate::Simulator;
 use crate::spot::*;
+use crate::Simulator;
 use log::info;
 
 pub(super) trait AcSimulation<SO: Solver> {
