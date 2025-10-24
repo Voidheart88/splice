@@ -93,7 +93,7 @@ impl SpiceFrontend {
     ) {
         for inner in directive.into_inner() {
             match inner.as_rule() {
-                Rule::ELE => self.process_element(inner, variables, elements, var_map),
+                Rule::ELEMENT => self.process_element(inner, variables, elements, var_map),
                 Rule::COMMAND => {
                     self.process_command(inner, commands, options, elements, variables, var_map)
                 }

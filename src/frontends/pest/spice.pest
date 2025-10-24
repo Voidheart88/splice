@@ -1,61 +1,208 @@
-// Spice Grammar
+// -------------------------------------------------------------------------------------------------
+// Spice Grammar – read‑the‑docs first!
+// -------------------------------------------------------------------------------------------------
 
 // This grammar defines the syntax of the Spice language.
 
-// A spice file is a series of spice directives separated by newlines
-// It begins with a SOI and ends with an EOI.
-// spice files are case insensitive
+// The whole file is a sequence of directives (elements or commands) separated by newlines.
+// The file may start/end with whitespace.
+// The parser is case‑insensitive.
 SPICE = { SOI ~ NEWLINE* ~ (_COMMENT | DIRECTIVE)* ~ NEWLINE* ~ WHITE_SPACE* ~ EOI }
 
-// A directive can be an element or a command
-DIRECTIVE = { (ELE ~ NEWLINE*) | (COMMAND ~ NEWLINE*) }
+// -------------------------------------------------------------------------------------------------
+// A directive: either an element definition or a simulation command
+// -------------------------------------------------------------------------------------------------
+DIRECTIVE = { (ELEMENT ~ NEWLINE*) | (COMMAND ~ NEWLINE*) }
 
-// A comment starts with a Asterisk followed by an Arbitrary number of Alphanumerics
+// -------------------------------------------------------------------------------------------------
+// Comments start with '*' and end at the next newline.
+// A comment
+// -------------------------------------------------------------------------------------------------
 _COMMENT = { "*" ~ ASCII_ALPHANUMERIC* ~ NEWLINE* }
 
-// An Element:
-ELE = { ELE_VSOURCE_SIN | ELE_VSOURCE | ELE_ISOURCE | ELE_RESISTOR | ELE_DIODE | ELE_CAPACITOR | ELE_INDUCTOR | ELE_MOSFET | ELE_GAIN }
+// -------------------------------------------------------------------------------------------------
+// Common building blocks
+// -------------------------------------------------------------------------------------------------
 
-ELE_VSOURCE = { ^"v" ~ ELEMENT_NAME ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ VALUE ~ (WHITE_SPACE+ ~ SOURCE_AC_OPTION)?}
-ELE_VSOURCE_SIN = { ^"v" ~ ELEMENT_NAME ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ ( ^"SINE" | ^"SIN") ~ WHITE_SPACE+ ~ VALUE ~ WHITE_SPACE+ ~ VALUE ~ WHITE_SPACE+ ~ VALUE ~ WHITE_SPACE+ ~ VALUE }
-ELE_ISOURCE = { ^"i" ~ ELEMENT_NAME ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ VALUE ~ (WHITE_SPACE+ ~ SOURCE_AC_OPTION)?}
-ELE_RESISTOR = { ^"r" ~ ELEMENT_NAME ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ VALUE }
-ELE_CAPACITOR = { ^"c" ~ ELEMENT_NAME ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ VALUE }
-ELE_INDUCTOR = { ^"l" ~ ELEMENT_NAME ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ VALUE }
-ELE_DIODE = { ^"d" ~ ELEMENT_NAME ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ (WHITE_SPACE+ ~ DIODE_MODEL)? ~ WHITE_SPACE*}
-ELE_MOSFET = { ^"m" ~ ELEMENT_NAME ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE}
-ELE_GAIN = { ^"A" ~ ELEMENT_NAME ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ NODE ~ WHITE_SPACE+ ~ ^"gain" ~ WHITE_SPACE+ ~ VALUE }
-
+// A name that must contain at least one alphanum character.
 ELEMENT_NAME = { ASCII_ALPHANUMERIC* }
+
+// A Node
+NODE = { ASCII_ALPHANUMERIC+}
+
+VALUE = { ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? ~ (^"e" ~ ("+" | "-")? ~ ASCII_DIGIT+)? }
 
 // AC option for voltage sources
 SOURCE_AC_OPTION = { ^"ac" ~ WHITE_SPACE+ ~ VALUE }
 
+// An Element:
+ELEMENT = {
+    ELE_VSOURCE_SIN
+  | ELE_VSOURCE
+  | ELE_ISOURCE
+  | ELE_RESISTOR
+  | ELE_DIODE
+  | ELE_CAPACITOR
+  | ELE_INDUCTOR
+  | ELE_MOSFET
+  | ELE_GAIN
+}
+
+// -------------------------------------------------------------------------------------------------
+// Voltage source – ordinary DC/AC
+// Syntax: V1 0 1 5 ac 100
+// -------------------------------------------------------------------------------------------------
+ELE_VSOURCE = {
+    ^"v" 
+    ~ ELEMENT_NAME ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ VALUE 
+    ~ (WHITE_SPACE+ ~ SOURCE_AC_OPTION)? ~ WHITE_SPACE*
+}
+
+// -------------------------------------------------------------------------------------------------
+// Voltage source – sinusoidal
+// Syntax: V1 0 1 SINE 0 10 100 0
+// (offset, amplitude, frequency, [phase])
+// 
+// The last VALUE is optional; if omitted it defaults to 0.
+// -------------------------------------------------------------------------------------------------
+ELE_VSOURCE_SIN = {
+    ^"v" 
+    ~ ELEMENT_NAME ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ (^"SINE" | ^"SIN") ~ WHITE_SPACE+ 
+    ~ VALUE ~ WHITE_SPACE+ 
+    ~ VALUE ~ WHITE_SPACE+ 
+    ~ VALUE ~ WHITE_SPACE+ 
+    ~ VALUE ~ WHITE_SPACE*
+}
+
+// -------------------------------------------------------------------------------------------------
+// Current source – DC/AC
+// -------------------------------------------------------------------------------------------------
+ELE_ISOURCE = {
+    ^"i" 
+    ~ ELEMENT_NAME ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ VALUE ~ (WHITE_SPACE+ ~ SOURCE_AC_OPTION)? ~ WHITE_SPACE*
+}
+
+// -------------------------------------------------------------------------------------------------
+// Resistor, Capacitor, Inductor – simple R C L
+// -------------------------------------------------------------------------------------------------
+ELE_RESISTOR  = {
+    ^"r" 
+    ~ ELEMENT_NAME ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ VALUE ~ WHITE_SPACE*
+}
+ELE_CAPACITOR = {
+    ^"c" 
+    ~ ELEMENT_NAME ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ VALUE ~ WHITE_SPACE*
+}
+ELE_INDUCTOR  = {
+    ^"l" 
+    ~ ELEMENT_NAME ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ VALUE ~ WHITE_SPACE*
+}
+
+// -------------------------------------------------------------------------------------------------
+// Diode – optional model specification
+// -------------------------------------------------------------------------------------------------
+ELE_DIODE = {
+    ^"d" 
+    ~ ELEMENT_NAME ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ NODE ~ (WHITE_SPACE+ ~ DIODE_MODEL)? ~ WHITE_SPACE*
+}
+
+// Diode Model Parameters
 DIODE_MODEL = { ^"d" ~ WHITE_SPACE* ~ DIODE_PAR_BV }
+// Optional Parameter: Breakdown Voltage
 DIODE_PAR_BV = { ^"bv" ~ WHITE_SPACE* ~ "=" ~ WHITE_SPACE* ~ VALUE }
 
-// A command can be OP, DC, AC, or Tran
-COMMAND = { CMD_OP | CMD_DC | CMD_AC | CMD_TRAN | CMD_INCLUDE | CMD_OUT}
+// -------------------------------------------------------------------------------------------------
+// MOSFET – three nodes: gate, drain, source
+// -------------------------------------------------------------------------------------------------
+ELE_MOSFET = {
+    ^"m" 
+    ~ ELEMENT_NAME ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE*
+}
 
-// Simulation commands
+// -------------------------------------------------------------------------------------------------
+// Gain element – special case of a dependent voltage source
+// -------------------------------------------------------------------------------------------------
+ELE_GAIN = {
+    ^"a" 
+    ~ ELEMENT_NAME ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ ^"gain" ~ WHITE_SPACE+ 
+    ~ VALUE ~ WHITE_SPACE*
+}
+
+// -------------------------------------------------------------------------------------------------
+// Simulation commands (OP, DC, AC, TRAN, INCLUDE, OUT)
+// -------------------------------------------------------------------------------------------------
+COMMAND = {
+    CMD_OP
+  | CMD_DC
+  | CMD_AC
+  | CMD_TRAN
+  | CMD_INCLUDE
+  | CMD_OUT
+}
+
+// Open‑loop operating point calculation – `.op`
 CMD_OP = { ^".op" ~ WHITE_SPACE* }
 
-CMD_DC = { ^".dc" ~ WHITE_SPACE+ ~ CMD_DC_SRC ~ WHITE_SPACE+ ~ VALUE ~ WHITE_SPACE+ ~ VALUE ~ WHITE_SPACE+ ~ VALUE ~ (WHITE_SPACE+ ~ CMD_DC_OPTIONAL_SRC? )? ~ WHITE_SPACE*}
-CMD_DC_OPTIONAL_SRC = {CMD_DC_SRC ~ WHITE_SPACE+ ~ VALUE ~ WHITE_SPACE+ ~ VALUE ~ WHITE_SPACE+ ~ VALUE}
-CMD_DC_SRC = {ASCII_ALPHANUMERIC+}
+// DC sweep ----------------------------------------------------------------------------------------
+// .dc <Source> <Start> <End> <Step> [<Optional Source> <Start2> <End2> <Step2>]
+CMD_DC              = {
+    ^".dc" ~ WHITE_SPACE+ 
+    ~ CMD_DC_SRC ~ WHITE_SPACE+ 
+    ~ VALUE ~ WHITE_SPACE+ 
+    ~ VALUE ~ WHITE_SPACE+ 
+    ~ VALUE ~ (WHITE_SPACE+ ~ CMD_DC_OPTIONAL_SRC?)? ~ WHITE_SPACE*
+}
+CMD_DC_OPTIONAL_SRC = {
+    CMD_DC_SRC ~ WHITE_SPACE+ 
+    ~ VALUE ~ WHITE_SPACE+ 
+    ~ VALUE ~ WHITE_SPACE+ 
+    ~ VALUE
+}
+CMD_DC_SRC = { ASCII_ALPHANUMERIC+ }
 
-CMD_AC = { ^".ac" ~ WHITE_SPACE+ ~ CMD_AC_FSTART ~ WHITE_SPACE+ ~ CMD_AC_FEND ~ WHITE_SPACE+ ~ CMD_AC_STEPS ~ (WHITE_SPACE+ ~ CMD_AC_OPTION? )? ~ WHITE_SPACE*}
-CMD_AC_FSTART = { ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? ~ (^"e" ~ ("+" | "-")? ~ ASCII_DIGIT+)? }
-CMD_AC_FEND = { ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? ~ (^"e" ~ ("+" | "-")? ~ ASCII_DIGIT+)? }
-CMD_AC_STEPS = { ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? ~ (^"e" ~ ("+" | "-")? ~ ASCII_DIGIT+)? }
+// AC Simulation -----------------------------------------------------------------------------------
+// .ac <StartFreq> <EndFreq> <Steps> [<Option>]
+// 
+CMD_AC = {
+    ^".ac" ~ WHITE_SPACE+ 
+    ~ CMD_AC_FSTART ~ WHITE_SPACE+ 
+    ~ CMD_AC_FEND ~ WHITE_SPACE+ 
+    ~ CMD_AC_STEPS ~ (WHITE_SPACE+ ~ CMD_AC_OPTION?)? ~ WHITE_SPACE*
+}
+
+CMD_AC_FSTART = { VALUE }
+CMD_AC_FEND   = { VALUE }
+CMD_AC_STEPS  = { VALUE }
 CMD_AC_OPTION = { ^"lin" | ^"dec" | ^"oct" }
 
 CMD_TRAN = { ^".tran" ~ WHITE_SPACE+ ~ VALUE ~ WHITE_SPACE+ ~ VALUE }
 
 // Misc commands
-CMD_INCLUDE = {^".include" ~ WHITE_SPACE+ ~ (ASCII_ALPHANUMERIC | ".")+ }
-CMD_OUT = {^".out" ~ WHITE_SPACE+ ~ NODE+ ~ ((WHITE_SPACE+ ~ NODE+)+ | WHITE_SPACE*)}
-
-// Definitions for common elements
-NODE = { ASCII_ALPHANUMERIC+ }
-VALUE = { ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? ~ (^"e" ~ ("+" | "-")? ~ ASCII_DIGIT+)? }
+CMD_INCLUDE = { ^".include" ~ WHITE_SPACE+ ~ (ASCII_ALPHANUMERIC | ".")+ }
+CMD_OUT     = { ^".out" ~ WHITE_SPACE+ ~ NODE+ ~ ((WHITE_SPACE+ ~ NODE+)+ | WHITE_SPACE*) }
