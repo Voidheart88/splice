@@ -1,5 +1,5 @@
-pub(crate) mod serde;
 /// The VSourceSin Module. This module encapsulates everything regarding a sinusoidal voltage source bundle.
+pub(crate) mod serde;
 pub(crate) mod spice;
 
 use super::*;
@@ -111,6 +111,7 @@ impl VSourceSinBundle {
                 ])
             }
         };
+
         Triples::new(&[
             (branch_idx, node0_idx, Numeric::one()),
             (node0_idx, branch_idx, Numeric::one()),
@@ -183,6 +184,7 @@ impl VSourceSinBundle {
                 ])
             }
         };
+
         Triples::new(&[
             (
                 branch_idx,

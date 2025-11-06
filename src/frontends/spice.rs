@@ -20,10 +20,11 @@ use super::{
     ResistorBundle, Variable,
 };
 
-#[derive(Parser)]
+#[derive(Parser, Debug)]
 #[grammar = "frontends/pest/spice.pest"]
 pub struct SpiceParser;
 
+#[derive(Debug)]
 pub struct SpiceFrontend {
     pth: String,
 }

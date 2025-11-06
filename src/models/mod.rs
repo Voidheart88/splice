@@ -11,9 +11,12 @@ pub mod triples;
 pub mod vsource;
 pub mod vsource_sine;
 
-use crate::spot::*;
 use core::fmt::Display;
 use std::sync::Arc;
+
+use num::Zero;
+
+use crate::spot::*;
 
 pub use self::capacitor::CapacitorBundle;
 pub use self::diode::DiodeBundle;
@@ -92,6 +95,7 @@ impl Element {
     /// Returns the constant triples of the element, if applicable.
     pub(crate) fn get_constant_triples(&self) -> Option<Triples<Numeric, 4>> {
         match self {
+            Element::VSourceSin(ele) => Some(ele.triples()),
             Element::VSource(ele) => Some(ele.triples()),
             Element::Resistor(ele) => Some(ele.triples()),
             Element::Gain(ele) => Some(ele.triples()), // Gain ist linear und konstant
@@ -102,6 +106,7 @@ impl Element {
     /// Returns the constant pairs of the element, if applicable.
     pub(crate) fn get_constant_pairs(&self) -> Option<Pairs<Numeric, 2>> {
         match self {
+            Element::VSourceSin(ele) => Some(ele.pairs(Some(&Numeric::zero()))),
             Element::VSource(ele) => Some(ele.pairs()),
             Element::ISource(ele) => Some(ele.pairs()),
             _ => None,

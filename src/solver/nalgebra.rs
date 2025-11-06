@@ -98,6 +98,58 @@ impl Solver for NalgebraSolver {
     }
 }
 
+impl std::fmt::Debug for NalgebraSolver {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        const MAX_ITEMS: usize = 1_000;
+
+        write!(f, "NalgebraSolver {{\n")?;
+
+        if self.a_mat.nrows() * self.a_mat.ncols() <= MAX_ITEMS {
+            writeln!(f, "  a_mat:\n{:?},", &self.a_mat)?;
+        } else {
+            writeln!(
+                f,
+                "  a_mat: {}×{} (Ausgabe gekürzt)",
+                self.a_mat.nrows(),
+                self.a_mat.ncols()
+            )?;
+        }
+
+        if self.b_vec.len() <= MAX_ITEMS {
+            writeln!(f, "  b_vec:\n{:?},", &self.b_vec)?;
+        } else {
+            writeln!(
+                f,
+                "  b_vec: {} Einträge (Ausgabe gekürzt)",
+                self.b_vec.len()
+            )?;
+        }
+
+        if self.cplx_a_mat.nrows() * self.cplx_a_mat.ncols() <= MAX_ITEMS {
+            writeln!(f, "  cplx_a_mat:\n{:?},", &self.cplx_a_mat)?;
+        } else {
+            writeln!(
+                f,
+                "  cplx_a_mat: {}×{} (Ausgabe gekürzt)",
+                self.cplx_a_mat.nrows(),
+                self.cplx_a_mat.ncols()
+            )?;
+        }
+
+        if self.cplx_b_vec.len() <= MAX_ITEMS {
+            writeln!(f, "  cplx_b_vec:\n{:?},", &self.cplx_b_vec)?;
+        } else {
+            writeln!(
+                f,
+                "  cplx_b_vec: {} Einträge (Ausgabe gekürzt)",
+                self.cplx_b_vec.len()
+            )?;
+        }
+
+        write!(f, "}}")
+    }
+}
+
 #[cfg(test)]
 impl NalgebraSolver {
     pub fn rows(&self) -> usize {

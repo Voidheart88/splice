@@ -15,16 +15,14 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
     fn run_tran(&mut self, tstep: &Numeric, tstop: &Numeric) -> Result<Sim, SimulatorError> {
         info!("Run transient analysis");
 
-        // Konstanten einmal bauen (falls wirklich konstant)
-        self.build_constant_a_mat();
-        self.build_constant_b_vec();
-
         let mut t = Numeric::zero();
         let mut tran_results = Vec::new();
 
         let mut x_prev: Vec<Numeric> = self.find_op()?.iter().map(|op| op.1).collect();
 
         while t <= *tstop {
+            self.build_constant_a_mat();
+            self.build_constant_b_vec();
             self.build_time_variant_a_mat(tstep);
             self.build_time_variant_b_vec(tstep);
             self.build_nonlinear_a_mat(&x_prev);

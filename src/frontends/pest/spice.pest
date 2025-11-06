@@ -68,16 +68,19 @@ ELE_VSOURCE = {
 // 
 // The last VALUE is optional; if omitted it defaults to 0.
 // -------------------------------------------------------------------------------------------------
+
+
+// Nachher:
 ELE_VSOURCE_SIN = {
     ^"v" 
     ~ ELEMENT_NAME ~ WHITE_SPACE+ 
-    ~ NODE ~ WHITE_SPACE+ 
-    ~ NODE ~ WHITE_SPACE+ 
-    ~ (^"SINE" | ^"SIN") ~ WHITE_SPACE+ 
-    ~ VALUE ~ WHITE_SPACE+ 
-    ~ VALUE ~ WHITE_SPACE+ 
-    ~ VALUE ~ WHITE_SPACE+ 
-    ~ VALUE ~ WHITE_SPACE*
+    ~ NODE ~ WHITE_SPACE+ // 1 Node
+    ~ NODE ~ WHITE_SPACE+ // 2 Node
+    ~ (^"SINE" | ^"SIN") ~ WHITE_SPACE+ // Sine Modifier
+    ~ VALUE ~ WHITE_SPACE+ // DC Offset
+    ~ VALUE ~ WHITE_SPACE+ // Amplitude
+    ~ VALUE                // Frequency
+    ~ (WHITE_SPACE+ ~ VALUE)? // Optional Phase
 }
 
 // -------------------------------------------------------------------------------------------------

@@ -6,13 +6,23 @@ use std::sync::Arc;
 
 #[derive(Debug, Deserialize)]
 pub struct SerdeVSourceSin {
+    /// Name of the sinusoidal voltage source.
     pub name: String,
+    /// Node 0 of the sinusoidal voltage source.
     pub node0: String,
+    /// Node 1 of the sinusoidal voltage source.
     pub node1: String,
+    /// DC offset of the sinusoidal voltage source.
+    #[serde(rename = "dc-offset")]
     pub dc_offset: f64,
+    /// Amplitude of the sinusoidal voltage source.
     pub amplitude: f64,
+    /// Frequency of the sinusoidal voltage source.
     pub frequency: f64,
+    /// Phase of the sinusoidal voltage source.
     pub phase: f64,
+    /// AC value of the sinusoidal voltage source.
+    #[serde(rename = "ac-value")]
     pub ac_value: Option<f64>,
 }
 

@@ -765,7 +765,6 @@ fn parse_gain() {
 fn parse_sine() {
     let main_path = "src/frontends/tests/spice_files/parse_sine.cir";
     let parser = SpiceFrontend::new(main_path.to_string());
-
     let Simulation {
         commands,
         options,

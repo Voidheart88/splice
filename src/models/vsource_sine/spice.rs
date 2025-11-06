@@ -1,9 +1,10 @@
-use crate::frontends::get_variable;
-use crate::frontends::spice::ProcessSpiceElement;
-use crate::models::{Element, Unit, VSourceSinBundle, Variable};
 /// The Sine Source  as Spice file:
 /// <Name> <Node0> <Node1> sin[e] <dc_offset> <amplitude> <frequency> <phase>
 use std::sync::Arc;
+
+use crate::frontends::get_variable;
+use crate::frontends::spice::ProcessSpiceElement;
+use crate::models::{Element, Unit, VSourceSinBundle, Variable};
 
 impl ProcessSpiceElement for VSourceSinBundle {
     fn process(
@@ -24,11 +25,26 @@ impl ProcessSpiceElement for VSourceSinBundle {
         let node1 = inner.next().unwrap().as_span();
         let node1_str = &ele[node1.start() - offset..node1.end() - offset];
 
-        let sin_params: Vec<&str> = inner.map(|pair| pair.as_str()).collect();
-        let dc_offset = sin_params[1].parse::<f64>().unwrap();
-        let amplitude = sin_params[2].parse::<f64>().unwrap();
-        let frequency = sin_params[3].parse::<f64>().unwrap();
-        let phase = sin_params[4].parse::<f64>().unwrap();
+        // Parse the 3 or 4 values (offset, amplitude, frequency, phase)
+        let mut values = Vec::new();
+        for pair in inner {
+            values.push(pair.as_str());
+        }
+
+        // Ensure we have at least 3 values
+        if values.len() < 3 {
+            panic!("Insufficient values for VSourceSin");
+        }
+
+        let dc_offset = values[0].parse::<f64>().unwrap();
+        let amplitude = values[1].parse::<f64>().unwrap();
+        let frequency = values[2].parse::<f64>().unwrap();
+
+        // Optional phase value
+        let phase = match values.get(3) {
+            Some(phase_str) => phase_str.parse::<f64>().unwrap(),
+            None => 0.0, // Default value when not specified
+        };
 
         let branch = Variable::new(
             Arc::from(format!("branch_{}", name)),

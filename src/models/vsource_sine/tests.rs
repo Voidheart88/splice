@@ -56,3 +56,39 @@ fn test_triples() {
     );
     assert_eq!(vsource_sin_bundle.triples().len(), 4);
 }
+
+#[test]
+fn vsource_sin_pairs_returns_correct_values() {
+    let name = Arc::from("V1");
+    let branch = Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0);
+    let node0 = Some(Variable::new(Arc::from("n1"), Unit::Volt, 1));
+
+    let vsource = VSourceSinBundle::new(
+        name,
+        branch.clone(),
+        node0.clone(),
+        None,
+        2.0,
+        3.0,
+        1.0,
+        std::f64::consts::FRAC_PI_2,
+        None,
+    );
+
+    let pairs_t0 = vsource.pairs(Some(&0.0));
+
+    let &(idx, val) = pairs_t0
+        .into_iter()
+        .next()
+        .expect("pairs() should return one entry at time 0");
+    assert_eq!(idx, branch.idx());
+    assert!((val - 5.0).abs() < 1e-12);
+
+    let pairs_t025 = vsource.pairs(Some(&0.25));
+    let &(idx, val) = pairs_t025
+        .into_iter()
+        .next()
+        .expect("pairs() should return one entry at time 0.25");
+    assert_eq!(idx, branch.idx());
+    assert!((val - 2.0).abs() < 1e-12);
+}
