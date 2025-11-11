@@ -5,6 +5,7 @@ use super::{Solver, SolverError};
 use crate::spot::*;
 
 /// A backend implementation using the Faer library.
+#[derive(Debug)]
 pub struct FaerSolver {
     /// The conductance matrix `A`.
     a_mat: Mat<Numeric>,

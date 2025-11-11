@@ -85,13 +85,10 @@ fn norm(vec: &[Numeric]) -> Numeric {
     Numeric::sqrt(vec.iter().map(|val| val * val).sum())
 }
 
-/// Prüft für einen konkreten Solver‑Typ,
-/// ob er nach `solve()` wieder bereit ist.
 fn test_solver_reset<SolverT>() -> Result<(), String>
 where
-    SolverT: Solver + Default + std::fmt::Debug,
+    SolverT: Solver + std::fmt::Debug,
 {
-    // 1. Erstes System – Identity, b = [1;1] → x = [1;1]
     let mut solver = SolverT::new(2).map_err(|e| e.to_string())?;
     solver.insert_a(&(0, 0, 1.0));
     solver.insert_a(&(1, 1, 1.0));
@@ -102,7 +99,6 @@ where
     assert_eq!(res1[0], 1.0);
     assert_eq!(res1[1], 1.0);
 
-    // 2. Zweites System – 3·I, b = [6;6] → x = [2;2]
     solver.insert_a(&(0, 0, 3.0));
     solver.insert_a(&(1, 1, 3.0));
     solver.insert_b(&(0, 6.0));

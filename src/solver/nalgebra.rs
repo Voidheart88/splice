@@ -72,7 +72,10 @@ impl Solver for NalgebraSolver {
             Some(v) => v,
             None => return Err(SolverError::MatrixNonInvertible),
         };
-
+        
+        self.a_mat.fill(Numeric::zero());
+        self.b_vec.fill(Numeric::zero());
+        
         Ok(self.x_vec.data.as_vec())
     }
 
@@ -83,6 +86,9 @@ impl Solver for NalgebraSolver {
             Some(v) => v,
             None => return Err(SolverError::MatrixNonInvertible),
         };
+        
+        self.cplx_a_mat.fill(ComplexNumeric::zero());
+        self.cplx_b_vec.fill(ComplexNumeric::zero());
 
         Ok(self.cplx_x_vec.data.as_vec())
     }
