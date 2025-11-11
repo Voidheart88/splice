@@ -78,12 +78,12 @@ fn solve_small_2() {
 
     assert!(
         (solution[0] - 2.0).abs() < epsilon,
-        "Erwartet x=2.0, aber ist {}",
+        "Expected x=2.0, but is {}",
         solution[0]
     );
     assert!(
         (solution[1] - 1.0).abs() < epsilon,
-        "Erwartet y=1.0, aber ist {}",
+        "Expected y=1.0, but is {}",
         solution[1]
     );
 }
@@ -207,7 +207,7 @@ pub fn newton_raphson_test() {
     let max_iterations = 100;
     let tolerance = 1.0e-6;
 
-    println!("Startschätzung: {x_current:?}");
+    println!("Start: {x_current:?}");
 
     for iter in 0..max_iterations {
         let f_val = calculate_f(&x_current);
@@ -251,7 +251,7 @@ pub fn newton_raphson_test() {
         );
 
         if iter == max_iterations - 1 {
-            println!("Maximale Iterationen erreicht ohne Konvergenz.");
+            println!("Max iters without convergence.");
         }
     }
 
