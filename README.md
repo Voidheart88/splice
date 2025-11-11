@@ -19,14 +19,11 @@ The goal of Splice is to provide a better simulation experience.
 
 ## Todos/Roadmap:
 ### Frontends:
-  - Build a JSON frontend
-  - Build a YAML frontend
   - Build a network frontend - Splice should be runnable inside a container without many dependencies
   - Build a KiCad frontend
 
 ### Solver:
   - Build a CUDA/OpenCL backend
-  - Build an FPGA backend (should be a lot of fun)
 
 ### Outputs:
   - Improve the CSV output
