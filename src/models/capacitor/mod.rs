@@ -192,6 +192,10 @@ impl CapacitorBundle {
 
     /// Returns the pairs representing the right-hand side (RHS) for transient simulation
     /// This implements the C * V_prev / Δt term for proper integration
+    /// FIXME: There appears to be an issue with the transient simulation of capacitors.
+    /// The capacitor charging behavior is not working correctly - capacitors don't charge
+    /// up to the expected voltage in transient simulations. This may be related to the
+    /// integration formula or the sign/convention used in the RHS vector.
     pub fn pairs(&self, delta_t: &Numeric) -> Pairs<Numeric, 2> {
         let g = self.value / delta_t; // Equivalent conductance
         let v_prev = self.previous_voltage;

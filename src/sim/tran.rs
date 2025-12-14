@@ -22,9 +22,11 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
         let mut x_prev: Vec<Numeric> = self.find_op()?.iter().map(|op| op.1).collect();
         
         // Initialize capacitor voltages from OP analysis
-        // In OP analysis, capacitors are treated as short circuits, so voltage across is 0
-        // But we need to set the initial charge correctly for transient analysis
-        // The initial voltage should be 0V (unloaded capacitor)
+        // FIXME: This initialization may be incorrect. In OP analysis, capacitors are treated
+        // as open circuits (not short circuits), so their voltage is not constrained by the
+        // OP solution. The current approach of setting all capacitor voltages to 0 may not
+        // be correct for all circuits. We should compute the initial voltage based on the
+        // OP solution: V_initial = V_node0 - V_node1 from the OP analysis.
         for element in &mut self.elements {
             if let Element::Capacitor(cap) = element {
                 cap.update_previous_voltage(Numeric::zero());
