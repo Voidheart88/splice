@@ -41,15 +41,15 @@ impl Solver for FaerSolver {
     where
         Self: Sized,
     {
-        /// Creates a new `FaerSolver` with the given number of variables.
-        ///
-        /// # Arguments
-        ///
-        /// * `vars` - The number of variables in the system of equations.
-        ///
-        /// # Returns
-        ///
-        /// A new `FaerSolver` instance.
+        // Creates a new `FaerSolver` with the given number of variables.
+        //
+        // # Arguments
+        //
+        // * `vars` - The number of variables in the system of equations.
+        //
+        // # Returns
+        //
+        // A new `FaerSolver` instance.
         Ok(FaerSolver {
             a_mat: Mat::zeros(vars, vars),
             b_vec: Mat::full(vars, 1, 0.0),
@@ -61,59 +61,59 @@ impl Solver for FaerSolver {
     }
 
     fn insert_a(&mut self, a_mat: &(usize, usize, Numeric)) {
-        /// Inserts a value into the conductance matrix `A`.
-        ///
-        /// # Arguments
-        ///
-        /// * `a_mat` - A tuple containing the row index, column index, and value to insert.
+        // Inserts a value into the conductance matrix `A`.
+        //
+        // # Arguments
+        //
+        // * `a_mat` - A tuple containing the row index, column index, and value to insert.
         let (row, col, val) = *a_mat;
         self.a_mat[(row, col)] += val;
     }
 
     fn insert_b(&mut self, b_vec: &(usize, Numeric)) {
-        /// Inserts a value into the vector `b`.
-        ///
-        /// # Arguments
-        ///
-        /// * `b_vec` - A tuple containing the row index and value to insert.
+        // Inserts a value into the vector `b`.
+        //
+        // # Arguments
+        //
+        // * `b_vec` - A tuple containing the row index and value to insert.
         let (row, val) = *b_vec;
         let value = self.b_vec.get_mut(row, 0);
         *value += val;
     }
 
     fn insert_cplx_a(&mut self, a_mat: &(usize, usize, ComplexNumeric)) {
-        /// Inserts a complex value into the conductance matrix `A`.
-        ///
-        /// # Arguments
-        ///
-        /// * `a_mat` - A tuple containing the row index, column index, and complex value to insert.
+        // Inserts a complex value into the conductance matrix `A`.
+        //
+        // # Arguments
+        //
+        // * `a_mat` - A tuple containing the row index, column index, and complex value to insert.
         let (row, col, val) = *a_mat;
         self.cplx_a_mat[(row, col)] += val;
     }
 
     fn insert_cplx_b(&mut self, b_vec: &(usize, ComplexNumeric)) {
-        /// Inserts a complex value into the vector `b`.
-        ///
-        /// # Arguments
-        ///
-        /// * `b_vec` - A tuple containing the row index and complex value to insert.
+        // Inserts a complex value into the vector `b`.
+        //
+        // # Arguments
+        //
+        // * `b_vec` - A tuple containing the row index and complex value to insert.
         let (row, val) = *b_vec;
         let value = self.cplx_b_vec.get_mut(row, 0);
         *value += val;
     }
     fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError> {
-        /// Solves the system of equations `Ax = b` for real numbers.
-        ///
-        /// This method uses LU decomposition with partial pivoting to solve the system.
-        /// After solving, the matrices and vectors are reset to ensure a clean state for the next solve.
-        ///
-        /// # Returns
-        ///
-        /// A reference to the solution vector `x`.
-        ///
-        /// # Errors
-        ///
-        /// Returns `SolverError::MatrixNonInvertible` if the matrix is singular and cannot be inverted.
+        // Solves the system of equations `Ax = b` for real numbers.
+        //
+        // This method uses LU decomposition with partial pivoting to solve the system.
+        // After solving, the matrices and vectors are reset to ensure a clean state for the next solve.
+        //
+        // # Returns
+        //
+        // A reference to the solution vector `x`.
+        //
+        // # Errors
+        //
+        // Returns `SolverError::MatrixNonInvertible` if the matrix is singular and cannot be inverted.
         let lu = self.a_mat.partial_piv_lu();
         let res = lu.solve(&self.b_vec);
 
@@ -134,18 +134,18 @@ impl Solver for FaerSolver {
     }
 
     fn solve_cplx(&mut self) -> Result<&Vec<ComplexNumeric>, SolverError> {
-        /// Solves the system of equations `Ax = b` for complex numbers.
-        ///
-        /// This method uses LU decomposition with partial pivoting to solve the system.
-        /// After solving, the matrices and vectors are reset to ensure a clean state for the next solve.
-        ///
-        /// # Returns
-        ///
-        /// A reference to the solution vector `x` for complex numbers.
-        ///
-        /// # Errors
-        ///
-        /// Returns `SolverError::MatrixNonInvertible` if the matrix is singular and cannot be inverted.
+        // Solves the system of equations `Ax = b` for complex numbers.
+        //
+        // This method uses LU decomposition with partial pivoting to solve the system.
+        // After solving, the matrices and vectors are reset to ensure a clean state for the next solve.
+        //
+        // # Returns
+        //
+        // A reference to the solution vector `x` for complex numbers.
+        //
+        // # Errors
+        //
+        // Returns `SolverError::MatrixNonInvertible` if the matrix is singular and cannot be inverted.
         let lu = self.cplx_a_mat.partial_piv_lu();
         let res = lu.solve(&self.cplx_b_vec);
 
@@ -168,11 +168,11 @@ impl Solver for FaerSolver {
     fn init(&mut self, _a_matrix: Vec<(usize, usize)>, _cplx_a_matrix: Vec<(usize, usize)>) {}
 
     fn reset(&mut self) {
-        /// Resets the solver to a clean state by zeroing all matrices and vectors.
-        ///
-        /// This method is called between simulations to ensure that no old values
-        /// affect the new calculations. It is particularly important for transient
-        /// simulations where the matrices and vectors are rebuilt in each time step.
+        // Resets the solver to a clean state by zeroing all matrices and vectors.
+        //
+        // This method is called between simulations to ensure that no old values
+        // affect the new calculations. It is particularly important for transient
+        // simulations where the matrices and vectors are rebuilt in each time step.
         self.a_mat
             .row_iter_mut()
             .flat_map(|row| row.iter_mut())
