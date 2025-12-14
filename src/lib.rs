@@ -67,7 +67,8 @@ pub fn run_sim_for_benchmark<T: Solver>(sim: Simulation) -> Result<(), String> {
 pub fn run() -> Result<()> {
     let cli = Cli::parse();
 
-    simple_logger::init_with_level(cli.verbose).unwrap();
+    simple_logger::init_with_level(cli.verbose)
+        .expect("Failed to initialize logger. This should not happen and indicates a system configuration issue.");
 
     if cli.frontend == Frontends::Network && cli.backend == Backends::Network {
         network_loop(cli.solver);

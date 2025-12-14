@@ -320,7 +320,8 @@ impl<SO: Solver> From<Simulation> for Simulator<SO> {
             variables,
         } = sim;
 
-        let backend = SO::new(variables.len()).unwrap();
+        let backend = SO::new(variables.len())
+            .expect("Failed to create solver backend. This indicates a system resource limitation or invalid configuration.");
 
         Simulator {
             elements,

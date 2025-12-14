@@ -105,9 +105,11 @@ impl ResistorBundle {
         let node0_idx = if let Some(idx) = self.node0_idx() {
             idx
         } else {
+            // If node0 doesn't exist, resistor is connected to ground through node1
+            let node1_idx = self.node1_idx().expect("Resistor must have at least one node connected");
             return Triples::new(&[(
-                self.node1_idx().unwrap(),
-                self.node1_idx().unwrap(),
+                node1_idx,
+                node1_idx,
                 Complex {
                     re: Numeric::one() / self.value,
                     im: Numeric::zero(),
