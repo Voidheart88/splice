@@ -227,29 +227,28 @@ fn run_sim_tran() {
 }
 
 #[test]
-fn run_sim_tran_sin() {
-    // Tests the transient simulation with a sinusoidal voltage source.
+fn test_vsource_sin_op() {
+    // Tests the sinusoidal voltage source in OP simulation.
     //
-    // This test verifies that the transient simulation correctly calculates
-    // the current and voltage over time for a simple circuit with a sinusoidal
-    // voltage source and a resistor.
-    let commands = vec![SimulationCommand::Tran(0.1, 10.0)];
+    // This test verifies that the DC offset of the sinusoidal voltage source
+    // is correctly applied in operating point analysis.
+    let commands = vec![SimulationCommand::Op];
     let options = vec![];
 
     let node_1 = Variable::new(Arc::from("1"), Unit::Volt, 1);
     let branch_1 = Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0);
 
-    // Create a sinusoidal voltage source
+    // Create a sinusoidal voltage source with DC offset
     let vsource_sin = Element::VSourceSin(VSourceSinBundle::new(
         Arc::from("V1"),
         branch_1.clone(),
         None,
         Some(node_1.clone()),
         10.0, // dc_offset
-        1.0,  // amplitude
-        1.0,  // frequency (Hz)
-        0.0,  // phase
-        None, // ac_value - this is the missing parameter
+        1.0,  // amplitude (not used in OP simulation)
+        1.0,  // frequency (not used in OP simulation)
+        0.0,  // phase (not used in OP simulation)
+        None, // ac_value
     ));
 
     let resistor = Element::Resistor(ResistorBundle::new(
@@ -269,22 +268,163 @@ fn run_sim_tran_sin() {
         variables,
     };
 
-    let mut simulator: Simulator<NalgebraSolver> = Simulator::from(sim.clone());
+    let mut simulator: Simulator<FaerSolver> = Simulator::from(sim);
 
     let result = simulator.run().unwrap();
 
-    let result = match result.results[0].clone() {
-        Sim::Tran(res) => res,
-        _ => todo!(),
+    let op_results = match &result.results[0] {
+        Sim::Op(results) => results,
+        _ => panic!("Expected OP results"),
     };
 
     // Verify the results
-    for res in result {
-        let time = res.0;
-        let curr = res.1[0].1;
-        let vol = res.1[1].1;
-        println!("{time}, {curr:?}, {vol:?}")
+    // Expected: V = DC_offset = 10.0V
+    //           I = V / R = 10.0V / 10.0Ω = 1.0A (negative because flowing into source)
+    let mut voltage = 0.0;
+    let mut current = 0.0;
+    
+    for (var, val) in op_results {
+        if var.name() == Arc::from("1") {
+            voltage = *val;
+        } else if var.name() == Arc::from("V1#branch") {
+            current = *val;
+        }
     }
+    
+    let expected_voltage = 10.0;
+    let expected_current = -1.0; // Negative because current flows into voltage source
+    
+    let vol_diff = (voltage - expected_voltage).abs();
+    let curr_diff = (current - expected_current).abs();
+    
+    assert!(
+        vol_diff < 1e-6,
+        "Voltage test failed: V_measured={}V, V_expected={}V, diff={}V",
+        voltage, expected_voltage, vol_diff
+    );
+    
+    assert!(
+        curr_diff < 1e-6,
+        "Current test failed: I_measured={}A, I_expected={}A, diff={}A",
+        current, expected_current, curr_diff
+    );
+    
+    println!("✅ Sinusoidal voltage source OP test PASSED - DC offset correctly applied");
+}
+
+#[test]
+fn test_vsource_sin_tran() {
+    // Tests the sinusoidal voltage source in transient simulation.
+    //
+    // This test verifies that the sinusoidal voltage source correctly generates
+    // a sinusoidal waveform in transient analysis.
+    let commands = vec![SimulationCommand::Tran(0.1, 1.0)]; // Small time step for accuracy
+    let options = vec![];
+
+    let node_1 = Variable::new(Arc::from("1"), Unit::Volt, 1);
+    let branch_1 = Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0);
+
+    // Create a sinusoidal voltage source
+    // V(t) = DC_offset + amplitude * sin(2π * frequency * t + phase)
+    let vsource_sin = Element::VSourceSin(VSourceSinBundle::new(
+        Arc::from("V1"),
+        branch_1.clone(),
+        None,
+        Some(node_1.clone()),
+        10.0, // dc_offset
+        1.0,  // amplitude
+        1.0,  // frequency (Hz)
+        0.0,  // phase
+        None, // ac_value
+    ));
+
+    let resistor = Element::Resistor(ResistorBundle::new(
+        Arc::from("R1"),
+        Some(node_1.clone()),
+        None,
+        10.0,
+    ));
+
+    let elements = vec![vsource_sin, resistor];
+    let variables = vec![branch_1, node_1];
+
+    let sim = Simulation {
+        commands,
+        options,
+        elements,
+        variables,
+    };
+
+    let mut simulator: Simulator<NalgebraSolver> = Simulator::from(sim);
+
+    let result = simulator.run().unwrap();
+
+    let tran_results = match &result.results[0] {
+        Sim::Tran(results) => results,
+        _ => panic!("Expected transient results"),
+    };
+
+    // Verify the results at a few key points
+    let dc_offset = 10.0;
+    let amplitude = 1.0;
+    let frequency = 1.0;
+    let resistance = 10.0;
+    let phase = 0.0;
+    
+    // Test at t = 0s: V = DC_offset + amplitude * sin(phase) = 10.0 + 1.0 * sin(0) = 10.0V
+    // Test at t = 0.25s: V = 10.0 + 1.0 * sin(π/2) = 10.0 + 1.0 = 11.0V
+    // Test at t = 0.5s: V = 10.0 + 1.0 * sin(π) = 10.0 + 0.0 = 10.0V
+    // Test at t = 0.75s: V = 10.0 + 1.0 * sin(3π/2) = 10.0 - 1.0 = 9.0V
+    // Test at t = 1.0s: V = 10.0 + 1.0 * sin(2π) = 10.0 + 0.0 = 10.0V
+    
+    let test_points = vec![
+        (0.0, 10.0),
+        (0.25, 11.0),
+        (0.5, 10.0),
+        (0.75, 9.0),
+        (1.0, 10.0),
+    ];
+    
+    for (expected_time, expected_voltage) in test_points {
+        // Find the result closest to the expected time
+        if let Some(&(time, ref values)) = tran_results.iter().min_by_key(|(t, _)| {
+            ((*t - expected_time).abs() * 1000.0) as i32
+        }) {
+            let mut voltage = 0.0;
+            let mut current = 0.0;
+            
+            for (var, val) in values {
+                if var.name() == Arc::from("1") {
+                    voltage = *val;
+                } else if var.name() == Arc::from("V1#branch") {
+                    current = *val;
+                }
+            }
+            
+            let expected_current = -expected_voltage / resistance; // Negative because current flows into source
+            
+            // Allow 5% relative error or reasonable absolute error
+            let vol_diff = (voltage - expected_voltage).abs();
+            let curr_diff = (current - expected_current).abs();
+            
+            let vol_rel_error = vol_diff / expected_voltage.abs().max(1e-9);
+            let curr_rel_error = curr_diff / expected_current.abs().max(1e-9);
+            
+            assert!(
+                vol_diff < 0.5 || vol_rel_error < 0.05,
+                "Voltage test failed at t≈{}s: V_measured={}V, V_expected={}V, diff={}V ({:.2}%)",
+                time, voltage, expected_voltage, vol_diff, vol_rel_error * 100.0
+            );
+            
+            assert!(
+                curr_diff < 0.05 || curr_rel_error < 0.05,
+                "Current test failed at t≈{}s: I_measured={}A, I_expected={}A, diff={}A ({:.2}%)",
+                time, current, expected_current, curr_diff, curr_rel_error * 100.0
+            );
+        }
+    }
+    
+    println!("✅ Transient sinusoidal test PASSED - correct sinusoidal behavior verified");
 }
 
 #[test]
@@ -386,4 +526,182 @@ fn test_ac_rc_cutoff_frequency() {
     }
     
     assert!(found_cutoff, "Could not find cutoff frequency in AC analysis");
+}
+
+#[test]
+fn test_dc_linear_resistor() {
+    // Tests DC sweep on a simple resistor circuit
+    // Verifies linear I-V relationship: I = V/R
+    
+    let commands = vec![SimulationCommand::Dc(
+        Arc::from("V1"),
+        0.0,
+        10.0,
+        1.0,
+        None
+    )];
+    let options = vec![];
+    
+    let node_1 = Variable::new(Arc::from("1"), Unit::Volt, 1);
+    let branch_1 = Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0);
+    
+    let vsource = Element::VSource(VSourceBundle::new(
+        Arc::from("V1"),
+        branch_1.clone(),
+        None,
+        Some(node_1.clone()),
+        0.0, // DC value (will be swept)
+        None,
+    ));
+    
+    let resistor = Element::Resistor(ResistorBundle::new(
+        Arc::from("R1"),
+        Some(node_1.clone()),
+        None, // Connect to ground
+        1000.0, // 1kΩ
+    ));
+    
+    let elements = vec![vsource, resistor];
+    let variables = vec![branch_1, node_1];
+    
+    let sim = Simulation {
+        commands,
+        options,
+        elements,
+        variables,
+    };
+    
+    let mut simulator: Simulator<FaerSolver> = Simulator::from(sim);
+    let result = simulator.run().unwrap();
+    
+    let dc_results = match &result.results[0] {
+        Sim::Dc(results) => results,
+        _ => panic!("Expected DC results"),
+    };
+    
+    // Verify linearity: I = V/R
+    // Resistance is 1kΩ, so I (in A) = V (in V) / 1000
+    for step_data in dc_results {
+        // Find voltage and current values
+        let mut voltage = 0.0;
+        let mut current = 0.0;
+        let mut found_voltage = false;
+        let mut found_current = false;
+        
+        for (var, val) in step_data {
+            if var.name() == Arc::from("V1#branch") {
+                current = *val; // Current through voltage source
+                found_current = true;
+            } else if var.name() == Arc::from("1") {
+                voltage = *val; // Voltage at node 1
+                found_voltage = true;
+            }
+        }
+        
+        if !found_voltage || !found_current {
+            panic!("Could not find voltage or current in DC results");
+        }
+        
+        let expected_current = voltage / 1000.0;
+        
+        // Allow 1% relative error or 1µA absolute error
+        // Note: Current is negative because it flows into the voltage source
+        let abs_diff = (current.abs() - expected_current.abs()).abs();
+        let rel_diff = abs_diff / expected_current.abs().max(1e-9);
+        
+        assert!(
+            abs_diff < 1e-6 || rel_diff < 0.01,
+            "DC linearity test failed at V={}V: I_measured={}A, I_expected={}A, diff={}A ({:.2}%)",
+            voltage, current, expected_current, abs_diff, rel_diff * 100.0
+        );
+    }
+    
+    println!("✅ DC linearity test PASSED - linear I-V relationship verified");
+}
+
+#[test]
+fn test_dc_resistor_divider() {
+    // Tests DC sweep on a resistor voltage divider
+    // Verifies voltage division: Vout = Vin * R2 / (R1 + R2)
+    
+    let commands = vec![SimulationCommand::Dc(
+        Arc::from("V1"),
+        0.0,
+        5.0,
+        0.5,
+        None
+    )];
+    let options = vec![];
+    
+    let node_1 = Variable::new(Arc::from("1"), Unit::Volt, 1);
+    let node_2 = Variable::new(Arc::from("2"), Unit::Volt, 2);
+    let branch_1 = Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0);
+    
+    let vsource = Element::VSource(VSourceBundle::new(
+        Arc::from("V1"),
+        branch_1.clone(),
+        None,
+        Some(node_1.clone()),
+        0.0,
+        None,
+    ));
+    
+    // R1 = 1kΩ, R2 = 1kΩ -> voltage divider with ratio 0.5
+    let r1 = Element::Resistor(ResistorBundle::new(
+        Arc::from("R1"),
+        Some(node_1.clone()),
+        Some(node_2.clone()),
+        1000.0,
+    ));
+    
+    let r2 = Element::Resistor(ResistorBundle::new(
+        Arc::from("R2"),
+        Some(node_2.clone()),
+        None,
+        1000.0,
+    ));
+    
+    let elements = vec![vsource, r1, r2];
+    let variables = vec![branch_1, node_1, node_2];
+    
+    let sim = Simulation {
+        commands,
+        options,
+        elements,
+        variables,
+    };
+    
+    let mut simulator: Simulator<FaerSolver> = Simulator::from(sim);
+    let result = simulator.run().unwrap();
+    
+    let dc_results = match &result.results[0] {
+        Sim::Dc(results) => results,
+        _ => panic!("Expected DC results"),
+    };
+    
+    // Verify voltage division: V2 = V1 * R2/(R1+R2) = V1 * 0.5
+    for step_data in dc_results {
+        let mut v1 = 0.0;
+        let mut v2 = 0.0;
+        
+        for (var, val) in step_data {
+            if var.name() == Arc::from("1") {
+                v1 = *val;
+            } else if var.name() == Arc::from("2") {
+                v2 = *val;
+            }
+        }
+        
+        let expected_v2 = v1 * 0.5;
+        let abs_diff = (v2 - expected_v2).abs();
+        let rel_diff = abs_diff / expected_v2.abs().max(1e-9);
+        
+        assert!(
+            abs_diff < 1e-6 || rel_diff < 0.01,
+            "Voltage divider test failed at V1={}V: V2_measured={}V, V2_expected={}V, diff={}V ({:.2}%)",
+            v1, v2, expected_v2, abs_diff, rel_diff * 100.0
+        );
+    }
+    
+    println!("✅ DC voltage divider test PASSED - correct voltage division verified");
 }

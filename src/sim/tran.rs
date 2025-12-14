@@ -31,7 +31,7 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
                 self.build_constant_a_mat();
                 self.build_constant_b_vec();
                 self.build_time_variant_a_mat(tstep);
-                self.build_time_variant_b_vec(tstep);
+                self.build_time_variant_b_vec(&t, tstep);
                 self.build_nonlinear_a_mat(&x_current);
                 self.build_nonlinear_b_vec(&x_current);
 

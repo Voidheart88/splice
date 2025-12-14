@@ -75,6 +75,9 @@ fn vsource_sin_pairs_returns_correct_values() {
         None,
     );
 
+    // Test the AC component only (sinusoidal part without DC offset)
+    // In transient simulation, the DC offset is set by constant pairs, and
+    // time-variant pairs only add the AC component
     let pairs_t0 = vsource.pairs(Some(&0.0));
 
     let &(idx, val) = pairs_t0
@@ -82,7 +85,8 @@ fn vsource_sin_pairs_returns_correct_values() {
         .next()
         .expect("pairs() should return one entry at time 0");
     assert_eq!(idx, branch.idx());
-    assert!((val - 5.0).abs() < 1e-12);
+    // At t=0: V_ac = 3.0 * sin(π/2 + 0) = 3.0 * 1.0 = 3.0
+    assert!((val - 3.0).abs() < 1e-12);
 
     let pairs_t025 = vsource.pairs(Some(&0.25));
     let &(idx, val) = pairs_t025
@@ -90,5 +94,6 @@ fn vsource_sin_pairs_returns_correct_values() {
         .next()
         .expect("pairs() should return one entry at time 0.25");
     assert_eq!(idx, branch.idx());
-    assert!((val - 2.0).abs() < 1e-12);
+    // At t=0.25: V_ac = 3.0 * sin(π/2 + 2π*1*0.25) = 3.0 * sin(π/2 + π/2) = 3.0 * sin(π) = 0.0
+    assert!((val - 0.0).abs() < 1e-12);
 }

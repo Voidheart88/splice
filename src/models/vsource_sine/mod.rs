@@ -224,9 +224,18 @@ impl VSourceSinBundle {
 
     /// Returns the pairs representing vector b.
     pub fn pairs(&self, time: Option<&Numeric>) -> Pairs<Numeric, 2> {
-        let value = self.dc_offset
-            + self.amplitude
-                * (2.0 * std::f64::consts::PI * self.frequency * time.unwrap() + self.phase).sin();
+        let value = match time {
+            Some(t) => {
+                // For transient analysis: only the AC component (sinusoidal part)
+                // The DC offset is already set by the constant pairs method
+                self.amplitude
+                    * (2.0 * std::f64::consts::PI * self.frequency * t + self.phase).sin()
+            }
+            None => {
+                // For OP analysis: only DC offset
+                self.dc_offset
+            }
+        };
         Pairs::new(&[(self.branch_idx(), value)])
     }
 

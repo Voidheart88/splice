@@ -196,10 +196,10 @@ impl<SO: Solver> Simulator<SO> {
             .for_each(|triplet| self.solver.insert_a(&triplet));
     }
 
-    fn build_time_variant_b_vec(&mut self, delta_t: &Numeric) {
+    fn build_time_variant_b_vec(&mut self, time: &Numeric, delta_t: &Numeric) {
         self.elements
             .iter()
-            .filter_map(|ele| ele.get_time_variant_pairs(delta_t))
+            .filter_map(|ele| ele.get_time_variant_pairs(Some(time), delta_t))
             .flat_map(|pairs| pairs.data())
             .for_each(|pair| self.solver.insert_b(&pair));
     }
