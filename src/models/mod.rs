@@ -10,6 +10,7 @@ pub mod resistor;
 pub mod triples;
 pub mod vsource;
 pub mod vsource_sine;
+pub mod vsource_step;
 
 use core::fmt::Display;
 use std::sync::Arc;
@@ -27,6 +28,7 @@ pub use self::resistor::ResistorBundle;
 pub use self::triples::{TripleIdx, Triples};
 pub use self::vsource::VSourceBundle;
 pub use self::vsource_sine::VSourceSinBundle;
+pub use self::vsource_step::VSourceStepBundle;
 
 /// An Enum representing the Unit of the Value - Necessary for parsing and display.
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
@@ -85,6 +87,7 @@ pub enum Element {
     Mos0(Mos0Bundle),
     VSource(VSourceBundle),
     VSourceSin(VSourceSinBundle),
+    VSourceStep(VSourceStepBundle),
     ISource(ISourceBundle),
     Gain(GainBundle),
 }
@@ -95,6 +98,7 @@ impl Element {
         match self {
             Element::VSourceSin(ele) => Some(ele.triples()),
             Element::VSource(ele) => Some(ele.triples()),
+            Element::VSourceStep(ele) => Some(ele.triples()),
             Element::Resistor(ele) => Some(ele.triples()),
             Element::Gain(ele) => Some(ele.triples()), // Gain ist linear und konstant
             _ => None,
@@ -127,6 +131,7 @@ impl Element {
     pub(crate) fn get_time_variant_pairs(&self, time: Option<&Numeric>, delta_t: &Numeric) -> Option<Pairs<Numeric, 2>> {
         match self {
             Element::VSourceSin(ele) => Some(ele.pairs(time)),
+            Element::VSourceStep(ele) => Some(ele.pairs(time)),
             Element::Capacitor(ele) => Some(ele.pairs(delta_t)),
             _ => None,
         }
@@ -164,6 +169,7 @@ impl Element {
             Element::Inductor(ind) => Some(ind.ac_triples(freq)),
             Element::Resistor(res) => Some(res.ac_triples()),
             Element::VSource(vsource) => Some(vsource.ac_triples()),
+            Element::VSourceStep(_) => None,
             Element::Gain(gain) => Some(gain.ac_triples()),
             Element::ISource(_) => None,
             Element::VSourceSin(_) => None,
@@ -179,6 +185,7 @@ impl Element {
             Element::Inductor(_) => None,
             Element::Resistor(_) => None,
             Element::VSource(ele) => Some(ele.ac_pairs()),
+            Element::VSourceStep(ele) => Some(ele.ac_pairs()),
             Element::ISource(_) => None,
             Element::Gain(_) => None,
             Element::VSourceSin(_) => None,
@@ -194,6 +201,7 @@ impl Element {
             Element::Diode(ele) => ele.name(),
             Element::Mos0(ele) => ele.name(),
             Element::VSource(ele) => ele.name(),
+            Element::VSourceStep(ele) => ele.name(),
             Element::ISource(ele) => ele.name(),
             Element::Gain(ele) => ele.name(),
             Element::VSourceSin(ele) => ele.name(),
@@ -209,12 +217,12 @@ impl Element {
             Element::Diode(ele) => ele.triple_idx(),
             Element::Mos0(ele) => ele.triple_idx(),
             Element::VSource(ele) => ele.triple_idx(),
+            Element::VSourceStep(ele) => ele.triple_idx(),
             Element::Gain(ele) => ele.triple_idx(),
             Element::ISource(_) => None,
             Element::VSourceSin(ele) => ele.triple_idx(),
         }
     }
-
     /// Returns the indices of the complex triples for the element.
     pub(crate) fn get_cplx_triple_indices(&self) -> Option<TripleIdx<4>> {
         match self {
@@ -224,12 +232,12 @@ impl Element {
             Element::Inductor(ind) => ind.triple_idx(),
             Element::Resistor(res) => res.triple_idx(),
             Element::VSource(vsource) => vsource.triple_idx(),
+            Element::VSourceStep(vsource) => vsource.triple_idx(),
             Element::Gain(ele) => ele.triple_idx(),
             Element::ISource(_) => None,
             Element::VSourceSin(ele) => ele.triple_idx(),
         }
     }
-}
-
+    }
 #[cfg(test)]
 mod tests;

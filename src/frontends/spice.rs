@@ -10,6 +10,7 @@ use pest_derive::Parser;
 
 use crate::frontends::{Frontend, FrontendError, Simulation};
 use crate::models::vsource_sine::VSourceSinBundle;
+use crate::models::vsource_step::VSourceStepBundle;
 use crate::models::VSourceBundle;
 use crate::sim::commands::{ACMode, SimulationCommand};
 use crate::sim::options::SimulationOption;
@@ -287,6 +288,9 @@ impl SpiceFrontend {
         match element.as_rule() {
             Rule::ELE_VSOURCE_SIN => {
                 VSourceSinBundle::process(element, variables, elements, var_map)
+            }
+            Rule::ELE_VSOURCE_STEP => {
+                VSourceStepBundle::process(element, variables, elements, var_map)
             }
             Rule::ELE_VSOURCE => VSourceBundle::process(element, variables, elements, var_map),
             Rule::ELE_ISOURCE => ISourceBundle::process(element, variables, elements, var_map),

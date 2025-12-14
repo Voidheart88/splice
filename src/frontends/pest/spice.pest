@@ -46,6 +46,7 @@ ELEMENT = {
   | ELE_INDUCTOR
   | ELE_MOSFET
   | ELE_GAIN
+  | ELE_VSOURCE_STEP
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -81,6 +82,22 @@ ELE_VSOURCE_SIN = {
     ~ VALUE ~ WHITE_SPACE+ // Amplitude
     ~ VALUE                // Frequency
     ~ (WHITE_SPACE+ ~ VALUE)? // Optional Phase
+}
+
+// -------------------------------------------------------------------------------------------------
+// Voltage source – step function
+// Syntax: V1 0 1 STEP 0 10 0.001
+// (initial_value, final_value, step_time)
+// -------------------------------------------------------------------------------------------------
+ELE_VSOURCE_STEP = {
+    ^"v" 
+    ~ ELEMENT_NAME ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ // 1 Node
+    ~ NODE ~ WHITE_SPACE+ // 2 Node
+    ~ (^"STEP" | ^"PULSE") ~ WHITE_SPACE+ // Step Modifier
+    ~ VALUE ~ WHITE_SPACE+ // Initial Value
+    ~ VALUE ~ WHITE_SPACE+ // Final Value
+    ~ VALUE                // Step Time
 }
 
 // -------------------------------------------------------------------------------------------------

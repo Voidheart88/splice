@@ -14,6 +14,7 @@ use crate::models::mosfet::serde::SerdeMos0;
 use crate::models::resistor::serde::SerdeResistor;
 use crate::models::vsource::serde::SerdeVSource;
 use crate::models::vsource_sine::serde::SerdeVSourceSin;
+use crate::models::vsource_step::serde::SerdeVSourceStep;
 use crate::models::Variable;
 use crate::sim::commands::ACMode;
 use crate::sim::commands::SimulationCommand;
@@ -36,6 +37,8 @@ pub enum SerdeElement {
     VSource(SerdeVSource),
     #[serde(rename = "vsource_sine")]
     VSourceSin(SerdeVSourceSin),
+    #[serde(rename = "vsource_step")]
+    VSourceStep(SerdeVSourceStep),
     #[serde(rename = "isource")]
     ISource(SerdeISource),
     #[serde(rename = "diode")]
@@ -188,6 +191,9 @@ impl SerdeFrontend {
                     ele.process(&mut variables, &mut elements, &mut var_map)
                 }
                 SerdeElement::VSourceSin(ele) => {
+                    ele.process(&mut variables, &mut elements, &mut var_map)
+                }
+                SerdeElement::VSourceStep(ele) => {
                     ele.process(&mut variables, &mut elements, &mut var_map)
                 }
                 SerdeElement::ISource(ele) => {
