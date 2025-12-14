@@ -14,8 +14,6 @@ pub mod vsource_sine;
 use core::fmt::Display;
 use std::sync::Arc;
 
-use num::Zero;
-
 use crate::spot::*;
 
 pub use self::capacitor::CapacitorBundle;
@@ -126,7 +124,7 @@ impl Element {
     }
 
     /// Returns the time variant pairs of the element, if applicable.
-    pub(crate) fn get_time_variant_pairs(&self, time: Option<&Numeric>, delta_t: &Numeric) -> Option<Pairs<Numeric, 2>> {
+    pub(crate) fn get_time_variant_pairs(&self, time: Option<&Numeric>, _delta_t: &Numeric) -> Option<Pairs<Numeric, 2>> {
         match self {
             Element::VSourceSin(ele) => Some(ele.pairs(time)),
             _ => None,

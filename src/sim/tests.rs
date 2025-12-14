@@ -365,11 +365,11 @@ fn test_vsource_sin_tran() {
     };
 
     // Verify the results at a few key points
-    let dc_offset = 10.0;
-    let amplitude = 1.0;
-    let frequency = 1.0;
+    let _dc_offset = 10.0;
+    let _amplitude = 1.0;
+    let _frequency = 1.0;
     let resistance = 10.0;
-    let phase = 0.0;
+    let _phase = 0.0;
     
     // Test at t = 0s: V = DC_offset + amplitude * sin(phase) = 10.0 + 1.0 * sin(0) = 10.0V
     // Test at t = 0.25s: V = 10.0 + 1.0 * sin(π/2) = 10.0 + 1.0 = 11.0V
