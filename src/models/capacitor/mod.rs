@@ -89,9 +89,11 @@ impl CapacitorBundle {
         let node0_idx = if let Some(idx) = self.node0_idx() {
             idx
         } else {
+            // If node0 doesn't exist, capacitor is connected to ground through node1
+            let node1_idx = self.node1_idx().expect("Capacitor must have at least one node connected");
             return Triples::new(&[(
-                self.node1_idx().unwrap(),
-                self.node1_idx().unwrap(),
+                node1_idx,
+                node1_idx,
                 equivalent_conductance,
             )]);
         };
@@ -114,9 +116,11 @@ impl CapacitorBundle {
         let node0_idx = if let Some(idx) = self.node0_idx() {
             idx
         } else {
+            // If node0 doesn't exist, capacitor is connected to ground through node1
+            let node1_idx = self.node1_idx().expect("Capacitor must have at least one node connected");
             return Triples::new(&[(
-                self.node1_idx().unwrap(),
-                self.node1_idx().unwrap(),
+                node1_idx,
+                node1_idx,
                 Complex {
                     re: Numeric::zero(),
                     im: (Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
@@ -195,7 +199,9 @@ impl CapacitorBundle {
         let node0_idx = if let Some(idx) = self.node0_idx() {
             idx
         } else {
-            return Pairs::new(&[(self.node1_idx().unwrap(), g * v_prev)]);
+            // If node0 doesn't exist, capacitor is connected to ground through node1
+            let node1_idx = self.node1_idx().expect("Capacitor must have at least one node connected");
+            return Pairs::new(&[(node1_idx, g * v_prev)]);
         };
         let node1_idx = if let Some(idx) = self.node1_idx() {
             idx

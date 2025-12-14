@@ -89,23 +89,27 @@ impl VSourceSinBundle {
         let node0_idx = match self.node0_idx() {
             Some(node0_idx) => node0_idx,
             None => {
+                // If node0 doesn't exist, voltage source is connected to ground through node1
+                let node1_idx = self.node1_idx().expect("Voltage source must have at least one node connected");
                 return Triples::new(&[
-                    (self.branch_idx(), self.node1_idx().unwrap(), Numeric::one()),
-                    (self.node1_idx().unwrap(), self.branch_idx(), Numeric::one()),
+                    (self.branch_idx(), node1_idx, Numeric::one()),
+                    (node1_idx, self.branch_idx(), Numeric::one()),
                 ]);
             }
         };
         let node1_idx = match self.node1_idx() {
             Some(node1_idx) => node1_idx,
             None => {
+                // If node1 doesn't exist, voltage source is connected to ground through node0
+                let node0_idx = self.node0_idx().expect("Voltage source must have at least one node connected");
                 return Triples::new(&[
                     (
                         self.branch_idx(),
-                        self.node0_idx().unwrap(),
+                        node0_idx,
                         -Numeric::one(),
                     ),
                     (
-                        self.node0_idx().unwrap(),
+                        node0_idx,
                         self.branch_idx(),
                         -Numeric::one(),
                     ),
@@ -142,17 +146,19 @@ impl VSourceSinBundle {
         let node0_idx = match self.node0_idx() {
             Some(node0_idx) => node0_idx,
             None => {
+                // If node0 doesn't exist, voltage source is connected to ground through node1
+                let node1_idx = self.node1_idx().expect("Voltage source must have at least one node connected");
                 return Triples::new(&[
                     (
                         self.branch_idx(),
-                        self.node1_idx().unwrap(),
+                        node1_idx,
                         Complex {
                             re: Numeric::one(),
                             im: Numeric::zero(),
                         },
                     ),
                     (
-                        self.node1_idx().unwrap(),
+                        node1_idx,
                         self.branch_idx(),
                         Complex {
                             re: Numeric::one(),
@@ -165,17 +171,19 @@ impl VSourceSinBundle {
         let node1_idx = match self.node1_idx() {
             Some(node1_idx) => node1_idx,
             None => {
+                // If node1 doesn't exist, voltage source is connected to ground through node0
+                let node0_idx = self.node0_idx().expect("Voltage source must have at least one node connected");
                 return Triples::new(&[
                     (
                         self.branch_idx(),
-                        self.node0_idx().unwrap(),
+                        node0_idx,
                         Complex {
                             re: -Numeric::one(),
                             im: Numeric::zero(),
                         },
                     ),
                     (
-                        self.node0_idx().unwrap(),
+                        node0_idx,
                         self.branch_idx(),
                         Complex {
                             re: -Numeric::one(),

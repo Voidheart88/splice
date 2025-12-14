@@ -68,9 +68,11 @@ impl InductorBundle {
         let node0_idx = if let Some(node) = &self.node0 {
             node.idx()
         } else {
+            // If node0 doesn't exist, inductor is connected to ground through node1
+            let node1_idx = self.node1.as_ref().expect("Inductor must have at least one node connected").idx();
             return Triples::new(&[(
-                self.node1.as_ref().unwrap().idx(),
-                self.node1.as_ref().unwrap().idx(),
+                node1_idx,
+                node1_idx,
                 equivalent_conductance,
             )]);
         };
@@ -119,9 +121,11 @@ impl InductorBundle {
         let node0_idx = if let Some(node) = &self.node0 {
             node.idx()
         } else {
+            // If node0 doesn't exist, inductor is connected to ground through node1
+            let node1_idx = self.node1.as_ref().expect("Inductor must have at least one node connected").idx();
             return Triples::new(&[(
-                self.node1.as_ref().unwrap().idx(),
-                self.node1.as_ref().unwrap().idx(),
+                node1_idx,
+                node1_idx,
                 Complex {
                     re: Numeric::zero(),
                     im: Numeric::one()
