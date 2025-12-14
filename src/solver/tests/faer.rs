@@ -5,6 +5,10 @@ use crate::spot::*;
 
 #[test]
 fn init_solver() {
+    /// Tests the initialization of the FaerSolver.
+    ///
+    /// This test verifies that the FaerSolver can be initialized with the correct
+    /// number of variables and that the matrices and vectors have the correct dimensions.
     let a_matrix = [
         (0, 0, 1.0),
         (0, 1, 2.0),

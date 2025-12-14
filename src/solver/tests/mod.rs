@@ -89,6 +89,16 @@ fn test_solver_reset<SolverT>() -> Result<(), String>
 where
     SolverT: Solver + std::fmt::Debug,
 {
+    /// Tests that the solver can be reset and reused for multiple solves.
+    ///
+    /// This test verifies that the solver correctly resets its internal state
+    /// between solves, ensuring that old values do not affect new calculations.
+    ///
+    /// # Steps
+    ///
+    /// 1. Insert values into the solver and solve the system.
+    /// 2. Insert new values into the solver and solve the system again.
+    /// 3. Verify that the results are correct for both solves.
     let mut solver = SolverT::new(2).map_err(|e| e.to_string())?;
     solver.insert_a(&(0, 0, 1.0));
     solver.insert_a(&(1, 1, 1.0));
@@ -113,15 +123,27 @@ where
 
 #[test]
 fn faer_solver_resets() {
+    /// Tests that the FaerSolver can be reset and reused for multiple solves.
+    ///
+    /// This test verifies that the FaerSolver correctly resets its internal state
+    /// between solves, ensuring that old values do not affect new calculations.
     test_solver_reset::<FaerSolver>().unwrap();
 }
 
 #[test]
 fn nalgebra_solver_resets() {
+    /// Tests that the NalgebraSolver can be reset and reused for multiple solves.
+    ///
+    /// This test verifies that the NalgebraSolver correctly resets its internal state
+    /// between solves, ensuring that old values do not affect new calculations.
     test_solver_reset::<NalgebraSolver>().unwrap();
 }
 
 #[test]
 fn rsparse_solver_resets() {
+    /// Tests that the RSparseSolver can be reset and reused for multiple solves.
+    ///
+    /// This test verifies that the RSparseSolver correctly resets its internal state
+    /// between solves, ensuring that old values do not affect new calculations.
     test_solver_reset::<RSparseSolver>().unwrap();
 }

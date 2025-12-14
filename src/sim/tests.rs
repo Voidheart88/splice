@@ -171,6 +171,11 @@ fn init_sim_nalgebra() {
 
 #[test]
 fn run_sim_tran() {
+    /// Tests the transient simulation with a constant voltage source.
+    ///
+    /// This test verifies that the transient simulation correctly calculates
+    /// the current and voltage over time for a simple circuit with a constant
+    /// voltage source and a resistor.
     let commands = vec![SimulationCommand::Tran(1.0, 10.0)];
     let options = vec![];
 
@@ -223,6 +228,11 @@ fn run_sim_tran() {
 
 #[test]
 fn run_sim_tran_sin() {
+    /// Tests the transient simulation with a sinusoidal voltage source.
+    ///
+    /// This test verifies that the transient simulation correctly calculates
+    /// the current and voltage over time for a simple circuit with a sinusoidal
+    /// voltage source and a resistor.
     let commands = vec![SimulationCommand::Tran(0.1, 10.0)];
     let options = vec![];
 
