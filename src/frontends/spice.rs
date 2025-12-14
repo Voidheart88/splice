@@ -29,6 +29,21 @@ pub struct SpiceFrontend {
     pth: String,
 }
 
+impl SpiceFrontend {
+    /// Create a SpiceFrontend from SPICE code string for benchmarking
+    pub fn from_spice_code(spice_code: &str) -> Result<Self, FrontendError> {
+        use std::io::Write;
+        use tempfile::NamedTempFile;
+        
+        let mut temp_file = NamedTempFile::new()?;
+        write!(temp_file, "{}", spice_code)?;
+        
+        Ok(SpiceFrontend {
+            pth: temp_file.path().to_str().unwrap().to_string(),
+        })
+    }
+}
+
 impl Frontend for SpiceFrontend {
     fn simulation(&self) -> Result<Simulation, FrontendError> {
         let mut circuit_string = String::new();

@@ -183,5 +183,15 @@ pub(crate) fn get_variable(
     Some(new_variable)
 }
 
+/// Public function to create a Simulation from SPICE code for benchmarking
+/// This provides access to the SpiceParser for external benchmarks
+#[doc(hidden)]
+pub fn create_simulation_from_spice(spice_code: &str) -> Result<Simulation, FrontendError> {
+    use crate::frontends::spice::SpiceFrontend;
+    
+    let frontend = SpiceFrontend::from_spice_code(spice_code)?;
+    frontend.simulation()
+}
+
 #[cfg(test)]
 mod tests;
