@@ -155,6 +155,13 @@ impl Solver for RSparseSolver {
         cplx_sprs.from_trpl(&cplx_trpl);
         self.cplx_symb = Some(rsparse::sqr(&cplx_sprs, 1, false));
     }
+
+    fn reset(&mut self) {
+        self.a_mat.clear();
+        self.b_vec.iter_mut().for_each(|val| *val = Numeric::zero());
+        self.cplx_a_mat.clear();
+        self.cplx_b_vec.iter_mut().for_each(|val| *val = Numeric::zero());
+    }
 }
 
 impl RSparseSolver {

@@ -102,6 +102,13 @@ impl Solver for NalgebraSolver {
             .iter()
             .for_each(|(row, col)| self.cplx_a_mat[(*row, *col)] = ComplexNumeric::zero());
     }
+
+    fn reset(&mut self) {
+        self.a_mat.fill(Numeric::zero());
+        self.b_vec.fill(Numeric::zero());
+        self.cplx_a_mat.fill(ComplexNumeric::zero());
+        self.cplx_b_vec.fill(ComplexNumeric::zero());
+    }
 }
 
 impl std::fmt::Debug for NalgebraSolver {

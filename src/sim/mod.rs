@@ -101,6 +101,7 @@ impl<SO: Solver> Simulator<SO> {
     }
 
     fn execute_command(&mut self, comm: &SimulationCommand) -> Result<Sim, SimulatorError> {
+        self.solver.reset();
         let res = match comm {
             SimulationCommand::Op => self.run_op()?,
             SimulationCommand::Tran(tstep, tstop) => self.run_tran(tstep, tstop)?,
@@ -136,6 +137,7 @@ impl<SO: Solver> Simulator<SO> {
     }
 
     fn find_op(&mut self) -> Result<Vec<(Variable, Numeric)>, SimulatorError> {
+        self.solver.reset();
         self.build_constant_a_mat();
         self.build_constant_b_vec();
 
@@ -148,6 +150,7 @@ impl<SO: Solver> Simulator<SO> {
         let mut x = self.generate_initial_guess();
 
         for _ in 0..MAXITER {
+            self.solver.reset();
             self.build_constant_a_mat();
             self.build_constant_b_vec();
             self.build_nonlinear_a_mat(&x);

@@ -21,6 +21,7 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
         let mut x_prev: Vec<Numeric> = self.find_op()?.iter().map(|op| op.1).collect();
 
         while t <= *tstop {
+            self.solver.reset();
             self.build_constant_a_mat();
             self.build_constant_b_vec();
             self.build_time_variant_a_mat(tstep);

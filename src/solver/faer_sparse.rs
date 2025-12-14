@@ -111,6 +111,19 @@ impl Solver for FaerSparseSolver {
     }
 
     fn init(&mut self, _a_matrix: Vec<(usize, usize)>, _cplx_a_matrix: Vec<(usize, usize)>) {}
+
+    fn reset(&mut self) {
+        self.a_mat.clear();
+        self.b_vec
+            .row_iter_mut()
+            .flat_map(|row| row.iter_mut())
+            .for_each(|val| *val = Numeric::zero());
+        self.cplx_a_mat.clear();
+        self.cplx_b_vec
+            .row_iter_mut()
+            .flat_map(|row| row.iter_mut())
+            .for_each(|val| *val = ComplexNumeric::zero());
+    }
 }
 
 impl From<LuError> for SolverError {

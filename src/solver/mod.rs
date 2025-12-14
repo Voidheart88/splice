@@ -59,6 +59,9 @@ pub trait Solver {
     fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError>;
 
     fn solve_cplx(&mut self) -> Result<&Vec<ComplexNumeric>, SolverError>;
+
+    /// Resets the solver to a clean state, clearing all matrices and vectors.
+    fn reset(&mut self);
 }
 
 #[cfg(test)]
