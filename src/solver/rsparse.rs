@@ -161,7 +161,9 @@ impl Solver for RSparseSolver {
         self.a_mat.clear();
         self.b_vec.iter_mut().for_each(|val| *val = Numeric::zero());
         self.cplx_a_mat.clear();
-        self.cplx_b_vec.iter_mut().for_each(|val| *val = Numeric::zero());
+        self.cplx_b_vec
+            .iter_mut()
+            .for_each(|val| *val = Numeric::zero());
     }
 }
 

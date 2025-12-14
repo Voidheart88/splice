@@ -23,7 +23,7 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
         while t <= *tstop {
             // Start with the previous solution as initial guess
             let mut x_current = x_prev.clone();
-            
+
             // Newton-Raphson iteration within each time step
             let mut converged = false;
             for _ in 0..MAXITER {

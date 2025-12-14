@@ -72,10 +72,10 @@ impl Solver for NalgebraSolver {
             Some(v) => v,
             None => return Err(SolverError::MatrixNonInvertible),
         };
-        
+
         self.a_mat.fill(Numeric::zero());
         self.b_vec.fill(Numeric::zero());
-        
+
         Ok(self.x_vec.data.as_vec())
     }
 
@@ -86,7 +86,7 @@ impl Solver for NalgebraSolver {
             Some(v) => v,
             None => return Err(SolverError::MatrixNonInvertible),
         };
-        
+
         self.cplx_a_mat.fill(ComplexNumeric::zero());
         self.cplx_b_vec.fill(ComplexNumeric::zero());
 
@@ -115,7 +115,7 @@ impl std::fmt::Debug for NalgebraSolver {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         const MAX_ITEMS: usize = 1_000;
 
-        write!(f, "NalgebraSolver {{\n")?;
+        writeln!(f, "NalgebraSolver {{")?;
 
         if self.a_mat.nrows() * self.a_mat.ncols() <= MAX_ITEMS {
             writeln!(f, "  a_mat:\n{:?},", &self.a_mat)?;
