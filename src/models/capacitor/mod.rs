@@ -14,10 +14,13 @@ use crate::spot::*;
 /// A structure representing a bundle of capacitors.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct CapacitorBundle {
-    name: Arc<str>,
-    node0: Option<Variable>,
-    node1: Option<Variable>,
-    value: Numeric,
+    pub name: Arc<str>,
+    pub node0: Option<Variable>,
+    pub node1: Option<Variable>,
+    pub value: Numeric,
+    /// Previous voltage across the capacitor for transient simulation
+    /// This stores the voltage from the last time step for proper integration
+    pub previous_voltage: Numeric,
 }
 
 impl CapacitorBundle {
@@ -46,6 +49,7 @@ impl CapacitorBundle {
             node0,
             node1,
             value,
+            previous_voltage: Numeric::zero(), // Initialize to 0V
         }
     }
 
@@ -62,6 +66,17 @@ impl CapacitorBundle {
     /// Returns the index of node1 if it exists.
     pub fn node1_idx(&self) -> Option<usize> {
         self.node1.as_ref().map(|v| v.idx())
+    }
+
+    /// Updates the previous voltage for transient simulation
+    /// This should be called after each time step with the current voltage
+    pub fn update_previous_voltage(&mut self, voltage: Numeric) {
+        self.previous_voltage = voltage;
+    }
+
+    /// Returns the previous voltage across the capacitor
+    pub fn previous_voltage(&self) -> Numeric {
+        self.previous_voltage
     }
 
     /// Returns a reference to the triples representing matrix A.
@@ -169,6 +184,33 @@ impl CapacitorBundle {
                 (idx_1, idx_0),
             ])),
         }
+    }
+
+    /// Returns the pairs representing the right-hand side (RHS) for transient simulation
+    /// This implements the C * V_prev / Δt term for proper integration
+    pub fn pairs(&self, delta_t: &Numeric) -> Pairs<Numeric, 2> {
+        let g = self.value / delta_t; // Equivalent conductance
+        let v_prev = self.previous_voltage;
+        
+        let node0_idx = if let Some(idx) = self.node0_idx() {
+            idx
+        } else {
+            return Pairs::new(&[(self.node1_idx().unwrap(), g * v_prev)]);
+        };
+        let node1_idx = if let Some(idx) = self.node1_idx() {
+            idx
+        } else {
+            return Pairs::new(&[(node0_idx, -g * v_prev)]);
+        };
+
+        // The RHS should be: b = (C/Δt) * (V_node0_prev - V_node1_prev)
+        // This represents the current due to the charge stored in the capacitor
+        // from the previous time step
+        // Note: v_prev is already (V_node0_prev - V_node1_prev)
+        Pairs::new(&[
+            (node0_idx, g * v_prev),
+            (node1_idx, -g * v_prev),
+        ])
     }
 }
 

@@ -1,5 +1,6 @@
 use log::info;
 
+use crate::models::Element;
 use crate::sim::simulation_result::Sim;
 use crate::sim::SimulatorError;
 use crate::solver::Solver;
@@ -19,6 +20,16 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
         let mut tran_results = Vec::new();
 
         let mut x_prev: Vec<Numeric> = self.find_op()?.iter().map(|op| op.1).collect();
+        
+        // Initialize capacitor voltages from OP analysis
+        // In OP analysis, capacitors are treated as short circuits, so voltage across is 0
+        // But we need to set the initial charge correctly for transient analysis
+        // The initial voltage should be 0V (unloaded capacitor)
+        for element in &mut self.elements {
+            if let Element::Capacitor(cap) = element {
+                cap.update_previous_voltage(Numeric::zero());
+            }
+        }
 
         while t <= *tstop {
             // Start with the previous solution as initial guess
@@ -39,7 +50,11 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
 
                 if self.has_converged(&x_current, &x_new, VECTOL) {
                     tran_results.push((t, self.add_var_name(x_new.clone())));
-                    x_prev = x_new;
+                    x_prev = x_new.clone();
+                    
+                    // Update capacitor voltages for next time step
+                    self.update_capacitor_voltages(&x_new);
+                    
                     converged = true;
                     break;
                 }

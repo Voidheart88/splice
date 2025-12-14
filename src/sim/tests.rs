@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::frontends::Simulation;
-use crate::models::{Element, ResistorBundle, Unit, VSourceBundle, VSourceSinBundle, Variable};
+use crate::models::{CapacitorBundle, Element, ResistorBundle, Unit, VSourceBundle, VSourceSinBundle, Variable};
 use crate::sim::commands::{ACMode, SimulationCommand};
 use crate::sim::simulation_result::Sim;
 use crate::sim::Simulator;
@@ -428,6 +428,235 @@ fn test_vsource_sin_tran() {
 }
 
 #[test]
+fn test_rc_sinusoidal_tran() {
+    // Tests RC circuit with sinusoidal voltage source in transient simulation.
+    // This test verifies the behavior of an RC low-pass filter with a sinusoidal input.
+    // 
+    // NOTE: This test currently documents a known issue with transient capacitor simulation.
+    // The output voltage should follow the input voltage (with attenuation and phase shift),
+    // but currently stays at a constant value, indicating a problem with capacitor charging.
+    
+    // RC Low-Pass Filter: R=1kΩ, C=1µF
+    // Cutoff frequency: fc = 1/(2πRC) ≈ 159.15 Hz
+    // At 100Hz (below cutoff), we expect significant attenuation and phase shift
+    
+    let commands = vec![SimulationCommand::Tran(0.00001, 0.1)]; // 10µs step, 100ms total
+    let options = vec![];
+    
+    let node_1 = Variable::new(Arc::from("1"), Unit::Volt, 1); // Input node
+    let node_2 = Variable::new(Arc::from("2"), Unit::Volt, 2); // Output node (after RC)
+    let branch_1 = Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0);
+    
+    // Sinusoidal voltage source: V(t) = 10 + 1*sin(2π*100*t)
+    let vsource_sin = Element::VSourceSin(VSourceSinBundle::new(
+        Arc::from("V1"),
+        branch_1.clone(),
+        None,
+        Some(node_1.clone()),
+        10.0, // DC offset
+        1.0,  // amplitude
+        100.0, // frequency (100 Hz)
+        0.0,  // phase
+        None, // ac_value
+    ));
+    
+    // R = 1kΩ
+    let resistor = Element::Resistor(ResistorBundle::new(
+        Arc::from("R1"),
+        Some(node_1.clone()),
+        Some(node_2.clone()),
+        1000.0,
+    ));
+    
+    // C = 1µF
+    let capacitor = Element::Capacitor(CapacitorBundle::new(
+        Arc::from("C1"),
+        Some(node_2.clone()),
+        None, // to ground
+        0.000_001,
+    ));
+    
+    let elements = vec![vsource_sin, resistor, capacitor];
+    let variables = vec![branch_1, node_1, node_2];
+    
+    let sim = Simulation {
+        commands,
+        options,
+        elements,
+        variables,
+    };
+    
+    let mut simulator: Simulator<NalgebraSolver> = Simulator::from(sim);
+    let result = simulator.run().unwrap();
+    
+    let tran_results = match &result.results[0] {
+        Sim::Tran(results) => results,
+        _ => panic!("Expected transient results"),
+    };
+    
+    // Test at specific time points
+    // Expected behavior: RC low-pass filter
+    // Vout(t) = Vdc + (Vamp * sin(2πft + φ)) / sqrt(1 + (2πfRC)^2)
+    // where φ = -arctan(2πfRC)
+    
+    let dc_offset = 10.0;
+    let amplitude = 1.0;
+    let frequency = 100.0;
+    let r = 1000.0;
+    let c = 0.000_001;
+    let rc = r * c;
+    let omega = 2.0 * std::f64::consts::PI * frequency;
+    let omega_rc = omega * rc;
+    
+    // Attenuation factor and phase shift
+    let attenuation = 1.0 / (1.0 + omega_rc.powi(2)).sqrt();
+    let phase_shift = -omega_rc.atan();
+    
+    println!("RC circuit test:");
+    println!("  R = {}Ω, C = {}F", r, c);
+    println!("  Cutoff frequency: {:.2} Hz", 1.0 / (2.0 * std::f64::consts::PI * rc));
+    println!("  Test frequency: {} Hz", frequency);
+    println!("  Attenuation factor: {:.4}", attenuation);
+    println!("  Phase shift: {:.2}°", phase_shift.to_degrees());
+    
+    // Test at t = 0.025s (1/4 period at 100Hz)
+    let test_time = 0.025; // 25ms = 1/4 of 100Hz period (10ms)
+    let expected_input = dc_offset + amplitude * (omega * test_time).sin();
+    let expected_output = dc_offset + amplitude * attenuation * (omega * test_time + phase_shift).sin();
+    
+    // Find the result closest to the test time
+    if let Some(&(time, ref values)) = tran_results.iter().min_by_key(|(t, _)| {
+        ((*t - test_time).abs() * 1000.0) as i32
+    }) {
+        let mut input_voltage = 0.0;
+        let mut output_voltage = 0.0;
+        let mut current = 0.0;
+        
+        for (var, val) in values {
+            if var.name() == Arc::from("1") {
+                input_voltage = *val;
+            } else if var.name() == Arc::from("2") {
+                output_voltage = *val;
+            } else if var.name() == Arc::from("V1#branch") {
+                current = *val;
+            }
+        }
+        
+        println!("\nAt t ≈ {}s:", time);
+        println!("  Input voltage:  {:.4}V (expected: {:.4}V)", input_voltage, expected_input);
+        println!("  Output voltage: {:.4}V (expected: {:.4}V)", output_voltage, expected_output);
+        println!("  Current:        {:.6}A", current);
+        
+        // The output voltage should vary with time, but currently stays constant
+        // This indicates a problem with capacitor charging in transient analysis.
+        
+        // Check if output voltage is constant (indicating the bug)
+        let first_output = tran_results[0].1.iter().find(|(var, _)| var.name() == Arc::from("2")).map(|(_, val)| *val).unwrap_or(0.0);
+        let last_output = tran_results.last().unwrap().1.iter().find(|(var, _)| var.name() == Arc::from("2")).map(|(_, val)| *val).unwrap_or(0.0);
+        
+        // Also check if the output voltage is reasonable for the expected behavior
+        let expected_output_min = 9.0; // Should be at least 9V (10V - 1V amplitude)
+        let expected_output_max = 11.0; // Should be at most 11V (10V + 1V amplitude)
+        
+        assert!(
+            (first_output - last_output).abs() > 0.1,
+            "RC transient simulation failure: Output voltage is constant throughout simulation (first: {}V, last: {}V). This indicates a problem with capacitor charging in transient analysis.",
+            first_output, last_output
+        );
+        
+        assert!(
+            output_voltage >= expected_output_min && output_voltage <= expected_output_max,
+            "RC transient simulation failure: Output voltage {}V is outside expected range [{:.1}V, {:.1}V] for RC low-pass filter behavior.",
+            output_voltage, expected_output_min, expected_output_max
+        );
+    } else {
+        panic!("Could not find results near test time {}s", test_time);
+    }
+}
+
+#[test]
+fn test_rc_constant_tran() {
+    // Tests RC circuit with constant voltage source in transient simulation.
+    // This is a simpler test to isolate the capacitor charging issue.
+    // 
+    // With a constant 10V input, the capacitor should charge up and the output
+    // should approach 10V over time (RC time constant = 1ms).
+    
+    let commands = vec![SimulationCommand::Tran(0.00001, 0.01)]; // 10µs step, 10ms total
+    let options = vec![];
+    
+    let node_1 = Variable::new(Arc::from("1"), Unit::Volt, 1); // Input node
+    let node_2 = Variable::new(Arc::from("2"), Unit::Volt, 2); // Output node (after RC)
+    let branch_1 = Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0);
+    
+    // Constant voltage source: 10V
+    let vsource = Element::VSource(VSourceBundle::new(
+        Arc::from("V1"),
+        branch_1.clone(),
+        None,
+        Some(node_1.clone()),
+        10.0, // constant voltage
+        None,
+    ));
+    
+    // R = 1kΩ
+    let resistor = Element::Resistor(ResistorBundle::new(
+        Arc::from("R1"),
+        Some(node_1.clone()),
+        Some(node_2.clone()),
+        1000.0,
+    ));
+    
+    // C = 1µF
+    let capacitor = Element::Capacitor(CapacitorBundle::new(
+        Arc::from("C1"),
+        Some(node_2.clone()),
+        None, // to ground
+        0.000_001,
+    ));
+    
+    let elements = vec![vsource, resistor, capacitor];
+    let variables = vec![branch_1, node_1, node_2];
+    
+    let sim = Simulation {
+        commands,
+        options,
+        elements,
+        variables,
+    };
+    
+    let mut simulator: Simulator<NalgebraSolver> = Simulator::from(sim);
+    let result = simulator.run().unwrap();
+    
+    let tran_results = match &result.results[0] {
+        Sim::Tran(results) => results,
+        _ => panic!("Expected transient results"),
+    };
+    
+    println!("RC constant voltage test:");
+    println!("  R = 1kΩ, C = 1µF, τ = 1ms");
+    println!("  Input: 10V constant");
+    
+    // Check initial and final conditions
+    let initial_output = tran_results[0].1.iter().find(|(var, _)| var.name() == Arc::from("2")).map(|(_, val)| *val).unwrap_or(0.0);
+    let final_output = tran_results.last().unwrap().1.iter().find(|(var, _)| var.name() == Arc::from("2")).map(|(_, val)| *val).unwrap_or(0.0);
+    
+    println!("  Initial output: {}V", initial_output);
+    println!("  Final output:   {}V", final_output);
+    
+    // With RC=1ms, after 10ms (10 time constants), the capacitor should be fully charged
+    // Vout should be close to 10V
+    
+    assert!(
+        (final_output - 10.0).abs() < 0.5,
+        "RC transient simulation failure: Capacitor not charging properly. Expected final voltage close to 10V, got {}V. This confirms the transient capacitor simulation issue.",
+        final_output
+    );
+    
+    println!("✅ RC constant voltage test PASSED");
+}
+
+#[test]
 fn test_ac_rc_cutoff_frequency() {
     // RC Low-Pass Filter: R=1kΩ, C=1µF
     // Expected cutoff frequency: fc = 1/(2πRC) ≈ 159.15 Hz
@@ -504,18 +733,19 @@ fn test_ac_rc_cutoff_frequency() {
             println!("Measured cutoff frequency: {:.2} Hz", cutoff_freq);
             println!("Magnitude at cutoff: {:.4}", magnitude);
             
-            // Expected: 159.15 Hz, allow 15% tolerance for now
+            // Expected: 159.15 Hz, allow 2% tolerance (reduced from 15%)
             let expected_fc = 159.15;
             let error_percent = (cutoff_freq - expected_fc).abs() / expected_fc * 100.0;
             
             println!("Frequency error: {:.2}%", error_percent);
             
-            if error_percent < 15.0 {
-                println!("✅ AC analysis test PASSED (within 15% tolerance)");
-            } else {
-                println!("⚠️  AC analysis test: cutoff frequency shifted (known issue)");
-                println!("   Expected: {:.2} Hz, Measured: {:.2} Hz", expected_fc, cutoff_freq);
-            }
+            assert!(
+                error_percent < 2.0,
+                "AC analysis test FAILED: Cutoff frequency error {:.2}% exceeds 2% tolerance. Expected: {:.2} Hz, Measured: {:.2} Hz",
+                error_percent, expected_fc, cutoff_freq
+            );
+            
+            println!("✅ AC analysis test PASSED (within 2% tolerance)");
             
             found_cutoff = true;
             break;

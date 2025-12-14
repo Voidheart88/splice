@@ -12,7 +12,7 @@ use std::sync::Arc;
 
 use itertools::{izip, Itertools};
 use miette::Diagnostic;
-use num::{Complex, One};
+use num::{Complex, One, Zero};
 use options::SimulationOption;
 use thiserror::Error;
 
@@ -285,6 +285,23 @@ impl<SO: Solver> Simulator<SO> {
             .iter()
             .zip(x_new.iter())
             .all(|(&old, &new)| (old - new).abs() < tolerance)
+    }
+
+    /// Updates capacitor voltages after each time step for proper transient simulation
+    /// This is crucial for correct integration of capacitor behavior
+    fn update_capacitor_voltages(&mut self, x_vec: &[Numeric]) {
+        for element in &mut self.elements {
+            if let Element::Capacitor(cap) = element {
+                // Calculate voltage across capacitor: V = V(node0) - V(node1)
+                let v_node0 = cap.node0.as_ref().map(|n| x_vec[n.idx()]).unwrap_or(Numeric::zero());
+                let v_node1 = cap.node1.as_ref().map(|n| x_vec[n.idx()]).unwrap_or(Numeric::zero());
+                let voltage_across = v_node0 - v_node1;
+                
+                // Always update with the actual voltage across the capacitor
+                // This works for both OP initialization and transient steps
+                cap.update_previous_voltage(voltage_across);
+            }
+        }
     }
 }
 

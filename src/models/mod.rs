@@ -124,9 +124,10 @@ impl Element {
     }
 
     /// Returns the time variant pairs of the element, if applicable.
-    pub(crate) fn get_time_variant_pairs(&self, time: Option<&Numeric>, _delta_t: &Numeric) -> Option<Pairs<Numeric, 2>> {
+    pub(crate) fn get_time_variant_pairs(&self, time: Option<&Numeric>, delta_t: &Numeric) -> Option<Pairs<Numeric, 2>> {
         match self {
             Element::VSourceSin(ele) => Some(ele.pairs(time)),
+            Element::Capacitor(ele) => Some(ele.pairs(delta_t)),
             _ => None,
         }
     }
