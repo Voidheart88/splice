@@ -30,16 +30,48 @@ pub struct SpiceFrontend {
 }
 
 impl SpiceFrontend {
-    /// Create a SpiceFrontend from SPICE code string for benchmarking
-    pub fn from_spice_code(spice_code: &str) -> Result<Self, FrontendError> {
-        use std::io::Write;
-        use tempfile::NamedTempFile;
+    /// Create a Simulation directly from SPICE code string for benchmarking
+    /// This avoids the overhead of creating temporary files
+    pub fn parse_spice_code(spice_code: &str) -> Result<Simulation, FrontendError> {
+        let mut commands = Vec::new();
+        let mut options = Vec::new();
+        let mut elements = Vec::new();
+        let mut variables = Vec::new();
+        let mut var_map = HashMap::new();
         
-        let mut temp_file = NamedTempFile::new()?;
-        write!(temp_file, "{}", spice_code)?;
+        let parse_result = SpiceParser::parse(Rule::SPICE, spice_code)?
+            .next()
+            .ok_or(FrontendError::ParseError("unexpected file end".into()))?;
         
-        Ok(SpiceFrontend {
-            pth: temp_file.path().to_str().unwrap().to_string(),
+        for pair in parse_result.into_inner() {
+            if pair.as_rule() == Rule::DIRECTIVE {
+                // Create a dummy SpiceFrontend instance to call process_directive
+                let dummy_frontend = SpiceFrontend { pth: String::new() };
+                dummy_frontend.process_directive(
+                    pair,
+                    &mut commands,
+                    &mut options,
+                    &mut elements,
+                    &mut variables,
+                    &mut var_map,
+                );
+            }
+        }
+        
+        // Ensure all element names are unique
+        let mut names = HashSet::new();
+        for ele in &elements {
+            let ele_name = ele.name();
+            if !names.insert(ele_name.clone()) {
+                return Err(FrontendError::ElementDouble(ele_name.to_string()));
+            }
+        }
+        
+        Ok(Simulation {
+            commands,
+            options,
+            elements,
+            variables,
         })
     }
 }

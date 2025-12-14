@@ -5,6 +5,7 @@ mod hash_map;
 mod nalgebra;
 mod resistor;
 mod rsparse;
+mod real_world;
 
 use criterion::{criterion_group, criterion_main};
 
@@ -15,6 +16,15 @@ use crate::hash_map::*;
 use crate::nalgebra::*;
 use crate::resistor::*;
 use crate::rsparse::*;
+use crate::real_world::*;
+
+criterion_group!(
+    real_world_benches,
+    bench_resistor_ladder,
+    bench_resistor_network,
+    bench_voltage_divider,
+);
+
 
 criterion_group!(
     hashmap_benches,
@@ -58,4 +68,4 @@ criterion_group!(
     rsparse_solve
 );
 
-criterion_main!(backend_benches, backend_solve, model_benches);
+criterion_main!(real_world_benches);

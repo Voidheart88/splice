@@ -10,7 +10,6 @@ itertools = "0.14"
 approx = "0.5"
 nohash-hasher = "0.2"
 rustc-hash = "2.1"
-tempfile = "3.10"
 
 # Cli
 clap = { version = "4.5", features = ["cargo","derive"] }

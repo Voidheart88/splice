@@ -153,11 +153,4 @@ pub fn bench_voltage_divider(c: &mut Criterion) {
     group.finish();
 }
 
-criterion_group!(
-    real_world_benches,
-    bench_resistor_ladder,
-    bench_resistor_network,
-    bench_voltage_divider,
-);
 
-criterion_main!(real_world_benches);
