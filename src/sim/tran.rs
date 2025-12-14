@@ -21,26 +21,39 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
         let mut x_prev: Vec<Numeric> = self.find_op()?.iter().map(|op| op.1).collect();
 
         while t <= *tstop {
-            self.solver.reset();
-            self.build_constant_a_mat();
-            self.build_constant_b_vec();
-            self.build_time_variant_a_mat(tstep);
-            self.build_time_variant_b_vec(tstep);
-            self.build_nonlinear_a_mat(&x_prev);
-            self.build_nonlinear_b_vec(&x_prev);
+            // Start with the previous solution as initial guess
+            let mut x_current = x_prev.clone();
+            
+            // Newton-Raphson iteration within each time step
+            let mut converged = false;
+            for _ in 0..MAXITER {
+                self.solver.reset();
+                self.build_constant_a_mat();
+                self.build_constant_b_vec();
+                self.build_time_variant_a_mat(tstep);
+                self.build_time_variant_b_vec(tstep);
+                self.build_nonlinear_a_mat(&x_current);
+                self.build_nonlinear_b_vec(&x_current);
 
-            let x_new = self.solver.solve()?.clone();
+                let x_new = self.solver.solve()?.clone();
 
-            if self.has_converged(&x_prev, &x_new, VECTOL) {
-                tran_results.push((t, self.add_var_name(x_new.clone())));
-            } else {
+                if self.has_converged(&x_current, &x_new, VECTOL) {
+                    tran_results.push((t, self.add_var_name(x_new.clone())));
+                    x_prev = x_new;
+                    converged = true;
+                    break;
+                }
+
+                x_current = x_new;
+            }
+
+            if !converged {
                 return Err(SimulatorError::NonConvergentMaxIter {
                     max_iter: MAXITER,
                     tol: VECTOL,
                 });
             }
 
-            x_prev = x_new;
             t += tstep;
         }
 
