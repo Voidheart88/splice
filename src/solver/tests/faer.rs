@@ -155,7 +155,7 @@ fn solve_complex_small_wo_imag() {
         ComplexNumeric { re: 3.0, im: 0.0 },
     ];
 
-    let mut solver = FaerSolver::new(3).unwrap();
+    let mut solver = FaerSolver::new(2).unwrap();
 
     a_matrix.iter().for_each(|trpl| solver.insert_cplx_a(trpl));
     b_vector
@@ -163,12 +163,12 @@ fn solve_complex_small_wo_imag() {
         .enumerate()
         .for_each(|(idx, val)| solver.insert_cplx_b(&(idx, *val)));
 
-    let solution = match solver.solve() {
+    let solution = match solver.solve_cplx() {
         Ok(solution) => solution,
         Err(err) => panic!("{err}"),
     };
-    assert_eq!(solution[0], 1.0);
-    assert_eq!(solution[1], 1.0);
+    assert_eq!(solution[0], ComplexNumeric { re: 1.0, im: 0.0 });
+    assert_eq!(solution[1], ComplexNumeric { re: 1.0, im: 0.0 });
 }
 
 #[test]

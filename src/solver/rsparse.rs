@@ -52,7 +52,7 @@ impl Solver for RSparseSolver {
 
         let cplx_a_mat = HashMap::new();
         let cplx_b_vec = vec![0.; 2 * vars];
-        let cplx_x_vec = Vec::with_capacity(2 * vars);
+        let cplx_x_vec = vec![ComplexNumeric { re: 0.0, im: 0.0 }; vars];
         let cplx_sprs = Sprs::new();
 
         Ok(Self {
@@ -98,7 +98,7 @@ impl Solver for RSparseSolver {
 
     fn insert_cplx_b(&mut self, b_vec: &(usize, ComplexNumeric)) {
         let (row, val) = *b_vec;
-        let pivot = self.cplx_b_vec.len() / 2;
+        let pivot = self.vars;
         self.cplx_b_vec[row] += val.re;
         self.cplx_b_vec[row + pivot] += val.im;
     }
@@ -125,6 +125,7 @@ impl Solver for RSparseSolver {
     }
 
     fn solve_cplx(&mut self) -> Result<&Vec<ComplexNumeric>, SolverError> {
+        self.update_cplx_from_hashmap();
         rsparse::lusol(&self.cplx_sprs, &mut self.cplx_b_vec, 1, 1e-6);
         self.cplx_x_vec = self.real_vec_to_complex_vec();
 
@@ -171,6 +172,73 @@ impl RSparseSolver {
         let imag = &self.cplx_b_vec[pivot..];
         let iter = real.iter().zip(imag.iter());
         iter.map(|(re, im)| Complex { re: *re, im: *im }).collect()
+    }
+
+    /// Updates the complex sparse workspace from the hashmap
+    fn update_cplx_from_hashmap(&mut self) {
+        self.cplx_sprs.p.clear();
+        self.cplx_sprs.i.clear();
+        self.cplx_sprs.x.clear();
+
+        if self.cplx_a_mat.is_empty() {
+            self.cplx_sprs.nzmax = 0;
+            self.cplx_sprs.m = 0;
+            self.cplx_sprs.n = 0;
+            self.cplx_sprs.p.push(0);
+            return;
+        }
+
+        let mut max_row = 0;
+        let mut max_col = 0;
+        for ((r, c), _) in self.cplx_a_mat.iter() {
+            if *r > max_row {
+                max_row = *r;
+            }
+            if *c > max_col {
+                max_col = *c;
+            }
+        }
+
+        self.cplx_sprs.m = 2 * (max_row + 1);
+        self.cplx_sprs.n = 2 * (max_col + 1);
+
+        let mut entries: Vec<(usize, usize, Numeric)> = Vec::new();
+        self.cplx_a_mat.iter().for_each(|((row, col), val)| {
+            entries.push((*row, *col, val.re));
+            entries.push((*row, *col + self.vars, val.im));
+            entries.push((*row + self.vars, *col, -val.im));
+            entries.push((*row + self.vars, *col + self.vars, val.re));
+        });
+
+        entries.sort_unstable_by(
+            |(r1, c1, _), (r2, c2, _)| {
+                if c1 != c2 {
+                    c1.cmp(c2)
+                } else {
+                    r1.cmp(r2)
+                }
+            },
+        );
+
+        self.cplx_sprs.nzmax = entries.len();
+        self.cplx_sprs.p.resize(self.cplx_sprs.n + 1, 0);
+        self.cplx_sprs.i.reserve(self.cplx_sprs.nzmax);
+        self.cplx_sprs.x.reserve(self.cplx_sprs.nzmax);
+
+        let mut current_col = 0;
+        for (idx, (row, col, val)) in entries.into_iter().enumerate() {
+            while col > current_col {
+                self.cplx_sprs.p[current_col + 1] = idx as isize;
+                current_col += 1;
+            }
+            self.cplx_sprs.i.push(row);
+            self.cplx_sprs.x.push(val);
+        }
+
+        while current_col < self.cplx_sprs.n {
+            self.cplx_sprs.p[current_col + 1] = self.cplx_sprs.nzmax as isize;
+            current_col += 1;
+        }
     }
 
     /// Updates the sparse workspace from the hashmap
