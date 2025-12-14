@@ -104,7 +104,7 @@ fn test_ac_triples_both_nodes() {
     let cap = CapacitorBundle::new(Arc::from("C1"), make_var(0), make_var(1), 2.0);
     let freq = 50.0;
     let triples = cap.ac_triples(freq);
-    let expected_im = (2.0 * 2.0 * std::f64::consts::PI * freq);
+    let expected_im = 2.0 * 2.0 * std::f64::consts::PI * freq;
     assert_eq!(triples.len(), 4);
     assert_eq!(triples[0].0, 0);
     assert_eq!(triples[0].1, 0);
@@ -129,7 +129,7 @@ fn test_ac_triples_node0_none() {
     let cap = CapacitorBundle::new(Arc::from("C1"), None, make_var(1), 2.0);
     let freq = 50.0;
     let triples = cap.ac_triples(freq);
-    let expected_im = (2.0 * 2.0 * std::f64::consts::PI * freq);
+    let expected_im = 2.0 * 2.0 * std::f64::consts::PI * freq;
     assert_eq!(triples.len(), 1);
     assert_eq!(triples[0].0, 1);
     assert_eq!(triples[0].1, 1);
@@ -142,7 +142,7 @@ fn test_ac_triples_node1_none() {
     let cap = CapacitorBundle::new(Arc::from("C1"), make_var(0), None, 2.0);
     let freq = 50.0;
     let triples = cap.ac_triples(freq);
-    let expected_im = (2.0 * 2.0 * std::f64::consts::PI * freq);
+    let expected_im = 2.0 * 2.0 * std::f64::consts::PI * freq;
     assert_eq!(triples.len(), 1);
     assert_eq!(triples[0].0, 0);
     assert_eq!(triples[0].1, 0);

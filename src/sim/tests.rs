@@ -2,7 +2,6 @@ use std::sync::Arc;
 
 use crate::frontends::Simulation;
 use crate::models::{Element, ResistorBundle, Unit, VSourceBundle, VSourceSinBundle, Variable};
-use crate::models::capacitor::CapacitorBundle;
 use crate::sim::commands::{ACMode, SimulationCommand};
 use crate::sim::simulation_result::Sim;
 use crate::sim::Simulator;
@@ -321,7 +320,7 @@ fn test_ac_rc_cutoff_frequency() {
         Arc::from("C1"),
         Some(node_2.clone()),
         None,
-        0.000001,
+        0.000_001,
     ));
     
     let elements = vec![vsource, resistor, capacitor];

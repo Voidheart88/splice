@@ -255,8 +255,8 @@ pub fn newton_raphson_test() {
         }
     }
 
-    let expected_x0 = 1.7912878;
-    let expected_x1 = 0.8895436;
+    let expected_x0 = 1.791_287_8;
+    let expected_x1 = 0.889_543_6;
 
     assert!((x_current[0] - expected_x0).abs() < tolerance);
     assert!((x_current[1] - expected_x1).abs() < tolerance);

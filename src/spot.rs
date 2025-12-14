@@ -10,10 +10,10 @@ pub const NUMERIC_TEN: Numeric = 10.0;
 pub const NUMERIC_TWO: Numeric = 10.0;
 
 /// Boltzmann constant J/K
-pub const KB: Numeric = 1.380649e-23;
+pub const KB: Numeric = 1.380_649e-23;
 
 /// Elementary Charge
-pub const ELE_CHRG: Numeric = 1.602176634e-19;
+pub const ELE_CHRG: Numeric = 1.602_176_634e-19;
 
 /// Room temperature in K
 pub const TEMP: Numeric = 293.15;
