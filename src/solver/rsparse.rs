@@ -109,9 +109,11 @@ impl Solver for RSparseSolver {
         if self.symb.is_none() {
             self.symb = Some(rsparse::sqr(&self.sprs, 1, false))
         }
-        let mut symb = self.symb.take().unwrap();
+        let mut symb = self.symb.take()
+            .expect("Symbolic analysis data missing. This indicates the solver was not properly initialized.");
 
-        self.lu = rsparse::lu(&self.sprs, &mut symb, 1e-6).unwrap();
+        self.lu = rsparse::lu(&self.sprs, &mut symb, 1e-6)
+            .expect("LU decomposition failed. This indicates a singular or ill-conditioned matrix.");
 
         ipvec(self.sprs.n, &self.lu.pinv, &self.b_vec, &mut self.x_vec[..]);
         rsparse::lsolve(&self.lu.l, &mut self.x_vec);
@@ -311,7 +313,7 @@ impl RSparseSolver {
 fn ipvec(n: usize, p: &Option<Vec<isize>>, b: &[Numeric], x: &mut [Numeric]) {
     for k in 0..n {
         if p.is_some() {
-            x[p.as_ref().unwrap()[k] as usize] = b[k];
+            x[p.as_ref().expect("Permutation vector missing in ipvec. This indicates a solver internal error.")[k] as usize] = b[k];
         } else {
             x[k] = b[k];
         }

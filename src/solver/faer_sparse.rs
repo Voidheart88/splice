@@ -68,7 +68,7 @@ impl Solver for FaerSparseSolver {
     fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError> {
         let a_mat =
             SparseColMat::try_new_from_triplets(self.x_vec.len(), self.x_vec.len(), &self.a_mat)
-                .unwrap();
+                .expect("Failed to create sparse matrix from triplets. This indicates invalid matrix dimensions or data.");
 
         let lu = match a_mat.sp_lu() {
             Ok(lu) => lu,
@@ -95,7 +95,7 @@ impl Solver for FaerSparseSolver {
             self.x_vec.len(),
             &self.cplx_a_mat,
         )
-        .unwrap();
+        .expect("Failed to create complex sparse matrix from triplets. This indicates invalid matrix dimensions or data.");
 
         let lu = match a_mat.sp_lu() {
             Ok(lu) => lu,
