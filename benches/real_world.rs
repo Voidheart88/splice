@@ -1,7 +1,8 @@
 // Real-world circuit benchmarks
 // This module contains performance benchmarks for realistic electronic circuits
+// The Benchmarks are ran in the performance.rs module
 
-use criterion::{criterion_group, criterion_main, Criterion, BenchmarkId};
+use criterion::{Criterion, BenchmarkId};
 use splice::{
     frontends::create_simulation_from_spice,
     run_sim_for_benchmark,
@@ -36,7 +37,7 @@ fn generate_resistor_network(rows: usize, cols: usize) -> String {
             let next_node = if col == cols - 1 { 0 } else { node_counter };
             
             if next_node != 0 { // Don't connect to ground with resistor
-                spice_code.push_str(&format!("R{}_{} {} {} 1k\n", row, col, current_node, next_node));
+                spice_code.push_str(&format!("R{}x{} {} {} 1000\n", row, col, current_node, next_node));
                 node_counter += 1;
             }
         }
@@ -45,7 +46,7 @@ fn generate_resistor_network(rows: usize, cols: usize) -> String {
         if row < rows - 1 {
             let start_node = if row == 0 { 1 } else { node_counter - cols };
             let end_node = node_counter;
-            spice_code.push_str(&format!("R_vert_{} {} {} 1k\n", row, start_node, end_node));
+            spice_code.push_str(&format!("Rxxvertxx{} {} {} 1000\n", row, start_node, end_node));
         }
     }
     
@@ -89,7 +90,7 @@ pub fn bench_resistor_network(c: &mut Criterion) {
     let mut group = c.benchmark_group("Resistor Network");
     
     // Test different grid sizes - keep them small for reasonable benchmark times
-    let configurations = [(2, 2), (3, 3), (4, 4)];
+    let configurations = [(5, 5), (10, 10), (50, 50)];
     
     for &(rows, cols) in &configurations {
         let size_desc = format!("{rows}x{cols}");
@@ -119,11 +120,3 @@ pub fn bench_resistor_network(c: &mut Criterion) {
     
     group.finish();
 }
-
-criterion_group!(
-    real_world_benches,
-    bench_resistor_ladder,
-    bench_resistor_network,
-);
-
-criterion_main!(real_world_benches);

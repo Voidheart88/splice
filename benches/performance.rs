@@ -20,9 +20,8 @@ use crate::real_world::*;
 
 criterion_group!(
     real_world_benches,
-    bench_resistor_ladder,
     bench_resistor_network,
-    bench_voltage_divider,
+    bench_resistor_ladder,
 );
 
 
