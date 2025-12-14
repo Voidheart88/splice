@@ -36,7 +36,7 @@ struct Cli {
     #[arg(short, long, default_value = "select")]
     frontend: Frontends,
 
-    #[arg(short, long, default_value = "rsparse")]
+    #[arg(short, long, default_value = "faer-sparse")]
     solver: Solvers,
 
     #[arg(short, long, default_value = "error")]

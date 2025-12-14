@@ -104,7 +104,7 @@ impl CapacitorBundle {
                 self.node1_idx().unwrap(),
                 Complex {
                     re: Numeric::zero(),
-                    im: -(Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
+                    im: (Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
                 },
             )]);
         };
@@ -116,7 +116,7 @@ impl CapacitorBundle {
                 node0_idx,
                 Complex {
                     re: Numeric::zero(),
-                    im: -(Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
+                    im: (Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
                 },
             )]);
         };
@@ -127,7 +127,7 @@ impl CapacitorBundle {
                 node0_idx,
                 Complex {
                     re: Numeric::zero(),
-                    im: -(Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
+                    im: (Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
                 },
             ),
             (
@@ -135,7 +135,7 @@ impl CapacitorBundle {
                 node1_idx,
                 Complex {
                     re: Numeric::zero(),
-                    im: -(Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
+                    im: (Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
                 },
             ),
             (
@@ -143,7 +143,7 @@ impl CapacitorBundle {
                 node1_idx,
                 -Complex {
                     re: Numeric::zero(),
-                    im: -(Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
+                    im: (Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
                 },
             ),
             (
@@ -151,7 +151,7 @@ impl CapacitorBundle {
                 node0_idx,
                 -Complex {
                     re: Numeric::zero(),
-                    im: -(Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
+                    im: (Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
                 },
             ),
         ])

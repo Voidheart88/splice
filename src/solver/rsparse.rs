@@ -126,7 +126,7 @@ impl Solver for RSparseSolver {
 
     fn solve_cplx(&mut self) -> Result<&Vec<ComplexNumeric>, SolverError> {
         self.update_cplx_from_hashmap();
-        rsparse::lusol(&self.cplx_sprs, &mut self.cplx_b_vec, 1, 1e-6);
+        rsparse::lusol(&self.cplx_sprs, &mut self.cplx_b_vec, 1, 1e-12);
         self.cplx_x_vec = self.real_vec_to_complex_vec();
 
         Ok(&self.cplx_x_vec)
