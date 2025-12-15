@@ -3,6 +3,7 @@ mod faer;
 mod faer_sparse;
 mod hash_map;
 mod nalgebra;
+mod network;
 mod resistor;
 mod rsparse;
 mod real_world;
@@ -14,6 +15,7 @@ use crate::faer::*;
 use crate::faer_sparse::*;
 use crate::hash_map::*;
 use crate::nalgebra::*;
+use crate::network::*;
 use crate::resistor::*;
 use crate::rsparse::*;
 use crate::real_world::*;
@@ -67,4 +69,14 @@ criterion_group!(
     rsparse_solve
 );
 
-criterion_main!(real_world_benches);
+criterion_group!(
+    network_benches,
+    bench_msgpack_serialization,
+    bench_msgpack_deserialization,
+    bench_msgpack_roundtrip,
+    bench_simulation_types,
+    bench_result_serialization,
+    bench_payload_scaling,
+);
+
+criterion_main!(real_world_benches, network_benches);
