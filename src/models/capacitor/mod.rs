@@ -191,11 +191,9 @@ impl CapacitorBundle {
     }
 
     /// Returns the pairs representing the right-hand side (RHS) for transient simulation
-    /// This implements the C * V_prev / Δt term for proper integration
-    /// FIXME: There appears to be an issue with the transient simulation of capacitors.
-    /// The capacitor charging behavior is not working correctly - capacitors don't charge
-    /// up to the expected voltage in transient simulations. This may be related to the
-    /// integration formula or the sign/convention used in the RHS vector.
+    /// This implements the backward Euler integration: i = C * (v_current - v_prev) / Δt
+    /// Which rearranges to: (C/Δt)*v_current - (C/Δt)*v_prev = i
+    /// In MNA, this becomes part of the RHS vector as: b = (C/Δt) * v_prev
     pub fn pairs(&self, delta_t: &Numeric) -> Pairs<Numeric, 2> {
         let g = self.value / delta_t; // Equivalent conductance
         let v_prev = self.previous_voltage;
@@ -205,21 +203,21 @@ impl CapacitorBundle {
         } else {
             // If node0 doesn't exist, capacitor is connected to ground through node1
             let node1_idx = self.node1_idx().expect("Capacitor must have at least one node connected");
-            return Pairs::new(&[(node1_idx, g * v_prev)]);
+            return Pairs::new(&[(node1_idx, -g * v_prev)]);
         };
         let node1_idx = if let Some(idx) = self.node1_idx() {
             idx
         } else {
-            return Pairs::new(&[(node0_idx, -g * v_prev)]);
+            return Pairs::new(&[(node0_idx, g * v_prev)]);
         };
 
-        // The RHS should be: b = (C/Δt) * (V_node0_prev - V_node1_prev)
-        // This represents the current due to the charge stored in the capacitor
-        // from the previous time step
-        // Note: v_prev is already (V_node0_prev - V_node1_prev)
+        // The RHS represents the current contribution from the previous time step
+        // For backward Euler: i = C * (v_current - v_prev) / Δt
+        // Rearranged: C*v_current/Δt - C*v_prev/Δt = i
+        // In MNA, the RHS should be: -C*v_prev/Δt (current flowing INTO the node)
         Pairs::new(&[
-            (node0_idx, g * v_prev),
-            (node1_idx, -g * v_prev),
+            (node0_idx, -g * v_prev),
+            (node1_idx, g * v_prev),
         ])
     }
 }
