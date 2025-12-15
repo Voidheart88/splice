@@ -1,4 +1,5 @@
 use super::*;
+use assert_float_eq::assert_float_relative_eq;
 
 #[test]
 fn test_new_inductor_bundle() {
@@ -198,4 +199,89 @@ fn test_transient_triples_large_delta_t() {
     assert_eq!(triples[1].2, expected_conductance);
     assert_eq!(triples[2].2, -expected_conductance);
     assert_eq!(triples[3].2, -expected_conductance);
+}
+
+#[test]
+fn test_transient_pairs_both_nodes() {
+    let node0 = Variable::new(Arc::from("Node0"), Unit::Volt, 0);
+    let node1 = Variable::new(Arc::from("Node1"), Unit::Volt, 1);
+    let mut inductor_bundle =
+        InductorBundle::new(Arc::from("InductorBundle18"), Some(node0), Some(node1), 2.0);
+    
+    // Set a previous current
+    inductor_bundle.update_previous_current(0.5);
+    
+    let delta_t = 0.01;
+    let pairs = inductor_bundle.pairs(&delta_t);
+    let expected_resistance = delta_t / 2.0; // delta_t / L = 0.01 / 2.0 = 0.005
+    let expected_rhs = expected_resistance * 0.5; // 0.005 * 0.5 = 0.0025
+    
+    // Debug output
+    println!("Expected resistance: {}", expected_resistance);
+    println!("Expected RHS: {}", expected_rhs);
+    println!("Actual pairs[0].1: {}", pairs[0].1);
+    println!("Actual pairs[1].1: {}", pairs[1].1);
+    
+    assert_eq!(pairs.len(), 2);
+    assert_float_relative_eq!(pairs[0].1, expected_rhs, 1e-10);
+    assert_float_relative_eq!(pairs[1].1, -expected_rhs, 1e-10);
+}
+
+#[test]
+fn test_transient_pairs_node0_none() {
+    let node1 = Variable::new(Arc::from("Node1"), Unit::Volt, 1);
+    let mut inductor_bundle =
+        InductorBundle::new(Arc::from("InductorBundle19"), None, Some(node1), 2.0);
+    
+    inductor_bundle.update_previous_current(0.3);
+    
+    let delta_t = 0.01;
+    let pairs = inductor_bundle.pairs(&delta_t);
+    let expected_resistance = delta_t / 2.0;
+    let expected_rhs = expected_resistance * 0.3;
+    
+    assert_eq!(pairs.len(), 1);
+    assert_float_relative_eq!(pairs[0].1, expected_rhs, 1e-10);
+}
+
+#[test]
+fn test_transient_pairs_node1_none() {
+    let node0 = Variable::new(Arc::from("Node0"), Unit::Volt, 0);
+    let mut inductor_bundle =
+        InductorBundle::new(Arc::from("InductorBundle20"), Some(node0), None, 2.0);
+    
+    inductor_bundle.update_previous_current(0.2);
+    
+    let delta_t = 0.01;
+    let pairs = inductor_bundle.pairs(&delta_t);
+    let expected_resistance = delta_t / 2.0;
+    let expected_rhs = -expected_resistance * 0.2;
+    
+    assert_eq!(pairs.len(), 1);
+    assert_float_relative_eq!(pairs[0].1, expected_rhs, 1e-10);
+}
+
+#[test]
+fn test_previous_current_initialization() {
+    let node0 = Variable::new(Arc::from("Node0"), Unit::Volt, 0);
+    let node1 = Variable::new(Arc::from("Node1"), Unit::Volt, 1);
+    let inductor_bundle =
+        InductorBundle::new(Arc::from("InductorBundle21"), Some(node0), Some(node1), 1.0);
+    
+    // Should initialize to 0A
+    assert_eq!(inductor_bundle.previous_current(), 0.0);
+}
+
+#[test]
+fn test_update_previous_current() {
+    let node0 = Variable::new(Arc::from("Node0"), Unit::Volt, 0);
+    let node1 = Variable::new(Arc::from("Node1"), Unit::Volt, 1);
+    let mut inductor_bundle =
+        InductorBundle::new(Arc::from("InductorBundle22"), Some(node0), Some(node1), 1.0);
+    
+    inductor_bundle.update_previous_current(1.5);
+    assert_eq!(inductor_bundle.previous_current(), 1.5);
+    
+    inductor_bundle.update_previous_current(2.5);
+    assert_eq!(inductor_bundle.previous_current(), 2.5);
 }

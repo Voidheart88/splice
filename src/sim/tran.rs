@@ -21,15 +21,18 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
 
         let mut x_prev: Vec<Numeric> = self.find_op()?.iter().map(|op| op.1).collect();
         
-        // Initialize capacitor voltages for transient analysis
+        // Initialize capacitor voltages and inductor currents for transient analysis
         // For transient analysis, capacitors typically start with 0V across them
-        // (discharged state), regardless of the OP analysis result.
-        // The OP analysis treats capacitors as open circuits, which doesn't give
-        // us the correct initial condition for transient simulation.
+        // (discharged state), and inductors start with 0A through them.
+        // The OP analysis treats capacitors as open circuits and inductors as short circuits,
+        // which doesn't give us the correct initial conditions for transient simulation.
         for element in &mut self.elements {
             if let Element::Capacitor(cap) = element {
                 // Start with 0V across the capacitor (discharged state)
                 cap.update_previous_voltage(Numeric::zero());
+            } else if let Element::Inductor(ind) = element {
+                // Start with 0A through the inductor (no initial current)
+                ind.update_previous_current(Numeric::zero());
             }
         }
 
@@ -54,8 +57,9 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
                     tran_results.push((t, self.add_var_name(x_new.clone())));
                     x_prev = x_new.clone();
                     
-                    // Update capacitor voltages for next time step
+                    // Update capacitor voltages and inductor currents for next time step
                     self.update_capacitor_voltages(&x_new);
+                    self.update_inductor_currents(&x_new, tstep);
                     
                     converged = true;
                     break;

@@ -133,6 +133,7 @@ impl Element {
             Element::VSourceSin(ele) => Some(ele.pairs(time)),
             Element::VSourceStep(ele) => Some(ele.pairs(time)),
             Element::Capacitor(ele) => Some(ele.pairs(delta_t)),
+            Element::Inductor(ele) => Some(ele.pairs(delta_t)),
             _ => None,
         }
     }

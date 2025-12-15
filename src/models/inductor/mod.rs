@@ -14,10 +14,13 @@ use crate::spot::*;
 /// A structure representing a bundle of inductors.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct InductorBundle {
-    name: Arc<str>,
-    node0: Option<Variable>,
-    node1: Option<Variable>,
-    value: Numeric,
+    pub name: Arc<str>,
+    pub node0: Option<Variable>,
+    pub node1: Option<Variable>,
+    pub value: Numeric,
+    /// Previous current through the inductor for transient simulation
+    /// This stores the current from the last time step for proper integration
+    pub previous_current: Numeric,
 }
 
 impl InductorBundle {
@@ -44,12 +47,24 @@ impl InductorBundle {
             node0,
             node1,
             value,
+            previous_current: Numeric::zero(), // Initialize to 0A
         }
     }
 
     /// Returns the name of the inductor bundle.
     pub fn name(&self) -> Arc<str> {
         self.name.clone()
+    }
+
+    /// Updates the previous current for transient simulation
+    /// This should be called after each time step with the current current
+    pub fn update_previous_current(&mut self, current: Numeric) {
+        self.previous_current = current;
+    }
+
+    /// Returns the previous current through the inductor
+    pub fn previous_current(&self) -> Numeric {
+        self.previous_current
     }
 
     /// Returns the triples representing the inductor's contribution to matrix A.
@@ -114,6 +129,37 @@ impl InductorBundle {
     /// Returns the index of node1 if it exists.
     pub fn node1_idx(&self) -> Option<usize> {
         self.node1.as_ref().map(|v| v.idx())
+    }
+
+    /// Returns the pairs representing the right-hand side (RHS) for transient simulation
+    /// This implements the backward Euler integration: v = L * (i_current - i_prev) / Δt
+    /// Which rearranges to: (L/Δt)*i_current - (L/Δt)*i_prev = v
+    /// In MNA, this becomes part of the RHS vector as: b = (L/Δt) * i_prev
+    pub fn pairs(&self, delta_t: &Numeric) -> Pairs<Numeric, 2> {
+        let r = delta_t / self.value; // Equivalent resistance = Δt/L
+        let i_prev = self.previous_current;
+        
+        let node0_idx = if let Some(idx) = self.node0_idx() {
+            idx
+        } else {
+            // If node0 doesn't exist, inductor is connected to ground through node1
+            let node1_idx = self.node1_idx().expect("Inductor must have at least one node connected");
+            return Pairs::new(&[(node1_idx, r * i_prev)]);
+        };
+        let node1_idx = if let Some(idx) = self.node1_idx() {
+            idx
+        } else {
+            return Pairs::new(&[(node0_idx, -r * i_prev)]);
+        };
+
+        // The RHS represents the voltage contribution from the previous time step
+        // For backward Euler: v = L * (i_current - i_prev) / Δt
+        // Rearranged: L*i_current/Δt - L*i_prev/Δt = v
+        // In MNA, the RHS should be: (L/Δt) * i_prev (voltage drop across the inductor)
+        Pairs::new(&[
+            (node0_idx, r * i_prev),
+            (node1_idx, -r * i_prev),
+        ])
     }
 
     /// Returns the triples representing the inductor's contribution to matrix A.
