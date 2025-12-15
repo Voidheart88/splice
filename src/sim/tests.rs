@@ -987,6 +987,14 @@ fn test_rc_step_response() {
     };
 
     let mut simulator: Simulator<NalgebraSolver> = Simulator::from(sim);
+    
+    // First, run OP analysis to see initial conditions
+    let op_result = simulator.find_op().unwrap();
+    println!("OP Analysis Results:");
+    for (var, value) in &op_result {
+        println!("  {}: {}V", var.name(), value);
+    }
+    
     let result = simulator.run().unwrap();
 
     let tran_results = match &result.results[0] {
@@ -994,38 +1002,43 @@ fn test_rc_step_response() {
         _ => panic!("Expected transient results"),
     };
 
-    println!("RC step response test:");
+    println!("\nRC step response test:");
     println!("  R = 1kΩ, C = 1µF, τ = 1ms");
     println!("  Input: 0V to 10V step at t=0");
+
+    // Print time series for debugging
+    println!("\nTime series (first 10 and last 5 points):");
+    for (i, (time, values)) in tran_results.iter().enumerate() {
+        if i < 10 || i >= tran_results.len() - 5 {
+            let output = values.iter().find(|(var, _)| var.name() == Arc::from("2")).map(|(_, val)| *val).unwrap_or(0.0);
+            println!("  t={:.6}s: Vout={:.6}V", time, output);
+        } else if i == 10 {
+            println!("  ...");
+        }
+    }
 
     // Check initial and final conditions
     let initial_output = tran_results[0].1.iter().find(|(var, _)| var.name() == Arc::from("2")).map(|(_, val)| *val).unwrap_or(0.0);
     let final_output = tran_results.last().unwrap().1.iter().find(|(var, _)| var.name() == Arc::from("2")).map(|(_, val)| *val).unwrap_or(0.0);
 
+    println!("\nSummary:");
     println!("  Initial output: {}V", initial_output);
     println!("  Final output:   {}V", final_output);
 
     // With RC=1ms, after 10ms (10 time constants), the capacitor should be fully charged
     // Vout should be close to 10V (within 5% tolerance)
+    assert!(
+        (final_output - 10.0).abs() < 0.5,
+        "RC step response failure: Capacitor not charging properly. Expected final voltage close to 10V, got {}V",
+        final_output
+    );
 
-    // Note: This test currently fails due to the capacitor simulation bug
-    // The step source itself works correctly, but the capacitor doesn't charge properly
-    // This is the same issue as with the sinusoidal source
-    // TODO: Fix the capacitor simulation and then enable these assertions
-    
-    // assert!(
-    //     (final_output - 10.0).abs() < 0.5,
-    //     "RC step response failure: Capacitor not charging properly. Expected final voltage close to 10V, got {}V",
-    //     final_output
-    // );
+    // Also check that initial voltage is close to 0V
+    assert!(
+        initial_output < 0.001,
+        "RC step response failure: Initial voltage should be close to 0V, got {}V",
+        initial_output
+    );
 
-    // // Also check that initial voltage is close to 0V
-    // assert!(
-    //     initial_output < 0.1,
-    //     "RC step response failure: Initial voltage should be close to 0V, got {}V",
-    //     initial_output
-    // );
-
-    println!("⚠️  RC step response test shows capacitor simulation issue (same as sinusoidal source)");
-    println!("    Step source works correctly, but capacitor charging is incorrect");
+    println!("✅ RC step response test passed - capacitor charging works correctly");
 }

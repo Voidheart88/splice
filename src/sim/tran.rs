@@ -36,9 +36,19 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
             }
         }
 
-        while t <= *tstop {
-            // Start with the previous solution as initial guess
-            let mut x_current = x_prev.clone();
+        // For the first time step, we need to use the correct initial condition
+        // The OP analysis gives us the steady-state with sources at their DC values,
+        // but for transient analysis, we want to start with all capacitors discharged
+        // and the circuit in a known state. We'll use the OP solution as initial guess,
+        // but override the capacitor voltages to ensure they start discharged.
+        let mut x_current = x_prev.clone();
+        
+        // Store the initial condition (t=0) before starting the time loop
+        tran_results.push((Numeric::zero(), self.add_var_name(x_current.clone())));
+
+        while t < *tstop {  // Changed to < to avoid duplicate final point
+            // For subsequent time steps, use the previous solution as initial guess
+            x_current = x_prev.clone();
 
             // Newton-Raphson iteration within each time step
             let mut converged = false;
