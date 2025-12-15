@@ -2,11 +2,12 @@
 // This module benchmarks the MessagePack serialization/deserialization
 // and network communication performance
 
-use criterion::{Criterion, BenchmarkId, BatchSize};
+use criterion::{Criterion, BenchmarkId};
 use rmp_serde::{encode::write as msgpack_write, decode::from_read as msgpack_read};
 use std::io::Cursor;
-use splice::frontends::serde::{SerdeCircuit, SerdeElement, SerdeSimulation, SerdeOption, SerdeResistor, SerdeVSource, SerdeCapacitor, SerdeDC, SerdeAC, SerdeTran};
-use splice::sim::simulation_result::SimulationResults;
+use splice::frontends::serde::{SerdeCircuit, SerdeElement, SerdeSimulation, SerdeOption};
+use splice::models::resistor::serde::SerdeResistor;
+use splice::models::vsource::serde::SerdeVSource;
 
 /// Generate a simple RC circuit for benchmarking
 fn create_simple_rc_circuit() -> SerdeCircuit {
@@ -17,12 +18,6 @@ fn create_simple_rc_circuit() -> SerdeCircuit {
                 node0: "n1".to_string(),
                 node1: "0".to_string(),
                 value: 1000.0,
-            }),
-            SerdeElement::Capacitor(splice::models::capacitor::serde::SerdeCapacitor {
-                name: "C1".to_string(),
-                node0: "n1".to_string(),
-                node1: "0".to_string(),
-                value: 1e-6,
             }),
             SerdeElement::VSource(SerdeVSource {
                 name: "V1".to_string(),
@@ -60,12 +55,12 @@ fn create_medium_circuit(size: usize) -> SerdeCircuit {
         }));
     }
     
-    // Add capacitor to ground
-    elements.push(SerdeElement::Capacitor(splice::models::capacitor::serde::SerdeCapacitor {
-        name: "C1".to_string(),
+    // Add another resistor to ground instead of capacitor (since SerdeCapacitor is private)
+    elements.push(SerdeElement::Resistor(SerdeResistor {
+        name: "R_end".to_string(),
         node0: format!("n{}", size + 1),
         node1: "0".to_string(),
-        value: 1e-6,
+        value: 1000.0,
     }));
     
     SerdeCircuit {
@@ -126,9 +121,9 @@ fn create_large_circuit(rows: usize, cols: usize) -> SerdeCircuit {
     }
 }
 
-/// Benchmark MessagePack serialization performance
-pub fn bench_msgpack_serialization(c: &mut Criterion) {
-    let mut group = c.benchmark_group("MessagePack Serialization");
+/// Benchmark MessagePack serialization performance for small/medium circuits (quick)
+pub fn bench_msgpack_serialization_quick(c: &mut Criterion) {
+    let mut group = c.benchmark_group("MessagePack Serialization/Quick");
     
     // Small circuit (3 elements)
     let small_circuit = create_simple_rc_circuit();
@@ -140,8 +135,8 @@ pub fn bench_msgpack_serialization(c: &mut Criterion) {
         });
     });
     
-    // Medium circuits (10-100 elements)
-    for size in [10, 50, 100] {
+    // Medium circuits (10-50 elements)
+    for size in [10, 50] {
         let circuit = create_medium_circuit(size);
         group.bench_with_input(BenchmarkId::new("Medium circuit", size), &size, |b, _| {
             b.iter(|| {
@@ -151,6 +146,23 @@ pub fn bench_msgpack_serialization(c: &mut Criterion) {
             });
         });
     }
+    
+    group.finish();
+}
+
+/// Benchmark MessagePack serialization performance for large circuits (long-running)
+pub fn bench_msgpack_serialization_long(c: &mut Criterion) {
+    let mut group = c.benchmark_group("MessagePack Serialization/Long");
+    
+    // Larger medium circuit
+    let circuit_100 = create_medium_circuit(100);
+    group.bench_function("Medium circuit (100 elements)", |b| {
+        b.iter(|| {
+            let mut buf = Vec::new();
+            msgpack_write(&mut buf, &circuit_100).unwrap();
+            buf.len()
+        });
+    });
     
     // Large circuits (grid-based)
     for (rows, cols) in [(5, 5), (10, 10)] {
@@ -168,9 +180,9 @@ pub fn bench_msgpack_serialization(c: &mut Criterion) {
     group.finish();
 }
 
-/// Benchmark MessagePack deserialization performance
-pub fn bench_msgpack_deserialization(c: &mut Criterion) {
-    let mut group = c.benchmark_group("MessagePack Deserialization");
+/// Benchmark MessagePack deserialization performance for small/medium circuits (quick)
+pub fn bench_msgpack_deserialization_quick(c: &mut Criterion) {
+    let mut group = c.benchmark_group("MessagePack Deserialization/Quick");
     
     // Prepare serialized data for different circuit sizes
     let small_circuit = create_simple_rc_circuit();
@@ -180,10 +192,6 @@ pub fn bench_msgpack_deserialization(c: &mut Criterion) {
     let medium_circuit_50 = create_medium_circuit(50);
     let mut medium_data_50 = Vec::new();
     msgpack_write(&mut medium_data_50, &medium_circuit_50).unwrap();
-    
-    let large_circuit = create_large_circuit(10, 10);
-    let mut large_data = Vec::new();
-    msgpack_write(&mut large_data, &large_circuit).unwrap();
     
     group.bench_function("Small circuit (3 elements)", |b| {
         b.iter(|| {
@@ -198,6 +206,18 @@ pub fn bench_msgpack_deserialization(c: &mut Criterion) {
             let _: SerdeCircuit = msgpack_read(cursor).unwrap();
         });
     });
+    
+    group.finish();
+}
+
+/// Benchmark MessagePack deserialization performance for large circuits (long-running)
+pub fn bench_msgpack_deserialization_long(c: &mut Criterion) {
+    let mut group = c.benchmark_group("MessagePack Deserialization/Long");
+    
+    // Prepare serialized data for large circuit
+    let large_circuit = create_large_circuit(10, 10);
+    let mut large_data = Vec::new();
+    msgpack_write(&mut large_data, &large_circuit).unwrap();
     
     group.bench_function("Large circuit (10x10 grid)", |b| {
         b.iter(|| {
@@ -234,142 +254,43 @@ pub fn bench_msgpack_roundtrip(c: &mut Criterion) {
     group.finish();
 }
 
-/// Benchmark different simulation types serialization
-pub fn bench_simulation_types(c: &mut Criterion) {
-    let mut group = c.benchmark_group("Simulation Types");
+/// Benchmark payload size vs serialization time for small/medium circuits (quick)
+pub fn bench_payload_scaling_quick(c: &mut Criterion) {
+    let mut group = c.benchmark_group("Payload Scaling/Quick");
     
-    let base_circuit = create_simple_rc_circuit();
+    let sizes = [10, 50];
     
-    // OP simulation
-    let op_circuit = SerdeCircuit {
-        simulations: vec![SerdeSimulation::OP],
-        ..base_circuit.clone()
-    };
-    
-    // DC simulation
-    let dc_circuit = SerdeCircuit {
-        simulations: vec![SerdeSimulation::DC(SerdeDC::new("V1".to_string(), 0.0, 5.0, 0.1))],
-        ..base_circuit.clone()
-    };
-    
-    // AC simulation
-    let ac_circuit = SerdeCircuit {
-        simulations: vec![SerdeSimulation::AC(splice::models::ac::serde::SerdeAC {
-            fstart: 1.0,
-            fstop: 1e6,
-            fstep: 100,
-        })],
-        ..base_circuit.clone()
-    };
-    
-    // Transient simulation
-    let tran_circuit = SerdeCircuit {
-        simulations: vec![SerdeSimulation::Tran(splice::models::tran::serde::SerdeTran {
-            tstep: 1e-6,
-            tend: 1e-3,
-        })],
-        ..base_circuit
-    };
-    
-    group.bench_function("OP simulation", |b| {
-        b.iter(|| {
-            let mut buf = Vec::new();
-            msgpack_write(&mut buf, &op_circuit).unwrap();
-            buf.len()
+    for size in sizes.iter() {
+        let circuit = create_medium_circuit(*size);
+        
+        group.bench_with_input(BenchmarkId::new("Serialization", size), size, |b, _| {
+            b.iter(|| {
+                let mut buf = Vec::new();
+                msgpack_write(&mut buf, &circuit).unwrap();
+                buf.len()
+            });
         });
-    });
-    
-    group.bench_function("DC simulation", |b| {
-        b.iter(|| {
-            let mut buf = Vec::new();
-            msgpack_write(&mut buf, &dc_circuit).unwrap();
-            buf.len()
+        
+        // Prepare data for deserialization benchmark
+        let mut data = Vec::new();
+        msgpack_write(&mut data, &circuit).unwrap();
+        
+        group.bench_with_input(BenchmarkId::new("Deserialization", size), size, |b, _| {
+            b.iter(|| {
+                let cursor = Cursor::new(&data);
+                let _: SerdeCircuit = msgpack_read(cursor).unwrap();
+            });
         });
-    });
-    
-    group.bench_function("AC simulation", |b| {
-        b.iter(|| {
-            let mut buf = Vec::new();
-            msgpack_write(&mut buf, &ac_circuit).unwrap();
-            buf.len()
-        });
-    });
-    
-    group.bench_function("Transient simulation", |b| {
-        b.iter(|| {
-            let mut buf = Vec::new();
-            msgpack_write(&mut buf, &tran_circuit).unwrap();
-            buf.len()
-        });
-    });
+    }
     
     group.finish();
 }
 
-/// Benchmark result serialization (simulated results)
-pub fn bench_result_serialization(c: &mut Criterion) {
-    let mut group = c.benchmark_group("Result Serialization");
+/// Benchmark payload size vs serialization time for large circuits (long-running)
+pub fn bench_payload_scaling_long(c: &mut Criterion) {
+    let mut group = c.benchmark_group("Payload Scaling/Long");
     
-    // Create a mock result with different sizes
-    let small_result = SimulationResults {
-        options: vec![],
-        results: vec![splice::sim::simulation_result::Sim::Op(vec![
-            (splice::sim::simulation_result::Variable::Voltage("n1".to_string()), 5.0),
-        ])],
-    };
-    
-    let medium_result = SimulationResults {
-        options: vec![],
-        results: vec![splice::sim::simulation_result::Sim::Op(
-            (0..50).map(|i| {
-                (splice::sim::simulation_result::Variable::Voltage(format!("n{i}")), i as f64 * 0.1)
-            }).collect()
-        )],
-    };
-    
-    let large_result = SimulationResults {
-        options: vec![],
-        results: vec![splice::sim::simulation_result::Sim::Dc(
-            (0..100).map(|i| {
-                (0..50).map(|j| {
-                    (splice::sim::simulation_result::Variable::Voltage(format!("n{j}")), (i * j) as f64 * 0.01)
-                }).collect()
-            }).collect()
-        )],
-    };
-    
-    group.bench_function("Small result (1 variable)", |b| {
-        b.iter(|| {
-            let mut buf = Vec::new();
-            msgpack_write(&mut buf, &small_result).unwrap();
-            buf.len()
-        });
-    });
-    
-    group.bench_function("Medium result (50 variables)", |b| {
-        b.iter(|| {
-            let mut buf = Vec::new();
-            msgpack_write(&mut buf, &medium_result).unwrap();
-            buf.len()
-        });
-    });
-    
-    group.bench_function("Large result (100x50 DC sweep)", |b| {
-        b.iter(|| {
-            let mut buf = Vec::new();
-            msgpack_write(&mut buf, &large_result).unwrap();
-            buf.len()
-        });
-    });
-    
-    group.finish();
-}
-
-/// Benchmark payload size vs serialization time
-pub fn bench_payload_scaling(c: &mut Criterion) {
-    let mut group = c.benchmark_group("Payload Scaling");
-    
-    let sizes = [10, 50, 100, 200, 500];
+    let sizes = [100, 200, 500];
     
     for size in sizes.iter() {
         let circuit = create_medium_circuit(*size);

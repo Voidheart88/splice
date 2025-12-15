@@ -1,4 +1,4 @@
-pub(crate) mod serde;
+pub mod serde;
 /// The Capacitor Module. As every module this module encapsulates exerything regarding this bundle
 /// This includes parsing from various formats as well as the conductance-behaviour.
 pub(crate) mod spice;

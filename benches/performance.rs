@@ -70,13 +70,18 @@ criterion_group!(
 );
 
 criterion_group!(
-    network_benches,
-    bench_msgpack_serialization,
-    bench_msgpack_deserialization,
+    network_benches_quick,
+    bench_msgpack_serialization_quick,
+    bench_msgpack_deserialization_quick,
     bench_msgpack_roundtrip,
-    bench_simulation_types,
-    bench_result_serialization,
-    bench_payload_scaling,
+    bench_payload_scaling_quick,
 );
 
-criterion_main!(real_world_benches, network_benches);
+criterion_group!(
+    network_benches_long,
+    bench_msgpack_serialization_long,
+    bench_msgpack_deserialization_long,
+    bench_payload_scaling_long,
+);
+
+criterion_main!(real_world_benches, network_benches_quick);

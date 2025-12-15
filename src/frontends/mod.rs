@@ -1,6 +1,6 @@
 pub(crate) mod kicad;
 pub(crate) mod network;
-pub(crate) mod serde;
+pub mod serde;
 pub(crate) mod spice;
 
 use std::collections::HashMap;
