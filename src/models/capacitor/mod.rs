@@ -220,6 +220,37 @@ impl CapacitorBundle {
             (node1_idx, g * v_prev),
         ])
     }
+
+    /// Returns the pairs representing the right-hand side (RHS) for transient simulation using trapezoidal integration
+    /// This implements the trapezoidal rule: i = C * (v_current - v_prev) / (Δt/2)
+    /// Which rearranges to: (2C/Δt)*v_current - (2C/Δt)*v_prev = i
+    /// In MNA, this becomes part of the RHS vector as: b = (2C/Δt) * v_prev
+    pub fn pairs_trapezoidal(&self, delta_t: &Numeric) -> Pairs<Numeric, 2> {
+        let g = (self.value * 2.0) / delta_t; // Equivalent conductance for trapezoidal rule
+        let v_prev = self.previous_voltage;
+        
+        let node0_idx = if let Some(idx) = self.node0_idx() {
+            idx
+        } else {
+            // If node0 doesn't exist, capacitor is connected to ground through node1
+            let node1_idx = self.node1_idx().expect("Capacitor must have at least one node connected");
+            return Pairs::new(&[(node1_idx, -g * v_prev)]);
+        };
+        let node1_idx = if let Some(idx) = self.node1_idx() {
+            idx
+        } else {
+            return Pairs::new(&[(node0_idx, g * v_prev)]);
+        };
+
+        // The RHS represents the current contribution from the previous time step
+        // For trapezoidal rule: i = C * (v_current - v_prev) / (Δt/2)
+        // Rearranged: (2C/Δt)*v_current - (2C/Δt)*v_prev = i
+        // In MNA, the RHS should be: -(2C/Δt)*v_prev (current flowing INTO the node)
+        Pairs::new(&[
+            (node0_idx, -g * v_prev),
+            (node1_idx, g * v_prev),
+        ])
+    }
 }
 
 #[cfg(test)]

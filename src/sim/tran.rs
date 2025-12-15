@@ -1,6 +1,7 @@
 use log::info;
 
 use crate::models::Element;
+use crate::sim::options::IntegrationMethod;
 use crate::sim::simulation_result::Sim;
 use crate::sim::SimulatorError;
 use crate::solver::Solver;
@@ -57,7 +58,18 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
                 self.build_constant_a_mat();
                 self.build_constant_b_vec();
                 self.build_time_variant_a_mat(tstep);
-                self.build_time_variant_b_vec(&t, tstep);
+                
+                // Use trapezoidal integration if specified
+                let integration_method = self.get_integration_method();
+                match integration_method {
+                    IntegrationMethod::BackwardEuler => {
+                        self.build_time_variant_b_vec(&t, tstep);
+                    }
+                    IntegrationMethod::Trapezoidal => {
+                        self.build_time_variant_b_vec_trapezoidal(&t, tstep);
+                    }
+                }
+                
                 self.build_nonlinear_a_mat(&x_current);
                 self.build_nonlinear_b_vec(&x_current);
 

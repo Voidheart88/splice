@@ -20,6 +20,7 @@ use crate::models::{Element, Variable};
 use crate::sim::ac::AcSimulation;
 use crate::sim::dc::DcSimulation;
 use crate::sim::op::OpSimulation;
+use crate::sim::options::IntegrationMethod;
 use crate::sim::tran::TranSimulation;
 use crate::solver::{Solver, SolverError};
 use crate::spot::*;
@@ -62,6 +63,21 @@ pub(super) struct Simulator<SO: Solver> {
 }
 
 impl<SO: Solver> Simulator<SO> {
+    /// Returns the integration method to use for transient simulation
+    /// Defaults to BackwardEuler for stability
+    fn get_integration_method(&self) -> IntegrationMethod {
+        self.options
+            .iter()
+            .find_map(|opt| {
+                if let SimulationOption::IntegrationMethod(method) = opt {
+                    Some(method.clone())
+                } else {
+                    None
+                }
+            })
+            .unwrap_or(IntegrationMethod::BackwardEuler)
+    }
+
     pub fn run(&mut self) -> Result<SimulationResults, SimulatorError> {
         //Inits matrices and sparsity patterns
         self.init_solver();
@@ -200,6 +216,14 @@ impl<SO: Solver> Simulator<SO> {
         self.elements
             .iter()
             .filter_map(|ele| ele.get_time_variant_pairs(Some(time), delta_t))
+            .flat_map(|pairs| pairs.data())
+            .for_each(|pair| self.solver.insert_b(&pair));
+    }
+
+    fn build_time_variant_b_vec_trapezoidal(&mut self, time: &Numeric, delta_t: &Numeric) {
+        self.elements
+            .iter()
+            .filter_map(|ele| ele.get_time_variant_pairs_trapezoidal(Some(time), delta_t))
             .flat_map(|pairs| pairs.data())
             .for_each(|pair| self.solver.insert_b(&pair));
     }

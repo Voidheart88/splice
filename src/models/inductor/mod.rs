@@ -162,6 +162,37 @@ impl InductorBundle {
         ])
     }
 
+    /// Returns the pairs representing the right-hand side (RHS) for transient simulation using trapezoidal integration
+    /// This implements the trapezoidal rule: v = L * (i_current - i_prev) / (Δt/2)
+    /// Which rearranges to: (2L/Δt)*i_current - (2L/Δt)*i_prev = v
+    /// In MNA, this becomes part of the RHS vector as: b = (2L/Δt) * i_prev
+    pub fn pairs_trapezoidal(&self, delta_t: &Numeric) -> Pairs<Numeric, 2> {
+        let r = (delta_t * 2.0) / self.value; // Equivalent resistance for trapezoidal rule = 2Δt/L
+        let i_prev = self.previous_current;
+        
+        let node0_idx = if let Some(idx) = self.node0_idx() {
+            idx
+        } else {
+            // If node0 doesn't exist, inductor is connected to ground through node1
+            let node1_idx = self.node1_idx().expect("Inductor must have at least one node connected");
+            return Pairs::new(&[(node1_idx, r * i_prev)]);
+        };
+        let node1_idx = if let Some(idx) = self.node1_idx() {
+            idx
+        } else {
+            return Pairs::new(&[(node0_idx, -r * i_prev)]);
+        };
+
+        // The RHS represents the voltage contribution from the previous time step
+        // For trapezoidal rule: v = L * (i_current - i_prev) / (Δt/2)
+        // Rearranged: (2L/Δt)*i_current - (2L/Δt)*i_prev = v
+        // In MNA, the RHS should be: (2L/Δt) * i_prev (voltage drop across the inductor)
+        Pairs::new(&[
+            (node0_idx, r * i_prev),
+            (node1_idx, -r * i_prev),
+        ])
+    }
+
     /// Returns the triples representing the inductor's contribution to matrix A.
     pub fn ac_triples(&self, freq: Numeric) -> Triples<ComplexNumeric, 4> {
         let node0_idx = if let Some(node) = &self.node0 {

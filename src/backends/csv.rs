@@ -67,9 +67,10 @@ impl CsvBackend {
         let mut filtered_headers = HashSet::new();
         for option in options {
             // Directly unpack the Out variant since it's irrefutable.
-            let SimulationOption::Out(vars) = option;
-            for var in vars {
-                filtered_headers.insert(var);
+            if let SimulationOption::Out(vars) = option {
+                for var in vars {
+                    filtered_headers.insert(var);
+                }
             }
         }
 

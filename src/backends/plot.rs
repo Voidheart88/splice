@@ -102,9 +102,10 @@ impl PlotBackend {
         // Collect the variable names specified in the options.
         let mut filtered_headers = HashSet::new();
         for option in options {
-            let SimulationOption::Out(vars) = option;
-            for var in vars {
-                filtered_headers.insert(var);
+            if let SimulationOption::Out(vars) = option {
+                for var in vars {
+                    filtered_headers.insert(var);
+                }
             }
         }
 

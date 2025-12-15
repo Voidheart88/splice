@@ -158,6 +158,17 @@ impl Element {
         }
     }
 
+    /// Returns the time variant pairs of the element using trapezoidal integration, if applicable.
+    pub(crate) fn get_time_variant_pairs_trapezoidal(&self, time: Option<&Numeric>, delta_t: &Numeric) -> Option<Pairs<Numeric, 2>> {
+        match self {
+            Element::VSourceSin(ele) => Some(ele.pairs(time)), // Time sources use same method
+            Element::VSourceStep(ele) => Some(ele.pairs(time)), // Time sources use same method
+            Element::Capacitor(ele) => Some(ele.pairs_trapezoidal(delta_t)),
+            Element::Inductor(ele) => Some(ele.pairs_trapezoidal(delta_t)),
+            _ => None,
+        }
+    }
+
     /// Returns the nonlinear triples. Nonlinear Triples are dependent on Vector x.
     pub(crate) fn get_nonlinear_triples(&self, x_vec: &[Numeric]) -> Option<Triples<Numeric, 4>> {
         match self {
