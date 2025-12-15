@@ -8,7 +8,7 @@ pub mod solver;
 pub mod spot;
 
 use clap::Parser;
-use log::info;
+use log::{info, error};
 use miette::{Diagnostic, Result};
 use thiserror::Error;
 
@@ -91,7 +91,11 @@ pub fn run() -> Result<()> {
             pth.clone(),
             SerdeFormat::Json,
         )?),
-        Frontends::Network => Box::new(NetworkFrontend::new()),
+        Frontends::Network => {
+            let frontend = NetworkFrontend::new(8080)?;
+            info!("Network frontend started on port {}", frontend.get_port());
+            Box::new(frontend)
+        }
         Frontends::Kicad => Box::new(KicadFrontend::new()),
         Frontends::Select => SelectFrontend::try_from_path(pth.clone())?,
     };
@@ -110,7 +114,13 @@ pub fn run() -> Result<()> {
         Backends::Csv => Box::new(CsvBackend::new()),
         Backends::Raw => Box::new(RawBackend::new()),
         Backends::Plot => Box::new(PlotBackend::new(pth)),
-        Backends::Network => Box::new(NetworkBackend::new()),
+        Backends::Network => {
+            // For network backend, we need to accept the connection from the frontend
+            // This is a temporary solution - in production, we'd want to pass the stream
+            let listener = std::net::TcpListener::bind("0.0.0.0:8081").map_err(|e| BackendError::IoError(e.to_string()))?;
+            let (stream, _) = listener.accept().map_err(|e| BackendError::IoError(e.to_string()))?;
+            Box::new(NetworkBackend::new(stream))
+        }
     };
 
     info!("Output Data");
@@ -121,11 +131,21 @@ pub fn run() -> Result<()> {
 }
 
 fn network_loop(solver: Solvers) {
+    // Start frontend on port 8080
+    let frontend = match NetworkFrontend::new(8080) {
+        Ok(f) => f,
+        Err(_) => return, // Could not start network frontend
+    };
+    
+    info!("Network mode started on port {}", frontend.get_port());
+    
     loop {
-        let frontend = NetworkFrontend::new();
         let sim = match frontend.simulation() {
             Ok(sim) => sim,
-            Err(_) => continue, // Restart server on error. Maybe send an error to the socket?
+            Err(e) => {
+                error!("Network frontend error: {}", e);
+                continue;
+            }
         };
 
         let results = match solver {
@@ -137,13 +157,30 @@ fn network_loop(solver: Solvers) {
 
         let results = match results {
             Ok(res) => res,
-            Err(_) => continue, // Restart server on error. Maybe send an error to the socket?
+            Err(e) => {
+                error!("Simulation error: {}", e);
+                continue;
+            }
         };
 
-        let out = NetworkBackend::new();
+        // Create backend with the same connection
+        let listener = match std::net::TcpListener::bind("0.0.0.0:8081") {
+            Ok(l) => l,
+            Err(_) => continue,
+        };
+        
+        let (stream, _) = match listener.accept() {
+            Ok(s) => s,
+            Err(_) => continue,
+        };
+        
+        let out = NetworkBackend::new(stream);
         match out.output(results) {
-            Ok(_) => {}
-            Err(_) => continue, // Restart server on error. Maybe send an error to the socket?
+            Ok(_) => info!("Results sent successfully"),
+            Err(e) => {
+                error!("Network backend error: {}", e);
+                continue;
+            }
         };
     }
 }

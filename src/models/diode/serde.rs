@@ -2,12 +2,12 @@ use std::collections::HashMap;
 /// The Diode - yaml parsing module
 use std::sync::Arc;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::frontends::{get_variable, serde::ProcessSerdeElement};
 use crate::models::{DiodeBundle, Element, Unit};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct SerdeDiode {
     pub name: String,
     pub anode: String,

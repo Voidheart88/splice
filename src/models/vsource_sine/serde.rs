@@ -1,10 +1,10 @@
 use crate::frontends::{get_variable, serde::ProcessSerdeElement};
 use crate::models::{Element, Unit, VSourceSinBundle, Variable};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct SerdeVSourceSin {
     /// Name of the sinusoidal voltage source.
     pub name: String,

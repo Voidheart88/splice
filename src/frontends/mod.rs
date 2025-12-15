@@ -63,11 +63,31 @@ pub enum FrontendError {
     #[error("FileReadError")]
     #[diagnostic(help("{0}"))]
     FileReadError(String),
+
+    #[error("MessagePack decode error: {0}")]
+    #[diagnostic(help("Invalid MessagePack data received"))]
+    MessagePackDecodeError(String),
+
+    #[error("MessagePack encode error: {0}")]
+    #[diagnostic(help("Failed to encode MessagePack data"))]
+    MessagePackEncodeError(String),
 }
 
 impl From<io::Error> for FrontendError {
     fn from(error: io::Error) -> Self {
         FrontendError::IoError(format!("{error}"))
+    }
+}
+
+impl From<rmp_serde::decode::Error> for FrontendError {
+    fn from(error: rmp_serde::decode::Error) -> Self {
+        FrontendError::MessagePackDecodeError(error.to_string())
+    }
+}
+
+impl From<rmp_serde::encode::Error> for FrontendError {
+    fn from(error: rmp_serde::encode::Error) -> Self {
+        FrontendError::MessagePackEncodeError(error.to_string())
     }
 }
 

@@ -20,11 +20,11 @@ use crate::sim::commands::ACMode;
 use crate::sim::commands::SimulationCommand;
 use crate::sim::options::SimulationOption;
 use crate::spot::*;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// Represents the types of electrical elements that can be defined in a circuit.
 /// Each variant corresponds to a specific circuit element (e.g., resistor, capacitor).
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(tag = "type")]
 pub enum SerdeElement {
     #[serde(rename = "resistor")]
@@ -51,7 +51,7 @@ pub enum SerdeElement {
 
 /// Represents the types of simulations that can be performed on a circuit.
 /// Each variant corresponds to a specific simulation type (e.g., OP, DC, AC, transient).
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(tag = "type", rename = "simulations")]
 pub enum SerdeSimulation {
     #[serde(rename = "op")]
@@ -66,7 +66,7 @@ pub enum SerdeSimulation {
 
 /// Configuration for a DC sweep simulation.
 /// Specifies the source, start voltage, stop voltage, and step size.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct SerdeDC {
     source: String,
     vstart: Numeric,
@@ -74,9 +74,31 @@ pub struct SerdeDC {
     vstep: Numeric,
 }
 
+impl SerdeDC {
+    pub fn source(&self) -> &str {
+        &self.source
+    }
+    
+    pub fn vstart(&self) -> Numeric {
+        self.vstart
+    }
+    
+    pub fn vstop(&self) -> Numeric {
+        self.vstop
+    }
+    
+    pub fn vstep(&self) -> Numeric {
+        self.vstep
+    }
+    
+    pub fn new(source: String, vstart: Numeric, vstop: Numeric, vstep: Numeric) -> Self {
+        Self { source, vstart, vstop, vstep }
+    }
+}
+
 /// Configuration for an AC analysis simulation.
 /// Specifies the start frequency, stop frequency, and number of steps.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(tag = "type", rename = "simulations")]
 pub struct SerdeAC {
     fstart: Numeric,
@@ -84,18 +106,42 @@ pub struct SerdeAC {
     fstep: usize,
 }
 
+impl SerdeAC {
+    pub fn fstart(&self) -> Numeric {
+        self.fstart
+    }
+    
+    pub fn fstop(&self) -> Numeric {
+        self.fstop
+    }
+    
+    pub fn fstep(&self) -> usize {
+        self.fstep
+    }
+}
+
 /// Configuration for an AC analysis simulation.
 /// Specifies the start frequency, stop frequency, and number of steps.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(tag = "type", rename = "simulations")]
 pub struct SerdeTran {
     tstep: Numeric,
     tend: Numeric,
 }
 
+impl SerdeTran {
+    pub fn tstep(&self) -> Numeric {
+        self.tstep
+    }
+    
+    pub fn tend(&self) -> Numeric {
+        self.tend
+    }
+}
+
 /// Represents simulation output options.
 /// Currently only supports specifying output variables.
-#[derive(Default, Debug, Deserialize)]
+#[derive(Default, Debug, Deserialize, Serialize)]
 #[serde(rename = "option")]
 pub struct SerdeOption {
     /// The output variable or node to save.
@@ -104,7 +150,7 @@ pub struct SerdeOption {
 
 /// Represents a circuit defined in a serialization format (e.g., YAML or JSON).
 /// Contains a list of elements, simulations, and options.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename = "circuit")]
 pub struct SerdeCircuit {
     pub elements: Vec<SerdeElement>,

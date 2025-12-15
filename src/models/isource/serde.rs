@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::frontends::{get_variable, serde::ProcessSerdeElement};
 use crate::models::{Element, ISourceBundle, Unit};
 use crate::spot::*;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct SerdeISource {
     pub name: String,
     pub node0: String,

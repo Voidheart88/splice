@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::frontends::{get_variable, serde::ProcessSerdeElement};
 use crate::models::{Element, Mos0Bundle, Unit};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct SerdeMos0 {
     pub name: String,
     pub gate: String,

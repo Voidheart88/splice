@@ -30,11 +30,30 @@ pub enum BackendError {
     #[error("Cant find Max or Min value für plotting")]
     #[diagnostic(help("This is an Error and should be reportet on Github"))]
     CantFindMaxMin,
+
+    #[error("MessagePack encode error: {0}")]
+    #[diagnostic(help("Failed to encode MessagePack data"))]
+    MessagePackEncodeError(String),
+    #[error("IO error: {0}")]
+    #[diagnostic(help("Check file permissions and paths"))]
+    IoError(String),
 }
 
 impl From<DrawingAreaErrorKind<std::io::Error>> for BackendError {
     fn from(err: DrawingAreaErrorKind<std::io::Error>) -> Self {
         BackendError::PlotError(format!("{err:?}"))
+    }
+}
+
+impl From<rmp_serde::encode::Error> for BackendError {
+    fn from(err: rmp_serde::encode::Error) -> Self {
+        BackendError::MessagePackEncodeError(err.to_string())
+    }
+}
+
+impl From<std::io::Error> for BackendError {
+    fn from(err: std::io::Error) -> Self {
+        BackendError::IoError(err.to_string())
     }
 }
 

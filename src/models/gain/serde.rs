@@ -1,11 +1,11 @@
 use crate::frontends::{get_variable, serde::ProcessSerdeElement};
 use crate::models::{Element, GainBundle, Unit};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 
 /// A structure for deserializing a Gain from YAML or other formats.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct SerdeGain {
     pub name: String,
     pub input: String,

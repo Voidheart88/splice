@@ -16,6 +16,7 @@ use core::fmt::Display;
 use std::sync::Arc;
 
 use crate::spot::*;
+use serde::Serialize;
 
 pub use self::capacitor::CapacitorBundle;
 pub use self::diode::DiodeBundle;
@@ -31,7 +32,7 @@ pub use self::vsource_sine::VSourceSinBundle;
 pub use self::vsource_step::VSourceStepBundle;
 
 /// An Enum representing the Unit of the Value - Necessary for parsing and display.
-#[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
+#[derive(Copy, Clone, Debug, PartialEq, PartialOrd, Serialize)]
 pub enum Unit {
     None,
     Volt,
@@ -51,6 +52,25 @@ impl Display for Unit {
 /// A structure representing the name and position of a Variable.
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub struct Variable(Arc<str>, Unit, usize);
+
+impl Serialize for Variable {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        #[derive(Serialize)]
+        struct VariableWrapper {
+            name: String,
+            unit: Unit,
+            idx: usize,
+        }
+        VariableWrapper {
+            name: self.0.to_string(),
+            unit: self.1,
+            idx: self.2,
+        }.serialize(serializer)
+    }
+}
 
 impl Variable {
     /// Creates a new `Variable` object.

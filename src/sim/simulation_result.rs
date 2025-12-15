@@ -1,10 +1,30 @@
 use num::Complex;
+use serde::Serialize;
 
 use super::options::SimulationOption;
 use crate::models::Variable;
 use crate::spot::Numeric;
 
 type BodeValue = (Numeric, Vec<(Variable, Complex<Numeric>)>);
+
+// Manual serialization for Complex<Numeric> since it doesn't implement Serialize by default
+mod complex_serde {
+    use super::*;
+    use serde::{Serializer, Serialize};
+    
+    pub fn serialize_complex<S>(complex: &Complex<Numeric>, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let (real, imag) = (complex.re, complex.im);
+        #[derive(Serialize)]
+        struct ComplexWrapper {
+            real: Numeric,
+            imag: Numeric,
+        }
+        ComplexWrapper { real, imag }.serialize(serializer)
+    }
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Sim {
@@ -18,7 +38,57 @@ pub enum Sim {
     Ac(Vec<BodeValue>),
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+impl Serialize for Sim {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self {
+            Sim::Op(vars) => {
+                #[derive(Serialize)]
+                struct OpWrapper {
+                    r#type: &'static str,
+                    variables: Vec<(Variable, Numeric)>
+                }
+                OpWrapper { r#type: "op", variables: vars.clone() }.serialize(serializer)
+            },
+            Sim::Dc(steps) => {
+                #[derive(Serialize)]
+                struct DcWrapper {
+                    r#type: &'static str,
+                    steps: Vec<Vec<(Variable, Numeric)>>
+                }
+                DcWrapper { r#type: "dc", steps: steps.clone() }.serialize(serializer)
+            },
+            Sim::Tran(points) => {
+                #[derive(Serialize)]
+                struct TranWrapper {
+                    r#type: &'static str,
+                    points: Vec<(Numeric, Vec<(Variable, Numeric)>)>
+                }
+                TranWrapper { r#type: "tran", points: points.clone() }.serialize(serializer)
+            },
+            Sim::Ac(bode_values) => {
+                #[derive(Serialize)]
+                struct AcWrapper {
+                    r#type: &'static str,
+                    bode_values: Vec<(Numeric, Vec<(Variable, (Numeric, Numeric))>)>
+                }
+                
+                let converted = bode_values.iter().map(|(freq, vars)| {
+                    let converted_vars = vars.iter().map(|(var, complex)| {
+                        (var.clone(), (complex.re, complex.im))
+                    }).collect();
+                    (*freq, converted_vars)
+                }).collect();
+                
+                AcWrapper { r#type: "ac", bode_values: converted }.serialize(serializer)
+            },
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Default, Serialize)]
 pub struct SimulationResults {
     pub options: Vec<SimulationOption>,
     pub results: Vec<Sim>,
