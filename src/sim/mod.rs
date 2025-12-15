@@ -6,6 +6,7 @@ mod ac;
 mod dc;
 mod op;
 mod tran;
+mod tests_adaptive;
 
 use std::fmt::{self, Debug};
 use std::sync::Arc;
@@ -22,6 +23,10 @@ use crate::sim::dc::DcSimulation;
 use crate::sim::op::OpSimulation;
 use crate::sim::options::IntegrationMethod;
 use crate::sim::tran::TranSimulation;
+use crate::sim::tran::{
+    ADAPTIVE_MAX_GROWTH_FACTOR, ADAPTIVE_MAX_TIMESTEP, ADAPTIVE_MIN_GROWTH_FACTOR, 
+    ADAPTIVE_MIN_TIMESTEP, ADAPTIVE_SAFETY_FACTOR, ADAPTIVE_TOLERANCE
+};
 use crate::solver::{Solver, SolverError};
 use crate::spot::*;
 use crate::Simulation;
@@ -309,6 +314,43 @@ impl<SO: Solver> Simulator<SO> {
             .iter()
             .zip(x_new.iter())
             .all(|(&old, &new)| (old - new).abs() < tolerance)
+    }
+
+    /// Adjusts the timestep based on error estimation for adaptive timestep control
+    /// Uses a simple error estimation based on the change in solution between time steps
+    fn adjust_timestep(&self, x_prev: &[Numeric], x_current: &[Numeric], current_timestep: Numeric) -> Numeric {
+        // Calculate the error estimate based on the relative change in the solution
+        let error_estimate: Numeric = x_prev
+            .iter()
+            .zip(x_current.iter())
+            .map(|(&prev, &curr)| {
+                // Relative error with protection against division by zero
+                let denominator = prev.abs().max(curr.abs()).max(1e-12);
+                (curr - prev).abs() / denominator
+            })
+            .sum();
+
+        // Normalize the error estimate by the number of variables
+        let normalized_error = error_estimate / x_prev.len().max(1) as Numeric;
+
+        // Calculate the optimal timestep based on the error
+        let error_ratio = (ADAPTIVE_TOLERANCE / normalized_error).sqrt();
+        let mut new_timestep = current_timestep * error_ratio * ADAPTIVE_SAFETY_FACTOR;
+
+        // Apply growth factor limits to prevent too rapid changes
+        let growth_factor = new_timestep / current_timestep;
+        if growth_factor > ADAPTIVE_MAX_GROWTH_FACTOR {
+            new_timestep = current_timestep * ADAPTIVE_MAX_GROWTH_FACTOR;
+        } else if growth_factor < ADAPTIVE_MIN_GROWTH_FACTOR {
+            new_timestep = current_timestep * ADAPTIVE_MIN_GROWTH_FACTOR;
+        }
+
+        // Clamp the timestep to the allowed range
+        new_timestep = new_timestep
+            .max(ADAPTIVE_MIN_TIMESTEP)
+            .min(ADAPTIVE_MAX_TIMESTEP);
+
+        new_timestep
     }
 
     /// Updates capacitor voltages after each time step for proper transient simulation

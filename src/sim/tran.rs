@@ -1,4 +1,4 @@
-use log::info;
+use log::{info, debug};
 
 use crate::models::Element;
 use crate::sim::options::IntegrationMethod;
@@ -8,6 +8,15 @@ use crate::solver::Solver;
 use crate::spot::*;
 use crate::Simulator;
 use num::Zero;
+
+/// Constants for adaptive timestep control
+pub(crate) const ADAPTIVE_MIN_TIMESTEP: Numeric = 1e-9;
+pub(crate) const ADAPTIVE_MAX_TIMESTEP: Numeric = 1e-3;
+pub(crate) const ADAPTIVE_INITIAL_TIMESTEP: Numeric = 1e-6;
+pub(crate) const ADAPTIVE_TOLERANCE: Numeric = 1e-4;
+pub(crate) const ADAPTIVE_SAFETY_FACTOR: Numeric = 0.9;
+pub(crate) const ADAPTIVE_MAX_GROWTH_FACTOR: Numeric = 2.0;
+pub(crate) const ADAPTIVE_MIN_GROWTH_FACTOR: Numeric = 0.5;
 
 pub(super) trait TranSimulation<SO: Solver> {
     fn run_tran(&mut self, tstep: &Numeric, tstop: &Numeric) -> Result<Sim, SimulatorError>;
@@ -23,50 +32,49 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
         let mut x_prev: Vec<Numeric> = self.find_op()?.iter().map(|op| op.1).collect();
         
         // Initialize capacitor voltages and inductor currents for transient analysis
-        // For transient analysis, capacitors typically start with 0V across them
-        // (discharged state), and inductors start with 0A through them.
-        // The OP analysis treats capacitors as open circuits and inductors as short circuits,
-        // which doesn't give us the correct initial conditions for transient simulation.
         for element in &mut self.elements {
             if let Element::Capacitor(cap) = element {
-                // Start with 0V across the capacitor (discharged state)
                 cap.update_previous_voltage(Numeric::zero());
             } else if let Element::Inductor(ind) = element {
-                // Start with 0A through the inductor (no initial current)
                 ind.update_previous_current(Numeric::zero());
             }
         }
 
-        // For the first time step, we need to use the correct initial condition
-        // The OP analysis gives us the steady-state with sources at their DC values,
-        // but for transient analysis, we want to start with all capacitors discharged
-        // and the circuit in a known state. We'll use the OP solution as initial guess,
-        // but override the capacitor voltages to ensure they start discharged.
         let mut x_current = x_prev.clone();
         
-        // Store the initial condition (t=0) before starting the time loop
+        // Store the initial condition (t=0)
         tran_results.push((Numeric::zero(), self.add_var_name(x_current.clone())));
 
-        while t < *tstop {  // Changed to < to avoid duplicate final point
+        // Use adaptive timestep if the provided tstep is very small (indication for adaptive mode)
+        let use_adaptive = *tstep <= ADAPTIVE_INITIAL_TIMESTEP;
+        let mut current_timestep = if use_adaptive {
+            ADAPTIVE_INITIAL_TIMESTEP
+        } else {
+            *tstep
+        };
+
+        while t < *tstop {
             // For subsequent time steps, use the previous solution as initial guess
             x_current = x_prev.clone();
 
             // Newton-Raphson iteration within each time step
             let mut converged = false;
+            let mut x_new_final = x_prev.clone();
+            
             for _ in 0..MAXITER {
                 self.solver.reset();
                 self.build_constant_a_mat();
                 self.build_constant_b_vec();
-                self.build_time_variant_a_mat(tstep);
+                self.build_time_variant_a_mat(&current_timestep);
                 
                 // Use trapezoidal integration if specified
                 let integration_method = self.get_integration_method();
                 match integration_method {
                     IntegrationMethod::BackwardEuler => {
-                        self.build_time_variant_b_vec(&t, tstep);
+                        self.build_time_variant_b_vec(&t, &current_timestep);
                     }
                     IntegrationMethod::Trapezoidal => {
-                        self.build_time_variant_b_vec_trapezoidal(&t, tstep);
+                        self.build_time_variant_b_vec_trapezoidal(&t, &current_timestep);
                     }
                 }
                 
@@ -76,13 +84,7 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
                 let x_new = self.solver.solve()?.clone();
 
                 if self.has_converged(&x_current, &x_new, VECTOL) {
-                    tran_results.push((t, self.add_var_name(x_new.clone())));
-                    x_prev = x_new.clone();
-                    
-                    // Update capacitor voltages and inductor currents for next time step
-                    self.update_capacitor_voltages(&x_new);
-                    self.update_inductor_currents(&x_new, tstep);
-                    
+                    x_new_final = x_new.clone();
                     converged = true;
                     break;
                 }
@@ -97,7 +99,21 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
                 });
             }
 
-            t += tstep;
+            // Store results
+            tran_results.push((t, self.add_var_name(x_new_final.clone())));
+            x_prev = x_new_final.clone();
+            
+            // Update capacitor voltages and inductor currents for next time step
+            self.update_capacitor_voltages(&x_new_final);
+            self.update_inductor_currents(&x_new_final, &current_timestep);
+
+            // Adaptive timestep control
+            if use_adaptive {
+                current_timestep = self.adjust_timestep(&x_prev, &x_new_final, current_timestep);
+                debug!("Adaptive timestep: {} at t = {}", current_timestep, t);
+            }
+
+            t += current_timestep;
         }
 
         Ok(Sim::Tran(tran_results))

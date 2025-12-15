@@ -15,6 +15,8 @@ pub enum IntegrationMethod {
     Trapezoidal,
 }
 
+
+
 impl Serialize for SimulationOption {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
