@@ -187,7 +187,7 @@ impl SerdeFrontend {
     /// # Returns
     ///
     /// * `Result<Self, FrontendError>` - A new `SerdeFrontend` instance if successful, or an error.
-    pub fn try_new_from_path(path: String, format: SerdeFormat) -> Result<Self, FrontendError> {
+    pub(crate) fn try_new_from_path(path: String, format: SerdeFormat) -> Result<Self, FrontendError> {
         let mut circuit_string = String::new();
         match File::open(path) {
             Ok(mut file) => file.read_to_string(&mut circuit_string)?,
@@ -207,7 +207,7 @@ impl SerdeFrontend {
     /// # Returns
     ///
     /// * `Result<Self, FrontendError>` - A new `SerdeFrontend` instance if successful, or an error.
-    pub fn try_new_from_string(
+    pub(crate) fn try_new_from_string(
         circuit_string: String,
         format: SerdeFormat,
     ) -> Result<Self, FrontendError> {

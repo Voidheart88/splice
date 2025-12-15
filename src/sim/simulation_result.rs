@@ -7,25 +7,6 @@ use crate::spot::Numeric;
 
 type BodeValue = (Numeric, Vec<(Variable, Complex<Numeric>)>);
 
-// Manual serialization for Complex<Numeric> since it doesn't implement Serialize by default
-mod complex_serde {
-    use super::*;
-    use serde::{Serializer, Serialize};
-    
-    pub fn serialize_complex<S>(complex: &Complex<Numeric>, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let (real, imag) = (complex.re, complex.im);
-        #[derive(Serialize)]
-        struct ComplexWrapper {
-            real: Numeric,
-            imag: Numeric,
-        }
-        ComplexWrapper { real, imag }.serialize(serializer)
-    }
-}
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum Sim {
     /// Operating Point Analysis Results

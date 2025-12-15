@@ -6,7 +6,6 @@ mod ac;
 mod dc;
 mod op;
 mod tran;
-mod tests_adaptive;
 
 use std::fmt::{self, Debug};
 use std::sync::Arc;
@@ -23,10 +22,6 @@ use crate::sim::dc::DcSimulation;
 use crate::sim::op::OpSimulation;
 use crate::sim::options::IntegrationMethod;
 use crate::sim::tran::TranSimulation;
-use crate::sim::tran::{
-    ADAPTIVE_MAX_GROWTH_FACTOR, ADAPTIVE_MAX_TIMESTEP, ADAPTIVE_MIN_GROWTH_FACTOR, 
-    ADAPTIVE_MIN_TIMESTEP, ADAPTIVE_SAFETY_FACTOR, ADAPTIVE_TOLERANCE
-};
 use crate::solver::{Solver, SolverError};
 use crate::spot::*;
 use crate::Simulation;

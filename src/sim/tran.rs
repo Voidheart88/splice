@@ -9,15 +9,6 @@ use crate::spot::*;
 use crate::Simulator;
 use num::Zero;
 
-/// Constants for adaptive timestep control
-pub(crate) const ADAPTIVE_MIN_TIMESTEP: Numeric = 1e-9;
-pub(crate) const ADAPTIVE_MAX_TIMESTEP: Numeric = 1e-3;
-pub(crate) const ADAPTIVE_INITIAL_TIMESTEP: Numeric = 1e-6;
-pub(crate) const ADAPTIVE_TOLERANCE: Numeric = 1e-4;
-pub(crate) const ADAPTIVE_SAFETY_FACTOR: Numeric = 0.9;
-pub(crate) const ADAPTIVE_MAX_GROWTH_FACTOR: Numeric = 2.0;
-pub(crate) const ADAPTIVE_MIN_GROWTH_FACTOR: Numeric = 0.5;
-
 pub(super) trait TranSimulation<SO: Solver> {
     fn run_tran(&mut self, tstep: &Numeric, tstop: &Numeric) -> Result<Sim, SimulatorError>;
 }

@@ -1,15 +1,7 @@
-use std::io::{Read, Write};
-use std::net::TcpStream;
 use std::sync::Arc;
-use std::thread;
-use std::time::Duration;
-
-use rmp_serde::encode::write as msgpack_write;
-use rmp_serde::decode::from_read as msgpack_read;
 
 use crate::frontends::serde::{SerdeCircuit, SerdeElement, SerdeSimulation, SerdeOption};
 use crate::models::resistor::serde::SerdeResistor;
-use crate::models::vsource::serde::SerdeVSource;
 
 #[test]
 fn test_network_frontend_basic() {
@@ -56,8 +48,6 @@ fn test_network_backend_basic() {
     use crate::sim::simulation_result::SimulationResults;
     use crate::models::Variable;
     use std::sync::Arc;
-    
-    // Create test results
     let results = SimulationResults {
         options: vec![],
         results: vec![
@@ -67,15 +57,12 @@ fn test_network_backend_basic() {
         ],
     };
 
-    // Test that results can be serialized to MessagePack
-    // (This tests the NetworkResponse structure indirectly)
     let serialized = rmp_serde::to_vec(&results).unwrap();
     assert!(!serialized.is_empty());
 }
 
 #[test]
 fn test_network_integration() {
-    // Create a simple test circuit
     let circuit = SerdeCircuit {
         elements: vec![
             SerdeElement::Resistor(SerdeResistor {
