@@ -1,8 +1,8 @@
-use std::net::TcpStream;
 use std::io::{Read, Write};
+use std::net::TcpStream;
+use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
-use std::sync::Arc;
 
 use rmp_serde::encode::write as msgpack_write;
 use rmp_serde::decode::from_read as msgpack_read;
