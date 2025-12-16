@@ -59,6 +59,11 @@ impl ResistorBundle {
         self.node1.as_ref().map(|v| v.idx())
     }
 
+    /// Returns the value of the resistor.
+    pub fn value(&self) -> Numeric {
+        self.value
+    }
+
     /// Returns triples representing this elements contribution to the a matrix
     pub fn triples(&self) -> Triples<Numeric, 4> {
         let node0_idx = if let Some(idx) = self.node0_idx() {

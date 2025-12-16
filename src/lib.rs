@@ -20,7 +20,7 @@ use solver::{FaerSolver, NalgebraSolver, RSparseSolver, Solvers};
 use crate::{
     frontends::serde::SerdeFormat,
     sim::{simulation_result::SimulationResults, SimulatorError},
-    solver::{FaerSparseSolver, Solver},
+    solver::{FaerSparseSolver, Solver, SolverSelector, SolverSelectionStrategy},
 };
 
 #[derive(Debug, Error, Diagnostic)]
@@ -45,6 +45,9 @@ struct Cli {
     #[arg(short, long, default_value = "csv")]
     backend: Backends,
 
+    #[arg(long, default_value = "false")]
+    autotune: bool,
+
     path: Option<String>,
 }
 
@@ -63,6 +66,8 @@ pub fn run_sim_for_benchmark<T: Solver>(sim: Simulation) -> Result<(), String> {
         Err(e) => Err(format!("{:?}", e)),
     }
 }
+
+
 
 pub fn run() -> Result<()> {
     let cli = Cli::parse();
@@ -100,7 +105,14 @@ pub fn run() -> Result<()> {
         Frontends::Select => SelectFrontend::try_from_path(pth.clone())?,
     };
 
-    let sim = frontend.simulation()?;
+    let mut sim = frontend.simulation()?;
+
+    // Apply autotune if enabled
+    if cli.autotune {
+        info!("Autotune mode enabled");
+        let autotune_options = sim::autotune::analyze_circuit_and_suggest_settings(&sim.elements, &sim.commands);
+        sim.options.extend(autotune_options);
+    }
 
     info!("Simulate!");
     let results = match cli.solver {

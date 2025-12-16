@@ -6,6 +6,7 @@ mod ac;
 mod dc;
 mod op;
 mod tran;
+pub mod autotune;
 
 use std::fmt::{self, Debug};
 use std::sync::Arc;
