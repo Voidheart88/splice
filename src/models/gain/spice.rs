@@ -19,7 +19,7 @@ impl ProcessSpiceElement for GainBundle {
         let remaining = parser.parse_remaining_values();
         if remaining.is_empty() {
             return Err(crate::frontends::FrontendError::ParseError(
-                format!("Missing values in gain block")
+                "Missing values in gain block".to_string()
             ));
         }
         let name = &remaining[0][1..]; // Skip the leading 'A'

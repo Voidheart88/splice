@@ -1,7 +1,7 @@
 //! Helper functions and structures for SPICE element parsing
 //! This module provides abstractions to reduce code duplication in element parsing
 
-use std::sync::Arc;
+
 use pest::iterators::Pair;
 use crate::frontends::FrontendError;
 use crate::spot::Numeric;
@@ -64,13 +64,14 @@ impl<'a> SpiceElementParser<'a> {
     }
     
     /// Parse an optional numeric value
+    #[allow(dead_code)]
     pub fn parse_optional_value(&mut self) -> Option<Result<Numeric, FrontendError>> {
         self.inner.next().map(|pair| {
             let value_span = pair.as_span();
             let value_str = &self.ele[value_span.start() - self.offset..value_span.end() - self.offset];
             value_str.parse::<Numeric>()
                 .map_err(|_| FrontendError::ParseError(
-                    format!("Invalid optional value: must be a number")
+                    "Invalid optional value: must be a number".to_string()
                 ))
         })
     }
@@ -78,7 +79,7 @@ impl<'a> SpiceElementParser<'a> {
     /// Parse remaining values as strings
     pub fn parse_remaining_values(&mut self) -> Vec<&'a str> {
         let mut result = Vec::new();
-        while let Some(pair) = self.inner.next() {
+        for pair in self.inner.by_ref() {
             let span = pair.as_span();
             result.push(&self.ele[span.start() - self.offset..span.end() - self.offset]);
         }
@@ -86,22 +87,26 @@ impl<'a> SpiceElementParser<'a> {
     }
     
     /// Check if there are more values to parse
+    #[allow(dead_code)]
     pub fn has_more(&mut self) -> bool {
         self.inner.peek().is_some()
     }
 }
 
 /// Helper function to create a standard error message for missing elements
+#[allow(dead_code)]
 pub fn missing_element_error(element_type: &str, ele: &str) -> FrontendError {
     FrontendError::ParseError(format!("Missing name in {}: {}", element_type, ele))
 }
 
 /// Helper function to create a standard error message for missing nodes
+#[allow(dead_code)]
 pub fn missing_node_error(element_type: &str, element_name: &str, node_name: &str) -> FrontendError {
     FrontendError::ParseError(format!("Missing {} in {} '{}'", node_name, element_type, element_name))
 }
 
 /// Helper function to create a standard error message for invalid values
+#[allow(dead_code)]
 pub fn invalid_value_error(element_type: &str, element_name: &str, value_name: &str) -> FrontendError {
     FrontendError::ParseError(format!("Invalid {} in {} '{}': must be a number", value_name, element_type, element_name))
 }

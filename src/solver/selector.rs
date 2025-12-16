@@ -1,5 +1,5 @@
 // Intelligent solver selection based on circuit characteristics
-use super::{FaerSolver, FaerSparseSolver, NalgebraSolver, Solver, SolverError};
+use super::{FaerSparseSolver, NalgebraSolver, Solver, SolverError};
 
 /// Solver selection strategy based on circuit size and characteristics
 #[derive(Debug, Clone, Copy)]

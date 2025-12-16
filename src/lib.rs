@@ -20,7 +20,7 @@ use solver::{FaerSolver, NalgebraSolver, RSparseSolver, Solvers};
 use crate::{
     frontends::serde::SerdeFormat,
     sim::{simulation_result::SimulationResults, SimulatorError},
-    solver::{FaerSparseSolver, Solver, SolverSelector, SolverSelectionStrategy},
+    solver::{FaerSparseSolver, Solver},
 };
 
 #[derive(Debug, Error, Diagnostic)]

@@ -2,7 +2,7 @@ use crate::frontends::get_variable;
 use crate::frontends::spice::ProcessSpiceElement;
 use crate::frontends::spice_parser_helpers::SpiceElementParser;
 use crate::models::{Element, ISourceBundle, Unit};
-use crate::spot::*;
+
 use std::sync::Arc;
 
 impl ProcessSpiceElement for ISourceBundle {

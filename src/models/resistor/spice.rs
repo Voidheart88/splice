@@ -4,7 +4,7 @@ use crate::frontends::get_variable;
 use crate::frontends::spice::ProcessSpiceElement;
 use crate::frontends::spice_parser_helpers::SpiceElementParser;
 use crate::models::{Element, ResistorBundle, Unit};
-use crate::spot::*;
+
 
 impl ProcessSpiceElement for ResistorBundle {
     fn process(
