@@ -112,16 +112,3 @@ The goal of Splice is to provide a better simulation experience.
   - **Documentation**: Improve the network mode documentation and add more examples
 
 Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you shall be dual licensed as above, without any additional terms or conditions.
-
-## Network Mode Quick Start
-
-To run Splice in network mode:
-
-```bash
-# Start the network server
-splice --frontend network --backend network --solver faer-sparse
-
-# In another terminal, run a client (see notes/network_docs.md for examples)
-```
-
-For more information, see the complete network documentation in `notes/network_docs.md`.
