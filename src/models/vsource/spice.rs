@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use crate::frontends::get_variable;
 use crate::frontends::spice::ProcessSpiceElement;
+use crate::frontends::spice_parser_helpers::SpiceElementParser;
 use crate::models::{Element, Unit, VSourceBundle};
 use crate::spot::*;
 
@@ -12,49 +13,19 @@ impl ProcessSpiceElement for VSourceBundle {
         elements: &mut Vec<crate::models::Element>,
         var_map: &mut std::collections::HashMap<std::sync::Arc<str>, usize>,
     ) -> Result<(), crate::frontends::FrontendError> {
-        let ele = element.as_str();
-        let offset = element.as_span().start();
-        let mut inner = element.into_inner();
+        // Use the helper parser for common parsing logic
+        let mut parser = SpiceElementParser::new(element);
         
-        //extract Name
-        let name_end = inner.next()
-            .ok_or_else(|| crate::frontends::FrontendError::ParseError(
-                format!("Missing name in voltage source: {}", ele)
-            ))?
-            .as_span().end() - offset;
-        let name = &ele[0..name_end];
+        // Parse using the abstracted helper methods
+        let name = parser.parse_name("voltage source")?;
+        let node0 = parser.parse_node("voltage source", name, "node0")?;
+        let node1 = parser.parse_node("voltage source", name, "node1")?;
+        let value = parser.parse_value("voltage source", name, "value")?;
 
-        //extract Node0
-        let node0_span = inner.next()
-            .ok_or_else(|| crate::frontends::FrontendError::ParseError(
-                format!("Missing node0 in voltage source: {}", name)
-            ))?
-            .as_span();
-        let node0 = &ele[node0_span.start() - offset..node0_span.end() - offset];
-
-        //extract Node1
-        let node1_span = inner.next()
-            .ok_or_else(|| crate::frontends::FrontendError::ParseError(
-                format!("Missing node1 in voltage source: {}", name)
-            ))?
-            .as_span();
-        let node1 = &ele[node1_span.start() - offset..node1_span.end() - offset];
-
-        //extract Value
-        let value_span = inner.next()
-            .ok_or_else(|| crate::frontends::FrontendError::ParseError(
-                format!("Missing value in voltage source: {}", name)
-            ))?
-            .as_span();
-        let value = ele[value_span.start() - offset..value_span.end() - offset]
-            .parse::<Numeric>()
-            .map_err(|_| crate::frontends::FrontendError::ParseError(
-                format!("Invalid value in voltage source '{}': must be a number", name)
-            ))?;
-
-        //extract AC value (optional)
-        let ac_value = if let Some(val) = inner.next() {
-            let ac_val_str = val.as_str().split(" ")
+        // Parse optional AC value using the helper's remaining values
+        let remaining = parser.parse_remaining_values();
+        let ac_value = if !remaining.is_empty() {
+            let ac_val_str = remaining[0].split(" ")
                 .nth(1)
                 .ok_or_else(|| crate::frontends::FrontendError::ParseError(
                     format!("Missing AC value in voltage source: {}", name)

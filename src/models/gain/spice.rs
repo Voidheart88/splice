@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use crate::frontends::get_variable;
 use crate::frontends::spice::ProcessSpiceElement;
+use crate::frontends::spice_parser_helpers::SpiceElementParser;
 use crate::models::{Element, GainBundle, Unit};
 
 impl ProcessSpiceElement for GainBundle {
@@ -11,55 +12,39 @@ impl ProcessSpiceElement for GainBundle {
         elements: &mut Vec<crate::models::Element>,
         var_map: &mut std::collections::HashMap<std::sync::Arc<str>, usize>,
     ) -> Result<(), crate::frontends::FrontendError> {
-        let ele = element.as_str();
-        let offset = element.as_span().start();
-        let mut inner = element.into_inner();
+        // Use the helper parser for common parsing logic
+        let mut parser = SpiceElementParser::new(element);
+        
+        // Parse the name (without the leading 'A') - special case for gain blocks
+        let remaining = parser.parse_remaining_values();
+        if remaining.is_empty() {
+            return Err(crate::frontends::FrontendError::ParseError(
+                format!("Missing values in gain block")
+            ));
+        }
+        let name = &remaining[0][1..]; // Skip the leading 'A'
 
-        // Extrahiere den Namen des Gain-Blocks (ohne das führende 'A')
-        let name_rule = inner.next()
-            .ok_or_else(|| crate::frontends::FrontendError::ParseError(
-                format!("Missing name in gain block: {}", ele)
-            ))?;
-        let name =
-            &ele[name_rule.as_span().start() - offset + 1..name_rule.as_span().end() - offset];
-
-        // Extrahiere den Input-Knoten
-        let input_node = inner.next()
-            .ok_or_else(|| crate::frontends::FrontendError::ParseError(
-                format!("Missing input node in gain block: {}", name)
-            ))?
-            .as_span();
-        let input_node_str = &ele[input_node.start() - offset..input_node.end() - offset];
-
-        // Extrahiere den Output-Knoten
-        let output_node = inner.next()
-            .ok_or_else(|| crate::frontends::FrontendError::ParseError(
-                format!("Missing output node in gain block: {}", name)
-            ))?
-            .as_span();
-        let output_node_str = &ele[output_node.start() - offset..output_node.end() - offset];
-
-        // Extrahiere den Verstärkungsfaktor
-        let value_str = inner.next()
-            .ok_or_else(|| crate::frontends::FrontendError::ParseError(
-                format!("Missing gain value in gain block: {}", name)
-            ))?
-            .as_span();
-        let value_str = &ele[value_str.start() - offset..value_str.end() - offset];
-        let value: f64 = value_str
-            .parse()
+        // Parse remaining values manually since we already consumed them
+        if remaining.len() < 3 {
+            return Err(crate::frontends::FrontendError::ParseError(
+                format!("Insufficient values in gain block '{}': expected input_node, output_node, value", name)
+            ));
+        }
+        let input_node_str = remaining[1];
+        let output_node_str = remaining[2];
+        let value = remaining[3].parse::<f64>()
             .map_err(|_| crate::frontends::FrontendError::ParseError(
                 format!("Invalid gain value in gain block '{}': must be a number", name)
             ))?;
 
-        // Erstelle die Input- und Output-Variablen
+        // Create the input and output variables
         let input_var = get_variable(input_node_str, Unit::Volt, variables, var_map);
         let output_var = get_variable(output_node_str, Unit::Volt, variables, var_map);
 
-        // Erstelle das GainBundle
+        // Create the GainBundle
         let gain = GainBundle::new(Arc::from(name), input_var, output_var, value);
 
-        // Füge das GainBundle als Element hinzu
+        // Add the GainBundle as element
         elements.push(Element::Gain(gain));
         Ok(())
     }
