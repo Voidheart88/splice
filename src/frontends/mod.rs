@@ -2,6 +2,7 @@ pub(crate) mod kicad;
 pub(crate) mod network;
 pub mod serde;
 pub(crate) mod spice;
+pub(crate) mod spice_parser_helpers;
 
 use std::collections::HashMap;
 use std::io;

@@ -1,5 +1,6 @@
 use crate::frontends::get_variable;
 use crate::frontends::spice::ProcessSpiceElement;
+use crate::frontends::spice_parser_helpers::SpiceElementParser;
 use crate::models::{Element, InductorBundle, Unit};
 use crate::spot::*;
 use std::sync::Arc;
@@ -11,46 +12,16 @@ impl ProcessSpiceElement for InductorBundle {
         elements: &mut Vec<crate::models::Element>,
         var_map: &mut std::collections::HashMap<std::sync::Arc<str>, usize>,
     ) -> Result<(), crate::frontends::FrontendError> {
-        let ele = element.as_str();
-        let offset = element.as_span().start();
-        let mut inner = element.into_inner();
+        // Use the helper parser for common parsing logic
+        let mut parser = SpiceElementParser::new(element);
         
-        //extract Name
-        let name_end = inner.next()
-            .ok_or_else(|| crate::frontends::FrontendError::ParseError(
-                format!("Missing name in inductor: {}", ele)
-            ))?
-            .as_span().end() - offset;
-        let name = &ele[0..name_end];
+        // Parse using the abstracted helper methods
+        let name = parser.parse_name("inductor")?;
+        let node0 = parser.parse_node("inductor", name, "node0")?;
+        let node1 = parser.parse_node("inductor", name, "node1")?;
+        let value = parser.parse_value("inductor", name, "value")?;
 
-        //extract Node0
-        let node0_span = inner.next()
-            .ok_or_else(|| crate::frontends::FrontendError::ParseError(
-                format!("Missing node0 in inductor: {}", name)
-            ))?
-            .as_span();
-        let node0 = &ele[node0_span.start() - offset..node0_span.end() - offset];
-
-        //extract Node1
-        let node1_span = inner.next()
-            .ok_or_else(|| crate::frontends::FrontendError::ParseError(
-                format!("Missing node1 in inductor: {}", name)
-            ))?
-            .as_span();
-        let node1 = &ele[node1_span.start() - offset..node1_span.end() - offset];
-
-        //extract Value
-        let value_span = inner.next()
-            .ok_or_else(|| crate::frontends::FrontendError::ParseError(
-                format!("Missing value in inductor: {}", name)
-            ))?
-            .as_span();
-        let value = ele[value_span.start() - offset..value_span.end() - offset]
-            .parse::<Numeric>()
-            .map_err(|_| crate::frontends::FrontendError::ParseError(
-                format!("Invalid value in inductor '{}': must be a number", name)
-            ))?;
-
+        // Create the inductor element
         let ind = InductorBundle::new(
             Arc::from(name),
             get_variable(node0, Unit::Volt, variables, var_map),
