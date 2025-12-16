@@ -2,6 +2,7 @@ pub mod faer;
 pub mod faer_sparse;
 pub mod nalgebra;
 pub mod rsparse;
+pub mod selector;
 
 use clap::ValueEnum;
 use miette::Diagnostic;
@@ -11,6 +12,7 @@ pub use faer::FaerSolver;
 pub use faer_sparse::FaerSparseSolver;
 pub use nalgebra::NalgebraSolver;
 pub use rsparse::RSparseSolver;
+pub use selector::{SolverSelector, SolverSelectionStrategy};
 
 use crate::spot::{ComplexNumeric, Numeric};
 
