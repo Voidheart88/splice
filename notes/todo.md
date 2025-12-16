@@ -87,10 +87,11 @@ Diese Datei trackt alle identifizierten Refactoring-Aufgaben für das Splice-Pro
 ## 🧪 Testverbesserungen
 
 ### 12. Testabdeckung
-- **Status**: ⏳ Geplant
-- **Beschreibung**: Tests für ungetestete Modelle (z.B. BJT)
-- **Priorität**: ⭐⭐⭐
+- **Status**: 🚀 In Arbeit
+- **Beschreibung**: Tests für ungetestete Modelle (z.B. BJT, MOSFET)
+- **Priorität**: ⭐⭐⭐⭐⭐
 - **Geschätzter Aufwand**: 6-10 Stunden
+- **Fortschritt**: Clippy-Warnungen behoben, Benchmarks refaktorisiert
 
 ### 13. Testdaten-Refactoring
 - **Status**: ⏳ Geplant
@@ -101,9 +102,16 @@ Diese Datei trackt alle identifizierten Refactoring-Aufgaben für das Splice-Pro
 
 ## 📊 Fortschrittsverfolgung
 
-### Abgeschlossen: 0/13 Aufgaben
-### In Arbeit: 0/13 Aufgaben  
-### Geplant: 13/13 Aufgaben
+### Abgeschlossen: 2/13 Aufgaben
+### In Arbeit: 1/13 Aufgaben  
+### Geplant: 10/13 Aufgaben
+
+### Abgeschlossene Aufgaben:
+- ✅ Clippy-Warnungen behoben (14 Warnungen)
+- ✅ Benchmarks refaktorisiert (diode + resistor → models)
+
+### Aktuell in Arbeit:
+- 🚀 Testabdeckung für BJT und MOSFET Modelle
 
 ## 🎯 Nächste Schritte
 

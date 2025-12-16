@@ -1,22 +1,20 @@
-mod diode;
 mod faer;
 mod faer_sparse;
 mod hash_map;
+mod models;
 mod nalgebra;
 mod network;
-mod resistor;
 mod rsparse;
 mod real_world;
 
 use criterion::{criterion_group, criterion_main};
 
-use crate::diode::*;
 use crate::faer::*;
 use crate::faer_sparse::*;
 use crate::hash_map::*;
+use crate::models::*;
 use crate::nalgebra::*;
 use crate::network::*;
-use crate::resistor::*;
 use crate::rsparse::*;
 use crate::real_world::*;
 
@@ -39,9 +37,7 @@ criterion_group!(
 
 criterion_group!(
     model_benches,
-    diode_triples_benchmark,
-    diode_pairs_benchmark,
-    resistor_triples_benchmark,
+    models_benchmark_group,
 );
 
 criterion_group!(

@@ -17,6 +17,21 @@ use frontends::*;
 use sim::Simulator;
 use solver::{FaerSolver, NalgebraSolver, RSparseSolver, Solvers};
 
+// Network imports
+use serde_json;
+
+// Import types for network handling
+use crate::{
+    frontends::serde::{SerdeCircuit, SerdeElement, SerdeSimulation, ProcessSerdeElement},
+    models::{Element, Variable},
+    sim::{
+        commands::{SimulationCommand, ACMode},
+        options::SimulationOption,
+    },
+    frontends::Simulation,
+    FrontendError,
+};
+
 use crate::{
     frontends::serde::SerdeFormat,
     sim::{simulation_result::SimulationResults, SimulatorError},
@@ -142,57 +157,190 @@ pub fn run() -> Result<()> {
     Ok(())
 }
 
+/// Simple network server that handles circuit simulation requests
+/// Uses a single port (8080) for both receiving circuits and sending results
 fn network_loop(solver: Solvers) {
-    // Start frontend on port 8080
-    let frontend = match NetworkFrontend::new(8080) {
-        Ok(f) => f,
-        Err(_) => return, // Could not start network frontend
+    // Start listener on port 8080
+    let listener = match std::net::TcpListener::bind("0.0.0.0:8080") {
+        Ok(l) => l,
+        Err(e) => {
+            error!("Failed to bind to port 8080: {}", e);
+            return;
+        }
     };
     
-    info!("Network mode started on port {}", frontend.get_port());
+    info!("Network server started on port 8080 (single-port mode)");
     
     loop {
-        let sim = match frontend.simulation() {
-            Ok(sim) => sim,
+        // Accept incoming connection
+        let (stream, addr) = match listener.accept() {
+            Ok(conn) => conn,
             Err(e) => {
-                error!("Network frontend error: {}", e);
+                error!("Failed to accept connection: {}", e);
                 continue;
             }
-        };
-
-        let results = match solver {
-            Solvers::Rsparse => run_sim::<RSparseSolver>(sim),
-            Solvers::Nalgebra => run_sim::<NalgebraSolver>(sim),
-            Solvers::Faer => run_sim::<FaerSolver>(sim),
-            Solvers::FaerSparse => run_sim::<FaerSparseSolver>(sim),
-        };
-
-        let results = match results {
-            Ok(res) => res,
-            Err(e) => {
-                error!("Simulation error: {}", e);
-                continue;
-            }
-        };
-
-        // Create backend with the same connection
-        let listener = match std::net::TcpListener::bind("0.0.0.0:8081") {
-            Ok(l) => l,
-            Err(_) => continue,
         };
         
-        let (stream, _) = match listener.accept() {
-            Ok(s) => s,
-            Err(_) => continue,
-        };
+        info!("New connection from {}", addr);
         
-        let out = NetworkBackend::new(stream);
-        match out.output(results) {
-            Ok(_) => info!("Results sent successfully"),
-            Err(e) => {
-                error!("Network backend error: {}", e);
-                continue;
-            }
-        };
+        // Handle the connection in a simple request-response manner
+        if let Err(e) = handle_network_connection(stream, solver) {
+            error!("Connection handling error: {}", e);
+        }
     }
+}
+
+/// Handle a single network connection with request-response pattern
+fn handle_network_connection(stream: std::net::TcpStream, solver: Solvers) -> Result<(), Box<dyn std::error::Error>> {
+    // Read circuit from stream
+    let circuit: SerdeCircuit = match rmp_serde::decode::from_read(&stream) {
+        Ok(c) => c,
+        Err(e) => {
+            error!("Failed to decode circuit: {}", e);
+            // Send error response
+            let error_response = serde_json::json!({
+                "status": "error",
+                "error": format!("Failed to decode circuit: {}", e),
+                "details": "Invalid MessagePack format"
+            });
+            let mut stream = stream.try_clone()?;
+            rmp_serde::encode::write(&mut stream, &error_response)?;
+            return Err(e.into());
+        }
+    };
+    
+    // Convert circuit to simulation
+    let sim = match convert_serde_circuit_to_simulation(circuit) {
+        Ok(s) => s,
+        Err(e) => {
+            error!("Failed to convert circuit: {}", e);
+            let error_response = serde_json::json!({
+                "status": "error",
+                "error": format!("Circuit conversion failed: {}", e),
+                "details": "Invalid circuit structure"
+            });
+            let mut stream = stream.try_clone()?;
+            rmp_serde::encode::write(&mut stream, &error_response)?;
+            return Err(e.into());
+        }
+    };
+    
+    // Run simulation
+    let results = match solver {
+        Solvers::Rsparse => run_sim::<RSparseSolver>(sim),
+        Solvers::Nalgebra => run_sim::<NalgebraSolver>(sim),
+        Solvers::Faer => run_sim::<FaerSolver>(sim),
+        Solvers::FaerSparse => run_sim::<FaerSparseSolver>(sim),
+    };
+    
+    let results = match results {
+        Ok(res) => res,
+        Err(e) => {
+            error!("Simulation failed: {}", e);
+            let error_response = serde_json::json!({
+                "status": "error",
+                "error": format!("Simulation failed: {}", e),
+                "details": "Check circuit for convergence issues"
+            });
+            let mut stream = stream.try_clone()?;
+            rmp_serde::encode::write(&mut stream, &error_response)?;
+            return Err(e.into());
+        }
+    };
+    
+    // Send results back to client
+    let mut stream = stream.try_clone()?;
+    rmp_serde::encode::write(&mut stream, &results)?;
+    
+    info!("Successfully processed simulation request");
+    Ok(())
+}
+
+/// Convert SerdeCircuit to Simulation (extracted from NetworkFrontend)
+fn convert_serde_circuit_to_simulation(circuit: SerdeCircuit) -> Result<Simulation, FrontendError> {
+    use std::collections::HashMap;
+    use std::sync::Arc;
+    
+    let mut commands: Vec<SimulationCommand> = Vec::new();
+    let mut options: Vec<SimulationOption> = Vec::new();
+    let mut elements: Vec<Element> = Vec::new();
+    let mut variables: Vec<Variable> = Vec::new();
+    let mut var_map: HashMap<Arc<str>, usize> = HashMap::new();
+    
+    // Process elements
+    for element in circuit.elements {
+        match element {
+            SerdeElement::Resistor(ele) => {
+                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+            }
+            SerdeElement::Inductor(ele) => {
+                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+            }
+            SerdeElement::Capacitor(ele) => {
+                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+            }
+            SerdeElement::VSource(ele) => {
+                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+            }
+            SerdeElement::VSourceSin(ele) => {
+                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+            }
+            SerdeElement::VSourceStep(ele) => {
+                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+            }
+            SerdeElement::ISource(ele) => {
+                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+            }
+            SerdeElement::Diode(ele) => {
+                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+            }
+            SerdeElement::Mosfet(ele) => {
+                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+            }
+            SerdeElement::Gain(ele) => {
+                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+            }
+        }
+    }
+    
+    // Process simulations
+    for simulation in circuit.simulations {
+        match simulation {
+            SerdeSimulation::OP => {
+                commands.push(SimulationCommand::Op);
+            }
+            SerdeSimulation::DC(dc) => {
+                commands.push(SimulationCommand::Dc(
+                    Arc::from(dc.source()),
+                    dc.vstart(),
+                    dc.vstop(),
+                    dc.vstep(),
+                    None,
+                ));
+            }
+            SerdeSimulation::AC(ac) => {
+                commands.push(SimulationCommand::Ac(
+                    ac.fstart(),
+                    ac.fstop(),
+                    ac.fstep(),
+                    ACMode::default(),
+                ));
+            }
+            SerdeSimulation::Tran(tran) => {
+                commands.push(SimulationCommand::Tran(tran.tstep(), tran.tend()));
+            }
+        }
+    }
+    
+    // Process options
+    for option in circuit.options {
+        options.push(SimulationOption::Out(vec![Arc::from(option.out)]));
+    }
+    
+    Ok(Simulation {
+        elements,
+        commands,
+        options,
+        variables,
+    })
 }
