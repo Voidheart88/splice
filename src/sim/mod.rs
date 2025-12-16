@@ -341,9 +341,7 @@ impl<SO: Solver> Simulator<SO> {
         }
 
         // Clamp the timestep to the allowed range
-        new_timestep = new_timestep
-            .max(ADAPTIVE_MIN_TIMESTEP)
-            .min(ADAPTIVE_MAX_TIMESTEP);
+        new_timestep = new_timestep.clamp(ADAPTIVE_MIN_TIMESTEP, ADAPTIVE_MAX_TIMESTEP);
 
         new_timestep
     }

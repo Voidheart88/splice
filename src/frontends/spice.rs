@@ -55,7 +55,7 @@ impl SpiceFrontend {
                     &mut elements,
                     &mut variables,
                     &mut var_map,
-                );
+                )?;
             }
         }
         
@@ -103,7 +103,7 @@ impl Frontend for SpiceFrontend {
                     &mut elements,
                     &mut variables,
                     &mut var_map,
-                )
+                )?
             }
         }
 
@@ -139,16 +139,17 @@ impl SpiceFrontend {
         elements: &mut Vec<Element>,
         variables: &mut Vec<Variable>,
         var_map: &mut HashMap<Arc<str>, usize>,
-    ) {
+    ) -> Result<(), FrontendError> {
         for inner in directive.into_inner() {
             match inner.as_rule() {
-                Rule::ELEMENT => self.process_element(inner, variables, elements, var_map),
+                Rule::ELEMENT => self.process_element(inner, variables, elements, var_map)?,
                 Rule::COMMAND => {
-                    self.process_command(inner, commands, options, elements, variables, var_map)
+                    self.process_command(inner, commands, options, elements, variables, var_map)?
                 }
                 _ => {}
             }
         }
+        Ok(())
     }
 
     fn process_command(
@@ -159,19 +160,22 @@ impl SpiceFrontend {
         elements: &mut Vec<Element>,
         variables: &mut Vec<Variable>,
         var_map: &mut HashMap<Arc<str>, usize>,
-    ) {
-        let command = command.into_inner().nth(0).unwrap();
+    ) -> Result<(), FrontendError> {
+        let command = command.into_inner().nth(0)
+            .ok_or_else(|| FrontendError::ParseError("Missing command in directive".into()))?;
+        
         match command.as_rule() {
             Rule::CMD_OP => self.process_op(commands),
-            Rule::CMD_DC => self.process_dc(command, commands),
-            Rule::CMD_AC => self.process_ac(command, commands),
-            Rule::CMD_TRAN => self.process_tran(command, commands),
+            Rule::CMD_DC => self.process_dc(command, commands)?,
+            Rule::CMD_AC => self.process_ac(command, commands)?,
+            Rule::CMD_TRAN => self.process_tran(command, commands)?,
             Rule::CMD_INCLUDE => {
-                self.process_include(command, commands, options, elements, variables, var_map)
+                self.process_include(command, commands, options, elements, variables, var_map)?
             }
-            Rule::CMD_OUT => self.process_out(command, options),
+            Rule::CMD_OUT => self.process_out(command, options)?,
             _ => {}
         }
+        Ok(())
     }
 
     fn process_include(
@@ -182,44 +186,76 @@ impl SpiceFrontend {
         elements: &mut Vec<Element>,
         variables: &mut Vec<Variable>,
         var_map: &mut HashMap<Arc<str>, usize>,
-    ) {
-        let current_path = Path::new(&self.pth).parent().unwrap();
-        let path = command.as_str().split(" ").nth(1).unwrap();
-        let path = current_path.join(path);
+    ) -> Result<(), FrontendError> {
+        let current_path = Path::new(&self.pth).parent()
+            .ok_or_else(|| FrontendError::IoError("Invalid file path".into()))?;
+        
+        let path = command.as_str().split(" ")
+            .nth(1)
+            .ok_or_else(|| FrontendError::ParseError(
+                format!("Missing path in .include directive: '{}'", command.as_str())
+            ))?;
+        
+        let full_path = current_path.join(path);
         let mut circuit_string = String::new();
 
-        File::open(path)
-            .unwrap()
-            .read_to_string(&mut circuit_string)
-            .unwrap();
+        let mut file = File::open(&full_path)
+            .map_err(|e| FrontendError::IoError(
+                format!("Failed to open included file '{}': {}", full_path.display(), e)
+            ))?;
+        
+        file.read_to_string(&mut circuit_string)
+            .map_err(|e| FrontendError::IoError(
+                format!("Failed to read included file '{}': {}", full_path.display(), e)
+            ))?;
 
         trace!("Parse Schematic!");
         let parse_result = SpiceParser::parse(Rule::SPICE, &circuit_string)
-            .unwrap()
+            .map_err(|e| FrontendError::PestError(format!("Parse error in included file '{}': {}", full_path.display(), e)))?
             .next()
-            .unwrap();
+            .ok_or_else(|| FrontendError::ParseError(
+                format!("Empty parse result for included file '{}'", full_path.display())
+            ))?;
 
         for pair in parse_result.into_inner() {
             if pair.as_rule() == Rule::DIRECTIVE {
-                self.process_directive(pair, commands, options, elements, variables, var_map)
+                self.process_directive(pair, commands, options, elements, variables, var_map)?
             }
         }
+        Ok(())
     }
 
     fn process_op(&self, commands: &mut Vec<SimulationCommand>) {
         commands.push(SimulationCommand::Op)
     }
 
-    fn process_dc(&self, command: Pair<Rule>, commands: &mut Vec<SimulationCommand>) {
+    fn process_dc(&self, command: Pair<Rule>, commands: &mut Vec<SimulationCommand>) -> Result<(), FrontendError> {
         let mut inner = command.into_inner();
 
-        let source = inner.next().unwrap().as_str();
-        let vstart = inner.next().unwrap().as_str().parse::<Numeric>().unwrap();
-        let vend = inner.next().unwrap().as_str().parse::<Numeric>().unwrap();
-        let vstep = inner.next().unwrap().as_str().parse::<Numeric>().unwrap();
+        let source = inner.next()
+            .ok_or_else(|| FrontendError::ParseError("Missing source in .dc command".into()))?
+            .as_str();
+        
+        let vstart = inner.next()
+            .ok_or_else(|| FrontendError::ParseError("Missing vstart in .dc command".into()))?
+            .as_str()
+            .parse::<Numeric>()
+            .map_err(|_| FrontendError::ParseError("Invalid vstart value".into()))?;
+        
+        let vend = inner.next()
+            .ok_or_else(|| FrontendError::ParseError("Missing vend in .dc command".into()))?
+            .as_str()
+            .parse::<Numeric>()
+            .map_err(|_| FrontendError::ParseError("Invalid vend value".into()))?;
+        
+        let vstep = inner.next()
+            .ok_or_else(|| FrontendError::ParseError("Missing vstep in .dc command".into()))?
+            .as_str()
+            .parse::<Numeric>()
+            .map_err(|_| FrontendError::ParseError("Invalid vstep value".into()))?;
 
         let src2 = inner.next();
-        let src2 = match src2 {
+        match src2 {
             None => {
                 commands.push(SimulationCommand::Dc(
                     Arc::from(source),
@@ -228,53 +264,106 @@ impl SpiceFrontend {
                     vstep,
                     None,
                 ));
-                return;
             }
-            Some(src) => src,
-        };
+            Some(src) => {
+                let mut src2 = src.into_inner();
 
-        let mut src2 = src2.into_inner();
+                let source2 = src2.next()
+                    .ok_or_else(|| FrontendError::ParseError("Missing second source in .dc command".into()))?
+                    .as_str();
+                
+                let vstart2 = src2.next()
+                    .ok_or_else(|| FrontendError::ParseError("Missing vstart2 in .dc command".into()))?
+                    .as_str()
+                    .parse::<Numeric>()
+                    .map_err(|_| FrontendError::ParseError("Invalid vstart2 value".into()))?;
+                
+                let vend2 = src2.next()
+                    .ok_or_else(|| FrontendError::ParseError("Missing vend2 in .dc command".into()))?
+                    .as_str()
+                    .parse::<Numeric>()
+                    .map_err(|_| FrontendError::ParseError("Invalid vend2 value".into()))?;
+                
+                let vstep2 = src2.next()
+                    .ok_or_else(|| FrontendError::ParseError("Missing vstep2 in .dc command".into()))?
+                    .as_str()
+                    .parse::<Numeric>()
+                    .map_err(|_| FrontendError::ParseError("Invalid vstep2 value".into()))?;
 
-        let source2 = src2.next().unwrap().as_str();
-        let vstart2 = src2.next().unwrap().as_str().parse::<Numeric>().unwrap();
-        let vend2 = src2.next().unwrap().as_str().parse::<Numeric>().unwrap();
-        let vstep2 = src2.next().unwrap().as_str().parse::<Numeric>().unwrap();
-
-        commands.push(SimulationCommand::Dc(
-            Arc::from(source),
-            vstart,
-            vend,
-            vstep,
-            Some((Arc::from(source2), vstart2, vend2, vstep2)),
-        ));
+                commands.push(SimulationCommand::Dc(
+                    Arc::from(source),
+                    vstart,
+                    vend,
+                    vstep,
+                    Some((Arc::from(source2), vstart2, vend2, vstep2)),
+                ));
+            }
+        }
+        Ok(())
     }
 
-    fn process_ac(&self, command: Pair<Rule>, commands: &mut Vec<SimulationCommand>) {
+    fn process_ac(&self, command: Pair<Rule>, commands: &mut Vec<SimulationCommand>) -> Result<(), FrontendError> {
         let mut values = command.into_inner();
-        let fstart = values.next().unwrap().as_str().parse().unwrap();
-        let fend = values.next().unwrap().as_str().parse().unwrap();
-        let step = values.next().unwrap().as_str().parse().unwrap();
+        
+        let fstart = values.next()
+            .ok_or_else(|| FrontendError::ParseError("Missing fstart in .ac command".into()))?
+            .as_str()
+            .parse::<f64>()
+            .map_err(|_| FrontendError::ParseError("Invalid fstart value".into()))?;
+        
+        let fend = values.next()
+            .ok_or_else(|| FrontendError::ParseError("Missing fend in .ac command".into()))?
+            .as_str()
+            .parse::<f64>()
+            .map_err(|_| FrontendError::ParseError("Invalid fend value".into()))?;
+        
+        let step = values.next()
+            .ok_or_else(|| FrontendError::ParseError("Missing step in .ac command".into()))?
+            .as_str()
+            .parse::<usize>()
+            .map_err(|_| FrontendError::ParseError("Invalid step value - must be an integer".into()))?;
+        
         let mode = match values.next() {
-            Some(mode) => mode.as_str().try_into().unwrap(),
+            Some(mode) => mode.as_str().try_into()
+                .map_err(|_| FrontendError::ParseError("Invalid AC mode".into()))?,
             None => ACMode::default(),
         };
-        commands.push(SimulationCommand::Ac(fstart, fend, step, mode))
+        
+        commands.push(SimulationCommand::Ac(fstart, fend, step, mode));
+        Ok(())
     }
 
-    fn process_tran(&self, command: Pair<Rule>, commands: &mut Vec<SimulationCommand>) {
+    fn process_tran(&self, command: Pair<Rule>, commands: &mut Vec<SimulationCommand>) -> Result<(), FrontendError> {
         let mut inner = command.into_inner();
-        let tstep = inner.next().unwrap().as_str().parse::<Numeric>().unwrap();
-        let tstop = inner.next().unwrap().as_str().parse::<Numeric>().unwrap();
+        
+        let tstep = inner.next()
+            .ok_or_else(|| FrontendError::ParseError("Missing tstep in .tran command".into()))?
+            .as_str()
+            .parse::<Numeric>()
+            .map_err(|_| FrontendError::ParseError("Invalid tstep value".into()))?;
+        
+        let tstop = inner.next()
+            .ok_or_else(|| FrontendError::ParseError("Missing tstop in .tran command".into()))?
+            .as_str()
+            .parse::<Numeric>()
+            .map_err(|_| FrontendError::ParseError("Invalid tstop value".into()))?;
 
-        commands.push(SimulationCommand::Tran(tstep, tstop))
+        commands.push(SimulationCommand::Tran(tstep, tstop));
+        Ok(())
     }
 
-    fn process_out(&self, option: Pair<Rule>, options: &mut Vec<SimulationOption>) {
+    fn process_out(&self, option: Pair<Rule>, options: &mut Vec<SimulationOption>) -> Result<(), FrontendError> {
         let nodes: Vec<Arc<str>> = option
             .into_inner()
             .map(|inner| Arc::from(inner.as_str()))
             .collect();
+        
+        if nodes.is_empty() {
+            return Err(FrontendError::ParseError("Empty .out directive - no nodes specified".into()));
+        }
+        
         options.push(SimulationOption::Out(nodes));
+        Ok(())
     }
 
     fn process_element(
@@ -283,25 +372,28 @@ impl SpiceFrontend {
         variables: &mut Vec<Variable>,
         elements: &mut Vec<Element>,
         var_map: &mut HashMap<Arc<str>, usize>,
-    ) {
-        let element = element.into_inner().nth(0).unwrap();
+    ) -> Result<(), FrontendError> {
+        let element = element.into_inner().nth(0)
+            .ok_or_else(|| FrontendError::ParseError("Missing element in directive".into()))?;
+        
         match element.as_rule() {
             Rule::ELE_VSOURCE_SIN => {
-                VSourceSinBundle::process(element, variables, elements, var_map)
+                VSourceSinBundle::process(element, variables, elements, var_map)?
             }
             Rule::ELE_VSOURCE_STEP => {
-                VSourceStepBundle::process(element, variables, elements, var_map)
+                VSourceStepBundle::process(element, variables, elements, var_map)?
             }
-            Rule::ELE_VSOURCE => VSourceBundle::process(element, variables, elements, var_map),
-            Rule::ELE_ISOURCE => ISourceBundle::process(element, variables, elements, var_map),
-            Rule::ELE_RESISTOR => ResistorBundle::process(element, variables, elements, var_map),
-            Rule::ELE_CAPACITOR => CapacitorBundle::process(element, variables, elements, var_map),
-            Rule::ELE_INDUCTOR => InductorBundle::process(element, variables, elements, var_map),
-            Rule::ELE_DIODE => DiodeBundle::process(element, variables, elements, var_map),
-            Rule::ELE_MOSFET => Mos0Bundle::process(element, variables, elements, var_map),
-            Rule::ELE_GAIN => GainBundle::process(element, variables, elements, var_map),
+            Rule::ELE_VSOURCE => VSourceBundle::process(element, variables, elements, var_map)?,
+            Rule::ELE_ISOURCE => ISourceBundle::process(element, variables, elements, var_map)?,
+            Rule::ELE_RESISTOR => ResistorBundle::process(element, variables, elements, var_map)?,
+            Rule::ELE_CAPACITOR => CapacitorBundle::process(element, variables, elements, var_map)?,
+            Rule::ELE_INDUCTOR => InductorBundle::process(element, variables, elements, var_map)?,
+            Rule::ELE_DIODE => DiodeBundle::process(element, variables, elements, var_map)?,
+            Rule::ELE_MOSFET => Mos0Bundle::process(element, variables, elements, var_map)?,
+            Rule::ELE_GAIN => GainBundle::process(element, variables, elements, var_map)?,
             _ => {}
         }
+        Ok(())
     }
 }
 
@@ -317,5 +409,5 @@ pub(crate) trait ProcessSpiceElement {
         variables: &mut Vec<Variable>,
         elements: &mut Vec<Element>,
         var_map: &mut HashMap<Arc<str>, usize>,
-    );
+    ) -> Result<(), FrontendError>;
 }

@@ -1056,8 +1056,10 @@ fn test_adaptive_timestep_detection() {
 }
 
 #[test]
+#[allow(clippy::assertions_on_constants)]
 fn test_adaptive_timestep_constants_are_positive() {    
     // Test that all constants are positive and have reasonable relationships
+    // These assertions document the expected relationships between constants
     assert!(ADAPTIVE_MIN_TIMESTEP > 0.0);
     assert!(ADAPTIVE_MAX_TIMESTEP > ADAPTIVE_MIN_TIMESTEP);
     assert!(ADAPTIVE_INITIAL_TIMESTEP > ADAPTIVE_MIN_TIMESTEP);
@@ -1072,8 +1074,10 @@ fn test_adaptive_timestep_constants_are_positive() {
 }
 
 #[test]
+#[allow(clippy::assertions_on_constants)]
 fn test_adaptive_timestep_clamping() {    
     // Test that the constants define a reasonable range
+    // These assertions document the expected relationships between constants
     assert!(ADAPTIVE_MIN_TIMESTEP < ADAPTIVE_INITIAL_TIMESTEP);
     assert!(ADAPTIVE_INITIAL_TIMESTEP < ADAPTIVE_MAX_TIMESTEP);
     

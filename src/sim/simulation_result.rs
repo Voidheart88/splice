@@ -50,10 +50,13 @@ impl Serialize for Sim {
                 TranWrapper { r#type: "tran", points: points.clone() }.serialize(serializer)
             },
             Sim::Ac(bode_values) => {
+                /// Type alias for AC analysis results: (Frequency, Variables)
+                type AcResult = Vec<(Numeric, Vec<(Variable, (Numeric, Numeric))>)>;
+                
                 #[derive(Serialize)]
                 struct AcWrapper {
                     r#type: &'static str,
-                    bode_values: Vec<(Numeric, Vec<(Variable, (Numeric, Numeric))>)>
+                    bode_values: AcResult
                 }
                 
                 let converted = bode_values.iter().map(|(freq, vars)| {

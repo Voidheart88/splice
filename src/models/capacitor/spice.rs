@@ -10,27 +10,46 @@ impl ProcessSpiceElement for CapacitorBundle {
         variables: &mut Vec<crate::models::Variable>,
         elements: &mut Vec<crate::models::Element>,
         var_map: &mut std::collections::HashMap<std::sync::Arc<str>, usize>,
-    ) {
+    ) -> Result<(), crate::frontends::FrontendError> {
         let ele = element.as_str();
         let offset = element.as_span().start();
         let mut inner = element.into_inner();
+        
         //extract Name
-        let name = inner.next().unwrap().as_span().end() - offset;
-        let name = &ele[0..name];
+        let name_end = inner.next()
+            .ok_or_else(|| crate::frontends::FrontendError::ParseError(
+                format!("Missing name in capacitor: {}", ele)
+            ))?
+            .as_span().end() - offset;
+        let name = &ele[0..name_end];
 
         //extract Node0
-        let node0 = inner.next().unwrap().as_span();
-        let node0 = &ele[node0.start() - offset..node0.end() - offset];
+        let node0_span = inner.next()
+            .ok_or_else(|| crate::frontends::FrontendError::ParseError(
+                format!("Missing node0 in capacitor: {}", name)
+            ))?
+            .as_span();
+        let node0 = &ele[node0_span.start() - offset..node0_span.end() - offset];
 
         //extract Node1
-        let node1 = inner.next().unwrap().as_span();
-        let node1 = &ele[node1.start() - offset..node1.end() - offset];
+        let node1_span = inner.next()
+            .ok_or_else(|| crate::frontends::FrontendError::ParseError(
+                format!("Missing node1 in capacitor: {}", name)
+            ))?
+            .as_span();
+        let node1 = &ele[node1_span.start() - offset..node1_span.end() - offset];
 
         //extract Value
-        let value = inner.next().unwrap().as_span();
-        let value = ele[value.start() - offset..value.end() - offset]
+        let value_span = inner.next()
+            .ok_or_else(|| crate::frontends::FrontendError::ParseError(
+                format!("Missing value in capacitor: {}", name)
+            ))?
+            .as_span();
+        let value = ele[value_span.start() - offset..value_span.end() - offset]
             .parse::<Numeric>()
-            .unwrap();
+            .map_err(|_| crate::frontends::FrontendError::ParseError(
+                format!("Invalid value in capacitor '{}': must be a number", name)
+            ))?;
 
         let cap = CapacitorBundle::new(
             Arc::from(name),
@@ -39,5 +58,6 @@ impl ProcessSpiceElement for CapacitorBundle {
             value,
         );
         elements.push(Element::Capacitor(cap));
+        Ok(())
     }
 }

@@ -12,17 +12,29 @@ impl ProcessSpiceElement for VSourceStepBundle {
         variables: &mut Vec<Variable>,
         elements: &mut Vec<Element>,
         var_map: &mut std::collections::HashMap<std::sync::Arc<str>, usize>,
-    ) {
+    ) -> Result<(), crate::frontends::FrontendError> {
         let ele = element.as_str();
         let offset = element.as_span().start();
         let mut inner = element.into_inner();
 
-        let name = inner.next().unwrap().as_str();
+        let name = inner.next()
+            .ok_or_else(|| crate::frontends::FrontendError::ParseError(
+                format!("Missing name in step voltage source: {}", ele)
+            ))?
+            .as_str();
 
-        let node0 = inner.next().unwrap().as_span();
+        let node0 = inner.next()
+            .ok_or_else(|| crate::frontends::FrontendError::ParseError(
+                format!("Missing node0 in step voltage source: {}", name)
+            ))?
+            .as_span();
         let node0_str = &ele[node0.start() - offset..node0.end() - offset];
 
-        let node1 = inner.next().unwrap().as_span();
+        let node1 = inner.next()
+            .ok_or_else(|| crate::frontends::FrontendError::ParseError(
+                format!("Missing node1 in step voltage source: {}", name)
+            ))?
+            .as_span();
         let node1_str = &ele[node1.start() - offset..node1.end() - offset];
 
         // Parse the 3 values (initial_value, final_value, step_time)
@@ -33,12 +45,25 @@ impl ProcessSpiceElement for VSourceStepBundle {
 
         // Ensure we have exactly 3 values
         if values.len() < 3 {
-            panic!("Insufficient values for VSourceStep. Expected: initial_value final_value step_time");
+            return Err(crate::frontends::FrontendError::ParseError(
+                format!("Insufficient values for step voltage source '{}': expected 3 values (initial_value, final_value, step_time)", name)
+            ));
         }
 
-        let initial_value = values[0].parse::<f64>().unwrap();
-        let final_value = values[1].parse::<f64>().unwrap();
-        let step_time = values[2].parse::<f64>().unwrap();
+        let initial_value = values[0].parse::<f64>()
+            .map_err(|_| crate::frontends::FrontendError::ParseError(
+                format!("Invalid initial value in step voltage source '{}': must be a number", name)
+            ))?;
+        
+        let final_value = values[1].parse::<f64>()
+            .map_err(|_| crate::frontends::FrontendError::ParseError(
+                format!("Invalid final value in step voltage source '{}': must be a number", name)
+            ))?;
+        
+        let step_time = values[2].parse::<f64>()
+            .map_err(|_| crate::frontends::FrontendError::ParseError(
+                format!("Invalid step time in step voltage source '{}': must be a number", name)
+            ))?;
 
         let branch = Variable::new(
             Arc::from(format!("branch_{}", name)),
@@ -62,5 +87,6 @@ impl ProcessSpiceElement for VSourceStepBundle {
         );
 
         elements.push(Element::VSourceStep(vsource_step));
+        Ok(())
     }
 }
