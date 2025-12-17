@@ -1,3 +1,5 @@
+mod consistency;
+mod error_cases;
 mod faer;
 mod faer_sparse;
 mod nalgebra;

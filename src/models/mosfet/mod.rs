@@ -4,4 +4,7 @@ pub(crate) mod serde;
 /// This includes parsing from various formats as well as the conductance-behaviour.
 pub(crate) mod spice;
 
+#[cfg(test)]
+mod tests;
+
 pub use mos0::Mos0Bundle;
