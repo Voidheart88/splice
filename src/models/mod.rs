@@ -1,8 +1,10 @@
 pub mod bjt;
 pub mod capacitor;
+pub mod controlled_sources;
 pub mod diode;
 pub mod gain;
 pub mod inductor;
+pub mod integration;
 pub mod isource;
 pub mod mosfet;
 pub mod pairs;
@@ -19,6 +21,7 @@ use crate::spot::*;
 use serde::Serialize;
 
 pub use self::capacitor::CapacitorBundle;
+pub use self::controlled_sources::{CCCSBundle, CCVSBundle, VCCSBundle, VCVSBundle};
 pub use self::diode::DiodeBundle;
 pub use self::gain::GainBundle;
 pub use self::inductor::InductorBundle;
@@ -110,6 +113,10 @@ pub enum Element {
     VSourceStep(VSourceStepBundle),
     ISource(ISourceBundle),
     Gain(GainBundle),
+    VCVS(VCVSBundle),
+    VCCS(VCCSBundle),
+    CCCS(CCCSBundle),
+    CCVS(CCVSBundle),
 }
 
 impl Element {
@@ -121,6 +128,10 @@ impl Element {
             Element::VSourceStep(ele) => Some(ele.triples()),
             Element::Resistor(ele) => Some(ele.triples()),
             Element::Gain(ele) => Some(ele.triples()), // Gain ist linear und konstant
+            Element::VCVS(ele) => Some(ele.triples()),
+            Element::VCCS(ele) => Some(ele.triples()),
+            Element::CCCS(ele) => Some(ele.triples()),
+            Element::CCVS(ele) => Some(ele.triples()),
             _ => None,
         }
     }
@@ -154,6 +165,10 @@ impl Element {
             Element::VSourceStep(ele) => Some(ele.pairs(time)),
             Element::Capacitor(ele) => Some(ele.pairs(delta_t)),
             Element::Inductor(ele) => Some(ele.pairs(delta_t)),
+            Element::VCVS(_) => None,
+            Element::VCCS(_) => None,
+            Element::CCCS(_) => None,
+            Element::CCVS(_) => None,
             _ => None,
         }
     }
@@ -165,6 +180,10 @@ impl Element {
             Element::VSourceStep(ele) => Some(ele.pairs(time)), // Time sources use same method
             Element::Capacitor(ele) => Some(ele.pairs_trapezoidal(delta_t)),
             Element::Inductor(ele) => Some(ele.pairs_trapezoidal(delta_t)),
+            Element::VCVS(_) => None,
+            Element::VCCS(_) => None,
+            Element::CCCS(_) => None,
+            Element::CCVS(_) => None,
             _ => None,
         }
     }
@@ -174,6 +193,10 @@ impl Element {
         match self {
             Element::Diode(ele) => Some(ele.triples(x_vec)),
             Element::Mos0(ele) => Some(ele.triples(x_vec)),
+            Element::VCVS(_) => None,
+            Element::VCCS(_) => None,
+            Element::CCCS(_) => None,
+            Element::CCVS(_) => None,
             _ => None,
         }
     }
@@ -183,6 +206,10 @@ impl Element {
         match self {
             Element::Diode(ele) => Some(ele.pairs(x_vec)),
             Element::Mos0(ele) => Some(ele.pairs(x_vec)),
+            Element::VCVS(_) => None,
+            Element::VCCS(_) => None,
+            Element::CCCS(_) => None,
+            Element::CCVS(_) => None,
             _ => None,
         }
     }
@@ -203,6 +230,10 @@ impl Element {
             Element::VSource(vsource) => Some(vsource.ac_triples()),
             Element::VSourceStep(_) => None,
             Element::Gain(gain) => Some(gain.ac_triples()),
+            Element::VCVS(vcvs) => Some(vcvs.ac_triples()),
+            Element::VCCS(vccs) => Some(vccs.ac_triples()),
+            Element::CCCS(cccs) => Some(cccs.ac_triples()),
+            Element::CCVS(ccvs) => Some(ccvs.ac_triples()),
             Element::ISource(_) => None,
             Element::VSourceSin(_) => None,
         }
@@ -218,6 +249,10 @@ impl Element {
             Element::Resistor(_) => None,
             Element::VSource(ele) => Some(ele.ac_pairs()),
             Element::VSourceStep(ele) => Some(ele.ac_pairs()),
+            Element::VCVS(_) => None,
+            Element::VCCS(_) => None,
+            Element::CCCS(_) => None,
+            Element::CCVS(_) => None,
             Element::ISource(_) => None,
             Element::Gain(_) => None,
             Element::VSourceSin(_) => None,
@@ -236,6 +271,10 @@ impl Element {
             Element::VSourceStep(ele) => ele.name(),
             Element::ISource(ele) => ele.name(),
             Element::Gain(ele) => ele.name(),
+            Element::VCVS(ele) => ele.name(),
+            Element::VCCS(ele) => ele.name(),
+            Element::CCCS(ele) => ele.name(),
+            Element::CCVS(ele) => ele.name(),
             Element::VSourceSin(ele) => ele.name(),
         }
     }
@@ -251,6 +290,10 @@ impl Element {
             Element::VSource(ele) => ele.triple_idx(),
             Element::VSourceStep(ele) => ele.triple_idx(),
             Element::Gain(ele) => ele.triple_idx(),
+            Element::VCVS(ele) => ele.triple_idx(),
+            Element::VCCS(ele) => ele.triple_idx(),
+            Element::CCCS(ele) => ele.triple_idx(),
+            Element::CCVS(ele) => ele.triple_idx(),
             Element::ISource(_) => None,
             Element::VSourceSin(ele) => ele.triple_idx(),
         }
@@ -266,6 +309,10 @@ impl Element {
             Element::VSource(vsource) => vsource.triple_idx(),
             Element::VSourceStep(vsource) => vsource.triple_idx(),
             Element::Gain(ele) => ele.triple_idx(),
+            Element::VCVS(ele) => ele.triple_idx(),
+            Element::VCCS(ele) => ele.triple_idx(),
+            Element::CCCS(ele) => ele.triple_idx(),
+            Element::CCVS(ele) => ele.triple_idx(),
             Element::ISource(_) => None,
             Element::VSourceSin(ele) => ele.triple_idx(),
         }

@@ -15,6 +15,7 @@ use crate::models::resistor::serde::SerdeResistor;
 use crate::models::vsource::serde::SerdeVSource;
 use crate::models::vsource_sine::serde::SerdeVSourceSin;
 use crate::models::vsource_step::serde::SerdeVSourceStep;
+use crate::models::controlled_sources::serde::{SerdeVCVS, SerdeVCCS, SerdeCCCS, SerdeCCVS};
 use crate::models::Variable;
 use crate::sim::commands::ACMode;
 use crate::sim::commands::SimulationCommand;
@@ -47,6 +48,14 @@ pub enum SerdeElement {
     Mosfet(SerdeMos0),
     #[serde(rename = "gain")]
     Gain(SerdeGain),
+    #[serde(rename = "vcvs")]
+    VCVS(SerdeVCVS),
+    #[serde(rename = "vccs")]
+    VCCS(SerdeVCCS),
+    #[serde(rename = "cccs")]
+    CCCS(SerdeCCCS),
+    #[serde(rename = "ccvs")]
+    CCVS(SerdeCCVS),
 }
 
 /// Represents the types of simulations that can be performed on a circuit.
@@ -252,6 +261,10 @@ impl SerdeFrontend {
                     ele.process(&mut variables, &mut elements, &mut var_map)
                 }
                 SerdeElement::Gain(ele) => ele.process(&mut variables, &mut elements, &mut var_map),
+                SerdeElement::VCVS(ele) => ele.process(&mut variables, &mut elements, &mut var_map),
+                SerdeElement::VCCS(ele) => ele.process(&mut variables, &mut elements, &mut var_map),
+                SerdeElement::CCCS(ele) => ele.process(&mut variables, &mut elements, &mut var_map),
+                SerdeElement::CCVS(ele) => ele.process(&mut variables, &mut elements, &mut var_map),
             };
         }
 

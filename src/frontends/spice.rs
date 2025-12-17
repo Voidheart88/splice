@@ -17,8 +17,8 @@ use crate::sim::options::SimulationOption;
 use crate::spot::*;
 
 use super::{
-    CapacitorBundle, DiodeBundle, Element, GainBundle, ISourceBundle, InductorBundle, Mos0Bundle,
-    ResistorBundle, Variable,
+    CapacitorBundle, CCCSBundle, CCVSBundle, DiodeBundle, Element, GainBundle, ISourceBundle, 
+    InductorBundle, Mos0Bundle, ResistorBundle, VCCSBundle, VCVSBundle, Variable,
 };
 
 #[derive(Parser, Debug)]
@@ -391,6 +391,10 @@ impl SpiceFrontend {
             Rule::ELE_DIODE => DiodeBundle::process(element, variables, elements, var_map)?,
             Rule::ELE_MOSFET => Mos0Bundle::process(element, variables, elements, var_map)?,
             Rule::ELE_GAIN => GainBundle::process(element, variables, elements, var_map)?,
+            Rule::ELE_VCVS => VCVSBundle::process(element, variables, elements, var_map)?,
+            Rule::ELE_VCCS => VCCSBundle::process(element, variables, elements, var_map)?,
+            Rule::ELE_CCCS => CCCSBundle::process(element, variables, elements, var_map)?,
+            Rule::ELE_CCVS => CCVSBundle::process(element, variables, elements, var_map)?,
             _ => {}
         }
         Ok(())

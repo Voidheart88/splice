@@ -1,0 +1,38 @@
+circuit:
+  elements:
+    - type: "vsource"
+      name: "Vin"
+      positive: "1"
+      negative: "0"
+      value: 10.0
+    
+    - type: "resistor"
+      name: "R1"
+      node1: "1"
+      node2: "2"
+      value: 1000.0
+    
+    - type: "resistor"
+      name: "R2"
+      node1: "2"
+      node2: "0"
+      value: 1000.0
+    
+    - type: "vcvs"
+      name: "E1"
+      positive: "3"
+      negative: "0"
+      controlling_positive: "2"
+      controlling_negative: "0"
+      gain: 2.0
+    
+    - type: "vccs"
+      name: "G1"
+      positive: "3"
+      negative: "4"
+      controlling_positive: "2"
+      controlling_negative: "0"
+      transconductance: 0.01
+  
+  commands:
+    - type: "op"

@@ -79,6 +79,18 @@ impl NetworkFrontend {
                 SerdeElement::Gain(ele) => {
                     ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
                 }
+                SerdeElement::VCVS(ele) => {
+                    ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+                }
+                SerdeElement::VCCS(ele) => {
+                    ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+                }
+                SerdeElement::CCCS(ele) => {
+                    ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+                }
+                SerdeElement::CCVS(ele) => {
+                    ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+                }
             }
         }
 

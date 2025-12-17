@@ -47,6 +47,10 @@ ELEMENT = {
   | ELE_MOSFET
   | ELE_GAIN
   | ELE_VSOURCE_STEP
+  | ELE_VCVS
+  | ELE_VCCS
+  | ELE_CCCS
+  | ELE_CCVS
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -226,3 +230,53 @@ CMD_TRAN = { ^".tran" ~ WHITE_SPACE+ ~ VALUE ~ WHITE_SPACE+ ~ VALUE }
 // Misc commands
 CMD_INCLUDE = { ^".include" ~ WHITE_SPACE+ ~ (ASCII_ALPHANUMERIC | ".")+ }
 CMD_OUT     = { ^".out" ~ WHITE_SPACE+ ~ NODE+ ~ ((WHITE_SPACE+ ~ NODE+)+ | WHITE_SPACE*) }
+
+// -------------------------------------------------------------------------------------------------
+// Controlled Sources
+// -------------------------------------------------------------------------------------------------
+
+// Voltage-Controlled Voltage Source (VCVS) - E source
+// Syntax: E<name> <pos> <neg> <ctrl_pos> <ctrl_neg> <gain>
+ELE_VCVS = {
+    ^"e" 
+    ~ ELEMENT_NAME ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ VALUE ~ WHITE_SPACE*
+}
+
+// Voltage-Controlled Current Source (VCCS) - G source
+// Syntax: G<name> <pos> <neg> <ctrl_pos> <ctrl_neg> <transconductance>
+ELE_VCCS = {
+    ^"g" 
+    ~ ELEMENT_NAME ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ VALUE ~ WHITE_SPACE*
+}
+
+// Current-Controlled Current Source (CCCS) - F source
+// Syntax: F<name> <pos> <neg> <ctrl_branch> <gain>
+ELE_CCCS = {
+    ^"f" 
+    ~ ELEMENT_NAME ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ VALUE ~ WHITE_SPACE*
+}
+
+// Current-Controlled Voltage Source (CCVS) - H source
+// Syntax: H<name> <pos> <neg> <ctrl_branch> <gain>
+ELE_CCVS = {
+    ^"h" 
+    ~ ELEMENT_NAME ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ NODE ~ WHITE_SPACE+ 
+    ~ VALUE ~ WHITE_SPACE*
+}
