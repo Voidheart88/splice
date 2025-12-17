@@ -12,13 +12,13 @@ SPICE = { SOI ~ NEWLINE* ~ (_COMMENT | DIRECTIVE)* ~ NEWLINE* ~ WHITE_SPACE* ~ E
 // -------------------------------------------------------------------------------------------------
 // A directive: either an element definition or a simulation command
 // -------------------------------------------------------------------------------------------------
-DIRECTIVE = { (ELEMENT ~ NEWLINE*) | (COMMAND ~ NEWLINE*) }
+DIRECTIVE = { (ELEMENT ~ NEWLINE*) | (COMMAND ~ NEWLINE*) | (DIRECTIVE_NODE_UNITS ~ NEWLINE*) }
 
 // -------------------------------------------------------------------------------------------------
 // Comments start with '*' and end at the next newline.
 // A comment
 // -------------------------------------------------------------------------------------------------
-_COMMENT = { "*" ~ ASCII_ALPHANUMERIC* ~ NEWLINE* }
+_COMMENT = { "*" ~ (!("\n") ~ ANY)* ~ ("\n" | EOI) }
 
 // -------------------------------------------------------------------------------------------------
 // Common building blocks
@@ -29,6 +29,19 @@ ELEMENT_NAME = { ASCII_ALPHANUMERIC* }
 
 // A Node
 NODE = { ASCII_ALPHANUMERIC+}
+
+// Unit specification
+UNIT = { ASCII_ALPHANUMERIC+ | "Ω" | "°C" | "°F" | "μ" | "n" | "p" | "k" | "M" | "G" | "T" }
+
+// Node unit assignment
+NODE_UNIT_ASSIGNMENT = {
+    NODE ~ WHITE_SPACE* ~ "=" ~ WHITE_SPACE* ~ UNIT
+}
+
+// Node unit directive
+DIRECTIVE_NODE_UNITS = {
+    ^".node_units" ~ WHITE_SPACE+ ~ NODE_UNIT_ASSIGNMENT ~ (WHITE_SPACE+ ~ NODE_UNIT_ASSIGNMENT)*
+}
 
 VALUE = { ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? ~ (^"e" ~ ("+" | "-")? ~ ASCII_DIGIT+)? }
 
