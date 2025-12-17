@@ -20,61 +20,9 @@ The goal of Splice is to provide a better simulation experience.
   - Multiple integration methods (Backward Euler, Trapezoidal)
   - **Network mode with MessagePack protocol** - Run Splice as a server for remote simulations
 
-## Known Issues and Limitations
-
-### Transient Simulation
-
-1. **Adaptive Time Step Control:**
-   - The implementation now supports adaptive time step control for improved efficiency and stability
-   - Automatic activation when small time steps (≤1µs) are specified
-   - Dynamic adjustment based on error estimation with quadratic error control
-   - Safety factors and growth limits ensure numerical stability
-   - Backward compatible with fixed time step simulations
-
-2. **Capacitor Charging:**
-   - Capacitors charge correctly with improved stability using adaptive time steps
-   - The adaptive control automatically adjusts Δt based on circuit dynamics
-   - For circuits with varying time constants, adaptive stepping significantly improves efficiency
-
-3. **Numerical Stability:**
-   - Implicit Euler integration (default) with trapezoidal method available
-   - Adaptive time stepping uses relative error estimation with tolerance of 1e-4
-   - Timestep bounds: 1ns minimum, 1ms maximum
-   - Growth factors limit rapid changes for smooth convergence
-
-4. **Integration Methods:**
-   - Backward Euler: Default method, stable for stiff systems
-   - Trapezoidal: Available for improved accuracy in certain scenarios
-   - Can be selected via `.tran` command options
-
-### AC Analysis
-
-1. **Frequency Range:**
-   - The AC analysis works well for most frequency ranges
-   - Very high frequencies may require more points for accuracy
-
-2. **Complex Models:**
-   - Some complex models may not be fully supported
-   - The implementation focuses on basic R, L, C elements
-
-### Network Mode
-
-1. **Security:**
-   - Current implementation uses plain TCP without encryption
-   - For production use, consider adding TLS/SSL or running in a secure network
-
-2. **Performance:**
-   - Large circuits may require significant memory and computation time
-   - Consider using `faer-sparse` solver for better performance with large circuits
-
-3. **Error Handling:**
-   - Network errors are handled gracefully, but complex error recovery is not yet implemented
-   - Client should implement reconnection logic for production use
-
 ## Todos/Roadmap:
 
 ### Frontends:
-  - ✅ **Build a network frontend** - Splice should be runnable inside a container without many dependencies
   - Build a KiCad frontend
 
 ### Solver:
@@ -83,18 +31,13 @@ The goal of Splice is to provide a better simulation experience.
 
 ### Outputs:
   - Improve the CSV output
-  - ✅ **Build the network output** - MessagePack-based network backend implemented
   - Improve the plot output
   - Build the raw output
 
 ### Models:
-  - Implement a BJT and MOSFET model
   - Implement magnetic simulations
-  - Build controlled sources
 
 ### Features:
-  - Allow the annotation of nodes and branches with physical quantities such as current density or revolutions per minute for a better simulation experience with things like an electrical motor. Explicity helps a lot here!
-  - Enhance transient simulation with additional integration methods
   - Implement an intelligent solving strategy finder (maybe an AI thingy?)
 
 ### Network Mode Enhancements:
