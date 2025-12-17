@@ -31,7 +31,7 @@ fn test_mosfet_default_options() {
     // Test that default options can be created
     // Fields are private, so we can't access them directly, but we can test
     // that the default values are reasonable by using them in a MOSFET
-    assert!(true, "Default options created successfully");
+    // Test passes if we reach this point without panicking
 }
 
 #[test]
@@ -50,7 +50,7 @@ fn test_mosfet_custom_options() {
     );
     
     assert_eq!(mosfet.name(), "M1".into());
-    assert!(true, "Custom options can be used to create MOSFET");
+    // Test passes if we reach this point without panicking
 }
 
 #[test]
@@ -175,7 +175,7 @@ fn test_mosfet_triple_idx() {
     assert!(triple_idx.is_some(), "Should have triple indices for full MOSFET");
     
     // Should have triple indices for full MOSFET model
-    assert!(true, "triple_idx() returns Some value for full MOSFET");
+    // Test passes if we reach this point without panicking
 }
 
 #[test]

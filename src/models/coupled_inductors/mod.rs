@@ -14,6 +14,7 @@ pub mod serde;
 /// Options for coupled inductors
 #[derive(Debug, Clone)]
 pub struct CoupledInductorsOptions {
+    #[allow(dead_code)]
     coupling_factor: Numeric, // Coupling factor k (0 < k < 1)
 }
 

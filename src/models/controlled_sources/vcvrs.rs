@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use crate::spot::Numeric;
-use crate::models::{Variable, Triples, TripleIdx, Unit};
+use crate::models::{Variable, Triples, TripleIdx};
 use crate::frontends::spice::{Rule, ProcessSpiceElement};
 use crate::{Element, FrontendError};
 use pest::iterators::Pair;
@@ -25,7 +25,7 @@ impl Default for VCVSOptions {
 /// Voltage-Controlled Voltage Source (VCVS) - E source
 /// This represents a voltage source whose output voltage is proportional
 /// to the voltage across a controlling pair of nodes.
-/// SPICE syntax: E<name> <pos> <neg> <ctrl_pos> <ctrl_neg> <gain>
+/// SPICE syntax: E{name} {pos} {neg} {ctrl_pos} {ctrl_neg} {gain}
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct VCVSBundle {
     name: Arc<str>,
@@ -69,10 +69,10 @@ impl VCVSBundle {
     /// Returns the constant triples for the VCVS
     /// VCVS equation: V(out) = gain * (V(ctrl_pos) - V(ctrl_neg))
     /// This contributes to the matrix as:
-    /// [pos] [gain] [ctrl_pos]
-    /// [pos] [-gain] [ctrl_neg]
-    /// [neg] [-gain] [ctrl_pos]
-    /// [neg] [gain] [ctrl_neg]
+    /// pos * gain * ctrl_pos
+    /// pos * -gain * ctrl_neg
+    /// neg * -gain * ctrl_pos
+    /// neg * gain * ctrl_neg
     pub fn triples(&self) -> Triples<Numeric, 4> {
         if let (Some(pos_idx), Some(neg_idx), Some(ctrl_pos_idx), Some(ctrl_neg_idx)) = (
             self.positive.as_ref().map(|v| v.idx()),
@@ -159,6 +159,7 @@ impl ProcessSpiceElement for VCVSBundle {
 mod tests {
     use super::*;
     use std::sync::Arc;
+    use crate::models::Unit;
 
     fn create_var(name: &str, idx: usize) -> Variable {
         Variable::new(Arc::from(name), Unit::Volt, idx)

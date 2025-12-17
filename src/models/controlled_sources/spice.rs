@@ -15,7 +15,7 @@ use crate::models::controlled_sources::cccs::CCCSOptions;
 use crate::models::controlled_sources::ccvs::CCVSOptions;
 
 /// Processes a VCVS (E) source from SPICE format
-/// Syntax: E<name> <pos> <neg> <ctrl_pos> <ctrl_neg> <gain>
+/// Syntax: E{name} {pos} {neg} {ctrl_pos} {ctrl_neg} {gain}
 pub fn process_vcvs(
     element: Pair<Rule>,
     variables: &mut Vec<Variable>,
@@ -80,7 +80,7 @@ pub fn process_vcvs(
 }
 
 /// Processes a VCCS (G) source from SPICE format
-/// Syntax: G<name> <pos> <neg> <ctrl_pos> <ctrl_neg> <transconductance>
+/// Syntax: G{name} {pos} {neg} {ctrl_pos} {ctrl_neg} {transconductance}
 pub fn process_vccs(
     element: Pair<Rule>,
     variables: &mut Vec<Variable>,
@@ -145,7 +145,7 @@ pub fn process_vccs(
 }
 
 /// Processes a CCCS (F) source from SPICE format
-/// Syntax: F<name> <pos> <neg> <ctrl_branch> <gain>
+/// Syntax: F{name} {pos} {neg} {ctrl_branch} {gain}
 pub fn process_cccs(
     element: Pair<Rule>,
     variables: &mut Vec<Variable>,
@@ -203,7 +203,7 @@ pub fn process_cccs(
 }
 
 /// Processes a CCVS (H) source from SPICE format
-/// Syntax: H<name> <pos> <neg> <ctrl_branch> <gain>
+/// Syntax: H{name} {pos} {neg} {ctrl_branch} {gain}
 pub fn process_ccvs(
     element: Pair<Rule>,
     variables: &mut Vec<Variable>,

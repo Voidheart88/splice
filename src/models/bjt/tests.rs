@@ -30,7 +30,7 @@ fn test_bjt_default_options() {
     let _options = Bjt0Options::default();
     // Just test that default options can be created
     // Fields are private, so we can't access them directly
-    assert!(true, "Default options created successfully");
+    // Test passes if we reach this point without panicking
 }
 
 #[test]
@@ -49,7 +49,7 @@ fn test_bjt_custom_options() {
     );
     
     assert_eq!(bjt.name(), "Q1".into());
-    assert!(true, "Default options can be used to create BJT");
+    // Test passes if we reach this point without panicking
 }
 
 #[test]
@@ -186,7 +186,7 @@ fn test_bjt_triple_idx() {
     assert!(triple_idx.is_some(), "Should have triple indices for full BJT");
     
     // Should have triple indices for full BJT model
-    assert!(true, "triple_idx() returns Some value for full BJT");
+    // Test passes if we reach this point without panicking
 }
 
 #[test]

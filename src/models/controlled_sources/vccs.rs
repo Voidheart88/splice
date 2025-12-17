@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use crate::spot::Numeric;
-use crate::models::{Variable, Triples, TripleIdx, Unit};
+use crate::models::{Variable, Triples, TripleIdx};
 use crate::frontends::spice::{Rule, ProcessSpiceElement};
 use crate::{Element, FrontendError};
 use pest::iterators::Pair;
@@ -25,7 +25,7 @@ impl Default for VCCSOptions {
 /// Voltage-Controlled Current Source (VCCS) - G source
 /// This represents a current source whose output current is proportional
 /// to the voltage across a controlling pair of nodes.
-/// SPICE syntax: G<name> <pos> <neg> <ctrl_pos> <ctrl_neg> <transconductance>
+/// SPICE syntax: G{name} {pos} {neg} {ctrl_pos} {ctrl_neg} {transconductance}
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct VCCSBundle {
     name: Arc<str>,
@@ -69,10 +69,10 @@ impl VCCSBundle {
     /// Returns the constant triples for the VCCS
     /// VCCS equation: I(out) = transconductance * (V(ctrl_pos) - V(ctrl_neg))
     /// This contributes to the matrix as:
-    /// [pos] [trans] [ctrl_pos]
-    /// [pos] [-trans] [ctrl_neg]
-    /// [neg] [-trans] [ctrl_pos]
-    /// [neg] [trans] [ctrl_neg]
+    /// pos * trans * ctrl_pos
+    /// pos * -trans * ctrl_neg
+    /// neg * -trans * ctrl_pos
+    /// neg * trans * ctrl_neg
     pub fn triples(&self) -> Triples<Numeric, 4> {
         if let (Some(pos_idx), Some(neg_idx), Some(ctrl_pos_idx), Some(ctrl_neg_idx)) = (
             self.positive.as_ref().map(|v| v.idx()),
@@ -124,18 +124,6 @@ impl VCCSBundle {
     /// Returns the AC triples for the VCCS
     /// For AC analysis, the VCCS behaves the same as in DC since it's a linear element
     pub fn ac_triples(&self) -> Triples<ComplexNumeric, 4> {
-
-impl ProcessSpiceElement for VCCSBundle {
-    fn process(
-        element: Pair<Rule>,
-        variables: &mut Vec<Variable>,
-        elements: &mut Vec<Element>,
-        var_map: &mut std::collections::HashMap<Arc<str>, usize>,
-    ) -> Result<(), FrontendError> {
-        // Delegate to the module-level function
-        super::spice::process_vccs(element, variables, elements, var_map)
-    }
-}
         if let (Some(pos_idx), Some(neg_idx), Some(ctrl_pos_idx), Some(ctrl_neg_idx)) = (
             self.positive.as_ref().map(|v| v.idx()),
             self.negative.as_ref().map(|v| v.idx()),
@@ -155,10 +143,23 @@ impl ProcessSpiceElement for VCCSBundle {
     }
 }
 
+impl ProcessSpiceElement for VCCSBundle {
+    fn process(
+        element: Pair<Rule>,
+        variables: &mut Vec<Variable>,
+        elements: &mut Vec<Element>,
+        var_map: &mut std::collections::HashMap<Arc<str>, usize>,
+    ) -> Result<(), FrontendError> {
+        // Delegate to the module-level function
+        super::spice::process_vccs(element, variables, elements, var_map)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::sync::Arc;
+    use crate::models::Unit;
 
     fn create_var(name: &str, idx: usize) -> Variable {
         Variable::new(Arc::from(name), Unit::Volt, idx)
@@ -219,3 +220,4 @@ mod tests {
         assert_eq!(data[3], (3, 1, 0.05));   // neg-ctrl_neg with transconductance
     }
 }
+

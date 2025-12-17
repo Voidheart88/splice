@@ -14,7 +14,7 @@ use crate::models::controlled_sources::vcvrs::VCVSOptions;
 use crate::models::controlled_sources::vccs::VCCSOptions;
 use crate::models::controlled_sources::cccs::CCCSOptions;
 use crate::models::controlled_sources::ccvs::CCVSOptions;
-use crate::FrontendError;
+
 
 /// Serde representation of a VCVS source
 #[derive(Debug, Clone, Serialize, Deserialize)]
