@@ -8,6 +8,7 @@ mod op;
 mod tran;
 pub mod autotune;
 
+use std::collections::HashMap;
 use std::fmt::{self, Debug};
 use std::sync::Arc;
 
@@ -42,6 +43,10 @@ pub(crate) enum SimulatorError {
     #[error("Voltage source {0} not found")]
     #[diagnostic(help("Check the source in your .dc command"))]
     VoltageSourceNotFound(String),
+
+    #[error("{0}")]
+    #[diagnostic(help("Check your circuit for coupling errors"))]
+    CircuitError(String),
 }
 
 impl From<SolverError> for SimulatorError {
@@ -366,7 +371,10 @@ impl<SO: Solver> Simulator<SO> {
 
     /// This is crucial for correct integration of inductor behavior
     fn update_inductor_currents(&mut self, x_vec: &[Numeric], delta_t: &Numeric) {
-        for element in &mut self.elements {
+        // First, collect all inductor currents
+        let mut inductor_currents: HashMap<Arc<str>, Numeric> = HashMap::new();
+        
+        for element in &self.elements {
             if let Element::Inductor(ind) = element {
                 // Calculate current through inductor using the equivalent conductance
                 // I = G * (V(node0) - V(node1)), where G = Δt/L
@@ -388,7 +396,31 @@ impl<SO: Solver> Simulator<SO> {
                 let equivalent_conductance = delta_t / ind.value;
                 let current = voltage_across * equivalent_conductance;
                 
-                ind.update_previous_current(current);
+                inductor_currents.insert(ind.name.clone(), current);
+            }
+        }
+        
+        // Update inductor currents
+        for element in &mut self.elements {
+            if let Element::Inductor(ind) = element {
+                if let Some(&current) = inductor_currents.get(&ind.name) {
+                    ind.update_previous_current(current);
+                }
+            }
+        }
+        
+        // Update coupled inductor currents
+        for element in &mut self.elements {
+            if let Element::CoupledInductors(coupled) = element {
+                let inductor1_name = coupled.inductor1();
+                let inductor2_name = coupled.inductor2();
+                
+                if let (Some(&current1), Some(&current2)) = (
+                    inductor_currents.get(&inductor1_name),
+                    inductor_currents.get(&inductor2_name)
+                ) {
+                    coupled.update_previous_currents(current1, current2);
+                }
             }
         }
     }

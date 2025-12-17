@@ -1,6 +1,7 @@
 pub mod bjt;
 pub mod capacitor;
 pub mod controlled_sources;
+pub mod coupled_inductors;
 pub mod diode;
 pub mod gain;
 pub mod inductor;
@@ -15,13 +16,18 @@ pub mod vsource_sine;
 pub mod vsource_step;
 
 use core::fmt::Display;
+use std::collections::HashMap;
 use std::sync::Arc;
+
+use num::{One, Zero};
 
 use crate::spot::*;
 use serde::Serialize;
 
 pub use self::capacitor::CapacitorBundle;
 pub use self::controlled_sources::{CCCSBundle, CCVSBundle, VCCSBundle, VCVSBundle};
+pub use self::coupled_inductors::CoupledInductorsBundle;
+pub use self::coupled_inductors::serde::SerdeCoupledInductors;
 pub use self::diode::DiodeBundle;
 pub use self::gain::GainBundle;
 pub use self::inductor::InductorBundle;
@@ -105,6 +111,7 @@ impl From<(Arc<str>, Unit, usize)> for Variable {
 pub enum Element {
     Capacitor(CapacitorBundle),
     Inductor(InductorBundle),
+    CoupledInductors(CoupledInductorsBundle),
     Resistor(ResistorBundle),
     Diode(DiodeBundle),
     Mos0(Mos0Bundle),
@@ -154,6 +161,7 @@ impl Element {
         match self {
             Element::Capacitor(ele) => Some(ele.triples(Some(delta_t))),
             Element::Inductor(ele) => Some(ele.triples(Some(delta_t))),
+            Element::CoupledInductors(ele) => Some(ele.get_time_variant_triples(delta_t)),
             _ => None,
         }
     }
@@ -165,6 +173,7 @@ impl Element {
             Element::VSourceStep(ele) => Some(ele.pairs(time)),
             Element::Capacitor(ele) => Some(ele.pairs(delta_t)),
             Element::Inductor(ele) => Some(ele.pairs(delta_t)),
+            Element::CoupledInductors(ele) => Some(ele.get_pairs()),
             Element::VCVS(_) => None,
             Element::VCCS(_) => None,
             Element::CCCS(_) => None,
@@ -180,6 +189,7 @@ impl Element {
             Element::VSourceStep(ele) => Some(ele.pairs(time)), // Time sources use same method
             Element::Capacitor(ele) => Some(ele.pairs_trapezoidal(delta_t)),
             Element::Inductor(ele) => Some(ele.pairs_trapezoidal(delta_t)),
+            Element::CoupledInductors(ele) => Some(ele.get_pairs()), // Same as Euler for now
             Element::VCVS(_) => None,
             Element::VCCS(_) => None,
             Element::CCCS(_) => None,
@@ -216,7 +226,7 @@ impl Element {
 
     /// Checks if the element is nonlinear.
     pub(crate) fn is_nonlinear(&self) -> bool {
-        matches!(self, Element::Diode(_) | Element::Mos0(_))
+        matches!(self, Element::Diode(_) | Element::Mos0(_) | Element::CoupledInductors(_))
     }
 
     /// Returns the AC triples. AC Triples are dependent on frequency f.
@@ -226,6 +236,7 @@ impl Element {
             Element::Mos0(_) => None,
             Element::Capacitor(cap) => Some(cap.ac_triples(freq)),
             Element::Inductor(ind) => Some(ind.ac_triples(freq)),
+            Element::CoupledInductors(coupled) => Some(coupled.get_ac_triples(freq)),
             Element::Resistor(res) => Some(res.ac_triples()),
             Element::VSource(vsource) => Some(vsource.ac_triples()),
             Element::VSourceStep(_) => None,
@@ -249,6 +260,7 @@ impl Element {
             Element::Resistor(_) => None,
             Element::VSource(ele) => Some(ele.ac_pairs()),
             Element::VSourceStep(ele) => Some(ele.ac_pairs()),
+            Element::CoupledInductors(_) => None,
             Element::VCVS(_) => None,
             Element::VCCS(_) => None,
             Element::CCCS(_) => None,
@@ -275,6 +287,7 @@ impl Element {
             Element::VCCS(ele) => ele.name(),
             Element::CCCS(ele) => ele.name(),
             Element::CCVS(ele) => ele.name(),
+            Element::CoupledInductors(ele) => ele.name(),
             Element::VSourceSin(ele) => ele.name(),
         }
     }
@@ -284,6 +297,7 @@ impl Element {
         match self {
             Element::Capacitor(ele) => ele.triple_idx(),
             Element::Inductor(ele) => ele.triple_idx(),
+            Element::CoupledInductors(ele) => ele.get_triple_indices(),
             Element::Resistor(ele) => ele.triple_idx(),
             Element::Diode(ele) => ele.triple_idx(),
             Element::Mos0(ele) => ele.triple_idx(),
@@ -305,6 +319,7 @@ impl Element {
             Element::Mos0(_) => None,
             Element::Capacitor(cap) => cap.triple_idx(),
             Element::Inductor(ind) => ind.triple_idx(),
+            Element::CoupledInductors(coupled) => coupled.get_cplx_triple_indices(),
             Element::Resistor(res) => res.triple_idx(),
             Element::VSource(vsource) => vsource.triple_idx(),
             Element::VSourceStep(vsource) => vsource.triple_idx(),
@@ -317,6 +332,97 @@ impl Element {
             Element::VSourceSin(ele) => ele.triple_idx(),
         }
     }
+
+    /// Setup coupled inductors by setting their node indices
+    /// This should be called after all elements are parsed and before simulation
+    /// Returns a list of validation errors, if any
+    pub fn setup_coupled_inductors(elements: &mut [Element]) -> Vec<String> {
+        let mut errors = Vec::new();
+        
+        // First, collect all inductor names and their node indices
+        let mut inductor_map: HashMap<Arc<str>, (Option<usize>, Option<usize>)> = HashMap::new();
+        
+        for element in elements.iter() {
+            if let Element::Inductor(ind) = element {
+                inductor_map.insert(ind.name.clone(), (ind.node0_idx(), ind.node1_idx()));
+            }
+        }
+
+        // Then, set up the coupled inductors with the node indices
+        for element in elements.iter_mut() {
+            if let Element::CoupledInductors(coupled) = element {
+                // Validate coupling factor
+                let coupling_factor = coupled.coupling_factor();
+                if coupling_factor <= Numeric::zero() || coupling_factor >= Numeric::one() {
+                    errors.push(format!(
+                        "Coupled inductors '{}': Invalid coupling factor {}. Must be 0 < k < 1",
+                        coupled.name(), coupling_factor
+                    ));
+                }
+
+                // Check if referenced inductors exist
+                let inductor1_name = coupled.inductor1();
+                let inductor2_name = coupled.inductor2();
+                
+                if !inductor_map.contains_key(&inductor1_name) {
+                    errors.push(format!(
+                        "Coupled inductors '{}': Referenced inductor '{}' not found",
+                        coupled.name(), inductor1_name
+                    ));
+                }
+                
+                if !inductor_map.contains_key(&inductor2_name) {
+                    errors.push(format!(
+                        "Coupled inductors '{}': Referenced inductor '{}' not found",
+                        coupled.name(), inductor2_name
+                    ));
+                }
+
+                // Check if inductors are distinct
+                if inductor1_name == inductor2_name {
+                    errors.push(format!(
+                        "Coupled inductors '{}': Inductor '{}' cannot be coupled to itself",
+                        coupled.name(), inductor1_name
+                    ));
+                }
+
+                // Only set node indices if both inductors exist and are valid
+                if inductor_map.contains_key(&inductor1_name) && inductor_map.contains_key(&inductor2_name) {
+                    if let Some((node0_idx1, node1_idx1)) = inductor_map.get(&inductor1_name) {
+                        if let Some((node0_idx2, node1_idx2)) = inductor_map.get(&inductor2_name) {
+                            // Validate that inductors have proper node connections
+                            if node0_idx1.is_none() && node1_idx1.is_none() {
+                                errors.push(format!(
+                                    "Coupled inductors '{}': Inductor '{}' has no node connections",
+                                    coupled.name(), inductor1_name
+                                ));
+                            }
+                            
+                            if node0_idx2.is_none() && node1_idx2.is_none() {
+                                errors.push(format!(
+                                    "Coupled inductors '{}': Inductor '{}' has no node connections",
+                                    coupled.name(), inductor2_name
+                                ));
+                            }
+
+                            // Set node indices only if both inductors have valid connections
+                            if (node0_idx1.is_some() || node1_idx1.is_some()) && 
+                               (node0_idx2.is_some() || node1_idx2.is_some()) {
+                                coupled.set_node_indices(
+                                    *node0_idx1,
+                                    *node1_idx1,
+                                    *node0_idx2,
+                                    *node1_idx2,
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        errors
     }
+}
 #[cfg(test)]
 mod tests;

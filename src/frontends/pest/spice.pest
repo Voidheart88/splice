@@ -44,6 +44,7 @@ ELEMENT = {
   | ELE_DIODE
   | ELE_CAPACITOR
   | ELE_INDUCTOR
+  | ELE_COUPLED_INDUCTORS
   | ELE_MOSFET
   | ELE_GAIN
   | ELE_VSOURCE_STEP
@@ -278,5 +279,15 @@ ELE_CCVS = {
     ~ NODE ~ WHITE_SPACE+ 
     ~ NODE ~ WHITE_SPACE+ 
     ~ NODE ~ WHITE_SPACE+ 
+    ~ VALUE ~ WHITE_SPACE*
+}
+
+// Coupled Inductors - K source
+// Syntax: K<name> L<name1> L<name2> <coupling_factor>
+ELE_COUPLED_INDUCTORS = {
+    ^"k" 
+    ~ ELEMENT_NAME ~ WHITE_SPACE+ 
+    ~ ELEMENT_NAME ~ WHITE_SPACE+ 
+    ~ ELEMENT_NAME ~ WHITE_SPACE+ 
     ~ VALUE ~ WHITE_SPACE*
 }

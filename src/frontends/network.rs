@@ -91,6 +91,9 @@ impl NetworkFrontend {
                 SerdeElement::CCVS(ele) => {
                     ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
                 }
+                SerdeElement::CoupledInductors(ele) => {
+                    ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+                }
             }
         }
 

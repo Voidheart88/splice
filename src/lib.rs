@@ -122,6 +122,18 @@ pub fn run() -> Result<()> {
 
     let mut sim = frontend.simulation()?;
 
+    // Setup coupled inductors by setting their node indices
+    let coupling_errors = models::Element::setup_coupled_inductors(&mut sim.elements);
+    if !coupling_errors.is_empty() {
+        for error in &coupling_errors {
+            error!("{}", error);
+        }
+        return Err(SimulatorError::CircuitError(format!(
+            "{} circuit coupling error(s) found. Simulation aborted.",
+            coupling_errors.len()
+        )).into());
+    }
+
     // Apply autotune if enabled
     if cli.autotune {
         info!("Autotune mode enabled");
@@ -310,6 +322,9 @@ fn convert_serde_circuit_to_simulation(circuit: SerdeCircuit) -> Result<Simulati
                 ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
             }
             SerdeElement::CCVS(ele) => {
+                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+            }
+            SerdeElement::CoupledInductors(ele) => {
                 ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
             }
         }

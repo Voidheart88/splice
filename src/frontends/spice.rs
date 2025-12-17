@@ -17,7 +17,7 @@ use crate::sim::options::SimulationOption;
 use crate::spot::*;
 
 use super::{
-    CapacitorBundle, CCCSBundle, CCVSBundle, DiodeBundle, Element, GainBundle, ISourceBundle, 
+    CapacitorBundle, CCCSBundle, CCVSBundle, CoupledInductorsBundle, DiodeBundle, Element, GainBundle, ISourceBundle, 
     InductorBundle, Mos0Bundle, ResistorBundle, VCCSBundle, VCVSBundle, Variable,
 };
 
@@ -388,6 +388,7 @@ impl SpiceFrontend {
             Rule::ELE_RESISTOR => ResistorBundle::process(element, variables, elements, var_map)?,
             Rule::ELE_CAPACITOR => CapacitorBundle::process(element, variables, elements, var_map)?,
             Rule::ELE_INDUCTOR => InductorBundle::process(element, variables, elements, var_map)?,
+            Rule::ELE_COUPLED_INDUCTORS => CoupledInductorsBundle::process(element, variables, elements, var_map)?,
             Rule::ELE_DIODE => DiodeBundle::process(element, variables, elements, var_map)?,
             Rule::ELE_MOSFET => Mos0Bundle::process(element, variables, elements, var_map)?,
             Rule::ELE_GAIN => GainBundle::process(element, variables, elements, var_map)?,
@@ -414,4 +415,30 @@ pub(crate) trait ProcessSpiceElement {
         elements: &mut Vec<Element>,
         var_map: &mut HashMap<Arc<str>, usize>,
     ) -> Result<(), FrontendError>;
+}
+
+impl ProcessSpiceElement for CoupledInductorsBundle {
+    fn process(
+        element: Pair<Rule>,
+        _variables: &mut Vec<Variable>,
+        elements: &mut Vec<Element>,
+        _var_map: &mut HashMap<Arc<str>, usize>,
+    ) -> Result<(), FrontendError> {
+        let mut inner = element.into_inner();
+        let name = inner.next().unwrap().as_str();
+        let inductor1_name = inner.next().unwrap().as_str();
+        let inductor2_name = inner.next().unwrap().as_str();
+        let coupling_factor = inner.next().unwrap().as_str().parse::<Numeric>()?;
+
+        // Create the coupled inductors bundle
+        let coupled_inductors = CoupledInductorsBundle::new(
+            Arc::from(name),
+            Arc::from(inductor1_name),
+            Arc::from(inductor2_name),
+            coupling_factor,
+        );
+
+        elements.push(Element::CoupledInductors(coupled_inductors));
+        Ok(())
+    }
 }

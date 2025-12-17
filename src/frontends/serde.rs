@@ -6,6 +6,7 @@ use std::sync::Arc;
 use super::{Element, Frontend, FrontendError, Simulation};
 
 use crate::models::capacitor::serde::SerdeCapacitor;
+use crate::models::SerdeCoupledInductors;
 use crate::models::diode::serde::SerdeDiode;
 use crate::models::gain::serde::SerdeGain;
 use crate::models::inductor::serde::SerdeInductor;
@@ -32,6 +33,8 @@ pub enum SerdeElement {
     Resistor(SerdeResistor),
     #[serde(rename = "inductor")]
     Inductor(SerdeInductor),
+    #[serde(rename = "coupled_inductors")]
+    CoupledInductors(SerdeCoupledInductors),
     #[serde(rename = "capacitor")]
     Capacitor(SerdeCapacitor),
     #[serde(rename = "vsource")]
@@ -239,6 +242,9 @@ impl SerdeFrontend {
                 SerdeElement::Inductor(ele) => {
                     ele.process(&mut variables, &mut elements, &mut var_map)
                 }
+                SerdeElement::CoupledInductors(ele) => {
+                    ele.process(&mut variables, &mut elements, &mut var_map)
+                }
                 SerdeElement::Capacitor(ele) => {
                     ele.process(&mut variables, &mut elements, &mut var_map)
                 }
@@ -352,4 +358,21 @@ pub(crate) trait ProcessSerdeElement {
         elements: &mut Vec<Element>,
         var_map: &mut HashMap<Arc<str>, usize>,
     );
+}
+
+impl ProcessSerdeElement for SerdeCoupledInductors {
+    fn process(
+        &self,
+        _variables: &mut Vec<Variable>,
+        elements: &mut Vec<Element>,
+        _var_map: &mut HashMap<Arc<str>, usize>,
+    ) {
+        let coupled_inductors = crate::models::CoupledInductorsBundle::new(
+            Arc::from(self.name.as_str()),
+            Arc::from(self.inductor1.as_str()),
+            Arc::from(self.inductor2.as_str()),
+            self.coupling_factor,
+        );
+        elements.push(Element::CoupledInductors(coupled_inductors));
+    }
 }
