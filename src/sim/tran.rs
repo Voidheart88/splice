@@ -1,4 +1,4 @@
-use log::{info, debug};
+use log::{debug, info};
 
 use crate::models::Element;
 use crate::sim::options::IntegrationMethod;
@@ -21,7 +21,7 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
         let mut tran_results = Vec::new();
 
         let mut x_prev: Vec<Numeric> = self.find_op()?.iter().map(|op| op.1).collect();
-        
+
         // Initialize capacitor voltages and inductor currents for transient analysis
         for element in &mut self.elements {
             if let Element::Capacitor(cap) = element {
@@ -32,7 +32,7 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
         }
 
         let mut x_current = x_prev.clone();
-        
+
         // Store the initial condition (t=0)
         tran_results.push((Numeric::zero(), self.add_var_name(x_current.clone())));
 
@@ -44,6 +44,7 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
             *tstep
         };
 
+        // FIXME: This loop nests too deep and should be refactored
         while t < *tstop {
             // For subsequent time steps, use the previous solution as initial guess
             x_current = x_prev.clone();
@@ -51,13 +52,13 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
             // Newton-Raphson iteration within each time step
             let mut converged = false;
             let mut x_new_final = x_prev.clone();
-            
+
             for _ in 0..MAXITER {
                 self.solver.reset();
                 self.build_constant_a_mat();
                 self.build_constant_b_vec();
                 self.build_time_variant_a_mat(&current_timestep);
-                
+
                 // Use trapezoidal integration if specified
                 let integration_method = self.get_integration_method();
                 match integration_method {
@@ -68,7 +69,7 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
                         self.build_time_variant_b_vec_trapezoidal(&t, &current_timestep);
                     }
                 }
-                
+
                 self.build_nonlinear_a_mat(&x_current);
                 self.build_nonlinear_b_vec(&x_current);
 
@@ -93,7 +94,7 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
             // Store results
             tran_results.push((t, self.add_var_name(x_new_final.clone())));
             x_prev = x_new_final.clone();
-            
+
             // Update capacitor voltages and inductor currents for next time step
             self.update_capacitor_voltages(&x_new_final);
             self.update_inductor_currents(&x_new_final, &current_timestep);

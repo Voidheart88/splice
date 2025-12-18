@@ -8,6 +8,7 @@ use nalgebra as na;
 #[cfg(test)]
 use nalgebra::DMatrix;
 
+// FIXME: Document this like the documentation in the FaerSolver (faer.rs)
 /// A Solver implementation using the Nalgebra library.
 pub struct NalgebraSolver {
     /// The conductance matrix `A`.
@@ -122,7 +123,7 @@ impl std::fmt::Debug for NalgebraSolver {
         } else {
             writeln!(
                 f,
-                "  a_mat: {}×{} (Ausgabe gekürzt)",
+                "  a_mat: {}×{} (Ausgabe gekürzt)", // FIXME: This should be written in english
                 self.a_mat.nrows(),
                 self.a_mat.ncols()
             )?;
@@ -133,7 +134,7 @@ impl std::fmt::Debug for NalgebraSolver {
         } else {
             writeln!(
                 f,
-                "  b_vec: {} Einträge (Ausgabe gekürzt)",
+                "  b_vec: {} Einträge (Ausgabe gekürzt)", // FIXME: This should be written in english
                 self.b_vec.len()
             )?;
         }
@@ -143,7 +144,7 @@ impl std::fmt::Debug for NalgebraSolver {
         } else {
             writeln!(
                 f,
-                "  cplx_a_mat: {}×{} (Ausgabe gekürzt)",
+                "  cplx_a_mat: {}×{} (Ausgabe gekürzt)", // FIXME: This should be written in english
                 self.cplx_a_mat.nrows(),
                 self.cplx_a_mat.ncols()
             )?;
@@ -154,7 +155,7 @@ impl std::fmt::Debug for NalgebraSolver {
         } else {
             writeln!(
                 f,
-                "  cplx_b_vec: {} Einträge (Ausgabe gekürzt)",
+                "  cplx_b_vec: {} Einträge (Ausgabe gekürzt)", // FIXME: This should be written in english
                 self.cplx_b_vec.len()
             )?;
         }

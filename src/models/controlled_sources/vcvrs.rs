@@ -1,9 +1,9 @@
-use std::sync::Arc;
+use crate::frontends::spice::{ProcessSpiceElement, Rule};
+use crate::models::{TripleIdx, Triples, Variable};
 use crate::spot::Numeric;
-use crate::models::{Variable, Triples, TripleIdx};
-use crate::frontends::spice::{Rule, ProcessSpiceElement};
 use crate::{Element, FrontendError};
 use pest::iterators::Pair;
+use std::sync::Arc;
 
 use num::Complex;
 
@@ -158,8 +158,8 @@ impl ProcessSpiceElement for VCVSBundle {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::Arc;
     use crate::models::Unit;
+    use std::sync::Arc;
 
     fn create_var(name: &str, idx: usize) -> Variable {
         Variable::new(Arc::from(name), Unit::Volt, idx)
@@ -167,14 +167,7 @@ mod tests {
 
     #[test]
     fn test_vcvs_creation() {
-        let vcvs = VCVSBundle::new(
-            Arc::from("E1"),
-            None,
-            None,
-            None,
-            None,
-            None,
-        );
+        let vcvs = VCVSBundle::new(Arc::from("E1"), None, None, None, None, None);
         assert_eq!(vcvs.name(), Arc::from("E1"));
         assert_eq!(vcvs.options.gain, 1.0);
     }
@@ -182,14 +175,7 @@ mod tests {
     #[test]
     fn test_vcvs_with_options() {
         let options = VCVSOptions { gain: 10.0 };
-        let vcvs = VCVSBundle::new(
-            Arc::from("E1"),
-            None,
-            None,
-            None,
-            None,
-            Some(options),
-        );
+        let vcvs = VCVSBundle::new(Arc::from("E1"), None, None, None, None, Some(options));
         assert_eq!(vcvs.options.gain, 10.0);
     }
 
@@ -214,10 +200,10 @@ mod tests {
 
         // Check specific triple values
         let data = triples.data();
-        assert_eq!(data[0], (2, 0, 2.0));  // pos-ctrl_pos with gain
+        assert_eq!(data[0], (2, 0, 2.0)); // pos-ctrl_pos with gain
         assert_eq!(data[1], (2, 1, -2.0)); // pos-ctrl_neg with -gain
         assert_eq!(data[2], (3, 0, -2.0)); // neg-ctrl_pos with -gain
-        assert_eq!(data[3], (3, 1, 2.0));  // neg-ctrl_neg with gain
+        assert_eq!(data[3], (3, 1, 2.0)); // neg-ctrl_neg with gain
     }
 
     #[test]

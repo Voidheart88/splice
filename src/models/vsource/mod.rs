@@ -1,6 +1,6 @@
-pub mod serde;
 /// The Vsource Module. As every module this module encapsulates exerything regarding a Vsource bundle
 /// This includes parsing from various formats as well as the conductance-behaviour.
+pub mod serde;
 pub(crate) mod spice;
 
 use std::sync::Arc;
@@ -82,34 +82,32 @@ impl VSourceBundle {
     /// Returns a reference to the triples representing matrix A.
     pub fn triples(&self) -> Triples<Numeric, 4> {
         let branch_idx = self.branch_idx();
+        // Fixme: This nests too deep und needs a refactor
         let node0_idx = match self.node0_idx() {
             Some(node0_idx) => node0_idx,
             None => {
                 // If node0 doesn't exist, voltage source is connected to ground through node1
-                let node1_idx = self.node1_idx().expect("Voltage source must have at least one node connected");
+                let node1_idx = self
+                    .node1_idx()
+                    .expect("Voltage source must have at least one node connected");
                 return Triples::new(&[
                     (self.branch_idx(), node1_idx, Numeric::one()),
                     (node1_idx, self.branch_idx(), Numeric::one()),
                 ]);
             }
         };
+        // Fixme: This nests too deep und needs a refactor
         let node1_idx = match self.node1_idx() {
             Some(node1_idx) => node1_idx,
             None => {
                 // If node1 doesn't exist, voltage source is connected to ground through node0
-                let node0_idx = self.node0_idx().expect("Voltage source must have at least one node connected");
+                let node0_idx = self
+                    .node0_idx()
+                    .expect("Voltage source must have at least one node connected");
                 return Triples::new(&[
-                    (
-                        self.branch_idx(),
-                        node0_idx,
-                        -Numeric::one(),
-                    ),
-                    (
-                        node0_idx,
-                        self.branch_idx(),
-                        -Numeric::one(),
-                    ),
-                ])
+                    (self.branch_idx(), node0_idx, -Numeric::one()),
+                    (node0_idx, self.branch_idx(), -Numeric::one()),
+                ]);
             }
         };
 
@@ -139,11 +137,14 @@ impl VSourceBundle {
     /// Returns a reference to the triples representing matrix A.
     pub fn ac_triples(&self) -> Triples<ComplexNumeric, 4> {
         let branch_idx = self.branch_idx();
+        // Fixme: This match nests too deep und needs a refactor
         let node0_idx = match self.node0_idx() {
             Some(node0_idx) => node0_idx,
             None => {
                 // If node0 doesn't exist, voltage source is connected to ground through node1
-                let node1_idx = self.node1_idx().expect("Voltage source must have at least one node connected");
+                let node1_idx = self
+                    .node1_idx()
+                    .expect("Voltage source must have at least one node connected");
                 return Triples::new(&[
                     (
                         self.branch_idx(),
@@ -164,20 +165,23 @@ impl VSourceBundle {
                 ]);
             }
         };
+        // Fixme: This match nests too deep und needs a refactor
         let node1_idx = match self.node1_idx() {
             Some(node1_idx) => node1_idx,
             None => {
                 return Triples::new(&[
                     (
                         self.branch_idx(),
-                        self.node0_idx().expect("Voltage source must have at least one node connected"),
+                        self.node0_idx()
+                            .expect("Voltage source must have at least one node connected"),
                         Complex {
                             re: -Numeric::one(),
                             im: Numeric::zero(),
                         },
                     ),
                     (
-                        self.node0_idx().expect("Voltage source must have at least one node connected"),
+                        self.node0_idx()
+                            .expect("Voltage source must have at least one node connected"),
                         self.branch_idx(),
                         Complex {
                             re: -Numeric::one(),
@@ -187,7 +191,7 @@ impl VSourceBundle {
                 ])
             }
         };
-
+        // Fixme: This nests too deep und needs a refactor
         Triples::new(&[
             (
                 branch_idx,

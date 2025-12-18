@@ -1,6 +1,6 @@
-pub mod serde;
 /// The Resistor Module. As every module this module encapsulates exerything regarding a resistor bundle
 /// This includes parsing from various formats as well as the conductance-behaviour.
+pub mod serde;
 pub(crate) mod spice;
 
 use std::sync::Arc;
@@ -70,12 +70,10 @@ impl ResistorBundle {
             idx
         } else {
             // If node0 doesn't exist, resistor is connected to ground through node1
-            let node1_idx = self.node1_idx().expect("Resistor must have at least one node connected");
-            return Triples::new(&[(
-                node1_idx,
-                node1_idx,
-                Numeric::one() / self.value,
-            )]);
+            let node1_idx = self
+                .node1_idx()
+                .expect("Resistor must have at least one node connected");
+            return Triples::new(&[(node1_idx, node1_idx, Numeric::one() / self.value)]);
         };
         let Some(node1_idx) = self.node1_idx() else {
             // If node1 doesn't exist, resistor is connected to ground through node0
@@ -107,11 +105,14 @@ impl ResistorBundle {
 
     /// Returns triples representing this elements contribution to the a matrix
     pub fn ac_triples(&self) -> Triples<ComplexNumeric, 4> {
+        // Fixme: This nests too deep and should be refactored
         let node0_idx = if let Some(idx) = self.node0_idx() {
             idx
         } else {
             // If node0 doesn't exist, resistor is connected to ground through node1
-            let node1_idx = self.node1_idx().expect("Resistor must have at least one node connected");
+            let node1_idx = self
+                .node1_idx()
+                .expect("Resistor must have at least one node connected");
             return Triples::new(&[(
                 node1_idx,
                 node1_idx,
@@ -131,7 +132,7 @@ impl ResistorBundle {
                 },
             )]);
         };
-
+        // Fixme: This nests too deep and should be refactored
         Triples::new(&[
             (
                 node0_idx,

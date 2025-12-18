@@ -12,7 +12,7 @@ pub use faer::FaerSolver;
 pub use faer_sparse::FaerSparseSolver;
 pub use nalgebra::NalgebraSolver;
 pub use rsparse::RSparseSolver;
-pub use selector::{SolverSelector, SolverSelectionStrategy};
+pub use selector::{SolverSelectionStrategy, SolverSelector};
 
 use crate::spot::{ComplexNumeric, Numeric};
 

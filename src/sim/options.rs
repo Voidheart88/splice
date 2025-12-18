@@ -1,5 +1,5 @@
-use std::sync::Arc;
 use serde::Serialize;
+use std::sync::Arc;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum SimulationOption {
@@ -15,8 +15,6 @@ pub enum IntegrationMethod {
     Trapezoidal,
 }
 
-
-
 impl Serialize for SimulationOption {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -24,6 +22,7 @@ impl Serialize for SimulationOption {
     {
         match self {
             SimulationOption::Out(vars) => {
+                // FIXME: Does this need to be defined inside the serialize fn?
                 #[derive(Serialize)]
                 struct OutWrapper {
                     r#type: &'static str,
@@ -32,9 +31,11 @@ impl Serialize for SimulationOption {
                 OutWrapper {
                     r#type: "out",
                     variables: vars.iter().map(|v| v.to_string()).collect(),
-                }.serialize(serializer)
+                }
+                .serialize(serializer)
             }
             SimulationOption::IntegrationMethod(method) => {
+                // FIXME: Does this need to be defined inside the serialize fn?
                 #[derive(Serialize)]
                 struct IntegrationMethodWrapper {
                     r#type: &'static str,
@@ -43,7 +44,8 @@ impl Serialize for SimulationOption {
                 IntegrationMethodWrapper {
                     r#type: "integration",
                     method: method.clone(),
-                }.serialize(serializer)
+                }
+                .serialize(serializer)
             }
         }
     }

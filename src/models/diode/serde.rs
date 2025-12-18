@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 /// The Diode - yaml parsing module
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};

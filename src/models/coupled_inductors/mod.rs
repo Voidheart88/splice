@@ -1,13 +1,14 @@
 // Coupled inductors model for SPICE simulation
 // Implements mutual inductance between two inductors
+// FIXME: This should be just a K L1 L2 kvalue instead of a full coupled inductors implementation!
 
-use std::sync::Arc;
-use crate::spot::{Numeric, ComplexNumeric};
-use crate::models::triples::Triples;
 use crate::models::pairs::Pairs;
 use crate::models::triples::TripleIdx;
-use num::{Complex, One, Zero};
+use crate::models::triples::Triples;
+use crate::spot::{ComplexNumeric, Numeric};
 use num::traits::FloatConst;
+use num::{Complex, One, Zero};
+use std::sync::Arc;
 
 pub mod serde;
 
@@ -30,9 +31,9 @@ impl Default for CoupledInductorsOptions {
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct CoupledInductorsBundle {
     name: Arc<str>,
-    inductor1: Arc<str>, // Name of first inductor
-    inductor2: Arc<str>, // Name of second inductor
-    coupling_factor: Numeric, // Coupling factor k
+    inductor1: Arc<str>,        // Name of first inductor
+    inductor2: Arc<str>,        // Name of second inductor
+    coupling_factor: Numeric,   // Coupling factor k
     mutual_inductance: Numeric, // Calculated mutual inductance M = k * sqrt(L1*L2)
     // Node indices for the coupled inductors (will be set during simulation setup)
     node0_idx1: Option<usize>,
@@ -126,8 +127,11 @@ impl CoupledInductorsBundle {
     pub fn get_triple_indices(&self) -> Option<TripleIdx<4>> {
         // If we don't have node indices yet, return None
         // This can happen if setup was not called or if there were validation errors
-        if self.node0_idx1.is_none() || self.node1_idx1.is_none() || 
-           self.node0_idx2.is_none() || self.node1_idx2.is_none() {
+        if self.node0_idx1.is_none()
+            || self.node1_idx1.is_none()
+            || self.node0_idx2.is_none()
+            || self.node1_idx2.is_none()
+        {
             return None;
         }
 
@@ -138,8 +142,9 @@ impl CoupledInductorsBundle {
 
         // Validate that we have at least some valid node connections
         // At least one node per inductor should be connected
-        if (node0_idx1 == usize::MAX || node1_idx1 == usize::MAX) ||
-           (node0_idx2 == usize::MAX || node1_idx2 == usize::MAX) {
+        if (node0_idx1 == usize::MAX || node1_idx1 == usize::MAX)
+            || (node0_idx2 == usize::MAX || node1_idx2 == usize::MAX)
+        {
             return None;
         }
 
@@ -162,13 +167,16 @@ impl CoupledInductorsBundle {
     pub fn get_time_variant_triples(&self, delta_t: &Numeric) -> Triples<Numeric, 4> {
         // If we don't have node indices yet, return empty triples
         // This can happen if setup was not called or if there were validation errors
-        if self.node0_idx1.is_none() || self.node1_idx1.is_none() || 
-           self.node0_idx2.is_none() || self.node1_idx2.is_none() {
+        if self.node0_idx1.is_none()
+            || self.node1_idx1.is_none()
+            || self.node0_idx2.is_none()
+            || self.node1_idx2.is_none()
+        {
             return Triples::new(&[]);
         }
 
         let m = self.mutual_inductance;
-        
+
         // Check for reasonable mutual inductance value
         if m <= Numeric::zero() {
             return Triples::new(&[]);
@@ -185,7 +193,7 @@ impl CoupledInductorsBundle {
         // For inductor 1: M * di2/dt term
         // For inductor 2: M * di1/dt term
         // This creates cross-coupling between the two inductor branches
-        
+
         Triples::new(&[
             // Contribution to inductor 1 equation from inductor 2 current
             (node0_idx1, node0_idx2, equivalent_conductance),
@@ -203,13 +211,16 @@ impl CoupledInductorsBundle {
     pub fn get_pairs(&self) -> Pairs<Numeric, 2> {
         // If we don't have node indices yet, return empty pairs
         // This can happen if setup was not called or if there were validation errors
-        if self.node0_idx1.is_none() || self.node1_idx1.is_none() || 
-           self.node0_idx2.is_none() || self.node1_idx2.is_none() {
+        if self.node0_idx1.is_none()
+            || self.node1_idx1.is_none()
+            || self.node0_idx2.is_none()
+            || self.node1_idx2.is_none()
+        {
             return Pairs::new(&[]);
         }
 
         let m = self.mutual_inductance;
-        
+
         // Check for reasonable mutual inductance value
         if m <= Numeric::zero() {
             return Pairs::new(&[]);
@@ -225,14 +236,14 @@ impl CoupledInductorsBundle {
         // the time step to calculate the correct contributions.
         // Since we don't have access to delta_t and previous voltages here, we return empty pairs
         // and the actual current contributions will be handled in the simulation engine.
-        
+
         // Note: In a complete implementation, this would require:
         // 1. Access to the previous voltages (v1_prev, v2_prev)
         // 2. Access to the current time step (delta_t)
         // 3. The actual calculation would be:
         //    i1_contribution = (m/delta_t) * (v1_prev - v2_prev) + previous_current1
         //    i2_contribution = (m/delta_t) * (v2_prev - v1_prev) + previous_current2
-        
+
         // For now, we return empty pairs. The simulation engine should handle
         // the current contributions based on the stored previous currents.
         Pairs::new(&[])
@@ -244,13 +255,16 @@ impl CoupledInductorsBundle {
     pub fn get_ac_triples(&self, freq: Numeric) -> Triples<ComplexNumeric, 4> {
         // If we don't have node indices yet, return empty triples
         // This can happen if setup was not called or if there were validation errors
-        if self.node0_idx1.is_none() || self.node1_idx1.is_none() || 
-           self.node0_idx2.is_none() || self.node1_idx2.is_none() {
+        if self.node0_idx1.is_none()
+            || self.node1_idx1.is_none()
+            || self.node0_idx2.is_none()
+            || self.node1_idx2.is_none()
+        {
             return Triples::new(&[]);
         }
 
         let m = self.mutual_inductance;
-        
+
         // Check for reasonable mutual inductance value
         if m <= Numeric::zero() {
             return Triples::new(&[]);
@@ -305,17 +319,39 @@ mod tests {
     use crate::{Element, Variable};
     use std::sync::Arc;
 
-    fn create_test_inductor(name: &str, node0: Option<usize>, node1: Option<usize>, value: Numeric) -> Element {
+    fn create_test_inductor(
+        name: &str,
+        node0: Option<usize>,
+        node1: Option<usize>,
+        value: Numeric,
+    ) -> Element {
         Element::Inductor(crate::models::InductorBundle {
             name: Arc::from(name),
-            node0: node0.map(|idx| Variable::new(Arc::from(format!("node{}", idx)), crate::models::Unit::Volt, idx)),
-            node1: node1.map(|idx| Variable::new(Arc::from(format!("node{}", idx)), crate::models::Unit::Volt, idx)),
+            node0: node0.map(|idx| {
+                Variable::new(
+                    Arc::from(format!("node{}", idx)),
+                    crate::models::Unit::Volt,
+                    idx,
+                )
+            }),
+            node1: node1.map(|idx| {
+                Variable::new(
+                    Arc::from(format!("node{}", idx)),
+                    crate::models::Unit::Volt,
+                    idx,
+                )
+            }),
             value,
             previous_current: Numeric::zero(),
         })
     }
 
-    fn create_test_coupled(name: &str, inductor1: &str, inductor2: &str, coupling: Numeric) -> Element {
+    fn create_test_coupled(
+        name: &str,
+        inductor1: &str,
+        inductor2: &str,
+        coupling: Numeric,
+    ) -> Element {
         Element::CoupledInductors(CoupledInductorsBundle {
             name: Arc::from(name),
             inductor1: Arc::from(inductor1),
@@ -333,13 +369,9 @@ mod tests {
 
     #[test]
     fn test_new_coupled_inductors() {
-        let coupled = CoupledInductorsBundle::new(
-            Arc::from("K1"),
-            Arc::from("L1"),
-            Arc::from("L2"),
-            0.999,
-        );
-        
+        let coupled =
+            CoupledInductorsBundle::new(Arc::from("K1"), Arc::from("L1"), Arc::from("L2"), 0.999);
+
         assert_eq!(coupled.name(), Arc::from("K1"));
         assert_eq!(coupled.inductor1(), Arc::from("L1"));
         assert_eq!(coupled.inductor2(), Arc::from("L2"));
@@ -349,15 +381,11 @@ mod tests {
 
     #[test]
     fn test_calculate_mutual_inductance() {
-        let mut coupled = CoupledInductorsBundle::new(
-            Arc::from("K1"),
-            Arc::from("L1"),
-            Arc::from("L2"),
-            0.999,
-        );
-        
+        let mut coupled =
+            CoupledInductorsBundle::new(Arc::from("K1"), Arc::from("L1"), Arc::from("L2"), 0.999);
+
         coupled.calculate_mutual_inductance(10e-6, 15e-6); // L1=10µH, L2=15µH
-        
+
         let product: Numeric = 10e-6 * 15e-6;
         let expected_m = 0.999 * product.sqrt();
         assert!((coupled.mutual_inductance() - expected_m).abs() < 1e-12);
@@ -365,15 +393,11 @@ mod tests {
 
     #[test]
     fn test_set_node_indices() {
-        let mut coupled = CoupledInductorsBundle::new(
-            Arc::from("K1"),
-            Arc::from("L1"),
-            Arc::from("L2"),
-            0.999,
-        );
-        
+        let mut coupled =
+            CoupledInductorsBundle::new(Arc::from("K1"), Arc::from("L1"), Arc::from("L2"), 0.999);
+
         coupled.set_node_indices(Some(0), Some(1), Some(2), Some(3));
-        
+
         assert_eq!(coupled.node0_idx1, Some(0));
         assert_eq!(coupled.node1_idx1, Some(1));
         assert_eq!(coupled.node0_idx2, Some(2));
@@ -382,15 +406,11 @@ mod tests {
 
     #[test]
     fn test_update_previous_currents() {
-        let mut coupled = CoupledInductorsBundle::new(
-            Arc::from("K1"),
-            Arc::from("L1"),
-            Arc::from("L2"),
-            0.999,
-        );
-        
+        let mut coupled =
+            CoupledInductorsBundle::new(Arc::from("K1"), Arc::from("L1"), Arc::from("L2"), 0.999);
+
         coupled.update_previous_currents(0.001, 0.002);
-        
+
         let (current1, current2) = coupled.previous_currents();
         assert!((current1 - 0.001).abs() < 1e-12);
         assert!((current2 - 0.002).abs() < 1e-12);
@@ -398,27 +418,19 @@ mod tests {
 
     #[test]
     fn test_get_triple_indices_no_indices() {
-        let coupled = CoupledInductorsBundle::new(
-            Arc::from("K1"),
-            Arc::from("L1"),
-            Arc::from("L2"),
-            0.999,
-        );
-        
+        let coupled =
+            CoupledInductorsBundle::new(Arc::from("K1"), Arc::from("L1"), Arc::from("L2"), 0.999);
+
         assert!(coupled.get_triple_indices().is_none());
     }
 
     #[test]
     fn test_get_triple_indices_with_indices() {
-        let mut coupled = CoupledInductorsBundle::new(
-            Arc::from("K1"),
-            Arc::from("L1"),
-            Arc::from("L2"),
-            0.999,
-        );
-        
+        let mut coupled =
+            CoupledInductorsBundle::new(Arc::from("K1"), Arc::from("L1"), Arc::from("L2"), 0.999);
+
         coupled.set_node_indices(Some(0), Some(1), Some(2), Some(3));
-        
+
         let indices = coupled.get_triple_indices();
         assert!(indices.is_some());
         let idx = indices.unwrap();
@@ -427,26 +439,18 @@ mod tests {
 
     #[test]
     fn test_get_time_variant_triples_no_indices() {
-        let coupled = CoupledInductorsBundle::new(
-            Arc::from("K1"),
-            Arc::from("L1"),
-            Arc::from("L2"),
-            0.999,
-        );
-        
+        let coupled =
+            CoupledInductorsBundle::new(Arc::from("K1"), Arc::from("L1"), Arc::from("L2"), 0.999);
+
         let triples = coupled.get_time_variant_triples(&1e-6);
         assert_eq!(triples.len(), 0);
     }
 
     #[test]
     fn test_get_ac_triples_no_indices() {
-        let coupled = CoupledInductorsBundle::new(
-            Arc::from("K1"),
-            Arc::from("L1"),
-            Arc::from("L2"),
-            0.999,
-        );
-        
+        let coupled =
+            CoupledInductorsBundle::new(Arc::from("K1"), Arc::from("L1"), Arc::from("L2"), 0.999);
+
         let triples = coupled.get_ac_triples(1000.0);
         assert_eq!(triples.len(), 0);
     }
@@ -459,7 +463,7 @@ mod tests {
             create_test_inductor("L2", Some(2), Some(3), 15e-6),
             create_test_coupled("K1", "L1", "L2", 1.2), // Invalid: > 1.0
         ];
-        
+
         let errors = Element::setup_coupled_inductors(&mut elements);
         assert_eq!(errors.len(), 1);
         assert!(errors[0].contains("Invalid coupling factor"));
@@ -471,7 +475,7 @@ mod tests {
             create_test_inductor("L1", Some(0), Some(1), 10e-6),
             create_test_coupled("K1", "L1", "L3", 0.999), // L3 doesn't exist
         ];
-        
+
         let errors = Element::setup_coupled_inductors(&mut elements);
         assert_eq!(errors.len(), 1);
         assert!(errors[0].contains("not found"));
@@ -483,7 +487,7 @@ mod tests {
             create_test_inductor("L1", Some(0), Some(1), 10e-6),
             create_test_coupled("K1", "L1", "L1", 0.999), // Self-coupling
         ];
-        
+
         let errors = Element::setup_coupled_inductors(&mut elements);
         assert_eq!(errors.len(), 1);
         assert!(errors[0].contains("cannot be coupled to itself"));
@@ -496,10 +500,10 @@ mod tests {
             create_test_inductor("L2", Some(2), Some(3), 15e-6),
             create_test_coupled("K1", "L1", "L2", 0.999),
         ];
-        
+
         let errors = Element::setup_coupled_inductors(&mut elements);
         assert_eq!(errors.len(), 0);
-        
+
         // Check that node indices were set
         if let Element::CoupledInductors(coupled) = &elements[2] {
             assert_eq!(coupled.node0_idx1, Some(0));
@@ -513,29 +517,24 @@ mod tests {
 
     #[test]
     fn test_coupled_inductors_mna_contributions() {
-        let mut coupled = CoupledInductorsBundle::new(
-            Arc::from("K1"),
-            Arc::from("L1"),
-            Arc::from("L2"),
-            0.999,
-        );
-        
+        let mut coupled =
+            CoupledInductorsBundle::new(Arc::from("K1"), Arc::from("L1"), Arc::from("L2"), 0.999);
+
         // Set up mutual inductance
         coupled.calculate_mutual_inductance(10e-6, 15e-6);
         coupled.set_node_indices(Some(0), Some(1), Some(2), Some(3));
-        
+
         // Test transient triples
         let transient_triples = coupled.get_time_variant_triples(&1e-6);
         assert_eq!(transient_triples.len(), 4); // Should have 4 entries (limited by Triples<Numeric, 4>)
-        
+
         // Test AC triples
         let ac_triples = coupled.get_ac_triples(1000.0);
         assert_eq!(ac_triples.len(), 4); // Should have 4 entries (limited by Triples<ComplexNumeric, 4>)
-        
+
         // Test triple indices
         let indices = coupled.get_triple_indices();
         assert!(indices.is_some());
         assert_eq!(indices.unwrap().len(), 4); // Should have 4 entries (limited by TripleIdx<4>)
     }
 }
-

@@ -2,19 +2,18 @@
 // This module will handle serialization/deserialization of controlled sources
 // from/to JSON/YAML formats
 
-use std::sync::Arc;
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::sync::Arc;
 
-use crate::{Variable, Element};
-use crate::models::Unit;
+use super::{CCCSBundle, CCVSBundle, VCCSBundle, VCVSBundle};
 use crate::frontends::serde::ProcessSerdeElement;
-use super::{VCVSBundle, VCCSBundle, CCCSBundle, CCVSBundle};
-use crate::models::controlled_sources::vcvrs::VCVSOptions;
-use crate::models::controlled_sources::vccs::VCCSOptions;
 use crate::models::controlled_sources::cccs::CCCSOptions;
 use crate::models::controlled_sources::ccvs::CCVSOptions;
-
+use crate::models::controlled_sources::vccs::VCCSOptions;
+use crate::models::controlled_sources::vcvrs::VCVSOptions;
+use crate::models::Unit;
+use crate::{Element, Variable};
 
 /// Serde representation of a VCVS source
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -66,27 +65,49 @@ impl ProcessSerdeElement for SerdeVCVS {
         var_map: &mut HashMap<Arc<str>, usize>,
     ) {
         // Create variables for output nodes
-        let pos_var = Variable::new(Arc::from(self.positive.as_str()), Unit::Volt, variables.len());
-        let neg_var = Variable::new(Arc::from(self.negative.as_str()), Unit::Volt, variables.len() + 1);
-        
+        let pos_var = Variable::new(
+            Arc::from(self.positive.as_str()),
+            Unit::Volt,
+            variables.len(),
+        );
+        let neg_var = Variable::new(
+            Arc::from(self.negative.as_str()),
+            Unit::Volt,
+            variables.len() + 1,
+        );
+
         // Add variables to vectors and map
         variables.push(pos_var.clone());
         var_map.insert(Arc::from(self.positive.as_str()), variables.len() - 1);
-        
+
         variables.push(neg_var.clone());
         var_map.insert(Arc::from(self.negative.as_str()), variables.len() - 1);
-        
+
         // Create variables for controlling nodes
-        let ctrl_pos_var = Variable::new(Arc::from(self.controlling_positive.as_str()), Unit::Volt, variables.len());
-        let ctrl_neg_var = Variable::new(Arc::from(self.controlling_negative.as_str()), Unit::Volt, variables.len() + 1);
-        
+        let ctrl_pos_var = Variable::new(
+            Arc::from(self.controlling_positive.as_str()),
+            Unit::Volt,
+            variables.len(),
+        );
+        let ctrl_neg_var = Variable::new(
+            Arc::from(self.controlling_negative.as_str()),
+            Unit::Volt,
+            variables.len() + 1,
+        );
+
         // Add controlling variables to vectors and map
         variables.push(ctrl_pos_var.clone());
-        var_map.insert(Arc::from(self.controlling_positive.as_str()), variables.len() - 1);
-        
+        var_map.insert(
+            Arc::from(self.controlling_positive.as_str()),
+            variables.len() - 1,
+        );
+
         variables.push(ctrl_neg_var.clone());
-        var_map.insert(Arc::from(self.controlling_negative.as_str()), variables.len() - 1);
-        
+        var_map.insert(
+            Arc::from(self.controlling_negative.as_str()),
+            variables.len() - 1,
+        );
+
         // Create VCVS bundle
         let vcvs = VCVSBundle::new(
             Arc::from(self.name.as_str()),
@@ -96,7 +117,7 @@ impl ProcessSerdeElement for SerdeVCVS {
             Some(ctrl_neg_var),
             Some(VCVSOptions { gain: self.gain }),
         );
-        
+
         elements.push(Element::VCVS(vcvs));
     }
 }
@@ -109,27 +130,49 @@ impl ProcessSerdeElement for SerdeVCCS {
         var_map: &mut HashMap<Arc<str>, usize>,
     ) {
         // Create variables for output nodes
-        let pos_var = Variable::new(Arc::from(self.positive.as_str()), Unit::Volt, variables.len());
-        let neg_var = Variable::new(Arc::from(self.negative.as_str()), Unit::Volt, variables.len() + 1);
-        
+        let pos_var = Variable::new(
+            Arc::from(self.positive.as_str()),
+            Unit::Volt,
+            variables.len(),
+        );
+        let neg_var = Variable::new(
+            Arc::from(self.negative.as_str()),
+            Unit::Volt,
+            variables.len() + 1,
+        );
+
         // Add variables to vectors and map
         variables.push(pos_var.clone());
         var_map.insert(Arc::from(self.positive.as_str()), variables.len() - 1);
-        
+
         variables.push(neg_var.clone());
         var_map.insert(Arc::from(self.negative.as_str()), variables.len() - 1);
-        
+
         // Create variables for controlling nodes
-        let ctrl_pos_var = Variable::new(Arc::from(self.controlling_positive.as_str()), Unit::Volt, variables.len());
-        let ctrl_neg_var = Variable::new(Arc::from(self.controlling_negative.as_str()), Unit::Volt, variables.len() + 1);
-        
+        let ctrl_pos_var = Variable::new(
+            Arc::from(self.controlling_positive.as_str()),
+            Unit::Volt,
+            variables.len(),
+        );
+        let ctrl_neg_var = Variable::new(
+            Arc::from(self.controlling_negative.as_str()),
+            Unit::Volt,
+            variables.len() + 1,
+        );
+
         // Add controlling variables to vectors and map
         variables.push(ctrl_pos_var.clone());
-        var_map.insert(Arc::from(self.controlling_positive.as_str()), variables.len() - 1);
-        
+        var_map.insert(
+            Arc::from(self.controlling_positive.as_str()),
+            variables.len() - 1,
+        );
+
         variables.push(ctrl_neg_var.clone());
-        var_map.insert(Arc::from(self.controlling_negative.as_str()), variables.len() - 1);
-        
+        var_map.insert(
+            Arc::from(self.controlling_negative.as_str()),
+            variables.len() - 1,
+        );
+
         // Create VCCS bundle
         let vccs = VCCSBundle::new(
             Arc::from(self.name.as_str()),
@@ -137,9 +180,11 @@ impl ProcessSerdeElement for SerdeVCCS {
             Some(neg_var),
             Some(ctrl_pos_var),
             Some(ctrl_neg_var),
-            Some(VCCSOptions { transconductance: self.transconductance }),
+            Some(VCCSOptions {
+                transconductance: self.transconductance,
+            }),
         );
-        
+
         elements.push(Element::VCCS(vccs));
     }
 }
@@ -152,23 +197,38 @@ impl ProcessSerdeElement for SerdeCCCS {
         var_map: &mut HashMap<Arc<str>, usize>,
     ) {
         // Create variables for output nodes
-        let pos_var = Variable::new(Arc::from(self.positive.as_str()), Unit::Volt, variables.len());
-        let neg_var = Variable::new(Arc::from(self.negative.as_str()), Unit::Volt, variables.len() + 1);
-        
+        let pos_var = Variable::new(
+            Arc::from(self.positive.as_str()),
+            Unit::Volt,
+            variables.len(),
+        );
+        let neg_var = Variable::new(
+            Arc::from(self.negative.as_str()),
+            Unit::Volt,
+            variables.len() + 1,
+        );
+
         // Add variables to vectors and map
         variables.push(pos_var.clone());
         var_map.insert(Arc::from(self.positive.as_str()), variables.len() - 1);
-        
+
         variables.push(neg_var.clone());
         var_map.insert(Arc::from(self.negative.as_str()), variables.len() - 1);
-        
+
         // Create variable for controlling branch
-        let ctrl_branch_var = Variable::new(Arc::from(self.controlling_branch.as_str()), Unit::Volt, variables.len());
-        
+        let ctrl_branch_var = Variable::new(
+            Arc::from(self.controlling_branch.as_str()),
+            Unit::Volt,
+            variables.len(),
+        );
+
         // Add controlling variable to vectors and map
         variables.push(ctrl_branch_var.clone());
-        var_map.insert(Arc::from(self.controlling_branch.as_str()), variables.len() - 1);
-        
+        var_map.insert(
+            Arc::from(self.controlling_branch.as_str()),
+            variables.len() - 1,
+        );
+
         // Create CCCS bundle
         let cccs = CCCSBundle::new(
             Arc::from(self.name.as_str()),
@@ -177,7 +237,7 @@ impl ProcessSerdeElement for SerdeCCCS {
             Some(ctrl_branch_var),
             Some(CCCSOptions { gain: self.gain }),
         );
-        
+
         elements.push(Element::CCCS(cccs));
     }
 }
@@ -190,23 +250,38 @@ impl ProcessSerdeElement for SerdeCCVS {
         var_map: &mut HashMap<Arc<str>, usize>,
     ) {
         // Create variables for output nodes
-        let pos_var = Variable::new(Arc::from(self.positive.as_str()), Unit::Volt, variables.len());
-        let neg_var = Variable::new(Arc::from(self.negative.as_str()), Unit::Volt, variables.len() + 1);
-        
+        let pos_var = Variable::new(
+            Arc::from(self.positive.as_str()),
+            Unit::Volt,
+            variables.len(),
+        );
+        let neg_var = Variable::new(
+            Arc::from(self.negative.as_str()),
+            Unit::Volt,
+            variables.len() + 1,
+        );
+
         // Add variables to vectors and map
         variables.push(pos_var.clone());
         var_map.insert(Arc::from(self.positive.as_str()), variables.len() - 1);
-        
+
         variables.push(neg_var.clone());
         var_map.insert(Arc::from(self.negative.as_str()), variables.len() - 1);
-        
+
         // Create variable for controlling branch
-        let ctrl_branch_var = Variable::new(Arc::from(self.controlling_branch.as_str()), Unit::Volt, variables.len());
-        
+        let ctrl_branch_var = Variable::new(
+            Arc::from(self.controlling_branch.as_str()),
+            Unit::Volt,
+            variables.len(),
+        );
+
         // Add controlling variable to vectors and map
         variables.push(ctrl_branch_var.clone());
-        var_map.insert(Arc::from(self.controlling_branch.as_str()), variables.len() - 1);
-        
+        var_map.insert(
+            Arc::from(self.controlling_branch.as_str()),
+            variables.len() - 1,
+        );
+
         // Create CCVS bundle
         let ccvs = CCVSBundle::new(
             Arc::from(self.name.as_str()),
@@ -215,7 +290,7 @@ impl ProcessSerdeElement for SerdeCCVS {
             Some(ctrl_branch_var),
             Some(CCVSOptions { gain: self.gain }),
         );
-        
+
         elements.push(Element::CCVS(ccvs));
     }
 }

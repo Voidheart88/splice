@@ -86,34 +86,32 @@ impl VSourceSinBundle {
     /// Returns the triples representing matrix A.
     pub fn triples(&self) -> Triples<Numeric, 4> {
         let branch_idx = self.branch_idx();
+        // Fixme: This match nests too deep and needs a refactor
         let node0_idx = match self.node0_idx() {
             Some(node0_idx) => node0_idx,
             None => {
                 // If node0 doesn't exist, voltage source is connected to ground through node1
-                let node1_idx = self.node1_idx().expect("Voltage source must have at least one node connected");
+                let node1_idx = self
+                    .node1_idx()
+                    .expect("Voltage source must have at least one node connected");
                 return Triples::new(&[
                     (self.branch_idx(), node1_idx, Numeric::one()),
                     (node1_idx, self.branch_idx(), Numeric::one()),
                 ]);
             }
         };
+        // Fixme: This match nests too deep and needs a refactor
         let node1_idx = match self.node1_idx() {
             Some(node1_idx) => node1_idx,
             None => {
                 // If node1 doesn't exist, voltage source is connected to ground through node0
-                let node0_idx = self.node0_idx().expect("Voltage source must have at least one node connected");
+                let node0_idx = self
+                    .node0_idx()
+                    .expect("Voltage source must have at least one node connected");
                 return Triples::new(&[
-                    (
-                        self.branch_idx(),
-                        node0_idx,
-                        -Numeric::one(),
-                    ),
-                    (
-                        node0_idx,
-                        self.branch_idx(),
-                        -Numeric::one(),
-                    ),
-                ])
+                    (self.branch_idx(), node0_idx, -Numeric::one()),
+                    (node0_idx, self.branch_idx(), -Numeric::one()),
+                ]);
             }
         };
 
@@ -143,11 +141,14 @@ impl VSourceSinBundle {
     /// Returns the AC triples representing matrix A.
     pub fn ac_triples(&self) -> Triples<ComplexNumeric, 4> {
         let branch_idx = self.branch_idx();
+        // Fixme: This match nests too deep and needs a refactor
         let node0_idx = match self.node0_idx() {
             Some(node0_idx) => node0_idx,
             None => {
                 // If node0 doesn't exist, voltage source is connected to ground through node1
-                let node1_idx = self.node1_idx().expect("Voltage source must have at least one node connected");
+                let node1_idx = self
+                    .node1_idx()
+                    .expect("Voltage source must have at least one node connected");
                 return Triples::new(&[
                     (
                         self.branch_idx(),
@@ -168,11 +169,14 @@ impl VSourceSinBundle {
                 ]);
             }
         };
+        // Fixme: This match nests too deep and needs a refactor
         let node1_idx = match self.node1_idx() {
             Some(node1_idx) => node1_idx,
             None => {
                 // If node1 doesn't exist, voltage source is connected to ground through node0
-                let node0_idx = self.node0_idx().expect("Voltage source must have at least one node connected");
+                let node0_idx = self
+                    .node0_idx()
+                    .expect("Voltage source must have at least one node connected");
                 return Triples::new(&[
                     (
                         self.branch_idx(),
@@ -190,10 +194,11 @@ impl VSourceSinBundle {
                             im: Numeric::zero(),
                         },
                     ),
-                ])
+                ]);
             }
         };
 
+        // Fixme: This nests too deep and needs a refactor
         Triples::new(&[
             (
                 branch_idx,
@@ -232,6 +237,7 @@ impl VSourceSinBundle {
 
     /// Returns the pairs representing vector b.
     pub fn pairs(&self, time: Option<&Numeric>) -> Pairs<Numeric, 2> {
+        // Fixme: This match nests too deep and needs a refactor
         let value = match time {
             Some(t) => {
                 // For transient analysis: only the AC component (sinusoidal part)
@@ -249,6 +255,7 @@ impl VSourceSinBundle {
 
     /// Returns the AC pairs representing vector b.
     pub fn ac_pairs(&self) -> Pairs<ComplexNumeric, 2> {
+        // Fixme: This match nests too deep and needs a refactor
         match self.ac_value {
             Some(ac_val) => Pairs::new(&[(
                 self.branch_idx(),

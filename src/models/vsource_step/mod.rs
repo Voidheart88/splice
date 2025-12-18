@@ -86,7 +86,9 @@ impl VSourceStepBundle {
             Some(node0_idx) => node0_idx,
             None => {
                 // If node0 doesn't exist, voltage source is connected to ground through node1
-                let node1_idx = self.node1_idx().expect("Voltage source must have at least one node connected");
+                let node1_idx = self
+                    .node1_idx()
+                    .expect("Voltage source must have at least one node connected");
                 return Triples::new(&[
                     (self.branch_idx(), node1_idx, Numeric::one()),
                     (node1_idx, self.branch_idx(), Numeric::one()),
@@ -97,19 +99,13 @@ impl VSourceStepBundle {
             Some(node1_idx) => node1_idx,
             None => {
                 // If node1 doesn't exist, voltage source is connected to ground through node0
-                let node0_idx = self.node0_idx().expect("Voltage source must have at least one node connected");
+                let node0_idx = self
+                    .node0_idx()
+                    .expect("Voltage source must have at least one node connected");
                 return Triples::new(&[
-                    (
-                        self.branch_idx(),
-                        node0_idx,
-                        -Numeric::one(),
-                    ),
-                    (
-                        node0_idx,
-                        self.branch_idx(),
-                        -Numeric::one(),
-                    ),
-                ])
+                    (self.branch_idx(), node0_idx, -Numeric::one()),
+                    (node0_idx, self.branch_idx(), -Numeric::one()),
+                ]);
             }
         };
 
@@ -157,6 +153,7 @@ impl VSourceStepBundle {
 
     /// Returns the AC pairs representing vector b.
     pub fn ac_pairs(&self) -> Pairs<ComplexNumeric, 2> {
+        // Fixme: this match nests too deep
         match self.ac_value {
             Some(ac_val) => Pairs::new(&[(
                 self.branch_idx(),

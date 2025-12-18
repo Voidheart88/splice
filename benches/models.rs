@@ -68,7 +68,7 @@ pub fn models_benchmark_group(c: &mut Criterion) {
     // Diode benchmarks
     diode_triples_benchmark(c);
     diode_pairs_benchmark(c);
-    
+
     // Resistor benchmarks
     resistor_triples_benchmark(c);
 }

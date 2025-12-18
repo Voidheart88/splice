@@ -28,6 +28,7 @@ impl<SO: Solver> AcSimulation<SO> for Simulator<SO> {
         info!("Find operating point");
         self.find_op()?;
 
+        // FIXME: This nests too deep and should be refactored
         //Calculate frequencies in the range from [fstart;fend]
         let freqs: Vec<Numeric> = match ac_option {
             ACMode::Lin => {

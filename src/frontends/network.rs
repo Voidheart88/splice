@@ -1,17 +1,17 @@
-use std::net::TcpListener;
 use std::collections::HashMap;
+use std::net::TcpListener;
 use std::sync::Arc;
 
-use super::Frontend;
-use super::FrontendError;
-use super::Simulation;
-use super::Element;
-use super::Variable;
+use super::serde::ProcessSerdeElement;
 use super::serde::SerdeCircuit;
 use super::serde::SerdeElement;
 use super::serde::SerdeSimulation;
-use super::serde::ProcessSerdeElement;
-use crate::sim::commands::{SimulationCommand, ACMode};
+use super::Element;
+use super::Frontend;
+use super::FrontendError;
+use super::Simulation;
+use super::Variable;
+use crate::sim::commands::{ACMode, SimulationCommand};
 use crate::sim::options::SimulationOption;
 use rmp_serde::decode::from_read;
 
@@ -24,10 +24,10 @@ impl Frontend for NetworkFrontend {
     fn simulation(&self) -> Result<Simulation, FrontendError> {
         // Accept incoming connection
         let (stream, _) = self.listener.accept()?;
-        
+
         // Receive MessagePack data
         let circuit: SerdeCircuit = from_read(&stream)?;
-        
+
         // Convert to internal simulation format
         self.convert_circuit(circuit)
     }
@@ -47,6 +47,7 @@ impl NetworkFrontend {
         let mut var_map: HashMap<Arc<str>, usize> = HashMap::new();
 
         // Process elements (similar to SerdeFrontend)
+        // Check: „similar“ sounds like there is code duplication. Check if this can be refactored in a helper fn
         for element in circuit.elements {
             match element {
                 SerdeElement::Resistor(ele) => {
@@ -98,6 +99,7 @@ impl NetworkFrontend {
         }
 
         // Process simulations
+        // FIXME: this loop nests too deep and should be refactored
         for simulation in circuit.simulations {
             match simulation {
                 SerdeSimulation::OP => {

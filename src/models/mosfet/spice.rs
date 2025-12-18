@@ -14,7 +14,7 @@ impl ProcessSpiceElement for Mos0Bundle {
     ) -> Result<(), crate::frontends::FrontendError> {
         // Use the helper parser for common parsing logic
         let mut parser = SpiceElementParser::new(element);
-        
+
         // Parse using the abstracted helper methods
         let name = parser.parse_name("MOSFET")?;
         let gate_node = parser.parse_node("MOSFET", name, "gate node")?;

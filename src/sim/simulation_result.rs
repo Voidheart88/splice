@@ -26,48 +26,71 @@ impl Serialize for Sim {
     {
         match self {
             Sim::Op(vars) => {
+                // FIXME: Does this need to be defined inside the serialize fn?
                 #[derive(Serialize)]
                 struct OpWrapper {
                     r#type: &'static str,
-                    variables: Vec<(Variable, Numeric)>
+                    variables: Vec<(Variable, Numeric)>,
                 }
-                OpWrapper { r#type: "op", variables: vars.clone() }.serialize(serializer)
-            },
+                OpWrapper {
+                    r#type: "op",
+                    variables: vars.clone(),
+                }
+                .serialize(serializer)
+            }
             Sim::Dc(steps) => {
+                // FIXME: Does this need to be defined inside the serialize fn?
                 #[derive(Serialize)]
                 struct DcWrapper {
                     r#type: &'static str,
-                    steps: Vec<Vec<(Variable, Numeric)>>
+                    steps: Vec<Vec<(Variable, Numeric)>>,
                 }
-                DcWrapper { r#type: "dc", steps: steps.clone() }.serialize(serializer)
-            },
+                DcWrapper {
+                    r#type: "dc",
+                    steps: steps.clone(),
+                }
+                .serialize(serializer)
+            }
             Sim::Tran(points) => {
+                // FIXME: Does this need to be defined inside the serialize fn?
                 #[derive(Serialize)]
                 struct TranWrapper {
                     r#type: &'static str,
-                    points: Vec<(Numeric, Vec<(Variable, Numeric)>)>
+                    points: Vec<(Numeric, Vec<(Variable, Numeric)>)>,
                 }
-                TranWrapper { r#type: "tran", points: points.clone() }.serialize(serializer)
-            },
+                TranWrapper {
+                    r#type: "tran",
+                    points: points.clone(),
+                }
+                .serialize(serializer)
+            }
             Sim::Ac(bode_values) => {
                 /// Type alias for AC analysis results: (Frequency, Variables)
                 type AcResult = Vec<(Numeric, Vec<(Variable, (Numeric, Numeric))>)>;
-                
+                // FIXME: Does this need to be defined inside the serialize fn?
                 #[derive(Serialize)]
                 struct AcWrapper {
                     r#type: &'static str,
-                    bode_values: AcResult
+                    bode_values: AcResult,
                 }
-                
-                let converted = bode_values.iter().map(|(freq, vars)| {
-                    let converted_vars = vars.iter().map(|(var, complex)| {
-                        (var.clone(), (complex.re, complex.im))
-                    }).collect();
-                    (*freq, converted_vars)
-                }).collect();
-                
-                AcWrapper { r#type: "ac", bode_values: converted }.serialize(serializer)
-            },
+                // FIXME: This is unreadable deep nesting
+                let converted = bode_values
+                    .iter()
+                    .map(|(freq, vars)| {
+                        let converted_vars = vars
+                            .iter()
+                            .map(|(var, complex)| (var.clone(), (complex.re, complex.im)))
+                            .collect();
+                        (*freq, converted_vars)
+                    })
+                    .collect();
+
+                AcWrapper {
+                    r#type: "ac",
+                    bode_values: converted,
+                }
+                .serialize(serializer)
+            }
         }
     }
 }

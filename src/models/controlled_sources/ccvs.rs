@@ -1,12 +1,12 @@
 // Current-Controlled Voltage Source (CCVS) - H source
-// Placeholder implementation - will be completed later
+// FIXME: Placeholder implementation - Complete this
 
-use std::sync::Arc;
+use crate::frontends::spice::{ProcessSpiceElement, Rule};
+use crate::models::{TripleIdx, Triples, Variable};
 use crate::spot::Numeric;
-use crate::models::{Variable, Triples, TripleIdx};
-use crate::frontends::spice::{Rule, ProcessSpiceElement};
 use crate::{Element, FrontendError};
 use pest::iterators::Pair;
+use std::sync::Arc;
 
 use num::Complex;
 
@@ -85,13 +85,7 @@ mod tests {
 
     #[test]
     fn test_ccvs_creation() {
-        let ccvs = CCVSBundle::new(
-            Arc::from("H1"),
-            None,
-            None,
-            None,
-            None,
-        );
+        let ccvs = CCVSBundle::new(Arc::from("H1"), None, None, None, None);
         assert_eq!(ccvs.name(), Arc::from("H1"));
     }
 }

@@ -4,8 +4,8 @@ mod hash_map;
 mod models;
 mod nalgebra;
 mod network;
-mod rsparse;
 mod real_world;
+mod rsparse;
 
 use criterion::{criterion_group, criterion_main};
 
@@ -15,15 +15,14 @@ use crate::hash_map::*;
 use crate::models::*;
 use crate::nalgebra::*;
 use crate::network::*;
-use crate::rsparse::*;
 use crate::real_world::*;
+use crate::rsparse::*;
 
 criterion_group!(
     real_world_benches,
     bench_resistor_network,
     bench_resistor_ladder,
 );
-
 
 criterion_group!(
     hashmap_benches,
@@ -35,10 +34,7 @@ criterion_group!(
     bench_fxhash_get_mut,
 );
 
-criterion_group!(
-    model_benches,
-    models_benchmark_group,
-);
+criterion_group!(model_benches, models_benchmark_group,);
 
 criterion_group!(
     backend_benches,

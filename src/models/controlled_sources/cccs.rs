@@ -1,12 +1,12 @@
 // Current-Controlled Current Source (CCCS) - F source
-// Placeholder implementation - will be completed later
+// FIXME: Placeholder implementation - Complete this
 
-use std::sync::Arc;
+use crate::frontends::spice::{ProcessSpiceElement, Rule};
+use crate::models::{TripleIdx, Triples, Variable};
 use crate::spot::Numeric;
-use crate::models::{Variable, Triples, TripleIdx};
-use crate::frontends::spice::{Rule, ProcessSpiceElement};
 use crate::{Element, FrontendError};
 use pest::iterators::Pair;
+use std::sync::Arc;
 
 use num::Complex;
 
@@ -85,13 +85,7 @@ mod tests {
 
     #[test]
     fn test_cccs_creation() {
-        let cccs = CCCSBundle::new(
-            Arc::from("F1"),
-            None,
-            None,
-            None,
-            None,
-        );
+        let cccs = CCCSBundle::new(Arc::from("F1"), None, None, None, None);
         assert_eq!(cccs.name(), Arc::from("F1"));
     }
 }

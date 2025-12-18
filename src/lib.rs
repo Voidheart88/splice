@@ -8,7 +8,7 @@ pub mod solver;
 pub mod spot;
 
 use clap::Parser;
-use log::{info, error};
+use log::{error, info};
 use miette::{Diagnostic, Result};
 use thiserror::Error;
 
@@ -19,16 +19,15 @@ use solver::{FaerSolver, NalgebraSolver, RSparseSolver, Solvers};
 
 // Network imports
 
-
 // Import types for network handling
 use crate::{
-    frontends::serde::{SerdeCircuit, SerdeElement, SerdeSimulation, ProcessSerdeElement},
+    frontends::serde::{ProcessSerdeElement, SerdeCircuit, SerdeElement, SerdeSimulation},
+    frontends::Simulation,
     models::{Element, Variable},
     sim::{
-        commands::{SimulationCommand, ACMode},
+        commands::{ACMode, SimulationCommand},
         options::SimulationOption,
     },
-    frontends::Simulation,
     FrontendError,
 };
 
@@ -82,8 +81,6 @@ pub fn run_sim_for_benchmark<T: Solver>(sim: Simulation) -> Result<(), String> {
     }
 }
 
-
-
 pub fn run() -> Result<()> {
     let cli = Cli::parse();
 
@@ -122,6 +119,7 @@ pub fn run() -> Result<()> {
 
     let mut sim = frontend.simulation()?;
 
+    // FIXME: Refactor — This should be part of the "Simulation" struct in Frontends/mod.rs
     // Setup coupled inductors by setting their node indices
     let coupling_errors = models::Element::setup_coupled_inductors(&mut sim.elements);
     if !coupling_errors.is_empty() {
@@ -131,13 +129,15 @@ pub fn run() -> Result<()> {
         return Err(SimulatorError::CircuitError(format!(
             "{} circuit coupling error(s) found. Simulation aborted.",
             coupling_errors.len()
-        )).into());
+        ))
+        .into());
     }
 
     // Apply autotune if enabled
     if cli.autotune {
         info!("Autotune mode enabled");
-        let autotune_options = sim::autotune::analyze_circuit_and_suggest_settings(&sim.elements, &sim.commands);
+        let autotune_options =
+            sim::autotune::analyze_circuit_and_suggest_settings(&sim.elements, &sim.commands);
         sim.options.extend(autotune_options);
     }
 
@@ -154,10 +154,14 @@ pub fn run() -> Result<()> {
         Backends::Raw => Box::new(RawBackend::new()),
         Backends::Plot => Box::new(PlotBackend::new(pth)),
         Backends::Network => {
+            // FIXME: Resolve this
             // For network backend, we need to accept the connection from the frontend
             // This is a temporary solution - in production, we'd want to pass the stream
-            let listener = std::net::TcpListener::bind("0.0.0.0:8081").map_err(|e| BackendError::IoError(e.to_string()))?;
-            let (stream, _) = listener.accept().map_err(|e| BackendError::IoError(e.to_string()))?;
+            let listener = std::net::TcpListener::bind("0.0.0.0:8081")
+                .map_err(|e| BackendError::IoError(e.to_string()))?;
+            let (stream, _) = listener
+                .accept()
+                .map_err(|e| BackendError::IoError(e.to_string()))?;
             Box::new(NetworkBackend::new(stream))
         }
     };
@@ -180,9 +184,9 @@ fn network_loop(solver: Solvers) {
             return;
         }
     };
-    
+
     info!("Network server started on port 8080 (single-port mode)");
-    
+
     loop {
         // Accept incoming connection
         let (stream, addr) = match listener.accept() {
@@ -192,9 +196,9 @@ fn network_loop(solver: Solvers) {
                 continue;
             }
         };
-        
+
         info!("New connection from {}", addr);
-        
+
         // Handle the connection in a simple request-response manner
         if let Err(e) = handle_network_connection(stream, solver) {
             error!("Connection handling error: {}", e);
@@ -203,7 +207,10 @@ fn network_loop(solver: Solvers) {
 }
 
 /// Handle a single network connection with request-response pattern
-fn handle_network_connection(stream: std::net::TcpStream, solver: Solvers) -> Result<(), Box<dyn std::error::Error>> {
+fn handle_network_connection(
+    stream: std::net::TcpStream,
+    solver: Solvers,
+) -> Result<(), Box<dyn std::error::Error>> {
     // Read circuit from stream
     let circuit: SerdeCircuit = match rmp_serde::decode::from_read(&stream) {
         Ok(c) => c,
@@ -220,7 +227,7 @@ fn handle_network_connection(stream: std::net::TcpStream, solver: Solvers) -> Re
             return Err(e.into());
         }
     };
-    
+
     // Convert circuit to simulation
     let sim = match convert_serde_circuit_to_simulation(circuit) {
         Ok(s) => s,
@@ -236,7 +243,7 @@ fn handle_network_connection(stream: std::net::TcpStream, solver: Solvers) -> Re
             return Err(e.into());
         }
     };
-    
+
     // Run simulation
     let results = match solver {
         Solvers::Rsparse => run_sim::<RSparseSolver>(sim),
@@ -244,7 +251,7 @@ fn handle_network_connection(stream: std::net::TcpStream, solver: Solvers) -> Re
         Solvers::Faer => run_sim::<FaerSolver>(sim),
         Solvers::FaerSparse => run_sim::<FaerSparseSolver>(sim),
     };
-    
+
     let results = match results {
         Ok(res) => res,
         Err(e) => {
@@ -259,11 +266,11 @@ fn handle_network_connection(stream: std::net::TcpStream, solver: Solvers) -> Re
             return Err(e.into());
         }
     };
-    
+
     // Send results back to client
     let mut stream = stream.try_clone()?;
     rmp_serde::encode::write(&mut stream, &results)?;
-    
+
     info!("Successfully processed simulation request");
     Ok(())
 }
@@ -272,13 +279,14 @@ fn handle_network_connection(stream: std::net::TcpStream, solver: Solvers) -> Re
 fn convert_serde_circuit_to_simulation(circuit: SerdeCircuit) -> Result<Simulation, FrontendError> {
     use std::collections::HashMap;
     use std::sync::Arc;
-    
+
     let mut commands: Vec<SimulationCommand> = Vec::new();
     let mut options: Vec<SimulationOption> = Vec::new();
     let mut elements: Vec<Element> = Vec::new();
     let mut variables: Vec<Variable> = Vec::new();
     let mut var_map: HashMap<Arc<str>, usize> = HashMap::new();
-    
+
+    // FIXME: Refactor this loop into a new function
     // Process elements
     for element in circuit.elements {
         match element {
@@ -329,7 +337,8 @@ fn convert_serde_circuit_to_simulation(circuit: SerdeCircuit) -> Result<Simulati
             }
         }
     }
-    
+
+    // FIXME: Refactor this loop into a new function since it nests to deep
     // Process simulations
     for simulation in circuit.simulations {
         match simulation {
@@ -358,12 +367,12 @@ fn convert_serde_circuit_to_simulation(circuit: SerdeCircuit) -> Result<Simulati
             }
         }
     }
-    
+
     // Process options
     for option in circuit.options {
         options.push(SimulationOption::Out(vec![Arc::from(option.out)]));
     }
-    
+
     Ok(Simulation {
         elements,
         commands,

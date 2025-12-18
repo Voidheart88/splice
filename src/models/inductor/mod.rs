@@ -1,6 +1,6 @@
-pub(crate) mod serde;
 /// The Resistor Module. As every module this module encapsulates exerything regarding a resistor bundle
 /// This includes parsing from various formats as well as the conductance-behaviour.
+pub(crate) mod serde;
 pub(crate) mod spice;
 
 use std::sync::Arc;
@@ -84,12 +84,12 @@ impl InductorBundle {
             node.idx()
         } else {
             // If node0 doesn't exist, inductor is connected to ground through node1
-            let node1_idx = self.node1.as_ref().expect("Inductor must have at least one node connected").idx();
-            return Triples::new(&[(
-                node1_idx,
-                node1_idx,
-                equivalent_conductance,
-            )]);
+            let node1_idx = self
+                .node1
+                .as_ref()
+                .expect("Inductor must have at least one node connected")
+                .idx();
+            return Triples::new(&[(node1_idx, node1_idx, equivalent_conductance)]);
         };
 
         let node1_idx = if let Some(node) = &self.node1 {
@@ -138,12 +138,14 @@ impl InductorBundle {
     pub fn pairs(&self, delta_t: &Numeric) -> Pairs<Numeric, 2> {
         let r = delta_t / self.value; // Equivalent resistance = Δt/L
         let i_prev = self.previous_current;
-        
+
         let node0_idx = if let Some(idx) = self.node0_idx() {
             idx
         } else {
             // If node0 doesn't exist, inductor is connected to ground through node1
-            let node1_idx = self.node1_idx().expect("Inductor must have at least one node connected");
+            let node1_idx = self
+                .node1_idx()
+                .expect("Inductor must have at least one node connected");
             return Pairs::new(&[(node1_idx, r * i_prev)]);
         };
         let node1_idx = if let Some(idx) = self.node1_idx() {
@@ -156,10 +158,7 @@ impl InductorBundle {
         // For backward Euler: v = L * (i_current - i_prev) / Δt
         // Rearranged: L*i_current/Δt - L*i_prev/Δt = v
         // In MNA, the RHS should be: (L/Δt) * i_prev (voltage drop across the inductor)
-        Pairs::new(&[
-            (node0_idx, r * i_prev),
-            (node1_idx, -r * i_prev),
-        ])
+        Pairs::new(&[(node0_idx, r * i_prev), (node1_idx, -r * i_prev)])
     }
 
     /// Returns the pairs representing the right-hand side (RHS) for transient simulation using trapezoidal integration
@@ -169,12 +168,14 @@ impl InductorBundle {
     pub fn pairs_trapezoidal(&self, delta_t: &Numeric) -> Pairs<Numeric, 2> {
         let r = (delta_t * 2.0) / self.value; // Equivalent resistance for trapezoidal rule = 2Δt/L
         let i_prev = self.previous_current;
-        
+
         let node0_idx = if let Some(idx) = self.node0_idx() {
             idx
         } else {
             // If node0 doesn't exist, inductor is connected to ground through node1
-            let node1_idx = self.node1_idx().expect("Inductor must have at least one node connected");
+            let node1_idx = self
+                .node1_idx()
+                .expect("Inductor must have at least one node connected");
             return Pairs::new(&[(node1_idx, r * i_prev)]);
         };
         let node1_idx = if let Some(idx) = self.node1_idx() {
@@ -187,19 +188,21 @@ impl InductorBundle {
         // For trapezoidal rule: v = L * (i_current - i_prev) / (Δt/2)
         // Rearranged: (2L/Δt)*i_current - (2L/Δt)*i_prev = v
         // In MNA, the RHS should be: (2L/Δt) * i_prev (voltage drop across the inductor)
-        Pairs::new(&[
-            (node0_idx, r * i_prev),
-            (node1_idx, -r * i_prev),
-        ])
+        Pairs::new(&[(node0_idx, r * i_prev), (node1_idx, -r * i_prev)])
     }
 
     /// Returns the triples representing the inductor's contribution to matrix A.
     pub fn ac_triples(&self, freq: Numeric) -> Triples<ComplexNumeric, 4> {
+        // FIXME: This nests too deep and needs a refactor
         let node0_idx = if let Some(node) = &self.node0 {
             node.idx()
         } else {
             // If node0 doesn't exist, inductor is connected to ground through node1
-            let node1_idx = self.node1.as_ref().expect("Inductor must have at least one node connected").idx();
+            let node1_idx = self
+                .node1
+                .as_ref()
+                .expect("Inductor must have at least one node connected")
+                .idx();
             return Triples::new(&[(
                 node1_idx,
                 node1_idx,
@@ -211,6 +214,7 @@ impl InductorBundle {
             )]);
         };
 
+        // FIXME: This nests too deep and needs a refactor
         let node1_idx = if let Some(node) = &self.node1 {
             node.idx()
         } else {
@@ -225,6 +229,7 @@ impl InductorBundle {
             )]);
         };
 
+        // FIXME: This nests too deep and needs a refactor
         Triples::new(&[
             (
                 node0_idx,

@@ -1,6 +1,6 @@
-pub mod serde;
-/// The Capacitor Module. As every module this module encapsulates exerything regarding this bundle
+/// The Capacitor Module. As every module this module encapsulates everything regarding this bundle
 /// This includes parsing from various formats as well as the conductance-behaviour.
+pub mod serde;
 pub(crate) mod spice;
 
 use std::sync::Arc;
@@ -90,12 +90,10 @@ impl CapacitorBundle {
             idx
         } else {
             // If node0 doesn't exist, capacitor is connected to ground through node1
-            let node1_idx = self.node1_idx().expect("Capacitor must have at least one node connected");
-            return Triples::new(&[(
-                node1_idx,
-                node1_idx,
-                equivalent_conductance,
-            )]);
+            let node1_idx = self
+                .node1_idx()
+                .expect("Capacitor must have at least one node connected");
+            return Triples::new(&[(node1_idx, node1_idx, equivalent_conductance)]);
         };
         let node1_idx = if let Some(idx) = self.node1_idx() {
             idx
@@ -113,11 +111,14 @@ impl CapacitorBundle {
 
     /// Returns a reference to the triples representing matrix A.
     pub fn ac_triples(&self, freq: Numeric) -> Triples<ComplexNumeric, 4> {
+        // Fixme: This nests too deep und needs a refactor
         let node0_idx = if let Some(idx) = self.node0_idx() {
             idx
         } else {
             // If node0 doesn't exist, capacitor is connected to ground through node1
-            let node1_idx = self.node1_idx().expect("Capacitor must have at least one node connected");
+            let node1_idx = self
+                .node1_idx()
+                .expect("Capacitor must have at least one node connected");
             return Triples::new(&[(
                 node1_idx,
                 node1_idx,
@@ -127,6 +128,7 @@ impl CapacitorBundle {
                 },
             )]);
         };
+        // Fixme: This nests too deep und needs a refactor
         let node1_idx = if let Some(idx) = self.node1_idx() {
             idx
         } else {
@@ -140,6 +142,7 @@ impl CapacitorBundle {
             )]);
         };
 
+        // Fixme: This nests too deep und needs a refactor
         Triples::new(&[
             (
                 node0_idx,
@@ -197,12 +200,14 @@ impl CapacitorBundle {
     pub fn pairs(&self, delta_t: &Numeric) -> Pairs<Numeric, 2> {
         let g = self.value / delta_t; // Equivalent conductance
         let v_prev = self.previous_voltage;
-        
+
         let node0_idx = if let Some(idx) = self.node0_idx() {
             idx
         } else {
             // If node0 doesn't exist, capacitor is connected to ground through node1
-            let node1_idx = self.node1_idx().expect("Capacitor must have at least one node connected");
+            let node1_idx = self
+                .node1_idx()
+                .expect("Capacitor must have at least one node connected");
             return Pairs::new(&[(node1_idx, -g * v_prev)]);
         };
         let node1_idx = if let Some(idx) = self.node1_idx() {
@@ -215,10 +220,7 @@ impl CapacitorBundle {
         // For backward Euler: i = C * (v_current - v_prev) / Δt
         // Rearranged: C*v_current/Δt - C*v_prev/Δt = i
         // In MNA, the RHS should be: -C*v_prev/Δt (current flowing INTO the node)
-        Pairs::new(&[
-            (node0_idx, -g * v_prev),
-            (node1_idx, g * v_prev),
-        ])
+        Pairs::new(&[(node0_idx, -g * v_prev), (node1_idx, g * v_prev)])
     }
 
     /// Returns the pairs representing the right-hand side (RHS) for transient simulation using trapezoidal integration
@@ -228,12 +230,14 @@ impl CapacitorBundle {
     pub fn pairs_trapezoidal(&self, delta_t: &Numeric) -> Pairs<Numeric, 2> {
         let g = (self.value * 2.0) / delta_t; // Equivalent conductance for trapezoidal rule
         let v_prev = self.previous_voltage;
-        
+
         let node0_idx = if let Some(idx) = self.node0_idx() {
             idx
         } else {
             // If node0 doesn't exist, capacitor is connected to ground through node1
-            let node1_idx = self.node1_idx().expect("Capacitor must have at least one node connected");
+            let node1_idx = self
+                .node1_idx()
+                .expect("Capacitor must have at least one node connected");
             return Pairs::new(&[(node1_idx, -g * v_prev)]);
         };
         let node1_idx = if let Some(idx) = self.node1_idx() {
@@ -246,10 +250,7 @@ impl CapacitorBundle {
         // For trapezoidal rule: i = C * (v_current - v_prev) / (Δt/2)
         // Rearranged: (2C/Δt)*v_current - (2C/Δt)*v_prev = i
         // In MNA, the RHS should be: -(2C/Δt)*v_prev (current flowing INTO the node)
-        Pairs::new(&[
-            (node0_idx, -g * v_prev),
-            (node1_idx, g * v_prev),
-        ])
+        Pairs::new(&[(node0_idx, -g * v_prev), (node1_idx, g * v_prev)])
     }
 }
 

@@ -7,6 +7,7 @@ use num::Zero;
 use super::{Solver, SolverError};
 use crate::spot::*;
 
+// FIXME: Document this like the documentation in the FaerSolver (faer.rs)
 /// A backend implementation using the Faer library.
 pub struct FaerSparseSolver {
     /// The conductance matrix `A`.

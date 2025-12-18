@@ -17,23 +17,38 @@ impl ProcessSpiceElement for VSourceSinBundle {
         let offset = element.as_span().start();
         let mut inner = element.into_inner();
 
-        let name = inner.next()
-            .ok_or_else(|| crate::frontends::FrontendError::ParseError(
-                format!("Missing name in sine voltage source: {}", ele)
-            ))?
+        let name = inner
+            .next()
+            .ok_or_else(|| {
+                // Fixme: replace with use as this is unnessesary long
+                crate::frontends::FrontendError::ParseError(format!(
+                    "Missing name in sine voltage source: {}",
+                    ele
+                ))
+            })?
             .as_str();
 
-        let node0 = inner.next()
-            .ok_or_else(|| crate::frontends::FrontendError::ParseError(
-                format!("Missing node0 in sine voltage source: {}", name)
-            ))?
+        let node0 = inner
+            .next()
+            .ok_or_else(|| {
+                // Fixme: replace with use as this is unnessesary long
+                crate::frontends::FrontendError::ParseError(format!(
+                    "Missing node0 in sine voltage source: {}",
+                    name
+                ))
+            })?
             .as_span();
         let node0_str = &ele[node0.start() - offset..node0.end() - offset];
 
-        let node1 = inner.next()
-            .ok_or_else(|| crate::frontends::FrontendError::ParseError(
-                format!("Missing node1 in sine voltage source: {}", name)
-            ))?
+        let node1 = inner
+            .next()
+            .ok_or_else(|| {
+                // Fixme: replace with use as this is unnessesary long
+                crate::frontends::FrontendError::ParseError(format!(
+                    "Missing node1 in sine voltage source: {}",
+                    name
+                ))
+            })?
             .as_span();
         let node1_str = &ele[node1.start() - offset..node1.end() - offset];
 
@@ -45,32 +60,45 @@ impl ProcessSpiceElement for VSourceSinBundle {
 
         // Ensure we have at least 3 values
         if values.len() < 3 {
+            // Fixme: replace with use as this is unnessesary long
             return Err(crate::frontends::FrontendError::ParseError(
                 format!("Insufficient values for sine voltage source '{}': expected at least 3 values (offset, amplitude, frequency)", name)
             ));
         }
 
-        let dc_offset = values[0].parse::<f64>()
-            .map_err(|_| crate::frontends::FrontendError::ParseError(
-                format!("Invalid DC offset in sine voltage source '{}': must be a number", name)
-            ))?;
-        
-        let amplitude = values[1].parse::<f64>()
-            .map_err(|_| crate::frontends::FrontendError::ParseError(
-                format!("Invalid amplitude in sine voltage source '{}': must be a number", name)
-            ))?;
-        
-        let frequency = values[2].parse::<f64>()
-            .map_err(|_| crate::frontends::FrontendError::ParseError(
-                format!("Invalid frequency in sine voltage source '{}': must be a number", name)
-            ))?;
+        let dc_offset = values[0].parse::<f64>().map_err(|_| {
+            // Fixme: replace with use as this is unnessesary long
+            crate::frontends::FrontendError::ParseError(format!(
+                "Invalid DC offset in sine voltage source '{}': must be a number",
+                name
+            ))
+        })?;
+
+        let amplitude = values[1].parse::<f64>().map_err(|_| {
+            // Fixme: replace with use as this is unnessesary long
+            crate::frontends::FrontendError::ParseError(format!(
+                "Invalid amplitude in sine voltage source '{}': must be a number",
+                name
+            ))
+        })?;
+
+        let frequency = values[2].parse::<f64>().map_err(|_| {
+            // Fixme: replace with use as this is unnessesary long
+            crate::frontends::FrontendError::ParseError(format!(
+                "Invalid frequency in sine voltage source '{}': must be a number",
+                name
+            ))
+        })?;
 
         // Optional phase value
         let phase = match values.get(3) {
-            Some(phase_str) => phase_str.parse::<f64>()
-                .map_err(|_| crate::frontends::FrontendError::ParseError(
-                    format!("Invalid phase in sine voltage source '{}': must be a number", name)
-                ))?,
+            Some(phase_str) => phase_str.parse::<f64>().map_err(|_| {
+                // Fixme: replace with use as this is unnessesary long
+                crate::frontends::FrontendError::ParseError(format!(
+                    "Invalid phase in sine voltage source '{}': must be a number",
+                    name
+                ))
+            })?,
             None => 0.0, // Default value when not specified
         };
 

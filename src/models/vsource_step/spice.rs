@@ -17,23 +17,38 @@ impl ProcessSpiceElement for VSourceStepBundle {
         let offset = element.as_span().start();
         let mut inner = element.into_inner();
 
-        let name = inner.next()
-            .ok_or_else(|| crate::frontends::FrontendError::ParseError(
-                format!("Missing name in step voltage source: {}", ele)
-            ))?
+        let name = inner
+            .next()
+            .ok_or_else(|| {
+                // Fixme: replace with use
+                crate::frontends::FrontendError::ParseError(format!(
+                    "Missing name in step voltage source: {}",
+                    ele
+                ))
+            })?
             .as_str();
 
-        let node0 = inner.next()
-            .ok_or_else(|| crate::frontends::FrontendError::ParseError(
-                format!("Missing node0 in step voltage source: {}", name)
-            ))?
+        let node0 = inner
+            .next()
+            .ok_or_else(|| {
+                // Fixme: replace with use
+                crate::frontends::FrontendError::ParseError(format!(
+                    "Missing node0 in step voltage source: {}",
+                    name
+                ))
+            })?
             .as_span();
         let node0_str = &ele[node0.start() - offset..node0.end() - offset];
 
-        let node1 = inner.next()
-            .ok_or_else(|| crate::frontends::FrontendError::ParseError(
-                format!("Missing node1 in step voltage source: {}", name)
-            ))?
+        let node1 = inner
+            .next()
+            .ok_or_else(|| {
+                // Fixme: replace with use
+                crate::frontends::FrontendError::ParseError(format!(
+                    "Missing node1 in step voltage source: {}",
+                    name
+                ))
+            })?
             .as_span();
         let node1_str = &ele[node1.start() - offset..node1.end() - offset];
 
@@ -45,25 +60,35 @@ impl ProcessSpiceElement for VSourceStepBundle {
 
         // Ensure we have exactly 3 values
         if values.len() < 3 {
+            // Fixme: replace with use
             return Err(crate::frontends::FrontendError::ParseError(
                 format!("Insufficient values for step voltage source '{}': expected 3 values (initial_value, final_value, step_time)", name)
             ));
         }
 
-        let initial_value = values[0].parse::<f64>()
-            .map_err(|_| crate::frontends::FrontendError::ParseError(
-                format!("Invalid initial value in step voltage source '{}': must be a number", name)
-            ))?;
-        
-        let final_value = values[1].parse::<f64>()
-            .map_err(|_| crate::frontends::FrontendError::ParseError(
-                format!("Invalid final value in step voltage source '{}': must be a number", name)
-            ))?;
-        
-        let step_time = values[2].parse::<f64>()
-            .map_err(|_| crate::frontends::FrontendError::ParseError(
-                format!("Invalid step time in step voltage source '{}': must be a number", name)
-            ))?;
+        let initial_value = values[0].parse::<f64>().map_err(|_| {
+            // Fixme: replace with use
+            crate::frontends::FrontendError::ParseError(format!(
+                "Invalid initial value in step voltage source '{}': must be a number",
+                name
+            ))
+        })?;
+
+        let final_value = values[1].parse::<f64>().map_err(|_| {
+            // Fixme: replace with use
+            crate::frontends::FrontendError::ParseError(format!(
+                "Invalid final value in step voltage source '{}': must be a number",
+                name
+            ))
+        })?;
+
+        let step_time = values[2].parse::<f64>().map_err(|_| {
+            // Fixme: replace with use
+            crate::frontends::FrontendError::ParseError(format!(
+                "Invalid step time in step voltage source '{}': must be a number",
+                name
+            ))
+        })?;
 
         let branch = Variable::new(
             Arc::from(format!("branch_{}", name)),

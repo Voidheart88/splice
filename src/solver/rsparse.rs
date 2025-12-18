@@ -1,5 +1,8 @@
 #![allow(unused)]
 
+// FIXME: This Solver used to be the fastest once. After a refactor this solvers performance got very
+// slow. This should be evaluated and fixed
+
 use std::collections::HashMap;
 use std::hash::Hash;
 
@@ -13,6 +16,7 @@ use num::{Complex, Zero};
 use rsparse::data::{Nmrc, Sprs, Symb, Trpl};
 use rsparse::lusol;
 
+// FIXME: Document this like the documentation in the FaerSolver (faer.rs)
 /// A Solver implementation using the Faer library.
 #[derive(Debug)]
 pub struct RSparseSolver {
@@ -109,11 +113,14 @@ impl Solver for RSparseSolver {
         if self.symb.is_none() {
             self.symb = Some(rsparse::sqr(&self.sprs, 1, false))
         }
+        // FIXME: This could be an returned SolverError but is expect instead
         let mut symb = self.symb.take()
             .expect("Symbolic analysis data missing. This indicates the solver was not properly initialized.");
 
-        self.lu = rsparse::lu(&self.sprs, &mut symb, 1e-6)
-            .expect("LU decomposition failed. This indicates a singular or ill-conditioned matrix.");
+        // FIXME: This could be an returned SolverError but is expect instead
+        self.lu = rsparse::lu(&self.sprs, &mut symb, 1e-6).expect(
+            "LU decomposition failed. This indicates a singular or ill-conditioned matrix.",
+        );
 
         ipvec(self.sprs.n, &self.lu.pinv, &self.b_vec, &mut self.x_vec[..]);
         rsparse::lsolve(&self.lu.l, &mut self.x_vec);
@@ -214,6 +221,7 @@ impl RSparseSolver {
             entries.push((*row + self.vars, *col + self.vars, val.re));
         });
 
+        // FIXME: This nests too deep and should be refactored
         entries.sort_unstable_by(
             |(r1, c1, _), (r2, c2, _)| {
                 if c1 != c2 {
@@ -278,6 +286,7 @@ impl RSparseSolver {
             .iter()
             .for_each(|((row, col), val)| entries.push((*row, *col, *val)));
 
+        // FIXME: This nests too deep and should be refactored
         entries.sort_unstable_by(
             |(r1, c1, _), (r2, c2, _)| {
                 if c1 != c2 {
@@ -313,7 +322,9 @@ impl RSparseSolver {
 fn ipvec(n: usize, p: &Option<Vec<isize>>, b: &[Numeric], x: &mut [Numeric]) {
     for k in 0..n {
         if p.is_some() {
-            x[p.as_ref().expect("Permutation vector missing in ipvec. This indicates a solver internal error.")[k] as usize] = b[k];
+            x[p.as_ref().expect(
+                "Permutation vector missing in ipvec. This indicates a solver internal error.",
+            )[k] as usize] = b[k];
         } else {
             x[k] = b[k];
         }

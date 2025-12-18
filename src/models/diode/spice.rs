@@ -12,9 +12,8 @@ impl ProcessSpiceElement for DiodeBundle {
         elements: &mut Vec<crate::models::Element>,
         var_map: &mut std::collections::HashMap<std::sync::Arc<str>, usize>,
     ) -> Result<(), crate::frontends::FrontendError> {
-        // Use the helper parser for common parsing logic
         let mut parser = SpiceElementParser::new(element);
-        
+
         // Parse using the abstracted helper methods
         let name = parser.parse_name("diode")?;
         let node0 = parser.parse_node("diode", name, "node0")?;

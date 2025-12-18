@@ -1,6 +1,6 @@
-pub(crate) mod serde;
 /// The Isource Module. As every module this module encapsulates exerything regarding this bundle
 /// This includes parsing from various formats as well as the conductance-behaviour.
+pub(crate) mod serde;
 pub(crate) mod spice;
 
 use std::sync::Arc;

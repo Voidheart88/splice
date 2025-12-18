@@ -1,4 +1,4 @@
-// Intelligent solver selection based on circuit characteristics
+/// Intelligent solver selection based on circuit characteristics
 use super::{FaerSparseSolver, NalgebraSolver, Solver, SolverError};
 
 /// Solver selection strategy based on circuit size and characteristics
@@ -21,6 +21,7 @@ impl SolverSelector {
     pub fn new(strategy: SolverSelectionStrategy) -> Self {
         SolverSelector {
             strategy,
+            // FIXME: This Threshold should be located in spot.rs
             circuit_size_threshold: 50, // Default threshold: 50 variables
         }
     }
@@ -59,10 +60,12 @@ impl SolverSelector {
         // - Small circuits (<10 vars): Nalgebra is fastest
         // - Medium circuits (10-100 vars): FaerSparse is best
         // - Large circuits (>100 vars): FaerSparse dominates
-        
+
+        // FIXME: This Threshold should be located in spot.rs
         if vars < 10 {
             // Very small circuits: Nalgebra is fastest
             Ok(Box::new(NalgebraSolver::new(vars)?))
+        // FIXME: This Threshold should be located in spot.rs
         } else if vars < 100 {
             // Small to medium circuits: FaerSparse is best
             Ok(Box::new(FaerSparseSolver::new(vars)?))
@@ -76,8 +79,10 @@ impl SolverSelector {
     pub fn recommend_solver(&self, vars: usize) -> &'static str {
         match self.strategy {
             SolverSelectionStrategy::Automatic => {
+                // FIXME: This Threshold should be located in spot.rs
                 if vars < 10 {
                     "NalgebraSolver (best for very small circuits)"
+                // FIXME: This Threshold should be located in spot.rs
                 } else if vars < 100 {
                     "FaerSparseSolver (best for small-medium circuits)"
                 } else {
@@ -95,56 +100,59 @@ impl SolverSelector {
     }
 }
 
+// FIXME: These Test should be located in the tests folder/module in src/solver/tests
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_automatic_solver_selection() {
         let selector = SolverSelector::new(SolverSelectionStrategy::Automatic);
-        
+
         // Test that we can create solvers for different sizes
         // We can't easily check the type, but we can verify the selector works
+        // CHECK: Do these thresholds should be located in spot.rs
         assert!(selector.select_solver(5).is_ok());
         assert!(selector.select_solver(50).is_ok());
         assert!(selector.select_solver(200).is_ok());
     }
-    
+
     #[test]
     fn test_hybrid_solver_selection() {
         let selector = SolverSelector::new(SolverSelectionStrategy::Hybrid);
-        
+
         // Test that we can create solvers for different sizes
+        // CHECK: Do these thresholds should be located in spot.rs
         assert!(selector.select_solver(5).is_ok());
         assert!(selector.select_solver(200).is_ok());
     }
-    
+
     #[test]
     fn test_custom_threshold() {
         let selector = SolverSelector::with_threshold(
-            SolverSelectionStrategy::Hybrid, 
-            20  // Custom threshold
+            SolverSelectionStrategy::Hybrid,
+            20, // Custom threshold
         );
-        
+
         // Test that we can create solvers with custom threshold
         assert!(selector.select_solver(10).is_ok());
         assert!(selector.select_solver(30).is_ok());
     }
-    
+
     #[test]
     fn test_solver_recommendation() {
         let selector = SolverSelector::new(SolverSelectionStrategy::Automatic);
-        
+
         assert_eq!(
             selector.recommend_solver(5),
             "NalgebraSolver (best for very small circuits)"
         );
-        
+
         assert_eq!(
             selector.recommend_solver(50),
             "FaerSparseSolver (best for small-medium circuits)"
         );
-        
+
         assert_eq!(
             selector.recommend_solver(200),
             "FaerSparseSolver (best for large circuits)"

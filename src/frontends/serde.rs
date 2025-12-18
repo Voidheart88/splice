@@ -6,7 +6,7 @@ use std::sync::Arc;
 use super::{Element, Frontend, FrontendError, Simulation};
 
 use crate::models::capacitor::serde::SerdeCapacitor;
-use crate::models::SerdeCoupledInductors;
+use crate::models::controlled_sources::serde::{SerdeCCCS, SerdeCCVS, SerdeVCCS, SerdeVCVS};
 use crate::models::diode::serde::SerdeDiode;
 use crate::models::gain::serde::SerdeGain;
 use crate::models::inductor::serde::SerdeInductor;
@@ -16,7 +16,7 @@ use crate::models::resistor::serde::SerdeResistor;
 use crate::models::vsource::serde::SerdeVSource;
 use crate::models::vsource_sine::serde::SerdeVSourceSin;
 use crate::models::vsource_step::serde::SerdeVSourceStep;
-use crate::models::controlled_sources::serde::{SerdeVCVS, SerdeVCCS, SerdeCCCS, SerdeCCVS};
+use crate::models::SerdeCoupledInductors;
 use crate::models::Variable;
 use crate::sim::commands::ACMode;
 use crate::sim::commands::SimulationCommand;
@@ -90,21 +90,26 @@ impl SerdeDC {
     pub fn source(&self) -> &str {
         &self.source
     }
-    
+
     pub fn vstart(&self) -> Numeric {
         self.vstart
     }
-    
+
     pub fn vstop(&self) -> Numeric {
         self.vstop
     }
-    
+
     pub fn vstep(&self) -> Numeric {
         self.vstep
     }
-    
+
     pub fn new(source: String, vstart: Numeric, vstop: Numeric, vstep: Numeric) -> Self {
-        Self { source, vstart, vstop, vstep }
+        Self {
+            source,
+            vstart,
+            vstop,
+            vstep,
+        }
     }
 }
 
@@ -122,11 +127,11 @@ impl SerdeAC {
     pub fn fstart(&self) -> Numeric {
         self.fstart
     }
-    
+
     pub fn fstop(&self) -> Numeric {
         self.fstop
     }
-    
+
     pub fn fstep(&self) -> usize {
         self.fstep
     }
@@ -145,7 +150,7 @@ impl SerdeTran {
     pub fn tstep(&self) -> Numeric {
         self.tstep
     }
-    
+
     pub fn tend(&self) -> Numeric {
         self.tend
     }
@@ -199,7 +204,10 @@ impl SerdeFrontend {
     /// # Returns
     ///
     /// * `Result<Self, FrontendError>` - A new `SerdeFrontend` instance if successful, or an error.
-    pub(crate) fn try_new_from_path(path: String, format: SerdeFormat) -> Result<Self, FrontendError> {
+    pub(crate) fn try_new_from_path(
+        path: String,
+        format: SerdeFormat,
+    ) -> Result<Self, FrontendError> {
         let mut circuit_string = String::new();
         match File::open(path) {
             Ok(mut file) => file.read_to_string(&mut circuit_string)?,
@@ -234,6 +242,7 @@ impl SerdeFrontend {
             SerdeFormat::Json => serde_json::from_str(&circuit_string)?,
         };
 
+        // Check: see network frontend „similar“
         for element in circuit.elements {
             match element {
                 SerdeElement::Resistor(ele) => {

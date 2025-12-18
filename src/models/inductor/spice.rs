@@ -14,7 +14,7 @@ impl ProcessSpiceElement for InductorBundle {
     ) -> Result<(), crate::frontends::FrontendError> {
         // Use the helper parser for common parsing logic
         let mut parser = SpiceElementParser::new(element);
-        
+
         // Parse using the abstracted helper methods
         let name = parser.parse_name("inductor")?;
         let node0 = parser.parse_node("inductor", name, "node0")?;

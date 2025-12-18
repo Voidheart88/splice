@@ -23,10 +23,14 @@ impl From<SerdeVSourceStep> for Element {
             Unit::Ampere,
             0, // Will be updated during processing
         );
-        
-        let node0 = value.node0.map(|n| Variable::new(Arc::from(n), Unit::Volt, 0));
-        let node1 = value.node1.map(|n| Variable::new(Arc::from(n), Unit::Volt, 0));
-        
+
+        let node0 = value
+            .node0
+            .map(|n| Variable::new(Arc::from(n), Unit::Volt, 0));
+        let node1 = value
+            .node1
+            .map(|n| Variable::new(Arc::from(n), Unit::Volt, 0));
+
         Element::VSourceStep(VSourceStepBundle::new(
             Arc::from(value.name),
             branch,
@@ -54,9 +58,9 @@ impl From<VSourceStepBundle> for SerdeVSourceStep {
     }
 }
 
-use std::collections::HashMap;
 use crate::frontends::get_variable;
 use crate::frontends::serde::ProcessSerdeElement;
+use std::collections::HashMap;
 
 impl ProcessSerdeElement for SerdeVSourceStep {
     fn process(
@@ -72,8 +76,18 @@ impl ProcessSerdeElement for SerdeVSourceStep {
         );
         variables.push(branch.clone());
 
-        let node0 = get_variable(self.node0.as_deref().unwrap_or(""), Unit::Volt, variables, var_map);
-        let node1 = get_variable(self.node1.as_deref().unwrap_or(""), Unit::Volt, variables, var_map);
+        let node0 = get_variable(
+            self.node0.as_deref().unwrap_or(""),
+            Unit::Volt,
+            variables,
+            var_map,
+        );
+        let node1 = get_variable(
+            self.node1.as_deref().unwrap_or(""),
+            Unit::Volt,
+            variables,
+            var_map,
+        );
 
         let vsource_step = VSourceStepBundle::new(
             Arc::from(self.name.as_str()),

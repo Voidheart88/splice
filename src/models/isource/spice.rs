@@ -14,7 +14,7 @@ impl ProcessSpiceElement for ISourceBundle {
     ) -> Result<(), crate::frontends::FrontendError> {
         // Use the helper parser for common parsing logic
         let mut parser = SpiceElementParser::new(element);
-        
+
         // Parse using the abstracted helper methods
         let name = parser.parse_name("current source")?;
         let node0 = parser.parse_node("current source", name, "node0")?;

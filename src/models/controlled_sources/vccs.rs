@@ -1,9 +1,9 @@
-use std::sync::Arc;
+use crate::frontends::spice::{ProcessSpiceElement, Rule};
+use crate::models::{TripleIdx, Triples, Variable};
 use crate::spot::Numeric;
-use crate::models::{Variable, Triples, TripleIdx};
-use crate::frontends::spice::{Rule, ProcessSpiceElement};
 use crate::{Element, FrontendError};
 use pest::iterators::Pair;
+use std::sync::Arc;
 
 use num::Complex;
 
@@ -18,7 +18,9 @@ pub struct VCCSOptions {
 
 impl Default for VCCSOptions {
     fn default() -> Self {
-        Self { transconductance: 1.0 }
+        Self {
+            transconductance: 1.0,
+        }
     }
 }
 
@@ -131,11 +133,28 @@ impl VCCSBundle {
             self.controlling_negative.as_ref().map(|v| v.idx()),
         ) {
             // VCCS AC contributions (same as DC since it's linear and frequency-independent)
+            // FIXME: This nests too deep and needs a refactor
             Triples::new(&[
-                (pos_idx, ctrl_pos_idx, Complex::new(self.options.transconductance, 0.0)),
-                (pos_idx, ctrl_neg_idx, Complex::new(-self.options.transconductance, 0.0)),
-                (neg_idx, ctrl_pos_idx, Complex::new(-self.options.transconductance, 0.0)),
-                (neg_idx, ctrl_neg_idx, Complex::new(self.options.transconductance, 0.0)),
+                (
+                    pos_idx,
+                    ctrl_pos_idx,
+                    Complex::new(self.options.transconductance, 0.0),
+                ),
+                (
+                    pos_idx,
+                    ctrl_neg_idx,
+                    Complex::new(-self.options.transconductance, 0.0),
+                ),
+                (
+                    neg_idx,
+                    ctrl_pos_idx,
+                    Complex::new(-self.options.transconductance, 0.0),
+                ),
+                (
+                    neg_idx,
+                    ctrl_neg_idx,
+                    Complex::new(self.options.transconductance, 0.0),
+                ),
             ])
         } else {
             Triples::new(&[])
@@ -158,8 +177,8 @@ impl ProcessSpiceElement for VCCSBundle {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::Arc;
     use crate::models::Unit;
+    use std::sync::Arc;
 
     fn create_var(name: &str, idx: usize) -> Variable {
         Variable::new(Arc::from(name), Unit::Volt, idx)
@@ -167,29 +186,17 @@ mod tests {
 
     #[test]
     fn test_vccs_creation() {
-        let vccs = VCCSBundle::new(
-            Arc::from("G1"),
-            None,
-            None,
-            None,
-            None,
-            None,
-        );
+        let vccs = VCCSBundle::new(Arc::from("G1"), None, None, None, None, None);
         assert_eq!(vccs.name(), Arc::from("G1"));
         assert_eq!(vccs.options.transconductance, 1.0);
     }
 
     #[test]
     fn test_vccs_with_options() {
-        let options = VCCSOptions { transconductance: 0.1 };
-        let vccs = VCCSBundle::new(
-            Arc::from("G1"),
-            None,
-            None,
-            None,
-            None,
-            Some(options),
-        );
+        let options = VCCSOptions {
+            transconductance: 0.1,
+        };
+        let vccs = VCCSBundle::new(Arc::from("G1"), None, None, None, None, Some(options));
         assert_eq!(vccs.options.transconductance, 0.1);
     }
 
@@ -206,7 +213,9 @@ mod tests {
             Some(v4.clone()),
             Some(v1.clone()),
             Some(v2.clone()),
-            Some(VCCSOptions { transconductance: 0.05 }),
+            Some(VCCSOptions {
+                transconductance: 0.05,
+            }),
         );
 
         let triples = vccs.triples();
@@ -214,10 +223,9 @@ mod tests {
 
         // Check specific triple values
         let data = triples.data();
-        assert_eq!(data[0], (2, 0, 0.05));   // pos-ctrl_pos with transconductance
-        assert_eq!(data[1], (2, 1, -0.05));  // pos-ctrl_neg with -transconductance
-        assert_eq!(data[2], (3, 0, -0.05));  // neg-ctrl_pos with -transconductance
-        assert_eq!(data[3], (3, 1, 0.05));   // neg-ctrl_neg with transconductance
+        assert_eq!(data[0], (2, 0, 0.05)); // pos-ctrl_pos with transconductance
+        assert_eq!(data[1], (2, 1, -0.05)); // pos-ctrl_neg with -transconductance
+        assert_eq!(data[2], (3, 0, -0.05)); // neg-ctrl_pos with -transconductance
+        assert_eq!(data[3], (3, 1, 0.05)); // neg-ctrl_neg with transconductance
     }
 }
-

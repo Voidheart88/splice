@@ -36,19 +36,31 @@ pub fn analyze_circuit_and_suggest_settings(
 
     // Perform comprehensive circuit analysis
     let circuit_analysis = analyze_circuit_elements(elements);
-    
+
     // Analyze simulation commands
-    let has_transient = commands.iter().any(|cmd| matches!(cmd, SimulationCommand::Tran(_, _)));
-    let has_ac = commands.iter().any(|cmd| matches!(cmd, SimulationCommand::Ac(_, _, _, _)));
-    let has_dc = commands.iter().any(|cmd| matches!(cmd, SimulationCommand::Dc(_, _, _, _, _)));
+    let has_transient = commands
+        .iter()
+        .any(|cmd| matches!(cmd, SimulationCommand::Tran(_, _)));
+    let has_ac = commands
+        .iter()
+        .any(|cmd| matches!(cmd, SimulationCommand::Ac(_, _, _, _)));
+    let has_dc = commands
+        .iter()
+        .any(|cmd| matches!(cmd, SimulationCommand::Dc(_, _, _, _, _)));
 
     info!("Circuit analysis:");
-    info!("  Nonlinear elements: {}", circuit_analysis.has_nonlinear_elements);
+    info!(
+        "  Nonlinear elements: {}",
+        circuit_analysis.has_nonlinear_elements
+    );
     info!("  Capacitors: {}", circuit_analysis.has_capacitors);
     info!("  Inductors: {}", circuit_analysis.has_inductors);
     info!("  Diodes: {}", circuit_analysis.has_diodes);
     info!("  MOSFETs: {}", circuit_analysis.has_mosfets);
-    info!("  Simulation types - Transient: {}, AC: {}, DC: {}", has_transient, has_ac, has_dc);
+    info!(
+        "  Simulation types - Transient: {}, AC: {}, DC: {}",
+        has_transient, has_ac, has_dc
+    );
 
     // Display time constant analysis
     if let Some(min_tc) = circuit_analysis.time_constants.min_time_constant {
@@ -62,14 +74,20 @@ pub fn analyze_circuit_and_suggest_settings(
     let integration_method = suggest_integration_method(
         circuit_analysis.has_nonlinear_elements,
         circuit_analysis.has_capacitors,
-        circuit_analysis.has_inductors
+        circuit_analysis.has_inductors,
     );
-    options.push(SimulationOption::IntegrationMethod(integration_method.clone()));
+    options.push(SimulationOption::IntegrationMethod(
+        integration_method.clone(),
+    ));
 
     // Suggest optimal timestep for transient simulations
     if has_transient {
         if let Some(suggested_timestep) = suggest_optimal_timestep(&circuit_analysis) {
-            info!("  -> Suggested max timestep: {:.2e} s for transient analysis", suggested_timestep);
+            info!(
+                "  -> Suggested max timestep: {:.2e} s for transient analysis",
+                suggested_timestep
+            );
+            // FIXME: It may be part of the tran command, but since it is an autotune functionality this MUST be set by the autottuner
             // Note: We can't directly set the timestep here as it's part of the Tran command,
             // but we can log the suggestion for the user
         }
@@ -113,24 +131,25 @@ fn analyze_circuit_elements(elements: &[Element]) -> CircuitCharacteristics {
             Element::Capacitor(cap) => {
                 capacitors.push(cap.value);
                 characteristics.has_capacitors = true;
-            },
+            }
             Element::Inductor(ind) => {
                 inductors.push(ind.value);
                 characteristics.has_inductors = true;
-            },
+            }
             Element::Diode(_) => {
                 characteristics.has_diodes = true;
                 characteristics.has_nonlinear_elements = true;
-            },
+            }
             Element::Mos0(_) => {
                 characteristics.has_mosfets = true;
                 characteristics.has_nonlinear_elements = true;
-            },
+            }
             _ => {}
         }
     }
 
     // Analyze time constants
+    // CHECK: Check if this can be refactored with early returns for readability
     if !resistors.is_empty() {
         if !capacitors.is_empty() {
             characteristics.time_constants.has_rc_circuits = true;
@@ -160,17 +179,18 @@ fn analyze_circuit_elements(elements: &[Element]) -> CircuitCharacteristics {
 fn update_time_constants(analysis: &mut TimeConstantAnalysis, new_time_constants: &[Numeric]) {
     for &tc in new_time_constants {
         // Filter out extremely small or large values that might be numerical artifacts
+        // CHECK: Check if this can be refactored with early returns to reduce the nesting
         if tc > 1e-15 && tc < 1e3 {
             match analysis.min_time_constant {
                 Some(min_tc) if tc < min_tc => analysis.min_time_constant = Some(tc),
                 None => analysis.min_time_constant = Some(tc),
-                _ => {}
+                Some(_) => {}
             }
 
             match analysis.max_time_constant {
                 Some(max_tc) if tc > max_tc => analysis.max_time_constant = Some(tc),
                 None => analysis.max_time_constant = Some(tc),
-                _ => {}
+                Some(_) => {}
             }
         }
     }
@@ -183,6 +203,7 @@ fn suggest_integration_method(
     has_inductors: bool,
 ) -> IntegrationMethod {
     // Default to Backward Euler for stability, especially with nonlinear elements
+    // CHECK if this is the best solution. Isnt TRAPS better for nonlinear Elements?
     if has_nonlinear_elements {
         info!("  -> Using Backward Euler for stability with nonlinear elements");
         return IntegrationMethod::BackwardEuler;
@@ -219,17 +240,21 @@ fn suggest_optimal_timestep(analysis: &CircuitCharacteristics) -> Option<Numeric
 
 /// Suggests AC analysis parameters based on circuit characteristics
 fn suggest_ac_parameters_based_on_circuit(analysis: &CircuitCharacteristics) {
-    if let (Some(min_tc), Some(max_tc)) = 
-        (analysis.time_constants.min_time_constant, analysis.time_constants.max_time_constant) {
-        
+    if let (Some(min_tc), Some(max_tc)) = (
+        analysis.time_constants.min_time_constant,
+        analysis.time_constants.max_time_constant,
+    ) {
         // Calculate frequency range based on time constants
         // f_min = 1/(2π * max_time_constant)
         // f_max = 1/(2π * min_time_constant)
         let f_min = 1.0 / (2.0 * std::f64::consts::PI * max_tc);
         let f_max = 1.0 / (2.0 * std::f64::consts::PI * min_tc);
-        
-        info!("  -> Suggested AC frequency range: {:.2e} Hz to {:.2e} Hz", f_min, f_max);
-        
+
+        info!(
+            "  -> Suggested AC frequency range: {:.2e} Hz to {:.2e} Hz",
+            f_min, f_max
+        );
+
         // Suggest logarithmic scale for wide frequency ranges
         if f_max / f_min > 100.0 {
             info!("  -> Suggested AC mode: Decade (logarithmic scale) for wide frequency range");

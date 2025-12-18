@@ -26,8 +26,8 @@ use serde::Serialize;
 
 pub use self::capacitor::CapacitorBundle;
 pub use self::controlled_sources::{CCCSBundle, CCVSBundle, VCCSBundle, VCVSBundle};
-pub use self::coupled_inductors::CoupledInductorsBundle;
 pub use self::coupled_inductors::serde::SerdeCoupledInductors;
+pub use self::coupled_inductors::CoupledInductorsBundle;
 pub use self::diode::DiodeBundle;
 pub use self::gain::GainBundle;
 pub use self::inductor::InductorBundle;
@@ -77,7 +77,8 @@ impl Serialize for Variable {
             name: self.0.to_string(),
             unit: self.1,
             idx: self.2,
-        }.serialize(serializer)
+        }
+        .serialize(serializer)
     }
 }
 
@@ -167,7 +168,11 @@ impl Element {
     }
 
     /// Returns the time variant pairs of the element, if applicable.
-    pub(crate) fn get_time_variant_pairs(&self, time: Option<&Numeric>, delta_t: &Numeric) -> Option<Pairs<Numeric, 2>> {
+    pub(crate) fn get_time_variant_pairs(
+        &self,
+        time: Option<&Numeric>,
+        delta_t: &Numeric,
+    ) -> Option<Pairs<Numeric, 2>> {
         match self {
             Element::VSourceSin(ele) => Some(ele.pairs(time)),
             Element::VSourceStep(ele) => Some(ele.pairs(time)),
@@ -183,7 +188,11 @@ impl Element {
     }
 
     /// Returns the time variant pairs of the element using trapezoidal integration, if applicable.
-    pub(crate) fn get_time_variant_pairs_trapezoidal(&self, time: Option<&Numeric>, delta_t: &Numeric) -> Option<Pairs<Numeric, 2>> {
+    pub(crate) fn get_time_variant_pairs_trapezoidal(
+        &self,
+        time: Option<&Numeric>,
+        delta_t: &Numeric,
+    ) -> Option<Pairs<Numeric, 2>> {
         match self {
             Element::VSourceSin(ele) => Some(ele.pairs(time)), // Time sources use same method
             Element::VSourceStep(ele) => Some(ele.pairs(time)), // Time sources use same method
@@ -226,7 +235,10 @@ impl Element {
 
     /// Checks if the element is nonlinear.
     pub(crate) fn is_nonlinear(&self) -> bool {
-        matches!(self, Element::Diode(_) | Element::Mos0(_) | Element::CoupledInductors(_))
+        matches!(
+            self,
+            Element::Diode(_) | Element::Mos0(_) | Element::CoupledInductors(_)
+        )
     }
 
     /// Returns the AC triples. AC Triples are dependent on frequency f.
@@ -338,10 +350,10 @@ impl Element {
     /// Returns a list of validation errors, if any
     pub fn setup_coupled_inductors(elements: &mut [Element]) -> Vec<String> {
         let mut errors = Vec::new();
-        
+
         // First, collect all inductor names and their node indices
         let mut inductor_map: HashMap<Arc<str>, (Option<usize>, Option<usize>)> = HashMap::new();
-        
+
         for element in elements.iter() {
             if let Element::Inductor(ind) = element {
                 inductor_map.insert(ind.name.clone(), (ind.node0_idx(), ind.node1_idx()));
@@ -349,6 +361,7 @@ impl Element {
         }
 
         // Then, set up the coupled inductors with the node indices
+        // Fixme: This nests way too deep and needs a refactor
         for element in elements.iter_mut() {
             if let Element::CoupledInductors(coupled) = element {
                 // Validate coupling factor
@@ -356,25 +369,28 @@ impl Element {
                 if coupling_factor <= Numeric::zero() || coupling_factor >= Numeric::one() {
                     errors.push(format!(
                         "Coupled inductors '{}': Invalid coupling factor {}. Must be 0 < k < 1",
-                        coupled.name(), coupling_factor
+                        coupled.name(),
+                        coupling_factor
                     ));
                 }
 
                 // Check if referenced inductors exist
                 let inductor1_name = coupled.inductor1();
                 let inductor2_name = coupled.inductor2();
-                
+
                 if !inductor_map.contains_key(&inductor1_name) {
                     errors.push(format!(
                         "Coupled inductors '{}': Referenced inductor '{}' not found",
-                        coupled.name(), inductor1_name
+                        coupled.name(),
+                        inductor1_name
                     ));
                 }
-                
+
                 if !inductor_map.contains_key(&inductor2_name) {
                     errors.push(format!(
                         "Coupled inductors '{}': Referenced inductor '{}' not found",
-                        coupled.name(), inductor2_name
+                        coupled.name(),
+                        inductor2_name
                     ));
                 }
 
@@ -382,32 +398,38 @@ impl Element {
                 if inductor1_name == inductor2_name {
                     errors.push(format!(
                         "Coupled inductors '{}': Inductor '{}' cannot be coupled to itself",
-                        coupled.name(), inductor1_name
+                        coupled.name(),
+                        inductor1_name
                     ));
                 }
 
                 // Only set node indices if both inductors exist and are valid
-                if inductor_map.contains_key(&inductor1_name) && inductor_map.contains_key(&inductor2_name) {
+                if inductor_map.contains_key(&inductor1_name)
+                    && inductor_map.contains_key(&inductor2_name)
+                {
                     if let Some((node0_idx1, node1_idx1)) = inductor_map.get(&inductor1_name) {
                         if let Some((node0_idx2, node1_idx2)) = inductor_map.get(&inductor2_name) {
                             // Validate that inductors have proper node connections
                             if node0_idx1.is_none() && node1_idx1.is_none() {
                                 errors.push(format!(
                                     "Coupled inductors '{}': Inductor '{}' has no node connections",
-                                    coupled.name(), inductor1_name
+                                    coupled.name(),
+                                    inductor1_name
                                 ));
                             }
-                            
+
                             if node0_idx2.is_none() && node1_idx2.is_none() {
                                 errors.push(format!(
                                     "Coupled inductors '{}': Inductor '{}' has no node connections",
-                                    coupled.name(), inductor2_name
+                                    coupled.name(),
+                                    inductor2_name
                                 ));
                             }
 
                             // Set node indices only if both inductors have valid connections
-                            if (node0_idx1.is_some() || node1_idx1.is_some()) && 
-                               (node0_idx2.is_some() || node1_idx2.is_some()) {
+                            if (node0_idx1.is_some() || node1_idx1.is_some())
+                                && (node0_idx2.is_some() || node1_idx2.is_some())
+                            {
                                 coupled.set_node_indices(
                                     *node0_idx1,
                                     *node1_idx1,
@@ -420,7 +442,7 @@ impl Element {
                 }
             }
         }
-        
+
         errors
     }
 }

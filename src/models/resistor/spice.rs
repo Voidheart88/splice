@@ -5,7 +5,6 @@ use crate::frontends::spice::ProcessSpiceElement;
 use crate::frontends::spice_parser_helpers::SpiceElementParser;
 use crate::models::{Element, ResistorBundle, Unit};
 
-
 impl ProcessSpiceElement for ResistorBundle {
     fn process(
         element: pest::iterators::Pair<crate::frontends::spice::Rule>,
@@ -15,7 +14,7 @@ impl ProcessSpiceElement for ResistorBundle {
     ) -> Result<(), crate::frontends::FrontendError> {
         // Use the helper parser for common parsing logic
         let mut parser = SpiceElementParser::new(element);
-        
+
         // Parse using the abstracted helper methods
         let name = parser.parse_name("resistor")?;
         let node0 = parser.parse_node("resistor", name, "node0")?;

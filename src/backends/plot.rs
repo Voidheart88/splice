@@ -397,10 +397,12 @@ impl PlotBackend {
             (Some(v1), Some(v2)) => (v1, v2),
         };
 
-        let fmin = data.iter().map(|(freq, _)| *freq as u32).min()
-            .expect("No frequency data available for plotting. This indicates empty AC analysis results.");
-        let fmax = data.iter().map(|(freq, _)| *freq as u32).max()
-            .expect("No frequency data available for plotting. This indicates empty AC analysis results.");
+        let fmin = data.iter().map(|(freq, _)| *freq as u32).min().expect(
+            "No frequency data available for plotting. This indicates empty AC analysis results.",
+        );
+        let fmax = data.iter().map(|(freq, _)| *freq as u32).max().expect(
+            "No frequency data available for plotting. This indicates empty AC analysis results.",
+        );
 
         let (upper, lower) = root.split_vertically(450);
 

@@ -1,6 +1,6 @@
-pub(crate) mod serde;
 /// The Diode Module. As every module this module encapsulates exerything regarding a resistor bundle
 /// This includes parsing from various formats as well as the conductance-behaviour.
+pub(crate) mod serde;
 pub(crate) mod spice;
 
 use std::sync::Arc;
@@ -93,14 +93,18 @@ impl DiodeBundle {
             idx
         } else {
             // If anode doesn't exist, diode is connected to ground through cathode
-            let c_idx = self.c_idx().expect("Diode must have at least one node connected");
+            let c_idx = self
+                .c_idx()
+                .expect("Diode must have at least one node connected");
             return Triples::new(&[(c_idx, c_idx, cond)]);
         };
         let c_idx = if let Some(idx) = self.c_idx() {
             idx
         } else {
             // If cathode doesn't exist, diode is connected to ground through anode
-            let a_idx = self.a_idx().expect("Diode must have at least one node connected");
+            let a_idx = self
+                .a_idx()
+                .expect("Diode must have at least one node connected");
             return Triples::new(&[(a_idx, a_idx, cond)]);
         };
 
@@ -152,7 +156,9 @@ impl DiodeBundle {
             idx
         } else {
             // If anode doesn't exist, diode is connected to ground through cathode
-            let c_idx = self.c_idx().expect("Diode must have at least one node connected");
+            let c_idx = self
+                .c_idx()
+                .expect("Diode must have at least one node connected");
             return Pairs::new(&[(c_idx, cc)]);
         };
 
@@ -160,7 +166,9 @@ impl DiodeBundle {
             idx
         } else {
             // If cathode doesn't exist, diode is connected to ground through anode
-            let a_idx = self.a_idx().expect("Diode must have at least one node connected");
+            let a_idx = self
+                .a_idx()
+                .expect("Diode must have at least one node connected");
             return Pairs::new(&[(a_idx, ca)]);
         };
 

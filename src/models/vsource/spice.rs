@@ -15,7 +15,7 @@ impl ProcessSpiceElement for VSourceBundle {
     ) -> Result<(), crate::frontends::FrontendError> {
         // Use the helper parser for common parsing logic
         let mut parser = SpiceElementParser::new(element);
-        
+
         // Parse using the abstracted helper methods
         let name = parser.parse_name("voltage source")?;
         let node0 = parser.parse_node("voltage source", name, "node0")?;
@@ -25,15 +25,20 @@ impl ProcessSpiceElement for VSourceBundle {
         // Parse optional AC value using the helper's remaining values
         let remaining = parser.parse_remaining_values();
         let ac_value = if !remaining.is_empty() {
-            let ac_val_str = remaining[0].split(" ")
-                .nth(1)
-                .ok_or_else(|| crate::frontends::FrontendError::ParseError(
-                    format!("Missing AC value in voltage source: {}", name)
-                ))?;
-            let ac_val = ac_val_str.parse::<Numeric>()
-                .map_err(|_| crate::frontends::FrontendError::ParseError(
-                    format!("Invalid AC value in voltage source '{}': must be a number", name)
-                ))?;
+            let ac_val_str = remaining[0].split(" ").nth(1).ok_or_else(|| {
+                // Fixme: replace with use because this is too long
+                crate::frontends::FrontendError::ParseError(format!(
+                    "Missing AC value in voltage source: {}",
+                    name
+                ))
+            })?;
+            let ac_val = ac_val_str.parse::<Numeric>().map_err(|_| {
+                // Fixme: replace with use because this is too long
+                crate::frontends::FrontendError::ParseError(format!(
+                    "Invalid AC value in voltage source '{}': must be a number",
+                    name
+                ))
+            })?;
             Some(ac_val)
         } else {
             None
@@ -41,9 +46,13 @@ impl ProcessSpiceElement for VSourceBundle {
 
         // Create branch variable
         let branch_var = get_variable(&format!("{name}#branch"), Unit::Ampere, variables, var_map)
-            .ok_or_else(|| crate::frontends::FrontendError::ParseError(
-                format!("Failed to create branch variable for voltage source: {}", name)
-            ))?;
+            .ok_or_else(|| {
+                // Fixme: replace with use because this is too long
+                crate::frontends::FrontendError::ParseError(format!(
+                    "Failed to create branch variable for voltage source: {}",
+                    name
+                ))
+            })?;
 
         let src = VSourceBundle::new(
             Arc::from(name),
