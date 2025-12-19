@@ -10,13 +10,35 @@ use crate::spot::*;
 use crate::Simulator;
 
 /// Helper function to set voltage source voltage
+///
+/// This function updates the voltage of a voltage source element.
+/// Used in DC sweep analysis to vary the voltage source value.
 fn set_vsource_voltage(element: &mut Element, voltage: Numeric) {
     if let Element::VSource(ref mut vs) = element {
         vs.set_voltage(voltage);
     }
 }
 
+/// Trait for DC sweep simulation.
+///
+/// DC analysis performs a sweep of a voltage source over a specified range
+/// and collects the circuit response at each step. This is useful for
+/// analyzing circuit behavior over different operating conditions.
 pub(super) trait DcSimulation<SO: Solver> {
+    /// Runs a DC sweep analysis.
+    ///
+    /// # Arguments
+    ///
+    /// * `srcnam` - Name of the voltage source to sweep
+    /// * `vstart` - Starting voltage for the sweep
+    /// * `vstop` - Ending voltage for the sweep
+    /// * `vstep` - Voltage step size
+    /// * `_optional` - Optional second source for nested sweeps (not yet implemented)
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(Sim::Dc)` - DC simulation results containing voltage sweeps
+    /// * `Err(SimulatorError)` - If the voltage source is not found or simulation fails
     fn run_dc(
         &mut self,
         srcnam: &Arc<str>,
@@ -36,6 +58,7 @@ impl<SO: Solver> DcSimulation<SO> for Simulator<SO> {
         vstep: &Numeric,
         _optional: &Option<(Arc<str>, Numeric, Numeric, Numeric)>,
     ) -> Result<Sim, SimulatorError> {
+        // Find the voltage source to sweep
         let vsource1_idx = self
             .elements
             .iter()
@@ -48,6 +71,7 @@ impl<SO: Solver> DcSimulation<SO> for Simulator<SO> {
             None => return Err(SimulatorError::VoltageSourceNotFound(srcnam.to_string())),
         };
 
+        // Save the original voltage to restore later
         let voltage_0 = self
             .elements
             .get_mut(vsource1_idx)
@@ -57,14 +81,15 @@ impl<SO: Solver> DcSimulation<SO> for Simulator<SO> {
         let mut dc_results = Vec::new();
         let mut voltage = *vstart;
 
-        // Perform DC sweep
+        // Perform DC sweep from vstart to vstop with step size vstep
+        // At each voltage step, find the operating point and store results
         while voltage <= *vstop {
             set_vsource_voltage(&mut self.elements[vsource1_idx], voltage);
             dc_results.push(self.find_op()?);
             voltage += vstep;
         }
 
-        // Restore original voltage
+        // Restore original voltage after sweep
         set_vsource_voltage(&mut self.elements[vsource1_idx], voltage_0);
 
         Ok(Sim::Dc(dc_results))

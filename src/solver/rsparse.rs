@@ -129,6 +129,23 @@ impl Solver for RSparseSolver {
     }
 
     /// Solves the system of equations (Ax = B for x) and returns a reference to the solution.
+    ///
+    /// This method uses sparse LU decomposition for efficient solving of large systems.
+    /// The process involves:
+    /// 1. Updating the sparse matrix from the hashmap representation
+    /// 2. Performing symbolic analysis if not already done
+    /// 3. Performing LU decomposition
+    /// 4. Solving the system using forward and backward substitution
+    /// 5. Permuting the solution vector
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(&Vec<Numeric>)` - Reference to the solution vector
+    ///
+    /// # Errors
+    ///
+    /// * `SolverError::SymbolicAnalysisMissing` - If symbolic analysis data is missing
+    /// * `SolverError::LuDecompositionFailed` - If LU decomposition fails due to singular matrix
     fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError> {
         self.update_from_hashmap();
         if self.symb.is_none() {

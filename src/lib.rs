@@ -179,6 +179,36 @@ pub fn run_sim_for_benchmark<T: Solver>(sim: Simulation) -> Result<(), String> {
     }
 }
 
+/// Main entry point for the Splice circuit simulator.
+///
+/// This function parses command-line arguments, initializes the application,
+/// and executes the requested simulation. It handles all aspects of the
+/// simulation workflow including frontend parsing, simulation execution,
+/// and backend output.
+///
+/// # Returns
+///
+/// * `Ok(())` - If the simulation completes successfully
+/// * `Err(miette::Error)` - If any error occurs during simulation setup or execution
+///
+/// # Process Flow
+///
+/// 1. Parse command-line arguments using clap
+/// 2. Initialize logging based on verbosity level
+/// 3. Handle special network mode if both frontend and backend are network
+/// 4. Read the circuit schematic using the specified frontend
+/// 5. Execute the requested simulation type (DC, AC, TRAN, OP)
+/// 6. Output results using the specified backend
+///
+/// # Examples
+///
+/// ```bash
+/// # Run a DC sweep analysis
+/// splice --input circuit.cir --dc V1 0 5 0.1
+/// 
+/// # Run a transient analysis with CSV output
+/// splice --input circuit.cir --tran 10ms 100ms --backend csv
+/// ```
 pub fn run() -> Result<()> {
     let cli = Cli::parse();
 
