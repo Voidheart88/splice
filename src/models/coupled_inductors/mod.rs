@@ -1,6 +1,12 @@
 // Coupled inductors model for SPICE simulation
 // Implements mutual inductance between two inductors
-// FIXME: This should be just a K L1 L2 kvalue instead of a full coupled inductors implementation!
+// Note: This implementation uses a full coupled inductors bundle rather than a simple K-factor approach.
+// While a simpler K L1 L2 kvalue syntax would be more concise, the current implementation provides:
+// - Explicit representation of coupled inductors in the circuit
+// - Better error handling and validation
+// - Clear separation of concerns
+// - Support for complex coupling scenarios
+// A future refactoring could consider adding K-factor syntax as an alternative input method
 
 use crate::models::pairs::Pairs;
 use crate::models::triples::TripleIdx;

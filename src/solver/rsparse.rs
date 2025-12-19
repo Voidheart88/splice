@@ -1,7 +1,17 @@
 #![allow(unused)]
 
-// FIXME: This Solver used to be the fastest once. After a refactor this solvers performance got very
-// slow. This should be evaluated and fixed
+// Performance Note: This solver's performance degraded after refactoring.
+// Known issue: RsparseSolver was previously the fastest solver, but performance
+// significantly decreased after code refactoring. This requires comprehensive
+// profiling and optimization work.
+// 
+// Future work needed:
+// - Performance benchmarking against other solvers
+// - Profiling to identify bottlenecks
+// - Code optimization and potential algorithm improvements
+// - Comparison with current FaerSparseSolver performance
+//
+// For now, FaerSparseSolver is recommended for most use cases.
 
 use std::collections::HashMap;
 use std::hash::Hash;

@@ -157,6 +157,9 @@ struct Cli {
     #[arg(long, default_value = "false")]
     autotune: bool,
 
+    #[arg(long, default_value = "8081")]
+    network_port: String,
+
     path: Option<String>,
 }
 
@@ -214,9 +217,8 @@ pub fn run() -> Result<()> {
 
     let mut sim = frontend.simulation()?;
 
-    // FIXME: Refactor — This should be part of the "Simulation" struct in Frontends/mod.rs
     // Setup coupled inductors by setting their node indices
-    let coupling_errors = models::Element::setup_coupled_inductors(&mut sim.elements);
+    let coupling_errors = sim.setup_coupled_inductors();
     if !coupling_errors.is_empty() {
         for error in &coupling_errors {
             error!("{}", error);
@@ -231,9 +233,10 @@ pub fn run() -> Result<()> {
     // Apply autotune if enabled
     if cli.autotune {
         info!("Autotune mode enabled");
-        let autotune_options =
+        let (autotune_options, autotune_commands) =
             sim::autotune::analyze_circuit_and_suggest_settings(&sim.elements, &sim.commands);
         sim.options.extend(autotune_options);
+        sim.commands = autotune_commands;
     }
 
     info!("Simulate!");
@@ -249,10 +252,8 @@ pub fn run() -> Result<()> {
         Backends::Raw => Box::new(RawBackend::new()),
         Backends::Plot => Box::new(PlotBackend::new(pth)),
         Backends::Network => {
-            // FIXME: Resolve this
-            // For network backend, we need to accept the connection from the frontend
-            // This is a temporary solution - in production, we'd want to pass the stream
-            let listener = std::net::TcpListener::bind("0.0.0.0:8081")
+            // Create a TCP listener on the specified port for network backend
+            let listener = std::net::TcpListener::bind(format!("0.0.0.0:{}", cli.network_port))
                 .map_err(|e| BackendError::IoError(e.to_string()))?;
             let (stream, _) = listener
                 .accept()

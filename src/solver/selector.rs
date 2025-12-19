@@ -77,11 +77,9 @@ impl SolverSelector {
     pub fn recommend_solver(&self, vars: usize) -> &'static str {
         match self.strategy {
             SolverSelectionStrategy::Automatic => {
-                // FIXME: This Threshold should be located in spot.rs
-                if vars < 10 {
+                if vars < SMALL_CIRCUIT_THRESHOLD {
                     "NalgebraSolver (best for very small circuits)"
-                // FIXME: This Threshold should be located in spot.rs
-                } else if vars < 100 {
+                } else if vars < MEDIUM_CIRCUIT_THRESHOLD {
                     "FaerSparseSolver (best for small-medium circuits)"
                 } else {
                     "FaerSparseSolver (best for large circuits)"
