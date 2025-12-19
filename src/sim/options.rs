@@ -21,6 +21,17 @@ pub enum SimulationOption {
     IntegrationMethod(IntegrationMethod),
 }
 
+impl SimulationOption {
+    /// Returns the integration method if this option is an IntegrationMethod variant
+    pub fn get_integration_method(&self) -> Option<IntegrationMethod> {
+        if let SimulationOption::IntegrationMethod(method) = self {
+            Some(method.clone())
+        } else {
+            None
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, PartialOrd, Serialize)]
 pub enum IntegrationMethod {
     #[serde(rename = "be")]
