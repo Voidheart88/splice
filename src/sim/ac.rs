@@ -28,8 +28,8 @@ impl<SO: Solver> AcSimulation<SO> for Simulator<SO> {
         info!("Find operating point");
         self.find_op()?;
 
-        // FIXME: This nests too deep and should be refactored
-        //Calculate frequencies in the range from [fstart;fend]
+        // Calculate frequencies in the range from [fstart;fend]
+        // TODO: Consider refactoring to reduce nesting complexity
         let freqs: Vec<Numeric> = match ac_option {
             ACMode::Lin => {
                 let step_size = (fend - fstart) / (*steps as Numeric);

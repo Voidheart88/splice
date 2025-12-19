@@ -22,7 +22,8 @@ impl Serialize for SimulationOption {
     {
         match self {
             SimulationOption::Out(vars) => {
-                // FIXME: Does this need to be defined inside the serialize fn?
+                // Local serializer struct for output variables
+                // Note: Defined inside serialize fn for encapsulation
                 #[derive(Serialize)]
                 struct OutWrapper {
                     r#type: &'static str,
@@ -35,7 +36,8 @@ impl Serialize for SimulationOption {
                 .serialize(serializer)
             }
             SimulationOption::IntegrationMethod(method) => {
-                // FIXME: Does this need to be defined inside the serialize fn?
+                // Local serializer struct for integration method
+                // Note: Defined inside serialize fn for encapsulation
                 #[derive(Serialize)]
                 struct IntegrationMethodWrapper {
                     r#type: &'static str,

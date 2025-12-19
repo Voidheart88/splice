@@ -133,7 +133,7 @@ impl VCCSBundle {
             self.controlling_negative.as_ref().map(|v| v.idx()),
         ) {
             // VCCS AC contributions (same as DC since it's linear and frequency-independent)
-            // FIXME: This nests too deep and needs a refactor
+            // TODO: Consider refactoring to reduce nesting complexity
             Triples::new(&[
                 (
                     pos_idx,

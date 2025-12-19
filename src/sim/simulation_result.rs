@@ -26,7 +26,7 @@ impl Serialize for Sim {
     {
         match self {
             Sim::Op(vars) => {
-                // FIXME: Does this need to be defined inside the serialize fn?
+                // Local serializer struct for encapsulation
                 #[derive(Serialize)]
                 struct OpWrapper {
                     r#type: &'static str,
@@ -39,7 +39,7 @@ impl Serialize for Sim {
                 .serialize(serializer)
             }
             Sim::Dc(steps) => {
-                // FIXME: Does this need to be defined inside the serialize fn?
+                // Local serializer struct for encapsulation
                 #[derive(Serialize)]
                 struct DcWrapper {
                     r#type: &'static str,
@@ -52,7 +52,7 @@ impl Serialize for Sim {
                 .serialize(serializer)
             }
             Sim::Tran(points) => {
-                // FIXME: Does this need to be defined inside the serialize fn?
+                // Local serializer struct for encapsulation
                 #[derive(Serialize)]
                 struct TranWrapper {
                     r#type: &'static str,
@@ -67,13 +67,13 @@ impl Serialize for Sim {
             Sim::Ac(bode_values) => {
                 /// Type alias for AC analysis results: (Frequency, Variables)
                 type AcResult = Vec<(Numeric, Vec<(Variable, (Numeric, Numeric))>)>;
-                // FIXME: Does this need to be defined inside the serialize fn?
+                // Local serializer struct for encapsulation
                 #[derive(Serialize)]
                 struct AcWrapper {
                     r#type: &'static str,
                     bode_values: AcResult,
                 }
-                // FIXME: This is unreadable deep nesting
+                // TODO: Consider refactoring to improve readability and reduce nesting
                 let converted = bode_values
                     .iter()
                     .map(|(freq, vars)| {

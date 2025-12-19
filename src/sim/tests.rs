@@ -1,4 +1,4 @@
-// FIXME: Check if these tests can be refactored to a new module (in a new folder) split by topics
+// TODO: Consider refactoring tests into separate modules organized by functionality
 
 use std::sync::Arc;
 
@@ -13,7 +13,7 @@ use crate::sim::Simulator;
 use crate::solver::{FaerSolver, NalgebraSolver, RSparseSolver};
 use crate::spot::*;
 
-// FIXME: The init_sim_x tests duplicate a lot of code - check if they can be written better with helper functions
+// TODO: Refactor init_sim_x tests to use helper functions and reduce code duplication
 #[test]
 fn init_sim_rsparse() {
     let commands = vec![SimulationCommand::Op];
@@ -176,7 +176,7 @@ fn init_sim_nalgebra() {
     assert_eq!(node_vol, node_vol_exp);
 }
 
-// FIXME: Check if this test can be improved with asserts (actually catching errors)
+// TODO: Enhance test with specific assertions to catch potential errors
 #[test]
 fn run_sim_tran() {
     // Tests the transient simulation with a constant voltage source.
@@ -397,7 +397,7 @@ fn test_vsource_sin_tran() {
 
     for (expected_time, expected_voltage) in test_points {
         // Find the result closest to the expected time
-        // FIXME: This nests too deep and should be refactored
+        // TODO: Consider refactoring to reduce nesting complexity
         if let Some(&(time, ref values)) = tran_results
             .iter()
             .min_by_key(|(t, _)| ((*t - expected_time).abs() * 1000.0) as i32)

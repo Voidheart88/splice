@@ -38,7 +38,7 @@ impl<SO: Solver> OpSimulation<SO> for Simulator<SO> {
                 trace!("Solve matrix");
                 // Solve for the new x
                 let x_new = match self.solver.solve().cloned() {
-                    // FIXME — This should only be cloned if converged.
+                    // TODO: Optimize to only clone solution when convergence is confirmed
                     Ok(solution) => solution,
                     Err(err) => return Some(Err(err.into())),
                 };

@@ -44,7 +44,8 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
             *tstep
         };
 
-        // FIXME: This loop nests too deep and should be refactored
+        // Transient simulation time loop
+        // TODO: Consider refactoring to reduce nesting complexity
         while t < *tstop {
             // For subsequent time steps, use the previous solution as initial guess
             x_current = x_prev.clone();

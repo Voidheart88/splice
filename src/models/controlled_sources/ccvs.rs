@@ -1,5 +1,5 @@
 // Current-Controlled Voltage Source (CCVS) - H source
-// FIXME: Placeholder implementation - Complete this
+// TODO: Complete full implementation with proper current-to-voltage control behavior
 
 use crate::frontends::spice::{ProcessSpiceElement, Rule};
 use crate::models::{TripleIdx, Triples, Variable};

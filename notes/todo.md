@@ -5,3 +5,4 @@ Eine Liste mit ToDos:
 - Update des Style-Guides
 - Erstellung einer State-Space „Simulation“ über eine Graphen-Analyse der Schaltung.
 - Finden einer angenehmen Abkürzung für „SPLICE“
+- Erstellung von zusätzlichen Current-Sources (Sine,Pulse)

@@ -193,7 +193,7 @@ impl InductorBundle {
 
     /// Returns the triples representing the inductor's contribution to matrix A.
     pub fn ac_triples(&self, freq: Numeric) -> Triples<ComplexNumeric, 4> {
-        // FIXME: This nests too deep and needs a refactor
+        // TODO: Consider refactoring to reduce nesting complexity
         let node0_idx = if let Some(node) = &self.node0 {
             node.idx()
         } else {
@@ -214,7 +214,7 @@ impl InductorBundle {
             )]);
         };
 
-        // FIXME: This nests too deep and needs a refactor
+        // TODO: Consider refactoring to reduce nesting complexity
         let node1_idx = if let Some(node) = &self.node1 {
             node.idx()
         } else {
@@ -229,7 +229,7 @@ impl InductorBundle {
             )]);
         };
 
-        // FIXME: This nests too deep and needs a refactor
+        // TODO: Consider refactoring to reduce nesting complexity
         Triples::new(&[
             (
                 node0_idx,

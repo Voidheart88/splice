@@ -1,5 +1,5 @@
 // Current-Controlled Current Source (CCCS) - F source
-// FIXME: Placeholder implementation - Complete this
+// TODO: Complete full implementation with proper current control behavior
 
 use crate::frontends::spice::{ProcessSpiceElement, Rule};
 use crate::models::{TripleIdx, Triples, Variable};

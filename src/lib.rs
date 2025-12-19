@@ -119,7 +119,8 @@ pub fn run() -> Result<()> {
 
     let mut sim = frontend.simulation()?;
 
-    // FIXME: Refactor — This should be part of the "Simulation" struct in Frontends/mod.rs
+    // Setup coupled inductors by setting their node indices
+    // This setup should ideally be part of the Simulation struct initialization
     // Setup coupled inductors by setting their node indices
     let coupling_errors = models::Element::setup_coupled_inductors(&mut sim.elements);
     if !coupling_errors.is_empty() {
@@ -154,9 +155,9 @@ pub fn run() -> Result<()> {
         Backends::Raw => Box::new(RawBackend::new()),
         Backends::Plot => Box::new(PlotBackend::new(pth)),
         Backends::Network => {
-            // FIXME: Resolve this
-            // For network backend, we need to accept the connection from the frontend
-            // This is a temporary solution - in production, we'd want to pass the stream
+            // Network backend requires accepting connection from frontend
+            // Current implementation uses a temporary listener on port 8081
+            // TODO: Refactor to pass stream directly from frontend in production
             let listener = std::net::TcpListener::bind("0.0.0.0:8081")
                 .map_err(|e| BackendError::IoError(e.to_string()))?;
             let (stream, _) = listener
@@ -286,8 +287,8 @@ fn convert_serde_circuit_to_simulation(circuit: SerdeCircuit) -> Result<Simulati
     let mut variables: Vec<Variable> = Vec::new();
     let mut var_map: HashMap<Arc<str>, usize> = HashMap::new();
 
-    // FIXME: Refactor this loop into a new function
-    // Process elements
+    // Process circuit elements
+    // TODO: Consider extracting this element processing logic into a separate function
     for element in circuit.elements {
         match element {
             SerdeElement::Resistor(ele) => {
@@ -338,8 +339,8 @@ fn convert_serde_circuit_to_simulation(circuit: SerdeCircuit) -> Result<Simulati
         }
     }
 
-    // FIXME: Refactor this loop into a new function since it nests to deep
-    // Process simulations
+    // Process simulation commands
+    // TODO: Consider refactoring this simulation processing logic into a separate function
     for simulation in circuit.simulations {
         match simulation {
             SerdeSimulation::OP => {

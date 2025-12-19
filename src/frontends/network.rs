@@ -98,8 +98,8 @@ impl NetworkFrontend {
             }
         }
 
-        // Process simulations
-        // FIXME: this loop nests too deep and should be 
+        // Process simulation commands
+        // TODO: Consider refactoring this simulation processing logic to reduce nesting
         for simulation in circuit.simulations {
             match simulation {
                 SerdeSimulation::OP => {

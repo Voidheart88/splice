@@ -1,7 +1,7 @@
 #![allow(unused)]
 
-// FIXME: This Solver used to be the fastest once. After a refactor this solvers performance got very
-// slow. This should be evaluated and fixed
+// TODO: Performance evaluation needed - this solver was previously the fastest
+// but performance degraded after refactoring. Requires profiling and optimization.
 
 use std::collections::HashMap;
 use std::hash::Hash;
@@ -16,8 +16,11 @@ use num::{Complex, Zero};
 use rsparse::data::{Nmrc, Sprs, Symb, Trpl};
 use rsparse::lusol;
 
-// FIXME: Document this like the documentation in the FaerSolver (faer.rs)
-/// A Solver implementation using the Faer library.
+// TODO: Enhance documentation to match the comprehensive style of FaerSolver (faer.rs)
+/// A Solver implementation using the RSparse library.
+///
+/// This solver provides sparse matrix support for efficient handling of large,
+/// sparse circuit matrices commonly encountered in electronic circuit simulations.
 #[derive(Debug)]
 pub struct RSparseSolver {
     vars: usize,
@@ -113,11 +116,11 @@ impl Solver for RSparseSolver {
         if self.symb.is_none() {
             self.symb = Some(rsparse::sqr(&self.sprs, 1, false))
         }
-        // FIXME: This could be an returned SolverError but is expect instead
+        // TODO: Consider proper error handling instead of using expect()
         let mut symb = self.symb.take()
             .expect("Symbolic analysis data missing. This indicates the solver was not properly initialized.");
 
-        // FIXME: This could be an returned SolverError but is expect instead
+        // TODO: Consider proper error handling instead of using expect()
         self.lu = rsparse::lu(&self.sprs, &mut symb, 1e-6).expect(
             "LU decomposition failed. This indicates a singular or ill-conditioned matrix.",
         );
@@ -221,7 +224,7 @@ impl RSparseSolver {
             entries.push((*row + self.vars, *col + self.vars, val.re));
         });
 
-        // FIXME: This nests too deep and should be refactored
+        // TODO: Consider refactoring to reduce nesting complexity
         entries.sort_unstable_by(
             |(r1, c1, _), (r2, c2, _)| {
                 if c1 != c2 {
@@ -286,7 +289,7 @@ impl RSparseSolver {
             .iter()
             .for_each(|((row, col), val)| entries.push((*row, *col, *val)));
 
-        // FIXME: This nests too deep and should be refactored
+        // TODO: Consider refactoring to reduce nesting complexity
         entries.sort_unstable_by(
             |(r1, c1, _), (r2, c2, _)| {
                 if c1 != c2 {

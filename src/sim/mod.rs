@@ -75,7 +75,7 @@ impl<SO: Solver> Simulator<SO> {
         self.options
             .iter()
             .find_map(|opt| {
-                // FIXME: This nests too deep and should be refactored
+                // TODO: Consider refactoring to reduce nesting complexity
                 if let SimulationOption::IntegrationMethod(method) = opt {
                     Some(method.clone())
                 } else {
@@ -273,7 +273,7 @@ impl<SO: Solver> Simulator<SO> {
 
         for element in &self.elements {
             let mut local_guess = vec![0.0; len];
-            // FIXME: This match nests too deep and should be refactored
+            // TODO: Consider refactoring to reduce nesting complexity
             match element {
                 Element::VSource(vsource) => {
                     let value = vsource.value();
@@ -362,7 +362,7 @@ impl<SO: Solver> Simulator<SO> {
     /// This is crucial for correct integration of capacitor behavior
     // CHECK: Check if this can be part of the inductor and capacitor elements
     fn update_capacitor_voltages(&mut self, x_vec: &[Numeric]) {
-        // FIXME: This loop nests too deep and should be refactored
+        // TODO: Consider refactoring to reduce nesting complexity
         for element in &mut self.elements {
             if let Element::Capacitor(cap) = element {
                 // Calculate voltage across capacitor: V = V(node0) - V(node1)
@@ -391,7 +391,7 @@ impl<SO: Solver> Simulator<SO> {
         // First, collect all inductor currents
         let mut inductor_currents: HashMap<Arc<str>, Numeric> = HashMap::new();
 
-        // FIXME: This loop nests too deep and should be refactored
+        // TODO: Consider refactoring to reduce nesting complexity
         for element in &self.elements {
             if let Element::Inductor(ind) = element {
                 // Calculate current through inductor using the equivalent conductance
@@ -427,7 +427,7 @@ impl<SO: Solver> Simulator<SO> {
         }
 
         // Update inductor currents
-        // FIXME: This loop nests too deep and should be refactored
+        // TODO: Consider refactoring to reduce nesting complexity
         for element in &mut self.elements {
             if let Element::Inductor(ind) = element {
                 if let Some(&current) = inductor_currents.get(&ind.name) {
@@ -437,7 +437,7 @@ impl<SO: Solver> Simulator<SO> {
         }
 
         // Update coupled inductor currents
-        // FIXME: This loop nests too deep and should be refactored
+        // TODO: Consider refactoring to reduce nesting complexity
         for element in &mut self.elements {
             if let Element::CoupledInductors(coupled) = element {
                 let inductor1_name = coupled.inductor1();

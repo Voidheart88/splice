@@ -87,9 +87,9 @@ pub fn analyze_circuit_and_suggest_settings(
                 "  -> Suggested max timestep: {:.2e} s for transient analysis",
                 suggested_timestep
             );
-            // FIXME: It may be part of the tran command, but since it is an autotune functionality this MUST be set by the autottuner
-            // Note: We can't directly set the timestep here as it's part of the Tran command,
-            // but we can log the suggestion for the user
+            // Note: Time step suggestions for transient analysis
+            // Current limitation: Time step is part of Tran command structure
+            // TODO: Integrate time step autotuning directly into Tran command processing
         }
     }
 

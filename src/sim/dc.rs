@@ -50,7 +50,8 @@ impl<SO: Solver> DcSimulation<SO> for Simulator<SO> {
         let mut dc_results = Vec::new();
         let mut voltage = *vstart;
 
-        // FIXME: This nests too deep and should be refactored
+        // DC sweep voltage loop
+        // TODO: Consider refactoring to reduce nesting complexity
         while voltage <= *vstop {
             {
                 let source = match &mut self.elements[vsource1_idx] {
@@ -63,7 +64,8 @@ impl<SO: Solver> DcSimulation<SO> for Simulator<SO> {
             voltage += vstep;
         }
 
-        // FIXME: This nests too deep and should be refactored
+        // Reset source voltage after sweep
+        // TODO: Consider refactoring to reduce nesting complexity
         {
             let source = match &mut self.elements[vsource1_idx] {
                 Element::VSource(ref mut vs) => vs,

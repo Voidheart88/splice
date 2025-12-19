@@ -7,8 +7,11 @@ use num::Zero;
 use super::{Solver, SolverError};
 use crate::spot::*;
 
-// FIXME: Document this like the documentation in the FaerSolver (faer.rs)
-/// A backend implementation using the Faer library.
+// TODO: Enhance documentation to match the comprehensive style of FaerSolver (faer.rs)
+/// A backend implementation using the Faer library with sparse matrix support.
+///
+/// This solver uses sparse matrix representations for improved memory efficiency
+/// and performance on large, sparse circuit matrices typical in electronic simulations.
 pub struct FaerSparseSolver {
     /// The conductance matrix `A`.
     a_mat: Vec<Triplet<usize, usize, Numeric>>,

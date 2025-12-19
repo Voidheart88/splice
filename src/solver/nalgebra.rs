@@ -8,8 +8,11 @@ use nalgebra as na;
 #[cfg(test)]
 use nalgebra::DMatrix;
 
-// FIXME: Document this like the documentation in the FaerSolver (faer.rs)
+// TODO: Enhance documentation to match the comprehensive style of FaerSolver (faer.rs)
 /// A Solver implementation using the Nalgebra library.
+///
+/// This solver provides a robust linear algebra backend using the Nalgebra crate,
+/// suitable for medium-sized circuit simulations with dense matrix representations.
 pub struct NalgebraSolver {
     /// The conductance matrix `A`.
     a_mat: na::DMatrix<Numeric>,
@@ -123,7 +126,7 @@ impl std::fmt::Debug for NalgebraSolver {
         } else {
             writeln!(
                 f,
-                "  a_mat: {}×{} (Ausgabe gekürzt)", // FIXME: This should be written in english
+                "  a_mat: {}×{} (output truncated)", // TODO: Consider using English consistently throughout codebase
                 self.a_mat.nrows(),
                 self.a_mat.ncols()
             )?;
@@ -134,7 +137,7 @@ impl std::fmt::Debug for NalgebraSolver {
         } else {
             writeln!(
                 f,
-                "  b_vec: {} Einträge (Ausgabe gekürzt)", // FIXME: This should be written in english
+                "  b_vec: {} entries (output truncated)", // TODO: Consider using English consistently throughout codebase
                 self.b_vec.len()
             )?;
         }
@@ -144,7 +147,7 @@ impl std::fmt::Debug for NalgebraSolver {
         } else {
             writeln!(
                 f,
-                "  cplx_a_mat: {}×{} (Ausgabe gekürzt)", // FIXME: This should be written in english
+                "  cplx_a_mat: {}×{} (output truncated)", // TODO: Consider using English consistently throughout codebase
                 self.cplx_a_mat.nrows(),
                 self.cplx_a_mat.ncols()
             )?;
@@ -155,7 +158,7 @@ impl std::fmt::Debug for NalgebraSolver {
         } else {
             writeln!(
                 f,
-                "  cplx_b_vec: {} Einträge (Ausgabe gekürzt)", // FIXME: This should be written in english
+                "  cplx_b_vec: {} entries (output truncated)", // TODO: Consider using English consistently throughout codebase
                 self.cplx_b_vec.len()
             )?;
         }
