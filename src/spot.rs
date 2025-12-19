@@ -38,3 +38,13 @@ pub(crate) const ADAPTIVE_TOLERANCE: Numeric = 1e-4;
 pub(crate) const ADAPTIVE_SAFETY_FACTOR: Numeric = 0.9;
 pub(crate) const ADAPTIVE_MAX_GROWTH_FACTOR: Numeric = 2.0;
 pub(crate) const ADAPTIVE_MIN_GROWTH_FACTOR: Numeric = 0.5;
+
+/// Constants for solver selection thresholds
+/// Default threshold for switching between dense and sparse solvers
+pub const DEFAULT_SOLVER_THRESHOLD: usize = 50;
+
+/// Threshold for very small circuits where Nalgebra is fastest
+pub const SMALL_CIRCUIT_THRESHOLD: usize = 10;
+
+/// Threshold for medium circuits where FaerSparse is optimal
+pub const MEDIUM_CIRCUIT_THRESHOLD: usize = 100;

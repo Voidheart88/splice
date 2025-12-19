@@ -1,5 +1,3 @@
-// FIXME: Check if these tests can be refactored to a new module (in a new folder) split by topics
-
 use std::sync::Arc;
 
 use crate::frontends::Simulation;
@@ -84,8 +82,6 @@ fn test_basic_simulation_results(result: &[(Variable, Numeric)]) {
     assert_eq!(branch_curr, branch_curr_exp);
     assert_eq!(node_vol, node_vol_exp);
 }
-
-// FIXME: The init_sim_x tests duplicate a lot of code - check if they can be written better with helper functions
 #[test]
 fn init_sim_rsparse() {
     let sim = create_basic_simulation();

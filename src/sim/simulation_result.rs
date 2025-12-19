@@ -5,7 +5,49 @@ use super::options::SimulationOption;
 use crate::models::Variable;
 use crate::spot::Numeric;
 
+/// Wrapper struct for OP analysis serialization
+#[derive(Serialize)]
+struct OpWrapper<'a> {
+    r#type: &'static str,
+    variables: &'a [(Variable, Numeric)],
+}
+
+/// Wrapper struct for DC analysis serialization
+#[derive(Serialize)]
+struct DcWrapper<'a> {
+    r#type: &'static str,
+    steps: &'a [Vec<(Variable, Numeric)>],
+}
+
+/// Wrapper struct for transient analysis serialization
+#[derive(Serialize)]
+struct TranWrapper<'a> {
+    r#type: &'static str,
+    points: &'a [(Numeric, Vec<(Variable, Numeric)>)],
+}
+
+/// Wrapper struct for AC analysis serialization
+#[derive(Serialize)]
+struct AcWrapper<'a> {
+    r#type: &'static str,
+    bode_values: &'a [(Numeric, Vec<(Variable, (Numeric, Numeric))>)],
+}
+
 type BodeValue = (Numeric, Vec<(Variable, Complex<Numeric>)>);
+
+/// Helper function to convert AC bode values from complex numbers to tuples for serialization
+fn convert_ac_bode_values(bode_values: &[BodeValue]) -> Vec<(Numeric, Vec<(Variable, (Numeric, Numeric))>)> {
+    bode_values
+        .iter()
+        .map(|(freq, vars)| {
+            let converted_vars = vars
+                .iter()
+                .map(|(var, complex)| (var.clone(), (complex.re, complex.im)))
+                .collect();
+            (*freq, converted_vars)
+        })
+        .collect()
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Sim {
@@ -26,68 +68,33 @@ impl Serialize for Sim {
     {
         match self {
             Sim::Op(vars) => {
-                // FIXME: Does this need to be defined inside the serialize fn?
-                #[derive(Serialize)]
-                struct OpWrapper {
-                    r#type: &'static str,
-                    variables: Vec<(Variable, Numeric)>,
-                }
                 OpWrapper {
                     r#type: "op",
-                    variables: vars.clone(),
+                    variables: vars,
                 }
                 .serialize(serializer)
             }
             Sim::Dc(steps) => {
-                // FIXME: Does this need to be defined inside the serialize fn?
-                #[derive(Serialize)]
-                struct DcWrapper {
-                    r#type: &'static str,
-                    steps: Vec<Vec<(Variable, Numeric)>>,
-                }
                 DcWrapper {
                     r#type: "dc",
-                    steps: steps.clone(),
+                    steps,
                 }
                 .serialize(serializer)
             }
             Sim::Tran(points) => {
-                // FIXME: Does this need to be defined inside the serialize fn?
-                #[derive(Serialize)]
-                struct TranWrapper {
-                    r#type: &'static str,
-                    points: Vec<(Numeric, Vec<(Variable, Numeric)>)>,
-                }
                 TranWrapper {
                     r#type: "tran",
-                    points: points.clone(),
+                    points,
                 }
                 .serialize(serializer)
             }
             Sim::Ac(bode_values) => {
-                /// Type alias for AC analysis results: (Frequency, Variables)
-                type AcResult = Vec<(Numeric, Vec<(Variable, (Numeric, Numeric))>)>;
-                // FIXME: Does this need to be defined inside the serialize fn?
-                #[derive(Serialize)]
-                struct AcWrapper {
-                    r#type: &'static str,
-                    bode_values: AcResult,
-                }
-                // FIXME: This is unreadable deep nesting
-                let converted = bode_values
-                    .iter()
-                    .map(|(freq, vars)| {
-                        let converted_vars = vars
-                            .iter()
-                            .map(|(var, complex)| (var.clone(), (complex.re, complex.im)))
-                            .collect();
-                        (*freq, converted_vars)
-                    })
-                    .collect();
-
+                // Convert complex numbers to tuples for serialization
+                let converted = convert_ac_bode_values(bode_values);
+                
                 AcWrapper {
                     r#type: "ac",
-                    bode_values: converted,
+                    bode_values: &converted,
                 }
                 .serialize(serializer)
             }

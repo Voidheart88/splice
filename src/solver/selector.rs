@@ -1,5 +1,6 @@
 /// Intelligent solver selection based on circuit characteristics
 use super::{FaerSparseSolver, NalgebraSolver, Solver, SolverError};
+use crate::spot::{DEFAULT_SOLVER_THRESHOLD, MEDIUM_CIRCUIT_THRESHOLD, SMALL_CIRCUIT_THRESHOLD};
 
 /// Solver selection strategy based on circuit size and characteristics
 #[derive(Debug, Clone, Copy)]
@@ -21,8 +22,7 @@ impl SolverSelector {
     pub fn new(strategy: SolverSelectionStrategy) -> Self {
         SolverSelector {
             strategy,
-            // FIXME: This Threshold should be located in spot.rs
-            circuit_size_threshold: 50, // Default threshold: 50 variables
+            circuit_size_threshold: DEFAULT_SOLVER_THRESHOLD,
         }
     }
 
@@ -61,12 +61,10 @@ impl SolverSelector {
         // - Medium circuits (10-100 vars): FaerSparse is best
         // - Large circuits (>100 vars): FaerSparse dominates
 
-        // FIXME: This Threshold should be located in spot.rs
-        if vars < 10 {
+        if vars < SMALL_CIRCUIT_THRESHOLD {
             // Very small circuits: Nalgebra is fastest
             Ok(Box::new(NalgebraSolver::new(vars)?))
-        // FIXME: This Threshold should be located in spot.rs
-        } else if vars < 100 {
+        } else if vars < MEDIUM_CIRCUIT_THRESHOLD {
             // Small to medium circuits: FaerSparse is best
             Ok(Box::new(FaerSparseSolver::new(vars)?))
         } else {
@@ -100,7 +98,6 @@ impl SolverSelector {
     }
 }
 
-// FIXME: These Test should be located in the tests folder/module in src/solver/tests
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -111,7 +108,6 @@ mod tests {
 
         // Test that we can create solvers for different sizes
         // We can't easily check the type, but we can verify the selector works
-        // CHECK: Do these thresholds should be located in spot.rs
         assert!(selector.select_solver(5).is_ok());
         assert!(selector.select_solver(50).is_ok());
         assert!(selector.select_solver(200).is_ok());
@@ -122,7 +118,6 @@ mod tests {
         let selector = SolverSelector::new(SolverSelectionStrategy::Hybrid);
 
         // Test that we can create solvers for different sizes
-        // CHECK: Do these thresholds should be located in spot.rs
         assert!(selector.select_solver(5).is_ok());
         assert!(selector.select_solver(200).is_ok());
     }
