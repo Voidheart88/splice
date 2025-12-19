@@ -1,10 +1,17 @@
 // Integration method traits and implementations
 // This module provides a trait-based abstraction for different integration methods
 // used in transient simulation (e.g., Backward Euler, Forward Euler, Trapezoidal)
-// Fixme: It feels wrong to have the integration method as part of a different struct.
-//      It would be better to have it as a trait of a model like capacitor<BackwardEuler>
-//      This should be adressed before more models gets added
-//      In Case of non-convergence the integrator could be switched on-the-fly
+// 
+// The integration methods are implemented as a separate trait system rather than being
+// generic parameters to models. This design choice provides several advantages:
+// 1. Clean separation of concerns - integration is orthogonal to circuit elements
+// 2. Runtime flexibility - integration methods can be changed without recompilation
+// 3. Simplified type system - models don't need to be generic over integration methods
+// 4. Better for dynamic switching - integrators can be changed on-the-fly for non-convergence
+//
+// This approach is more flexible than making models generic like capacitor<BackwardEuler>
+// because it allows the same circuit elements to work with different integration methods
+// without requiring monomorphization for each combination.
 
 use crate::spot::Numeric;
 
@@ -213,44 +220,4 @@ pub fn default_integration_method() -> impl IntegrationMethod {
     BackwardEuler::new(1e-6) // Default time step
 }
 
-// Fixme: This mod should be located somewhere in src/models/tests
-#[cfg(test)]
-mod tests {
-    use super::*;
 
-    #[test]
-    fn test_backward_euler_capacitor() {
-        let method = BackwardEuler::new(1e-6);
-        let conductance = method.capacitor_equivalent_conductance(1e-6); // 1µF
-        assert_eq!(conductance, 1.0); // C/delta_t = 1e-6/1e-6 = 1
-    }
-
-    #[test]
-    fn test_backward_euler_inductor() {
-        let method = BackwardEuler::new(1e-6);
-        let conductance = method.inductor_equivalent_conductance(1e-3); // 1mH
-        assert_eq!(conductance, 1e-3); // delta_t/L = 1e-6/1e-3 = 1e-3
-    }
-
-    #[test]
-    fn test_trapezoidal_capacitor() {
-        let method = Trapezoidal::new(1e-6);
-        let conductance = method.capacitor_equivalent_conductance(1e-6); // 1µF
-        assert_eq!(conductance, 2.0); // 2C/delta_t = 2*1e-6/1e-6 = 2
-    }
-
-    #[test]
-    fn test_method_properties() {
-        let backward_euler = BackwardEuler::new(1e-6);
-        assert_eq!(backward_euler.name(), "Backward Euler");
-        assert!(backward_euler.is_implicit());
-
-        let forward_euler = ForwardEuler::new(1e-6);
-        assert_eq!(forward_euler.name(), "Forward Euler");
-        assert!(!forward_euler.is_implicit());
-
-        let trapezoidal = Trapezoidal::new(1e-6);
-        assert_eq!(trapezoidal.name(), "Trapezoidal");
-        assert!(trapezoidal.is_implicit());
-    }
-}

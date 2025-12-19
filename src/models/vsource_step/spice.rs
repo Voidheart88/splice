@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 use crate::frontends::get_variable;
 use crate::frontends::spice::ProcessSpiceElement;
+use crate::frontends::FrontendError;
 use crate::models::{Element, Unit, VSourceStepBundle, Variable};
 
 impl ProcessSpiceElement for VSourceStepBundle {
@@ -12,7 +13,7 @@ impl ProcessSpiceElement for VSourceStepBundle {
         variables: &mut Vec<Variable>,
         elements: &mut Vec<Element>,
         var_map: &mut std::collections::HashMap<std::sync::Arc<str>, usize>,
-    ) -> Result<(), crate::frontends::FrontendError> {
+    ) -> Result<(), FrontendError> {
         let ele = element.as_str();
         let offset = element.as_span().start();
         let mut inner = element.into_inner();
@@ -20,8 +21,7 @@ impl ProcessSpiceElement for VSourceStepBundle {
         let name = inner
             .next()
             .ok_or_else(|| {
-                // Fixme: replace with use
-                crate::frontends::FrontendError::ParseError(format!(
+                FrontendError::ParseError(format!(
                     "Missing name in step voltage source: {}",
                     ele
                 ))
@@ -31,8 +31,7 @@ impl ProcessSpiceElement for VSourceStepBundle {
         let node0 = inner
             .next()
             .ok_or_else(|| {
-                // Fixme: replace with use
-                crate::frontends::FrontendError::ParseError(format!(
+                FrontendError::ParseError(format!(
                     "Missing node0 in step voltage source: {}",
                     name
                 ))
@@ -43,8 +42,7 @@ impl ProcessSpiceElement for VSourceStepBundle {
         let node1 = inner
             .next()
             .ok_or_else(|| {
-                // Fixme: replace with use
-                crate::frontends::FrontendError::ParseError(format!(
+                FrontendError::ParseError(format!(
                     "Missing node1 in step voltage source: {}",
                     name
                 ))
@@ -60,31 +58,27 @@ impl ProcessSpiceElement for VSourceStepBundle {
 
         // Ensure we have exactly 3 values
         if values.len() < 3 {
-            // Fixme: replace with use
-            return Err(crate::frontends::FrontendError::ParseError(
+            return Err(FrontendError::ParseError(
                 format!("Insufficient values for step voltage source '{}': expected 3 values (initial_value, final_value, step_time)", name)
             ));
         }
 
         let initial_value = values[0].parse::<f64>().map_err(|_| {
-            // Fixme: replace with use
-            crate::frontends::FrontendError::ParseError(format!(
+            FrontendError::ParseError(format!(
                 "Invalid initial value in step voltage source '{}': must be a number",
                 name
             ))
         })?;
 
         let final_value = values[1].parse::<f64>().map_err(|_| {
-            // Fixme: replace with use
-            crate::frontends::FrontendError::ParseError(format!(
+            FrontendError::ParseError(format!(
                 "Invalid final value in step voltage source '{}': must be a number",
                 name
             ))
         })?;
 
         let step_time = values[2].parse::<f64>().map_err(|_| {
-            // Fixme: replace with use
-            crate::frontends::FrontendError::ParseError(format!(
+            FrontendError::ParseError(format!(
                 "Invalid step time in step voltage source '{}': must be a number",
                 name
             ))

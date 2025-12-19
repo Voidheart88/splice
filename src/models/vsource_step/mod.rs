@@ -82,39 +82,39 @@ impl VSourceStepBundle {
     /// Returns the triples representing matrix A.
     pub fn triples(&self) -> Triples<Numeric, 4> {
         let branch_idx = self.branch_idx();
-        let node0_idx = match self.node0_idx() {
-            Some(node0_idx) => node0_idx,
-            None => {
-                // If node0 doesn't exist, voltage source is connected to ground through node1
-                let node1_idx = self
-                    .node1_idx()
-                    .expect("Voltage source must have at least one node connected");
-                return Triples::new(&[
-                    (self.branch_idx(), node1_idx, Numeric::one()),
-                    (node1_idx, self.branch_idx(), Numeric::one()),
-                ]);
-            }
-        };
-        let node1_idx = match self.node1_idx() {
-            Some(node1_idx) => node1_idx,
-            None => {
-                // If node1 doesn't exist, voltage source is connected to ground through node0
-                let node0_idx = self
-                    .node0_idx()
-                    .expect("Voltage source must have at least one node connected");
-                return Triples::new(&[
-                    (self.branch_idx(), node0_idx, -Numeric::one()),
-                    (node0_idx, self.branch_idx(), -Numeric::one()),
-                ]);
-            }
-        };
+        let node0_idx = self.node0_idx();
+        let node1_idx = self.node1_idx();
 
-        Triples::new(&[
-            (branch_idx, node0_idx, Numeric::one()),
-            (node0_idx, branch_idx, Numeric::one()),
-            (branch_idx, node1_idx, -Numeric::one()),
-            (node1_idx, branch_idx, -Numeric::one()),
-        ])
+        // Handle different connection cases using pattern matching
+        match (node0_idx, node1_idx) {
+            (None, Some(node1_idx)) => {
+                // Voltage source connected to ground through node1
+                Triples::new(&[
+                    (branch_idx, node1_idx, Numeric::one()),
+                    (node1_idx, branch_idx, Numeric::one()),
+                ])
+            },
+            (Some(node0_idx), None) => {
+                // Voltage source connected to ground through node0
+                Triples::new(&[
+                    (branch_idx, node0_idx, -Numeric::one()),
+                    (node0_idx, branch_idx, -Numeric::one()),
+                ])
+            },
+            (Some(node0_idx), Some(node1_idx)) => {
+                // Voltage source connected between two nodes
+                Triples::new(&[
+                    (branch_idx, node0_idx, Numeric::one()),
+                    (node0_idx, branch_idx, Numeric::one()),
+                    (branch_idx, node1_idx, -Numeric::one()),
+                    (node1_idx, branch_idx, -Numeric::one()),
+                ])
+            },
+            (None, None) => {
+                // This should not happen as voltage sources must have at least one connection
+                Triples::new(&[])
+            }
+        }
     }
 
     /// Returns the triples indices.
@@ -153,17 +153,16 @@ impl VSourceStepBundle {
 
     /// Returns the AC pairs representing vector b.
     pub fn ac_pairs(&self) -> Pairs<ComplexNumeric, 2> {
-        // Fixme: this match nests too deep
-        match self.ac_value {
-            Some(ac_val) => Pairs::new(&[(
+        self.ac_value.map_or_else(
+            || Pairs::new(&[]),
+            |ac_val| Pairs::new(&[(
                 self.branch_idx(),
                 Complex {
                     re: ac_val,
                     im: Numeric::zero(),
                 },
             )]),
-            None => Pairs::new(&[]),
-        }
+        )
     }
 
     /// Sets the voltage of the step voltage source.

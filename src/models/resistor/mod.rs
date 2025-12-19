@@ -66,26 +66,34 @@ impl ResistorBundle {
 
     /// Returns triples representing this elements contribution to the a matrix
     pub fn triples(&self) -> Triples<Numeric, 4> {
-        let node0_idx = if let Some(idx) = self.node0_idx() {
-            idx
-        } else {
-            // If node0 doesn't exist, resistor is connected to ground through node1
-            let node1_idx = self
-                .node1_idx()
-                .expect("Resistor must have at least one node connected");
-            return Triples::new(&[(node1_idx, node1_idx, Numeric::one() / self.value)]);
-        };
-        let Some(node1_idx) = self.node1_idx() else {
-            // If node1 doesn't exist, resistor is connected to ground through node0
-            return Triples::new(&[(node0_idx, node0_idx, Numeric::one() / self.value)]);
-        };
+        let conductance = Numeric::one() / self.value;
+        let node0_idx = self.node0_idx();
+        let node1_idx = self.node1_idx();
 
-        Triples::new(&[
-            (node0_idx, node0_idx, Numeric::one() / self.value),
-            (node1_idx, node1_idx, Numeric::one() / self.value),
-            (node0_idx, node1_idx, -Numeric::one() / self.value),
-            (node1_idx, node0_idx, -Numeric::one() / self.value),
-        ])
+        // Handle different connection cases using pattern matching
+        match (node0_idx, node1_idx) {
+            (None, Some(node1_idx)) => {
+                // Resistor connected to ground through node1
+                Triples::new(&[(node1_idx, node1_idx, conductance)])
+            },
+            (Some(node0_idx), None) => {
+                // Resistor connected to ground through node0
+                Triples::new(&[(node0_idx, node0_idx, conductance)])
+            },
+            (Some(node0_idx), Some(node1_idx)) => {
+                // Resistor connected between two nodes
+                Triples::new(&[
+                    (node0_idx, node0_idx, conductance),
+                    (node1_idx, node1_idx, conductance),
+                    (node0_idx, node1_idx, -conductance),
+                    (node1_idx, node0_idx, -conductance),
+                ])
+            },
+            (None, None) => {
+                // This should not happen as resistors must have at least one connection
+                Triples::new(&[])
+            }
+        }
     }
 
     /// Returns the triples indices.
@@ -105,68 +113,38 @@ impl ResistorBundle {
 
     /// Returns triples representing this elements contribution to the a matrix
     pub fn ac_triples(&self) -> Triples<ComplexNumeric, 4> {
-        // Fixme: This nests too deep and should be refactored
-        let node0_idx = if let Some(idx) = self.node0_idx() {
-            idx
-        } else {
-            // If node0 doesn't exist, resistor is connected to ground through node1
-            let node1_idx = self
-                .node1_idx()
-                .expect("Resistor must have at least one node connected");
-            return Triples::new(&[(
-                node1_idx,
-                node1_idx,
-                Complex {
-                    re: Numeric::one() / self.value,
-                    im: Numeric::zero(),
-                },
-            )]);
+        let conductance = Complex {
+            re: Numeric::one() / self.value,
+            im: Numeric::zero(),
         };
-        let Some(node1_idx) = self.node1_idx() else {
-            return Triples::new(&[(
-                node0_idx,
-                node0_idx,
-                Complex {
-                    re: Numeric::one() / self.value,
-                    im: Numeric::zero(),
-                },
-            )]);
-        };
-        // Fixme: This nests too deep and should be refactored
-        Triples::new(&[
-            (
-                node0_idx,
-                node0_idx,
-                Complex {
-                    re: Numeric::one() / self.value,
-                    im: Numeric::zero(),
-                },
-            ),
-            (
-                node1_idx,
-                node1_idx,
-                Complex {
-                    re: Numeric::one() / self.value,
-                    im: Numeric::zero(),
-                },
-            ),
-            (
-                node0_idx,
-                node1_idx,
-                Complex {
-                    re: -Numeric::one() / self.value,
-                    im: Numeric::zero(),
-                },
-            ),
-            (
-                node1_idx,
-                node0_idx,
-                Complex {
-                    re: -Numeric::one() / self.value,
-                    im: Numeric::zero(),
-                },
-            ),
-        ])
+
+        let node0_idx = self.node0_idx();
+        let node1_idx = self.node1_idx();
+
+        // Handle different connection cases using pattern matching
+        match (node0_idx, node1_idx) {
+            (None, Some(node1_idx)) => {
+                // Resistor connected to ground through node1
+                Triples::new(&[(node1_idx, node1_idx, conductance)])
+            },
+            (Some(node0_idx), None) => {
+                // Resistor connected to ground through node0
+                Triples::new(&[(node0_idx, node0_idx, conductance)])
+            },
+            (Some(node0_idx), Some(node1_idx)) => {
+                // Resistor connected between two nodes
+                Triples::new(&[
+                    (node0_idx, node0_idx, conductance),
+                    (node1_idx, node1_idx, conductance),
+                    (node0_idx, node1_idx, -conductance),
+                    (node1_idx, node0_idx, -conductance),
+                ])
+            },
+            (None, None) => {
+                // This should not happen as resistors must have at least one connection
+                Triples::new(&[])
+            }
+        }
     }
 }
 

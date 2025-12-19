@@ -111,72 +111,47 @@ impl CapacitorBundle {
 
     /// Returns a reference to the triples representing matrix A.
     pub fn ac_triples(&self, freq: Numeric) -> Triples<ComplexNumeric, 4> {
-        // Fixme: This nests too deep und needs a refactor
-        let node0_idx = if let Some(idx) = self.node0_idx() {
-            idx
-        } else {
-            // If node0 doesn't exist, capacitor is connected to ground through node1
-            let node1_idx = self
-                .node1_idx()
-                .expect("Capacitor must have at least one node connected");
-            return Triples::new(&[(
-                node1_idx,
-                node1_idx,
-                Complex {
-                    re: Numeric::zero(),
-                    im: (Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
-                },
-            )]);
-        };
-        // Fixme: This nests too deep und needs a refactor
-        let node1_idx = if let Some(idx) = self.node1_idx() {
-            idx
-        } else {
-            return Triples::new(&[(
-                node0_idx,
-                node0_idx,
-                Complex {
-                    re: Numeric::zero(),
-                    im: (Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
-                },
-            )]);
+        let node0_idx = self.node0_idx();
+        let node1_idx = self.node1_idx();
+
+        // Calculate the complex admittance: j * ω * C = j * 2πf * C
+        let complex_admittance = Complex {
+            re: Numeric::zero(),
+            im: (Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
         };
 
-        // Fixme: This nests too deep und needs a refactor
-        Triples::new(&[
-            (
-                node0_idx,
-                node0_idx,
-                Complex {
-                    re: Numeric::zero(),
-                    im: (Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
-                },
-            ),
-            (
-                node1_idx,
-                node1_idx,
-                Complex {
-                    re: Numeric::zero(),
-                    im: (Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
-                },
-            ),
-            (
-                node0_idx,
-                node1_idx,
-                -Complex {
-                    re: Numeric::zero(),
-                    im: (Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
-                },
-            ),
-            (
-                node1_idx,
-                node0_idx,
-                -Complex {
-                    re: Numeric::zero(),
-                    im: (Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value,
-                },
-            ),
-        ])
+        // Handle different connection cases
+        match (node0_idx, node1_idx) {
+            (None, Some(node1_idx)) => {
+                // Capacitor connected to ground through node1
+                Triples::new(&[(
+                    node1_idx,
+                    node1_idx,
+                    complex_admittance,
+                )])
+            },
+            (Some(node0_idx), None) => {
+                // Capacitor connected to ground through node0
+                Triples::new(&[(
+                    node0_idx,
+                    node0_idx,
+                    complex_admittance,
+                )])
+            },
+            (Some(node0_idx), Some(node1_idx)) => {
+                // Capacitor connected between two nodes
+                Triples::new(&[
+                    (node0_idx, node0_idx, complex_admittance),
+                    (node1_idx, node1_idx, complex_admittance),
+                    (node0_idx, node1_idx, -complex_admittance),
+                    (node1_idx, node0_idx, -complex_admittance),
+                ])
+            },
+            (None, None) => {
+                // This should not happen as capacitors must have at least one connection
+                Triples::new(&[])
+            }
+        }
     }
 
     pub fn triple_idx(&self) -> Option<TripleIdx<4>> {

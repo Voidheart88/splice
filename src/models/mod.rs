@@ -361,90 +361,134 @@ impl Element {
         }
 
         // Then, set up the coupled inductors with the node indices
-        // Fixme: This nests way too deep and needs a refactor
         for element in elements.iter_mut() {
             if let Element::CoupledInductors(coupled) = element {
-                // Validate coupling factor
-                let coupling_factor = coupled.coupling_factor();
-                if coupling_factor <= Numeric::zero() || coupling_factor >= Numeric::one() {
-                    errors.push(format!(
-                        "Coupled inductors '{}': Invalid coupling factor {}. Must be 0 < k < 1",
-                        coupled.name(),
-                        coupling_factor
-                    ));
-                }
-
-                // Check if referenced inductors exist
-                let inductor1_name = coupled.inductor1();
-                let inductor2_name = coupled.inductor2();
-
-                if !inductor_map.contains_key(&inductor1_name) {
-                    errors.push(format!(
-                        "Coupled inductors '{}': Referenced inductor '{}' not found",
-                        coupled.name(),
-                        inductor1_name
-                    ));
-                }
-
-                if !inductor_map.contains_key(&inductor2_name) {
-                    errors.push(format!(
-                        "Coupled inductors '{}': Referenced inductor '{}' not found",
-                        coupled.name(),
-                        inductor2_name
-                    ));
-                }
-
-                // Check if inductors are distinct
-                if inductor1_name == inductor2_name {
-                    errors.push(format!(
-                        "Coupled inductors '{}': Inductor '{}' cannot be coupled to itself",
-                        coupled.name(),
-                        inductor1_name
-                    ));
-                }
-
-                // Only set node indices if both inductors exist and are valid
-                if inductor_map.contains_key(&inductor1_name)
-                    && inductor_map.contains_key(&inductor2_name)
-                {
-                    if let Some((node0_idx1, node1_idx1)) = inductor_map.get(&inductor1_name) {
-                        if let Some((node0_idx2, node1_idx2)) = inductor_map.get(&inductor2_name) {
-                            // Validate that inductors have proper node connections
-                            if node0_idx1.is_none() && node1_idx1.is_none() {
-                                errors.push(format!(
-                                    "Coupled inductors '{}': Inductor '{}' has no node connections",
-                                    coupled.name(),
-                                    inductor1_name
-                                ));
-                            }
-
-                            if node0_idx2.is_none() && node1_idx2.is_none() {
-                                errors.push(format!(
-                                    "Coupled inductors '{}': Inductor '{}' has no node connections",
-                                    coupled.name(),
-                                    inductor2_name
-                                ));
-                            }
-
-                            // Set node indices only if both inductors have valid connections
-                            if (node0_idx1.is_some() || node1_idx1.is_some())
-                                && (node0_idx2.is_some() || node1_idx2.is_some())
-                            {
-                                coupled.set_node_indices(
-                                    *node0_idx1,
-                                    *node1_idx1,
-                                    *node0_idx2,
-                                    *node1_idx2,
-                                );
-                            }
-                        }
-                    }
-                }
+                validate_and_setup_coupled_inductor(coupled, &inductor_map, &mut errors);
             }
         }
 
         errors
     }
+
+    /// Helper function to validate and setup a single coupled inductor
+    /// This reduces nesting complexity by extracting the validation logic
+    fn validate_and_setup_coupled_inductor(
+        coupled: &mut CoupledInductorsBundle,
+        inductor_map: &HashMap<Arc<str>, (Option<usize>, Option<usize>)>,
+        errors: &mut Vec<String>,
+    ) {
+        let coupled_name = coupled.name();
+        let inductor1_name = coupled.inductor1();
+        let inductor2_name = coupled.inductor2();
+
+        // Validate coupling factor
+        validate_coupling_factor(coupled, coupled_name, errors);
+
+        // Check if referenced inductors exist
+        if !inductor_map.contains_key(&inductor1_name) {
+            errors.push(format!(
+                "Coupled inductors '{}': Referenced inductor '{}' not found",
+                coupled_name,
+                inductor1_name
+            ));
+            return;
+        }
+
+        if !inductor_map.contains_key(&inductor2_name) {
+            errors.push(format!(
+                "Coupled inductors '{}': Referenced inductor '{}' not found",
+                coupled_name,
+                inductor2_name
+            ));
+            return;
+        }
+
+        // Check if inductors are distinct
+        if inductor1_name == inductor2_name {
+            errors.push(format!(
+                "Coupled inductors '{}': Inductor '{}' cannot be coupled to itself",
+                coupled_name,
+                inductor1_name
+            ));
+            return;
+        }
+
+        // Get node indices for both inductors
+        let (node0_idx1, node1_idx1) = inductor_map[&inductor1_name];
+        let (node0_idx2, node1_idx2) = inductor_map[&inductor2_name];
+
+        // Validate that inductors have proper node connections
+        validate_inductor_connections(
+            coupled_name,
+            inductor1_name,
+            node0_idx1,
+            node1_idx1,
+            errors,
+        );
+
+        validate_inductor_connections(
+            coupled_name,
+            inductor2_name,
+            node0_idx2,
+            node1_idx2,
+            errors,
+        );
+
+        // Set node indices if both inductors have valid connections
+        if has_valid_connections(node0_idx1, node1_idx1)
+            && has_valid_connections(node0_idx2, node1_idx2)
+        {
+            coupled.set_node_indices(
+                node0_idx1.unwrap_or(0),
+                node1_idx1.unwrap_or(0),
+                node0_idx2.unwrap_or(0),
+                node1_idx2.unwrap_or(0),
+            );
+        }
+    }
+
+    /// Validate coupling factor is within valid range (0 < k < 1)
+    fn validate_coupling_factor(
+        coupled: &CoupledInductorsBundle,
+        coupled_name: Arc<str>,
+        errors: &mut Vec<String>,
+    ) {
+        let coupling_factor = coupled.coupling_factor();
+        if coupling_factor <= Numeric::zero() || coupling_factor >= Numeric::one() {
+            errors.push(format!(
+                "Coupled inductors '{}': Invalid coupling factor {}. Must be 0 < k < 1",
+                coupled_name,
+                coupling_factor
+            ));
+        }
+    }
+
+    /// Validate that an inductor has at least one node connection
+    fn validate_inductor_connections(
+        coupled_name: Arc<str>,
+        inductor_name: Arc<str>,
+        node0_idx: Option<usize>,
+        node1_idx: Option<usize>,
+        errors: &mut Vec<String>,
+    ) {
+        if node0_idx.is_none() && node1_idx.is_none() {
+            errors.push(format!(
+                "Coupled inductors '{}': Inductor '{}' has no node connections",
+                coupled_name,
+                inductor_name
+            ));
+        }
+    }
+
+    /// Check if an inductor has valid connections (at least one node)
+    fn has_valid_connections(node0_idx: Option<usize>, node1_idx: Option<usize>) -> bool {
+        node0_idx.is_some() || node1_idx.is_some()
+    }
 }
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod tests {
+    pub mod integration_tests;
+}

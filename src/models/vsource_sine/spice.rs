@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 use crate::frontends::get_variable;
 use crate::frontends::spice::ProcessSpiceElement;
+use crate::frontends::FrontendError;
 use crate::models::{Element, Unit, VSourceSinBundle, Variable};
 
 impl ProcessSpiceElement for VSourceSinBundle {
@@ -12,7 +13,7 @@ impl ProcessSpiceElement for VSourceSinBundle {
         variables: &mut Vec<Variable>,
         elements: &mut Vec<Element>,
         var_map: &mut std::collections::HashMap<std::sync::Arc<str>, usize>,
-    ) -> Result<(), crate::frontends::FrontendError> {
+    ) -> Result<(), FrontendError> {
         let ele = element.as_str();
         let offset = element.as_span().start();
         let mut inner = element.into_inner();
@@ -20,8 +21,7 @@ impl ProcessSpiceElement for VSourceSinBundle {
         let name = inner
             .next()
             .ok_or_else(|| {
-                // Fixme: replace with use as this is unnessesary long
-                crate::frontends::FrontendError::ParseError(format!(
+                FrontendError::ParseError(format!(
                     "Missing name in sine voltage source: {}",
                     ele
                 ))
@@ -31,8 +31,7 @@ impl ProcessSpiceElement for VSourceSinBundle {
         let node0 = inner
             .next()
             .ok_or_else(|| {
-                // Fixme: replace with use as this is unnessesary long
-                crate::frontends::FrontendError::ParseError(format!(
+                FrontendError::ParseError(format!(
                     "Missing node0 in sine voltage source: {}",
                     name
                 ))
@@ -43,8 +42,7 @@ impl ProcessSpiceElement for VSourceSinBundle {
         let node1 = inner
             .next()
             .ok_or_else(|| {
-                // Fixme: replace with use as this is unnessesary long
-                crate::frontends::FrontendError::ParseError(format!(
+                FrontendError::ParseError(format!(
                     "Missing node1 in sine voltage source: {}",
                     name
                 ))
@@ -60,31 +58,27 @@ impl ProcessSpiceElement for VSourceSinBundle {
 
         // Ensure we have at least 3 values
         if values.len() < 3 {
-            // Fixme: replace with use as this is unnessesary long
-            return Err(crate::frontends::FrontendError::ParseError(
+            return Err(FrontendError::ParseError(
                 format!("Insufficient values for sine voltage source '{}': expected at least 3 values (offset, amplitude, frequency)", name)
             ));
         }
 
         let dc_offset = values[0].parse::<f64>().map_err(|_| {
-            // Fixme: replace with use as this is unnessesary long
-            crate::frontends::FrontendError::ParseError(format!(
+            FrontendError::ParseError(format!(
                 "Invalid DC offset in sine voltage source '{}': must be a number",
                 name
             ))
         })?;
 
         let amplitude = values[1].parse::<f64>().map_err(|_| {
-            // Fixme: replace with use as this is unnessesary long
-            crate::frontends::FrontendError::ParseError(format!(
+            FrontendError::ParseError(format!(
                 "Invalid amplitude in sine voltage source '{}': must be a number",
                 name
             ))
         })?;
 
         let frequency = values[2].parse::<f64>().map_err(|_| {
-            // Fixme: replace with use as this is unnessesary long
-            crate::frontends::FrontendError::ParseError(format!(
+            FrontendError::ParseError(format!(
                 "Invalid frequency in sine voltage source '{}': must be a number",
                 name
             ))
@@ -93,8 +87,7 @@ impl ProcessSpiceElement for VSourceSinBundle {
         // Optional phase value
         let phase = match values.get(3) {
             Some(phase_str) => phase_str.parse::<f64>().map_err(|_| {
-                // Fixme: replace with use as this is unnessesary long
-                crate::frontends::FrontendError::ParseError(format!(
+                FrontendError::ParseError(format!(
                     "Invalid phase in sine voltage source '{}': must be a number",
                     name
                 ))

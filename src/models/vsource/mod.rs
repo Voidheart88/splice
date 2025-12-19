@@ -82,41 +82,39 @@ impl VSourceBundle {
     /// Returns a reference to the triples representing matrix A.
     pub fn triples(&self) -> Triples<Numeric, 4> {
         let branch_idx = self.branch_idx();
-        // Fixme: This nests too deep und needs a refactor
-        let node0_idx = match self.node0_idx() {
-            Some(node0_idx) => node0_idx,
-            None => {
-                // If node0 doesn't exist, voltage source is connected to ground through node1
-                let node1_idx = self
-                    .node1_idx()
-                    .expect("Voltage source must have at least one node connected");
-                return Triples::new(&[
-                    (self.branch_idx(), node1_idx, Numeric::one()),
-                    (node1_idx, self.branch_idx(), Numeric::one()),
-                ]);
-            }
-        };
-        // Fixme: This nests too deep und needs a refactor
-        let node1_idx = match self.node1_idx() {
-            Some(node1_idx) => node1_idx,
-            None => {
-                // If node1 doesn't exist, voltage source is connected to ground through node0
-                let node0_idx = self
-                    .node0_idx()
-                    .expect("Voltage source must have at least one node connected");
-                return Triples::new(&[
-                    (self.branch_idx(), node0_idx, -Numeric::one()),
-                    (node0_idx, self.branch_idx(), -Numeric::one()),
-                ]);
-            }
-        };
+        let node0_idx = self.node0_idx();
+        let node1_idx = self.node1_idx();
 
-        Triples::new(&[
-            (branch_idx, node0_idx, Numeric::one()),
-            (node0_idx, branch_idx, Numeric::one()),
-            (branch_idx, node1_idx, -Numeric::one()),
-            (node1_idx, branch_idx, -Numeric::one()),
-        ])
+        // Handle different connection cases using pattern matching
+        match (node0_idx, node1_idx) {
+            (None, Some(node1_idx)) => {
+                // Voltage source connected to ground through node1
+                Triples::new(&[
+                    (branch_idx, node1_idx, Numeric::one()),
+                    (node1_idx, branch_idx, Numeric::one()),
+                ])
+            },
+            (Some(node0_idx), None) => {
+                // Voltage source connected to ground through node0
+                Triples::new(&[
+                    (branch_idx, node0_idx, -Numeric::one()),
+                    (node0_idx, branch_idx, -Numeric::one()),
+                ])
+            },
+            (Some(node0_idx), Some(node1_idx)) => {
+                // Voltage source connected between two nodes
+                Triples::new(&[
+                    (branch_idx, node0_idx, Numeric::one()),
+                    (node0_idx, branch_idx, Numeric::one()),
+                    (branch_idx, node1_idx, -Numeric::one()),
+                    (node1_idx, branch_idx, -Numeric::one()),
+                ])
+            },
+            (None, None) => {
+                // This should not happen as voltage sources must have at least one connection
+                Triples::new(&[])
+            }
+        }
     }
 
     /// Returns the triples indices.
@@ -137,95 +135,47 @@ impl VSourceBundle {
     /// Returns a reference to the triples representing matrix A.
     pub fn ac_triples(&self) -> Triples<ComplexNumeric, 4> {
         let branch_idx = self.branch_idx();
-        // Fixme: This match nests too deep und needs a refactor
-        let node0_idx = match self.node0_idx() {
-            Some(node0_idx) => node0_idx,
-            None => {
-                // If node0 doesn't exist, voltage source is connected to ground through node1
-                let node1_idx = self
-                    .node1_idx()
-                    .expect("Voltage source must have at least one node connected");
-                return Triples::new(&[
-                    (
-                        self.branch_idx(),
-                        node1_idx,
-                        Complex {
-                            re: Numeric::one(),
-                            im: Numeric::zero(),
-                        },
-                    ),
-                    (
-                        node1_idx,
-                        self.branch_idx(),
-                        Complex {
-                            re: Numeric::one(),
-                            im: Numeric::zero(),
-                        },
-                    ),
-                ]);
-            }
+        let node0_idx = self.node0_idx();
+        let node1_idx = self.node1_idx();
+        let one_complex = Complex {
+            re: Numeric::one(),
+            im: Numeric::zero(),
         };
-        // Fixme: This match nests too deep und needs a refactor
-        let node1_idx = match self.node1_idx() {
-            Some(node1_idx) => node1_idx,
-            None => {
-                return Triples::new(&[
-                    (
-                        self.branch_idx(),
-                        self.node0_idx()
-                            .expect("Voltage source must have at least one node connected"),
-                        Complex {
-                            re: -Numeric::one(),
-                            im: Numeric::zero(),
-                        },
-                    ),
-                    (
-                        self.node0_idx()
-                            .expect("Voltage source must have at least one node connected"),
-                        self.branch_idx(),
-                        Complex {
-                            re: -Numeric::one(),
-                            im: Numeric::zero(),
-                        },
-                    ),
+        let minus_one_complex = Complex {
+            re: -Numeric::one(),
+            im: Numeric::zero(),
+        };
+
+        // Handle different connection cases using pattern matching
+        match (node0_idx, node1_idx) {
+            (None, Some(node1_idx)) => {
+                // Voltage source connected to ground through node1
+                Triples::new(&[
+                    (branch_idx, node1_idx, one_complex),
+                    (node1_idx, branch_idx, one_complex),
                 ])
+            },
+            (Some(node0_idx), None) => {
+                // Voltage source connected to ground through node0
+                Triples::new(&[
+                    (branch_idx, node0_idx, minus_one_complex),
+                    (node0_idx, branch_idx, minus_one_complex),
+                ])
+            },
+            (Some(node0_idx), Some(node1_idx)) => {
+                // Voltage source connected between two nodes
+                Triples::new(&[
+                    (branch_idx, node0_idx, one_complex),
+                    (node0_idx, branch_idx, one_complex),
+                    (branch_idx, node1_idx, minus_one_complex),
+                    (node1_idx, branch_idx, minus_one_complex),
+                ])
+            },
+            (None, None) => {
+                // This should not happen as voltage sources must have at least one connection
+                Triples::new(&[])
             }
-        };
-        // Fixme: This nests too deep und needs a refactor
-        Triples::new(&[
-            (
-                branch_idx,
-                node0_idx,
-                Complex {
-                    re: Numeric::one(),
-                    im: Numeric::zero(),
-                },
-            ),
-            (
-                node0_idx,
-                branch_idx,
-                Complex {
-                    re: Numeric::one(),
-                    im: Numeric::zero(),
-                },
-            ),
-            (
-                branch_idx,
-                node1_idx,
-                Complex {
-                    re: -Numeric::one(),
-                    im: Numeric::zero(),
-                },
-            ),
-            (
-                node1_idx,
-                branch_idx,
-                Complex {
-                    re: -Numeric::one(),
-                    im: Numeric::zero(),
-                },
-            ),
-        ])
+        }
     }
 
     /// Returns a reference to the pair representing vector b.
