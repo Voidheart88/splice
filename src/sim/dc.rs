@@ -9,6 +9,13 @@ use crate::solver::Solver;
 use crate::spot::*;
 use crate::Simulator;
 
+/// Helper function to set voltage source voltage
+fn set_vsource_voltage(element: &mut Element, voltage: Numeric) {
+    if let Element::VSource(ref mut vs) = element {
+        vs.set_voltage(voltage);
+    }
+}
+
 pub(super) trait DcSimulation<SO: Solver> {
     fn run_dc(
         &mut self,
@@ -50,27 +57,15 @@ impl<SO: Solver> DcSimulation<SO> for Simulator<SO> {
         let mut dc_results = Vec::new();
         let mut voltage = *vstart;
 
-        // FIXME: This nests too deep and should be refactored
+        // Perform DC sweep
         while voltage <= *vstop {
-            {
-                let source = match &mut self.elements[vsource1_idx] {
-                    Element::VSource(ref mut vs) => vs,
-                    _ => unreachable!(),
-                };
-                source.set_voltage(voltage);
-            }
+            set_vsource_voltage(&mut self.elements[vsource1_idx], voltage);
             dc_results.push(self.find_op()?);
             voltage += vstep;
         }
 
-        // FIXME: This nests too deep and should be refactored
-        {
-            let source = match &mut self.elements[vsource1_idx] {
-                Element::VSource(ref mut vs) => vs,
-                _ => unreachable!(),
-            };
-            source.set_voltage(voltage_0);
-        }
+        // Restore original voltage
+        set_vsource_voltage(&mut self.elements[vsource1_idx], voltage_0);
 
         Ok(Sim::Dc(dc_results))
     }

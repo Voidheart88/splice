@@ -383,7 +383,7 @@ fn test_vsource_sin_tran() {
         let closest_result = find_closest_result(tran_results, expected_time);
         
         if let Some((time, values)) = closest_result {
-            let (voltage, current) = extract_voltage_and_current(&values);
+            let (voltage, current) = extract_voltage_and_current(values);
             let expected_current = -expected_voltage / resistance; // Negative because current flows into source
 
             // Allow 5% relative error or reasonable absolute error

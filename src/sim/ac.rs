@@ -6,6 +6,34 @@ use crate::spot::*;
 use crate::Simulator;
 use log::info;
 
+/// Calculate frequencies for AC analysis based on the specified mode
+fn calculate_frequencies(fstart: Numeric, fend: Numeric, steps: usize, mode: ACMode) -> Vec<Numeric> {
+    match mode {
+        ACMode::Lin => {
+            let step_size = (fend - fstart) / (steps as Numeric);
+            (0..=steps)
+                .map(|i| fstart + i as Numeric * step_size)
+                .collect()
+        }
+        ACMode::Dec => {
+            let log_fstart = fstart.log10();
+            let log_fend = fend.log10();
+            let step_size = (log_fend - log_fstart) / (steps as Numeric);
+            (0..=steps)
+                .map(|i| NUMERIC_TEN.powf(log_fstart + i as Numeric * step_size))
+                .collect()
+        }
+        ACMode::Oct => {
+            let oct_fstart = fstart.log2();
+            let oct_fend = fend.log2();
+            let step_size = (oct_fend - oct_fstart) / (steps as Numeric);
+            (0..=steps)
+                .map(|i| NUMERIC_TWO.powf(oct_fstart + i as Numeric * step_size))
+                .collect()
+        }
+    }
+}
+
 pub(super) trait AcSimulation<SO: Solver> {
     fn run_ac(
         &mut self,
@@ -28,32 +56,8 @@ impl<SO: Solver> AcSimulation<SO> for Simulator<SO> {
         info!("Find operating point");
         self.find_op()?;
 
-        // FIXME: This nests too deep and should be refactored
-        //Calculate frequencies in the range from [fstart;fend]
-        let freqs: Vec<Numeric> = match ac_option {
-            ACMode::Lin => {
-                let step_size = (fend - fstart) / (*steps as Numeric);
-                (0..=*steps)
-                    .map(|i| fstart + i as Numeric * step_size)
-                    .collect()
-            }
-            ACMode::Dec => {
-                let log_fstart = fstart.log10();
-                let log_fend = fend.log10();
-                let step_size = (log_fend - log_fstart) / (*steps as Numeric);
-                (0..=*steps)
-                    .map(|i| NUMERIC_TEN.powf(log_fstart + i as Numeric * step_size))
-                    .collect()
-            }
-            ACMode::Oct => {
-                let oct_fstart = fstart.log2();
-                let oct_fend = fend.log2();
-                let step_size = (oct_fend - oct_fstart) / (*steps as Numeric);
-                (0..=*steps)
-                    .map(|i| NUMERIC_TWO.powf(oct_fstart + i as Numeric * step_size))
-                    .collect()
-            }
-        };
+        // Calculate frequencies in the range from [fstart;fend]
+        let freqs = calculate_frequencies(*fstart, *fend, *steps, ac_option.clone());
 
         info!("Run analysis");
 

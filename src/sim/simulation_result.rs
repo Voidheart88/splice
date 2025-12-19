@@ -27,16 +27,17 @@ struct TranWrapper<'a> {
 }
 
 /// Wrapper struct for AC analysis serialization
+type BodeValue = (Numeric, Vec<(Variable, Complex<Numeric>)>);
+type BodeValueTuple = (Numeric, Vec<(Variable, (Numeric, Numeric))>);
+
 #[derive(Serialize)]
 struct AcWrapper<'a> {
     r#type: &'static str,
-    bode_values: &'a [(Numeric, Vec<(Variable, (Numeric, Numeric))>)],
+    bode_values: &'a [BodeValueTuple],
 }
 
-type BodeValue = (Numeric, Vec<(Variable, Complex<Numeric>)>);
-
 /// Helper function to convert AC bode values from complex numbers to tuples for serialization
-fn convert_ac_bode_values(bode_values: &[BodeValue]) -> Vec<(Numeric, Vec<(Variable, (Numeric, Numeric))>)> {
+fn convert_ac_bode_values(bode_values: &[BodeValue]) -> Vec<BodeValueTuple> {
     bode_values
         .iter()
         .map(|(freq, vars)| {

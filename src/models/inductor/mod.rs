@@ -67,6 +67,37 @@ impl InductorBundle {
         self.previous_current
     }
 
+    /// Get node indices as Option<usize> for both nodes
+    fn get_node_indices(&self) -> (Option<usize>, Option<usize>) {
+        (
+            self.node0.as_ref().map(|node| node.idx()),
+            self.node1.as_ref().map(|node| node.idx()),
+        )
+    }
+
+    /// Create AC triple for single-node connection (grounded inductor)
+    fn create_single_node_ac_triple(&self, node_idx: usize, freq: Numeric) -> Triples<ComplexNumeric, 4> {
+        let impedance = Complex {
+            re: Numeric::zero(),
+            im: Numeric::one() / ((Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value),
+        };
+        Triples::new(&[(node_idx, node_idx, impedance)])
+    }
+
+    /// Create full AC triples for two-node connection
+    fn create_ac_triples(&self, node0_idx: usize, node1_idx: usize, freq: Numeric) -> Triples<ComplexNumeric, 4> {
+        let impedance = Complex {
+            re: Numeric::zero(),
+            im: Numeric::one() / ((Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value),
+        };
+        Triples::new(&[
+            (node0_idx, node0_idx, impedance),
+            (node1_idx, node1_idx, impedance),
+            (node0_idx, node1_idx, -impedance),
+            (node1_idx, node0_idx, -impedance),
+        ])
+    }
+
     /// Returns the triples representing the inductor's contribution to matrix A.
     /// If `delta_t` is provided, the transient resistance is calculated using Euler integration.
     ///
@@ -168,106 +199,46 @@ impl InductorBundle {
     pub fn pairs_trapezoidal(&self, delta_t: &Numeric) -> Pairs<Numeric, 2> {
         let r = (delta_t * 2.0) / self.value; // Equivalent resistance for trapezoidal rule = 2Δt/L
         let i_prev = self.previous_current;
-
-        let node0_idx = if let Some(idx) = self.node0_idx() {
-            idx
-        } else {
-            // If node0 doesn't exist, inductor is connected to ground through node1
-            let node1_idx = self
-                .node1_idx()
-                .expect("Inductor must have at least one node connected");
+        
+        // Get node indices with early returns for special cases
+        let (node0_idx, node1_idx) = self.get_node_indices();
+        
+        // Handle special cases where only one node is connected
+        if node0_idx.is_none() {
+            let node1_idx = node1_idx.expect("Inductor must have at least one node connected");
             return Pairs::new(&[(node1_idx, r * i_prev)]);
-        };
-        let node1_idx = if let Some(idx) = self.node1_idx() {
-            idx
-        } else {
+        }
+        
+        if node1_idx.is_none() {
+            let node0_idx = node0_idx.expect("Inductor must have at least one node connected");
             return Pairs::new(&[(node0_idx, -r * i_prev)]);
-        };
+        }
 
         // The RHS represents the voltage contribution from the previous time step
         // For trapezoidal rule: v = L * (i_current - i_prev) / (Δt/2)
         // Rearranged: (2L/Δt)*i_current - (2L/Δt)*i_prev = v
         // In MNA, the RHS should be: (2L/Δt) * i_prev (voltage drop across the inductor)
-        Pairs::new(&[(node0_idx, r * i_prev), (node1_idx, -r * i_prev)])
+        Pairs::new(&[(node0_idx.unwrap(), r * i_prev), (node1_idx.unwrap(), -r * i_prev)])
     }
 
     /// Returns the triples representing the inductor's contribution to matrix A.
     pub fn ac_triples(&self, freq: Numeric) -> Triples<ComplexNumeric, 4> {
-        // FIXME: This nests too deep and needs a refactor
-        let node0_idx = if let Some(node) = &self.node0 {
-            node.idx()
-        } else {
-            // If node0 doesn't exist, inductor is connected to ground through node1
-            let node1_idx = self
-                .node1
-                .as_ref()
-                .expect("Inductor must have at least one node connected")
-                .idx();
-            return Triples::new(&[(
-                node1_idx,
-                node1_idx,
-                Complex {
-                    re: Numeric::zero(),
-                    im: Numeric::one()
-                        / ((Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value),
-                },
-            )]);
-        };
-
-        // FIXME: This nests too deep and needs a refactor
-        let node1_idx = if let Some(node) = &self.node1 {
-            node.idx()
-        } else {
-            return Triples::new(&[(
-                node0_idx,
-                node0_idx,
-                Complex {
-                    re: Numeric::zero(),
-                    im: Numeric::one()
-                        / ((Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value),
-                },
-            )]);
-        };
-
-        // FIXME: This nests too deep and needs a refactor
-        Triples::new(&[
-            (
-                node0_idx,
-                node0_idx,
-                Complex {
-                    re: Numeric::zero(),
-                    im: Numeric::one()
-                        / ((Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value),
-                },
-            ),
-            (
-                node1_idx,
-                node1_idx,
-                Complex {
-                    re: Numeric::zero(),
-                    im: Numeric::one()
-                        / ((Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value),
-                },
-            ),
-            (
-                node0_idx,
-                node1_idx,
-                -Complex {
-                    re: Numeric::zero(),
-                    im: Numeric::one()
-                        / ((Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value),
-                },
-            ),
-            (
-                node1_idx,
-                node0_idx,
-                -Complex {
-                    re: Numeric::zero(),
-                    im: Numeric::one()
-                        / ((Numeric::one() + Numeric::one()) * Numeric::PI() * freq * self.value),
-                },
-            ),
-        ])
+        // Get node indices with early returns for special cases
+        let (node0_idx, node1_idx) = self.get_node_indices();
+        
+        // Handle special cases where only one node is connected
+        if node0_idx.is_none() {
+            let node1_idx = node1_idx.expect("Inductor must have at least one node connected");
+            return self.create_single_node_ac_triple(node1_idx, freq);
+        }
+        
+        if node1_idx.is_none() {
+            let node0_idx = node0_idx.expect("Inductor must have at least one node connected");
+            return self.create_single_node_ac_triple(node0_idx, freq);
+        }
+        
+        // Create full AC triples for both nodes connected
+        self.create_ac_triples(node0_idx.unwrap(), node1_idx.unwrap(), freq)
     }
 }
 

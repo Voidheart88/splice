@@ -8,8 +8,20 @@ use nalgebra as na;
 #[cfg(test)]
 use nalgebra::DMatrix;
 
-// FIXME: Document this like the documentation in the FaerSolver (faer.rs)
 /// A Solver implementation using the Nalgebra library.
+///
+/// This solver uses dense matrices from the Nalgebra library to store the conductance matrix `A`
+/// and the vector `b`. It is suitable for small to medium-sized circuits where the overhead
+/// of sparse matrix operations is not justified. The dense format stores all elements,
+/// including zeros, which makes it simpler but less memory-efficient for large, sparse circuits.
+///
+/// The solver supports both real-valued (DC/OP/Transient) and complex-valued (AC) analysis.
+/// For real-valued analysis, it uses `DMatrix<Numeric>` for the conductance matrix and `DVector<Numeric>`
+/// for the right-hand side vector. For complex-valued analysis, it uses `DMatrix<ComplexNumeric>`
+/// and `DVector<ComplexNumeric>`.
+///
+/// The solver performs LU decomposition for solving linear systems and provides detailed
+/// debugging output when needed.
 pub struct NalgebraSolver {
     /// The conductance matrix `A`.
     a_mat: na::DMatrix<Numeric>,
@@ -123,7 +135,7 @@ impl std::fmt::Debug for NalgebraSolver {
         } else {
             writeln!(
                 f,
-                "  a_mat: {}×{} (Ausgabe gekürzt)", // FIXME: This should be written in english
+                "  a_mat: {}×{} (output truncated)",
                 self.a_mat.nrows(),
                 self.a_mat.ncols()
             )?;
@@ -134,7 +146,7 @@ impl std::fmt::Debug for NalgebraSolver {
         } else {
             writeln!(
                 f,
-                "  b_vec: {} Einträge (Ausgabe gekürzt)", // FIXME: This should be written in english
+                "  b_vec: {} entries (output truncated)",
                 self.b_vec.len()
             )?;
         }
@@ -144,7 +156,7 @@ impl std::fmt::Debug for NalgebraSolver {
         } else {
             writeln!(
                 f,
-                "  cplx_a_mat: {}×{} (Ausgabe gekürzt)", // FIXME: This should be written in english
+                "  cplx_a_mat: {}×{} (output truncated)",
                 self.cplx_a_mat.nrows(),
                 self.cplx_a_mat.ncols()
             )?;
@@ -155,7 +167,7 @@ impl std::fmt::Debug for NalgebraSolver {
         } else {
             writeln!(
                 f,
-                "  cplx_b_vec: {} Einträge (Ausgabe gekürzt)", // FIXME: This should be written in english
+                "  cplx_b_vec: {} entries (output truncated)",
                 self.cplx_b_vec.len()
             )?;
         }

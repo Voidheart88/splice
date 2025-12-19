@@ -30,7 +30,7 @@ pub fn analyze_circuit_and_suggest_settings(
     elements: &[Element],
     commands: &[SimulationCommand],
 ) -> (Vec<SimulationOption>, Vec<SimulationCommand>) {
-    let mut options: Vec<SimulationOption> = Vec::new();
+    let mut _options: Vec<SimulationOption> = Vec::new();
     let mut modified_commands = commands.to_vec();
     let mut options = Vec::new();
 
@@ -170,13 +170,13 @@ fn extract_element_values(
     characteristics: &mut CircuitCharacteristics,
 ) {
     match element {
-        Element::Resistor(res) => resistors.push(res.value().into()),
+        Element::Resistor(res) => resistors.push(res.value()),
         Element::Capacitor(cap) => {
-            capacitors.push(cap.value.into());
+            capacitors.push(cap.value);
             characteristics.has_capacitors = true;
         }
         Element::Inductor(ind) => {
-            inductors.push(ind.value.into());
+            inductors.push(ind.value);
             characteristics.has_inductors = true;
         }
         Element::Diode(_) => {
