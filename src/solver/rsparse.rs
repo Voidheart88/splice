@@ -16,8 +16,19 @@ use num::{Complex, Zero};
 use rsparse::data::{Nmrc, Sprs, Symb, Trpl};
 use rsparse::lusol;
 
-// FIXME: Document this like the documentation in the FaerSolver (faer.rs)
-/// A Solver implementation using the Faer library.
+/// Sort entries by column, then by row for sparse matrix construction
+fn sort_entries_by_col_then_row(entries: &mut [(usize, usize, Numeric)]) {
+    entries.sort_unstable_by(|(r1, c1, _), (r2, c2, _)| {
+        c1.cmp(c2).then(r1.cmp(r2))
+    });
+}
+
+/// A backend implementation using the RSparse library.
+///
+/// This solver uses sparse matrices to store the conductance matrix `A` and the vector `b`.
+/// It is suitable for large circuits where memory efficiency and performance are critical.
+/// The sparse format avoids storing zero elements, making it more efficient for circuits
+/// with many nodes but sparse connectivity.
 #[derive(Debug)]
 pub struct RSparseSolver {
     vars: usize,
@@ -113,14 +124,10 @@ impl Solver for RSparseSolver {
         if self.symb.is_none() {
             self.symb = Some(rsparse::sqr(&self.sprs, 1, false))
         }
-        // FIXME: This could be an returned SolverError but is expect instead
-        let mut symb = self.symb.take()
-            .expect("Symbolic analysis data missing. This indicates the solver was not properly initialized.");
-
-        // FIXME: This could be an returned SolverError but is expect instead
-        self.lu = rsparse::lu(&self.sprs, &mut symb, 1e-6).expect(
-            "LU decomposition failed. This indicates a singular or ill-conditioned matrix.",
-        );
+        let mut symb = self.symb.take().ok_or(SolverError::SymbolicAnalysisMissing)?;
+        
+        self.lu = rsparse::lu(&self.sprs, &mut symb, 1e-6)
+            .map_err(|_| SolverError::LuDecompositionFailed)?;
 
         ipvec(self.sprs.n, &self.lu.pinv, &self.b_vec, &mut self.x_vec[..]);
         rsparse::lsolve(&self.lu.l, &mut self.x_vec);
@@ -221,16 +228,8 @@ impl RSparseSolver {
             entries.push((*row + self.vars, *col + self.vars, val.re));
         });
 
-        // FIXME: This nests too deep and should be refactored
-        entries.sort_unstable_by(
-            |(r1, c1, _), (r2, c2, _)| {
-                if c1 != c2 {
-                    c1.cmp(c2)
-                } else {
-                    r1.cmp(r2)
-                }
-            },
-        );
+        // Sort entries by column, then by row
+        sort_entries_by_col_then_row(&mut entries);
 
         self.cplx_sprs.nzmax = entries.len();
         self.cplx_sprs.p.resize(self.cplx_sprs.n + 1, 0);
@@ -286,16 +285,8 @@ impl RSparseSolver {
             .iter()
             .for_each(|((row, col), val)| entries.push((*row, *col, *val)));
 
-        // FIXME: This nests too deep and should be refactored
-        entries.sort_unstable_by(
-            |(r1, c1, _), (r2, c2, _)| {
-                if c1 != c2 {
-                    c1.cmp(c2)
-                } else {
-                    r1.cmp(r2)
-                }
-            },
-        );
+        // Sort entries by column, then by row
+        sort_entries_by_col_then_row(&mut entries);
 
         self.sprs.nzmax = entries.len();
         self.sprs.p.resize(self.sprs.n + 1, 0);

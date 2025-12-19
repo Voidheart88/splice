@@ -126,39 +126,37 @@ impl VCCSBundle {
     /// Returns the AC triples for the VCCS
     /// For AC analysis, the VCCS behaves the same as in DC since it's a linear element
     pub fn ac_triples(&self) -> Triples<ComplexNumeric, 4> {
-        if let (Some(pos_idx), Some(neg_idx), Some(ctrl_pos_idx), Some(ctrl_neg_idx)) = (
-            self.positive.as_ref().map(|v| v.idx()),
-            self.negative.as_ref().map(|v| v.idx()),
-            self.controlling_positive.as_ref().map(|v| v.idx()),
-            self.controlling_negative.as_ref().map(|v| v.idx()),
-        ) {
-            // VCCS AC contributions (same as DC since it's linear and frequency-independent)
-            // FIXME: This nests too deep and needs a refactor
-            Triples::new(&[
-                (
-                    pos_idx,
-                    ctrl_pos_idx,
-                    Complex::new(self.options.transconductance, 0.0),
-                ),
-                (
-                    pos_idx,
-                    ctrl_neg_idx,
-                    Complex::new(-self.options.transconductance, 0.0),
-                ),
-                (
-                    neg_idx,
-                    ctrl_pos_idx,
-                    Complex::new(-self.options.transconductance, 0.0),
-                ),
-                (
-                    neg_idx,
-                    ctrl_neg_idx,
-                    Complex::new(self.options.transconductance, 0.0),
-                ),
-            ])
-        } else {
-            Triples::new(&[])
-        }
+        // Extract node indices with early returns if any are missing
+        let pos_idx = match self.positive.as_ref() {
+            Some(v) => v.idx(),
+            None => return Triples::new(&[]),
+        };
+        
+        let neg_idx = match self.negative.as_ref() {
+            Some(v) => v.idx(),
+            None => return Triples::new(&[]),
+        };
+        
+        let ctrl_pos_idx = match self.controlling_positive.as_ref() {
+            Some(v) => v.idx(),
+            None => return Triples::new(&[]),
+        };
+        
+        let ctrl_neg_idx = match self.controlling_negative.as_ref() {
+            Some(v) => v.idx(),
+            None => return Triples::new(&[]),
+        };
+
+        // VCCS AC contributions (same as DC since it's linear and frequency-independent)
+        let transconductance = self.options.transconductance;
+        let triples = [
+            (pos_idx, ctrl_pos_idx, Complex::new(transconductance, 0.0)),
+            (pos_idx, ctrl_neg_idx, Complex::new(-transconductance, 0.0)),
+            (neg_idx, ctrl_pos_idx, Complex::new(-transconductance, 0.0)),
+            (neg_idx, ctrl_neg_idx, Complex::new(transconductance, 0.0)),
+        ];
+        
+        Triples::new(&triples)
     }
 }
 

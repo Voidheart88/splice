@@ -12,10 +12,105 @@ use log::{error, info};
 use miette::{Diagnostic, Result};
 use thiserror::Error;
 
+/// Process Serde elements into variables and elements
+fn process_serde_elements(
+    elements: Vec<SerdeElement>,
+    variables: &mut Vec<Variable>,
+    elements_vec: &mut Vec<Element>,
+    var_map: &mut HashMap<Arc<str>, usize>,
+) {
+    for element in elements {
+        match element {
+            SerdeElement::Resistor(ele) => {
+                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
+            }
+            SerdeElement::Inductor(ele) => {
+                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
+            }
+            SerdeElement::Capacitor(ele) => {
+                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
+            }
+            SerdeElement::VSource(ele) => {
+                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
+            }
+            SerdeElement::VSourceSin(ele) => {
+                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
+            }
+            SerdeElement::VSourceStep(ele) => {
+                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
+            }
+            SerdeElement::ISource(ele) => {
+                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
+            }
+            SerdeElement::Diode(ele) => {
+                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
+            }
+            SerdeElement::Mosfet(ele) => {
+                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
+            }
+            SerdeElement::Gain(ele) => {
+                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
+            }
+            SerdeElement::VCVS(ele) => {
+                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
+            }
+            SerdeElement::VCCS(ele) => {
+                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
+            }
+            SerdeElement::CCCS(ele) => {
+                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
+            }
+            SerdeElement::CCVS(ele) => {
+                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
+            }
+            SerdeElement::CoupledInductors(ele) => {
+                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
+            }
+        }
+    }
+}
+
+/// Process Serde simulations into simulation commands
+fn process_serde_simulations(
+    simulations: Vec<SerdeSimulation>,
+    commands: &mut Vec<SimulationCommand>,
+) {
+    for simulation in simulations {
+        match simulation {
+            SerdeSimulation::OP => {
+                commands.push(SimulationCommand::Op);
+            }
+            SerdeSimulation::DC(dc) => {
+                commands.push(SimulationCommand::Dc(
+                    Arc::from(dc.source()),
+                    dc.vstart(),
+                    dc.vstop(),
+                    dc.vstep(),
+                    None,
+                ));
+            }
+            SerdeSimulation::AC(ac) => {
+                commands.push(SimulationCommand::Ac(
+                    ac.fstart(),
+                    ac.fstop(),
+                    ac.fstep(),
+                    ACMode::default(),
+                ));
+            }
+            SerdeSimulation::Tran(tran) => {
+                commands.push(SimulationCommand::Tran(tran.tstep(), tran.tend()));
+            }
+        }
+    }
+}
+
 use backends::*;
 use frontends::*;
 use sim::Simulator;
 use solver::{FaerSolver, NalgebraSolver, RSparseSolver, Solvers};
+
+use std::collections::HashMap;
+use std::sync::Arc;
 
 // Network imports
 
@@ -277,96 +372,17 @@ fn handle_network_connection(
 
 /// Convert SerdeCircuit to Simulation (extracted from NetworkFrontend)
 fn convert_serde_circuit_to_simulation(circuit: SerdeCircuit) -> Result<Simulation, FrontendError> {
-    use std::collections::HashMap;
-    use std::sync::Arc;
-
     let mut commands: Vec<SimulationCommand> = Vec::new();
     let mut options: Vec<SimulationOption> = Vec::new();
     let mut elements: Vec<Element> = Vec::new();
     let mut variables: Vec<Variable> = Vec::new();
     let mut var_map: HashMap<Arc<str>, usize> = HashMap::new();
 
-    // FIXME: Refactor this loop into a new function
     // Process elements
-    for element in circuit.elements {
-        match element {
-            SerdeElement::Resistor(ele) => {
-                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-            }
-            SerdeElement::Inductor(ele) => {
-                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-            }
-            SerdeElement::Capacitor(ele) => {
-                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-            }
-            SerdeElement::VSource(ele) => {
-                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-            }
-            SerdeElement::VSourceSin(ele) => {
-                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-            }
-            SerdeElement::VSourceStep(ele) => {
-                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-            }
-            SerdeElement::ISource(ele) => {
-                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-            }
-            SerdeElement::Diode(ele) => {
-                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-            }
-            SerdeElement::Mosfet(ele) => {
-                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-            }
-            SerdeElement::Gain(ele) => {
-                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-            }
-            SerdeElement::VCVS(ele) => {
-                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-            }
-            SerdeElement::VCCS(ele) => {
-                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-            }
-            SerdeElement::CCCS(ele) => {
-                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-            }
-            SerdeElement::CCVS(ele) => {
-                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-            }
-            SerdeElement::CoupledInductors(ele) => {
-                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-            }
-        }
-    }
+    process_serde_elements(circuit.elements, &mut variables, &mut elements, &mut var_map);
 
-    // FIXME: Refactor this loop into a new function since it nests to deep
     // Process simulations
-    for simulation in circuit.simulations {
-        match simulation {
-            SerdeSimulation::OP => {
-                commands.push(SimulationCommand::Op);
-            }
-            SerdeSimulation::DC(dc) => {
-                commands.push(SimulationCommand::Dc(
-                    Arc::from(dc.source()),
-                    dc.vstart(),
-                    dc.vstop(),
-                    dc.vstep(),
-                    None,
-                ));
-            }
-            SerdeSimulation::AC(ac) => {
-                commands.push(SimulationCommand::Ac(
-                    ac.fstart(),
-                    ac.fstop(),
-                    ac.fstep(),
-                    ACMode::default(),
-                ));
-            }
-            SerdeSimulation::Tran(tran) => {
-                commands.push(SimulationCommand::Tran(tran.tstep(), tran.tend()));
-            }
-        }
-    }
+    process_serde_simulations(circuit.simulations, &mut commands);
 
     // Process options
     for option in circuit.options {
