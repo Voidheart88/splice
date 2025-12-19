@@ -12,13 +12,13 @@ The goal of Splice is to provide a better simulation experience.
   - Working .dc simulation
   - Working .op simulation
   - Working .ac simulation
-  - Working V,I,R device models
+  - Working V,I,R,L,C,D device models
   - Minimal diode model
   - Minimal mosfet model
   - Capacitors and inductors work in .ac simulation
   - Advanced transient simulation with adaptive time step control
   - Multiple integration methods (Backward Euler, Trapezoidal)
-  - **Network mode with MessagePack protocol** - Run Splice as a server for remote simulations
+  - Network mode with MessagePack protocol - Run Splice as a server for remote simulations
 
 ## Todos/Roadmap:
 
@@ -39,13 +39,6 @@ The goal of Splice is to provide a better simulation experience.
 
 ### Features:
   - Implement an intelligent solving strategy finder (maybe an AI thingy?)
-
-### Network Mode Enhancements:
-  - Add WebSocket support for real-time updates
-  - Implement REST API with JSON support
-  - Add authentication (JWT/OAuth)
-  - Implement batch processing for multiple circuits
-  - Add health check endpoint
 
 ### How to contribute:
   - Write tests for every module, the frontends, the backends, and the outputs. Tests define the expected behavior.
