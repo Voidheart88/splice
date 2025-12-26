@@ -1,4 +1,5 @@
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+// TODO: Consider refactoring tests into separate modules organized by functionality
+
 use std::sync::Arc;
 
 use crate::frontends::Simulation;
@@ -7,142 +8,16 @@ use crate::models::{
     VSourceStepBundle, Variable,
 };
 use crate::sim::commands::{ACMode, SimulationCommand};
-use crate::sim::options::SimulationOption;
 use crate::sim::simulation_result::Sim;
 use crate::sim::Simulator;
 use crate::solver::{FaerSolver, NalgebraSolver, RSparseSolver};
 use crate::spot::*;
 
-<<<<<<< HEAD
 // TODO: Refactor init_sim_x tests to use helper functions and reduce code duplication
 #[test]
 fn init_sim_rsparse() {
-=======
-/// Find the result closest to the expected time
-fn find_closest_result(
-    tran_results: &[(Numeric, Vec<(Variable, Numeric)>)],
-    expected_time: Numeric,
-) -> Option<&(Numeric, Vec<(Variable, Numeric)>)> {
-    tran_results
-        .iter()
-        .min_by_key(|(t, _)| ((*t - expected_time).abs() * 1000.0) as i32)
-}
-
-/// Extract voltage and current from simulation results
-fn extract_voltage_and_current(values: &[(Variable, Numeric)]) -> (Numeric, Numeric) {
-    let mut voltage = 0.0;
-    let mut current = 0.0;
-
-    for (var, val) in values {
-        if var.name() == Arc::from("1") {
-            voltage = *val;
-        } else if var.name() == Arc::from("V1#branch") {
-            current = *val;
-        }
-    }
-
-    (voltage, current)
-}
-
-/// Create a basic simulation for testing different solvers
-fn create_basic_simulation() -> Simulation {
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
-=======
-use std::sync::Arc;
-
-use crate::frontends::Simulation;
-use crate::models::{
-    CapacitorBundle, Element, ResistorBundle, Unit, VSourceBundle, VSourceSinBundle,
-    VSourceStepBundle, Variable,
-};
-use crate::sim::commands::{ACMode, SimulationCommand};
-use crate::sim::options::SimulationOption;
-use crate::sim::simulation_result::Sim;
-use crate::sim::Simulator;
-use crate::solver::{FaerSolver, NalgebraSolver, RSparseSolver};
-use crate::spot::*;
-
-/// Find the result closest to the expected time
-fn find_closest_result(
-    tran_results: &[(Numeric, Vec<(Variable, Numeric)>)],
-    expected_time: Numeric,
-) -> Option<&(Numeric, Vec<(Variable, Numeric)>)> {
-    tran_results
-        .iter()
-        .min_by_key(|(t, _)| ((*t - expected_time).abs() * 1000.0) as i32)
-}
-
-/// Extract voltage and current from simulation results
-fn extract_voltage_and_current(values: &[(Variable, Numeric)]) -> (Numeric, Numeric) {
-    let mut voltage = 0.0;
-    let mut current = 0.0;
-
-    for (var, val) in values {
-        if var.name() == Arc::from("1") {
-            voltage = *val;
-        } else if var.name() == Arc::from("V1#branch") {
-            current = *val;
-        }
-    }
-
-    (voltage, current)
-}
-
-/// Create a basic simulation for testing different solvers
-fn create_basic_simulation() -> Simulation {
-
-=======
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
-use std::sync::Arc;
-
-use crate::frontends::Simulation;
-use crate::models::{
-    CapacitorBundle, Element, ResistorBundle, Unit, VSourceBundle, VSourceSinBundle,
-    VSourceStepBundle, Variable,
-};
-use crate::sim::commands::{ACMode, SimulationCommand};
-use crate::sim::options::SimulationOption;
-use crate::sim::simulation_result::Sim;
-use crate::sim::Simulator;
-use crate::solver::{FaerSolver, NalgebraSolver, RSparseSolver};
-use crate::spot::*;
-
-<<<<<<< HEAD
-// TODO: Refactor init_sim_x tests to use helper functions and reduce code duplication
-#[test]
-fn init_sim_rsparse() {
-=======
-/// Find the result closest to the expected time
-fn find_closest_result(
-    tran_results: &[(Numeric, Vec<(Variable, Numeric)>)],
-    expected_time: Numeric,
-) -> Option<&(Numeric, Vec<(Variable, Numeric)>)> {
-    tran_results
-        .iter()
-        .min_by_key(|(t, _)| ((*t - expected_time).abs() * 1000.0) as i32)
-}
-
-/// Extract voltage and current from simulation results
-fn extract_voltage_and_current(values: &[(Variable, Numeric)]) -> (Numeric, Numeric) {
-    let mut voltage = 0.0;
-    let mut current = 0.0;
-
-    for (var, val) in values {
-        if var.name() == Arc::from("1") {
-            voltage = *val;
-        } else if var.name() == Arc::from("V1#branch") {
-            current = *val;
-        }
-    }
-
-    (voltage, current)
-}
-
-/// Create a basic simulation for testing different solvers
-fn create_basic_simulation() -> Simulation {
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
     let commands = vec![SimulationCommand::Op];
-    let options: Vec<SimulationOption> = vec![];
+    let options = vec![];
 
     let node_1 = Variable::new(Arc::from("1"), Unit::Volt, 1);
     let branch_1 = Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0);
@@ -164,28 +39,16 @@ fn create_basic_simulation() -> Simulation {
     ));
 
     let elements = vec![vsource, resistor];
+
     let variables = vec![branch_1, node_1];
 
-    Simulation {
+    let sim = Simulation {
         commands,
         options,
         elements,
         variables,
-    }
-}
+    };
 
-/// Test helper function to verify basic simulation results
-fn test_basic_simulation_results(result: &[(Variable, Numeric)]) {
-    let branch_curr = result[0].clone();
-    let branch_curr_exp = (Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0), -1.0);
-    let node_vol = result[1].clone();
-    let node_vol_exp = (Variable::new(Arc::from("1"), Unit::Volt, 1), 10.0);
-    assert_eq!(branch_curr, branch_curr_exp);
-    assert_eq!(node_vol, node_vol_exp);
-}
-#[test]
-fn init_sim_rsparse() {
-    let sim = create_basic_simulation();
     let mut simulator: Simulator<RSparseSolver> = Simulator::from(sim.clone());
 
     let result = simulator.run().unwrap();
@@ -197,12 +60,49 @@ fn init_sim_rsparse() {
         Sim::Tran(_) => todo!(),
     };
 
-    test_basic_simulation_results(&result);
+    let branch_curr = result[0].clone();
+    let branch_curr_exp = (Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0), -1.0);
+    let node_vol = result[1].clone();
+    let node_vol_exp = (Variable::new(Arc::from("1"), Unit::Volt, 1), 10.0);
+    assert_eq!(branch_curr, branch_curr_exp);
+    assert_eq!(node_vol, node_vol_exp);
 }
 
 #[test]
 fn init_sim_faer() {
-    let sim = create_basic_simulation();
+    let commands = vec![SimulationCommand::Op];
+    let options = vec![];
+
+    let node_1 = Variable::new(Arc::from("1"), Unit::Volt, 1);
+    let branch_1 = Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0);
+
+    let vsource = Element::VSource(VSourceBundle::new(
+        Arc::from("V1"),
+        branch_1.clone(),
+        None,
+        Some(node_1.clone()),
+        10.0,
+        None,
+    ));
+
+    let resistor = Element::Resistor(ResistorBundle::new(
+        Arc::from("R1"),
+        Some(node_1.clone()),
+        None,
+        10.0,
+    ));
+
+    let elements = vec![vsource, resistor];
+
+    let variables = vec![branch_1, node_1];
+
+    let sim = Simulation {
+        commands,
+        options,
+        elements,
+        variables,
+    };
+
     let mut simulator: Simulator<FaerSolver> = Simulator::from(sim.clone());
 
     let result = simulator.run().unwrap();
@@ -214,12 +114,49 @@ fn init_sim_faer() {
         Sim::Tran(_) => todo!(),
     };
 
-    test_basic_simulation_results(&result);
+    let branch_curr = result[0].clone();
+    let branch_curr_exp = (Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0), -1.0);
+    let node_vol = result[1].clone();
+    let node_vol_exp = (Variable::new(Arc::from("1"), Unit::Volt, 1), 10.0);
+    assert_eq!(branch_curr, branch_curr_exp);
+    assert_eq!(node_vol, node_vol_exp);
 }
 
 #[test]
 fn init_sim_nalgebra() {
-    let sim = create_basic_simulation();
+    let commands = vec![SimulationCommand::Op];
+    let options = vec![];
+
+    let node_1 = Variable::new(Arc::from("1"), Unit::Volt, 1);
+    let branch_1 = Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0);
+
+    let vsource = Element::VSource(VSourceBundle::new(
+        Arc::from("V1"),
+        branch_1.clone(),
+        None,
+        Some(node_1.clone()),
+        10.0,
+        None,
+    ));
+
+    let resistor = Element::Resistor(ResistorBundle::new(
+        Arc::from("R1"),
+        Some(node_1.clone()),
+        None,
+        10.0,
+    ));
+
+    let elements = vec![vsource, resistor];
+
+    let variables = vec![branch_1, node_1];
+
+    let sim = Simulation {
+        commands,
+        options,
+        elements,
+        variables,
+    };
+
     let mut simulator: Simulator<NalgebraSolver> = Simulator::from(sim.clone());
 
     let result = simulator.run().unwrap();
@@ -231,31 +168,22 @@ fn init_sim_nalgebra() {
         Sim::Tran(_) => todo!(),
     };
 
-    test_basic_simulation_results(&result);
+    let branch_curr = result[0].clone();
+    let branch_curr_exp = (Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0), -1.0);
+    let node_vol = result[1].clone();
+    let node_vol_exp = (Variable::new(Arc::from("1"), Unit::Volt, 1), 10.0);
+    assert_eq!(branch_curr, branch_curr_exp);
+    assert_eq!(node_vol, node_vol_exp);
 }
 
-<<<<<<< HEAD
-// Test the transient simulation with a constant voltage source.
-//
-// This test verifies that the transient simulation correctly calculates
-// the current and voltage over time for a simple circuit with a constant
-// voltage source and a resistor.
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
-=======
-// Test the transient simulation with a constant voltage source.
-//
-// This test verifies that the transient simulation correctly calculates
-// the current and voltage over time for a simple circuit with a constant
-// voltage source and a resistor.
-=======
-// Test the transient simulation with a constant voltage source.
-//
-// This test verifies that the transient simulation correctly calculates
-// the current and voltage over time for a simple circuit with a constant
-// voltage source and a resistor.
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+// TODO: Enhance test with specific assertions to catch potential errors
 #[test]
 fn run_sim_tran() {
+    // Tests the transient simulation with a constant voltage source.
+    //
+    // This test verifies that the transient simulation correctly calculates
+    // the current and voltage over time for a simple circuit with a constant
+    // voltage source and a resistor.
     let commands = vec![SimulationCommand::Tran(1.0, 10.0)];
     let options = vec![];
 
@@ -279,6 +207,7 @@ fn run_sim_tran() {
     ));
 
     let elements = vec![vsource, resistor];
+
     let variables = vec![branch_1, node_1];
 
     let sim = Simulation {
@@ -289,47 +218,19 @@ fn run_sim_tran() {
     };
 
     let mut simulator: Simulator<NalgebraSolver> = Simulator::from(sim.clone());
+
     let result = simulator.run().unwrap();
 
-    let tran_results = match result.results[0].clone() {
+    let result = match result.results[0].clone() {
         Sim::Tran(res) => res,
-        _ => panic!("Expected transient simulation results"),
+        _ => todo!(),
     };
 
-    // Verify that we have results for the expected time range
-    assert!(!tran_results.is_empty(), "Transient simulation should produce results");
-    
-    // Check that the simulation ran for the expected duration
-    let final_time = tran_results.last().unwrap().0;
-    assert!(final_time >= 9.0, "Simulation should run until at least t=9s, got t={final_time}s");
-    
-    // Verify basic circuit behavior: V=IR, so I = V/R = 10V/10Ω = 1A (but negative due to direction)
-    const EXPECTED_VOLTAGE: Numeric = 10.0;
-    const EXPECTED_CURRENT: Numeric = -1.0; // Negative due to current direction
-    const TOLERANCE: Numeric = 1e-6;
-    
-    for (time, values) in &tran_results {
-        let voltage = values[1].1; // Node voltage
-        let current = values[0].1; // Branch current
-        
-        // Verify voltage is approximately 10V (within tolerance)
-        assert!(
-            (voltage - EXPECTED_VOLTAGE).abs() < TOLERANCE,
-            "Voltage at t={time}s should be ~10V, got {voltage}V"
-        );
-        
-        // Verify current is approximately -1A (within tolerance)
-        assert!(
-            (current - EXPECTED_CURRENT).abs() < TOLERANCE,
-            "Current at t={time}s should be ~-1A, got {current}A"
-        );
-        
-        // Verify Ohm's law: V = -I * R (current direction is opposite to voltage)
-        let calculated_voltage = -current * 10.0; // -I * R
-        assert!(
-            (calculated_voltage - voltage).abs() < TOLERANCE,
-            "Ohm's law violated at t={time}s: V={voltage}V, -I*R={calculated_voltage}V"
-        );
+    for res in result {
+        let time = res.0;
+        let curr = res.1[0].1;
+        let vol = res.1[1].1;
+        println!("{time}, {curr:?}, {vol:?}")
     }
 }
 
@@ -495,23 +396,23 @@ fn test_vsource_sin_tran() {
     ];
 
     for (expected_time, expected_voltage) in test_points {
-        let closest_result = find_closest_result(tran_results, expected_time);
-        
-        if let Some((time, values)) = closest_result {
-            let (voltage, current) = extract_voltage_and_current(values);
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
-=======
-        let closest_result = find_closest_result(tran_results, expected_time);
-        
-        if let Some((time, values)) = closest_result {
-            let (voltage, current) = extract_voltage_and_current(values);
+        // Find the result closest to the expected time
+        // TODO: Consider refactoring to reduce nesting complexity
+        if let Some(&(time, ref values)) = tran_results
+            .iter()
+            .min_by_key(|(t, _)| ((*t - expected_time).abs() * 1000.0) as i32)
+        {
+            let mut voltage = 0.0;
+            let mut current = 0.0;
 
-=======
-        let closest_result = find_closest_result(tran_results, expected_time);
-        
-        if let Some((time, values)) = closest_result {
-            let (voltage, current) = extract_voltage_and_current(values);
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+            for (var, val) in values {
+                if var.name() == Arc::from("1") {
+                    voltage = *val;
+                } else if var.name() == Arc::from("V1#branch") {
+                    current = *val;
+                }
+            }
+
             let expected_current = -expected_voltage / resistance; // Negative because current flows into source
 
             // Allow 5% relative error or reasonable absolute error

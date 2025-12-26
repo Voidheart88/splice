@@ -154,14 +154,6 @@ pub struct Simulation {
     pub variables: Vec<Variable>,
 }
 
-impl Simulation {
-    /// Setup coupled inductors by setting their node indices
-    /// This method should be called after creating the simulation but before running it
-    pub fn setup_coupled_inductors(&mut self) -> Vec<String> {
-        Element::setup_coupled_inductors(&mut self.elements)
-    }
-}
-
 /// The Frontend trait defines the interface between the choosen frontend
 /// and the simulator.
 pub trait Frontend {

@@ -12,105 +12,10 @@ use log::{error, info};
 use miette::{Diagnostic, Result};
 use thiserror::Error;
 
-/// Process Serde elements into variables and elements
-fn process_serde_elements(
-    elements: Vec<SerdeElement>,
-    variables: &mut Vec<Variable>,
-    elements_vec: &mut Vec<Element>,
-    var_map: &mut HashMap<Arc<str>, usize>,
-) {
-    for element in elements {
-        match element {
-            SerdeElement::Resistor(ele) => {
-                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
-            }
-            SerdeElement::Inductor(ele) => {
-                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
-            }
-            SerdeElement::Capacitor(ele) => {
-                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
-            }
-            SerdeElement::VSource(ele) => {
-                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
-            }
-            SerdeElement::VSourceSin(ele) => {
-                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
-            }
-            SerdeElement::VSourceStep(ele) => {
-                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
-            }
-            SerdeElement::ISource(ele) => {
-                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
-            }
-            SerdeElement::Diode(ele) => {
-                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
-            }
-            SerdeElement::Mosfet(ele) => {
-                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
-            }
-            SerdeElement::Gain(ele) => {
-                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
-            }
-            SerdeElement::VCVS(ele) => {
-                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
-            }
-            SerdeElement::VCCS(ele) => {
-                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
-            }
-            SerdeElement::CCCS(ele) => {
-                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
-            }
-            SerdeElement::CCVS(ele) => {
-                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
-            }
-            SerdeElement::CoupledInductors(ele) => {
-                ProcessSerdeElement::process(&ele, variables, elements_vec, var_map);
-            }
-        }
-    }
-}
-
-/// Process Serde simulations into simulation commands
-fn process_serde_simulations(
-    simulations: Vec<SerdeSimulation>,
-    commands: &mut Vec<SimulationCommand>,
-) {
-    for simulation in simulations {
-        match simulation {
-            SerdeSimulation::OP => {
-                commands.push(SimulationCommand::Op);
-            }
-            SerdeSimulation::DC(dc) => {
-                commands.push(SimulationCommand::Dc(
-                    Arc::from(dc.source()),
-                    dc.vstart(),
-                    dc.vstop(),
-                    dc.vstep(),
-                    None,
-                ));
-            }
-            SerdeSimulation::AC(ac) => {
-                commands.push(SimulationCommand::Ac(
-                    ac.fstart(),
-                    ac.fstop(),
-                    ac.fstep(),
-                    ACMode::default(),
-                ));
-            }
-            SerdeSimulation::Tran(tran) => {
-                commands.push(SimulationCommand::Tran(tran.tstep(), tran.tend()));
-            }
-        }
-    }
-}
-
 use backends::*;
 use frontends::*;
 use sim::Simulator;
 use solver::{FaerSolver, NalgebraSolver, RSparseSolver, Solvers};
-
-use std::collections::HashMap;
-use std::sync::Arc;
 
 // Network imports
 
@@ -157,9 +62,6 @@ struct Cli {
     #[arg(long, default_value = "false")]
     autotune: bool,
 
-    #[arg(long, default_value = "8081")]
-    network_port: String,
-
     path: Option<String>,
 }
 
@@ -179,36 +81,6 @@ pub fn run_sim_for_benchmark<T: Solver>(sim: Simulation) -> Result<(), String> {
     }
 }
 
-/// Main entry point for the Splice circuit simulator.
-///
-/// This function parses command-line arguments, initializes the application,
-/// and executes the requested simulation. It handles all aspects of the
-/// simulation workflow including frontend parsing, simulation execution,
-/// and backend output.
-///
-/// # Returns
-///
-/// * `Ok(())` - If the simulation completes successfully
-/// * `Err(miette::Error)` - If any error occurs during simulation setup or execution
-///
-/// # Process Flow
-///
-/// 1. Parse command-line arguments using clap
-/// 2. Initialize logging based on verbosity level
-/// 3. Handle special network mode if both frontend and backend are network
-/// 4. Read the circuit schematic using the specified frontend
-/// 5. Execute the requested simulation type (DC, AC, TRAN, OP)
-/// 6. Output results using the specified backend
-///
-/// # Examples
-///
-/// ```bash
-/// # Run a DC sweep analysis
-/// splice --input circuit.cir --dc V1 0 5 0.1
-/// 
-/// # Run a transient analysis with CSV output
-/// splice --input circuit.cir --tran 10ms 100ms --backend csv
-/// ```
 pub fn run() -> Result<()> {
     let cli = Cli::parse();
 
@@ -247,17 +119,10 @@ pub fn run() -> Result<()> {
 
     let mut sim = frontend.simulation()?;
 
-<<<<<<< HEAD
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
     // Setup coupled inductors by setting their node indices
-    let coupling_errors = sim.setup_coupled_inductors();
-=======
+    // This setup should ideally be part of the Simulation struct initialization
     // Setup coupled inductors by setting their node indices
-    let coupling_errors = sim.setup_coupled_inductors();
-=======
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
-    // Setup coupled inductors by setting their node indices
-    let coupling_errors = sim.setup_coupled_inductors();
+    let coupling_errors = models::Element::setup_coupled_inductors(&mut sim.elements);
     if !coupling_errors.is_empty() {
         for error in &coupling_errors {
             error!("{}", error);
@@ -272,23 +137,11 @@ pub fn run() -> Result<()> {
     // Apply autotune if enabled
     if cli.autotune {
         info!("Autotune mode enabled");
-        let (autotune_options, autotune_commands) =
+        let autotune_options =
             sim::autotune::analyze_circuit_and_suggest_settings(&sim.elements, &sim.commands);
         sim.options.extend(autotune_options);
-        sim.commands = autotune_commands;
     }
 
-            // Create a TCP listener on the specified port for network backend
-            let listener = std::net::TcpListener::bind(format!("0.0.0.0:{}", cli.network_port))
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
-                .map_err(|e| BackendError::IoError(e.to_string()))?;
-            let (stream, _) = listener
-                .accept()
-                .map_err(|e| BackendError::IoError(e.to_string()))?;
-            Box::new(NetworkBackend::new(stream))
-        }
-    };
-=======
     info!("Simulate!");
     let results = match cli.solver {
         Solvers::Rsparse => run_sim::<RSparseSolver>(sim)?,
@@ -302,19 +155,10 @@ pub fn run() -> Result<()> {
         Backends::Raw => Box::new(RawBackend::new()),
         Backends::Plot => Box::new(PlotBackend::new(pth)),
         Backends::Network => {
-            // Create a TCP listener on the specified port for network backend
-            let listener = std::net::TcpListener::bind(format!("0.0.0.0:{}", cli.network_port))
-                .map_err(|e| BackendError::IoError(e.to_string()))?;
-            let (stream, _) = listener
-                .accept()
-                .map_err(|e| BackendError::IoError(e.to_string()))?;
-            Box::new(NetworkBackend::new(stream))
-        }
-    };
-=======
-            // Create a TCP listener on the specified port for network backend
-            let listener = std::net::TcpListener::bind(format!("0.0.0.0:{}", cli.network_port))
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+            // Network backend requires accepting connection from frontend
+            // Current implementation uses a temporary listener on port 8081
+            // TODO: Refactor to pass stream directly from frontend in production
+            let listener = std::net::TcpListener::bind("0.0.0.0:8081")
                 .map_err(|e| BackendError::IoError(e.to_string()))?;
             let (stream, _) = listener
                 .accept()
@@ -434,32 +278,96 @@ fn handle_network_connection(
 
 /// Convert SerdeCircuit to Simulation (extracted from NetworkFrontend)
 fn convert_serde_circuit_to_simulation(circuit: SerdeCircuit) -> Result<Simulation, FrontendError> {
+    use std::collections::HashMap;
+    use std::sync::Arc;
+
     let mut commands: Vec<SimulationCommand> = Vec::new();
     let mut options: Vec<SimulationOption> = Vec::new();
     let mut elements: Vec<Element> = Vec::new();
     let mut variables: Vec<Variable> = Vec::new();
     let mut var_map: HashMap<Arc<str>, usize> = HashMap::new();
 
-<<<<<<< HEAD
-    // Process elements
-    process_serde_elements(circuit.elements, &mut variables, &mut elements, &mut var_map);
+    // Process circuit elements
+    // TODO: Consider extracting this element processing logic into a separate function
+    for element in circuit.elements {
+        match element {
+            SerdeElement::Resistor(ele) => {
+                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+            }
+            SerdeElement::Inductor(ele) => {
+                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+            }
+            SerdeElement::Capacitor(ele) => {
+                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+            }
+            SerdeElement::VSource(ele) => {
+                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+            }
+            SerdeElement::VSourceSin(ele) => {
+                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+            }
+            SerdeElement::VSourceStep(ele) => {
+                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+            }
+            SerdeElement::ISource(ele) => {
+                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+            }
+            SerdeElement::Diode(ele) => {
+                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+            }
+            SerdeElement::Mosfet(ele) => {
+                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+            }
+            SerdeElement::Gain(ele) => {
+                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+            }
+            SerdeElement::VCVS(ele) => {
+                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+            }
+            SerdeElement::VCCS(ele) => {
+                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+            }
+            SerdeElement::CCCS(ele) => {
+                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+            }
+            SerdeElement::CCVS(ele) => {
+                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+            }
+            SerdeElement::CoupledInductors(ele) => {
+                ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
+            }
+        }
+    }
 
-    // Process simulations
-    process_serde_simulations(circuit.simulations, &mut commands);
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
-=======
-    // Process elements
-    process_serde_elements(circuit.elements, &mut variables, &mut elements, &mut var_map);
-
-    // Process simulations
-    process_serde_simulations(circuit.simulations, &mut commands);
-=======
-    // Process elements
-    process_serde_elements(circuit.elements, &mut variables, &mut elements, &mut var_map);
-
-    // Process simulations
-    process_serde_simulations(circuit.simulations, &mut commands);
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+    // Process simulation commands
+    // TODO: Consider refactoring this simulation processing logic into a separate function
+    for simulation in circuit.simulations {
+        match simulation {
+            SerdeSimulation::OP => {
+                commands.push(SimulationCommand::Op);
+            }
+            SerdeSimulation::DC(dc) => {
+                commands.push(SimulationCommand::Dc(
+                    Arc::from(dc.source()),
+                    dc.vstart(),
+                    dc.vstop(),
+                    dc.vstep(),
+                    None,
+                ));
+            }
+            SerdeSimulation::AC(ac) => {
+                commands.push(SimulationCommand::Ac(
+                    ac.fstart(),
+                    ac.fstop(),
+                    ac.fstep(),
+                    ACMode::default(),
+                ));
+            }
+            SerdeSimulation::Tran(tran) => {
+                commands.push(SimulationCommand::Tran(tran.tstep(), tran.tend()));
+            }
+        }
+    }
 
     // Process options
     for option in circuit.options {

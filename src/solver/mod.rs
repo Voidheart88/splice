@@ -26,20 +26,6 @@ pub enum SolverError {
         which happens when, for example, two ideal voltage sources short each other."
     ))]
     MatrixNonInvertible,
-
-    /// Error indicating that symbolic analysis data is missing.
-    #[error("Symbolic analysis data missing")]
-    #[diagnostic(help(
-        "This indicates the solver was not properly initialized or symbolic analysis failed."
-    ))]
-    SymbolicAnalysisMissing,
-
-    /// Error indicating that LU decomposition failed.
-    #[error("LU decomposition failed")]
-    #[diagnostic(help(
-        "This indicates a singular or ill-conditioned matrix that cannot be decomposed."
-    ))]
-    LuDecompositionFailed,
 }
 
 #[derive(Copy, Clone, ValueEnum, PartialEq, Eq, PartialOrd, Ord, Hash)]

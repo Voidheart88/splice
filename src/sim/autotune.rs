@@ -29,9 +29,7 @@ struct CircuitCharacteristics {
 pub fn analyze_circuit_and_suggest_settings(
     elements: &[Element],
     commands: &[SimulationCommand],
-) -> (Vec<SimulationOption>, Vec<SimulationCommand>) {
-    let mut _options: Vec<SimulationOption> = Vec::new();
-    let mut modified_commands = commands.to_vec();
+) -> Vec<SimulationOption> {
     let mut options = Vec::new();
 
     info!("Analyzing circuit for optimal simulation settings...");
@@ -82,51 +80,16 @@ pub fn analyze_circuit_and_suggest_settings(
         integration_method.clone(),
     ));
 
-    // Set optimal timestep for transient simulations
+    // Suggest optimal timestep for transient simulations
     if has_transient {
         if let Some(suggested_timestep) = suggest_optimal_timestep(&circuit_analysis) {
             info!(
-                "  -> Setting optimal timestep: {:.2e} s for transient analysis",
+                "  -> Suggested max timestep: {:.2e} s for transient analysis",
                 suggested_timestep
             );
-<<<<<<< HEAD
-            // Update the Tran command with the suggested timestep
-            modified_commands = commands
-                .iter()
-                .map(|cmd| {
-                    if let SimulationCommand::Tran(_, tstop) = cmd {
-                        SimulationCommand::Tran(suggested_timestep, *tstop)
-                    } else {
-                        cmd.clone()
-                    }
-                })
-                .collect();
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
-=======
-            // Update the Tran command with the suggested timestep
-            modified_commands = commands
-                .iter()
-                .map(|cmd| {
-                    if let SimulationCommand::Tran(_, tstop) = cmd {
-                        SimulationCommand::Tran(suggested_timestep, *tstop)
-                    } else {
-                        cmd.clone()
-                    }
-                })
-                .collect();
-=======
-            // Update the Tran command with the suggested timestep
-            modified_commands = commands
-                .iter()
-                .map(|cmd| {
-                    if let SimulationCommand::Tran(_, tstop) = cmd {
-                        SimulationCommand::Tran(suggested_timestep, *tstop)
-                    } else {
-                        cmd.clone()
-                    }
-                })
-                .collect();
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+            // Note: Time step suggestions for transient analysis
+            // Current limitation: Time step is part of Tran command structure
+            // TODO: Integrate time step autotuning directly into Tran command processing
         }
     }
 
@@ -138,7 +101,7 @@ pub fn analyze_circuit_and_suggest_settings(
     info!("Autotune suggestions applied:");
     info!("  Integration method: {:?}", integration_method);
 
-    (options, modified_commands)
+    options
 }
 
 /// Analyzes circuit elements and extracts characteristics
@@ -163,118 +126,72 @@ fn analyze_circuit_elements(elements: &[Element]) -> CircuitCharacteristics {
     let mut inductors = Vec::new();
 
     for element in elements {
-        extract_element_values(
-            element,
-            &mut resistors,
-            &mut capacitors,
-            &mut inductors,
-            &mut characteristics,
-        );
+        match element {
+            Element::Resistor(res) => resistors.push(res.value()),
+            Element::Capacitor(cap) => {
+                capacitors.push(cap.value);
+                characteristics.has_capacitors = true;
+            }
+            Element::Inductor(ind) => {
+                inductors.push(ind.value);
+                characteristics.has_inductors = true;
+            }
+            Element::Diode(_) => {
+                characteristics.has_diodes = true;
+                characteristics.has_nonlinear_elements = true;
+            }
+            Element::Mos0(_) => {
+                characteristics.has_mosfets = true;
+                characteristics.has_nonlinear_elements = true;
+            }
+            _ => {}
+        }
     }
 
     // Analyze time constants
-    analyze_rc_time_constants(
-        &resistors,
-        &capacitors,
-        &mut characteristics.time_constants,
-    );
+    // CHECK: Check if this can be refactored with early returns for readability
+    if !resistors.is_empty() {
+        if !capacitors.is_empty() {
+            characteristics.time_constants.has_rc_circuits = true;
+            let rc_time_constants: Vec<Numeric> = resistors
+                .iter()
+                .flat_map(|&r| capacitors.iter().map(move |&c| r * c))
+                .collect();
 
-    analyze_rl_time_constants(
-        &resistors,
-        &inductors,
-        &mut characteristics.time_constants,
-    );
+            update_time_constants(&mut characteristics.time_constants, &rc_time_constants);
+        }
+
+        if !inductors.is_empty() {
+            characteristics.time_constants.has_rl_circuits = true;
+            let rl_time_constants: Vec<Numeric> = inductors
+                .iter()
+                .flat_map(|&l| resistors.iter().map(move |&r| l / r))
+                .collect();
+
+            update_time_constants(&mut characteristics.time_constants, &rl_time_constants);
+        }
+    }
 
     characteristics
-}
-
-/// Helper function to extract element values and update characteristics
-fn extract_element_values(
-    element: &Element,
-    resistors: &mut Vec<Numeric>,
-    capacitors: &mut Vec<Numeric>,
-    inductors: &mut Vec<Numeric>,
-    characteristics: &mut CircuitCharacteristics,
-) {
-    match element {
-        Element::Resistor(res) => resistors.push(res.value()),
-        Element::Capacitor(cap) => {
-            capacitors.push(cap.value);
-            characteristics.has_capacitors = true;
-        }
-        Element::Inductor(ind) => {
-            inductors.push(ind.value);
-            characteristics.has_inductors = true;
-        }
-        Element::Diode(_) => {
-            characteristics.has_diodes = true;
-            characteristics.has_nonlinear_elements = true;
-        }
-        Element::Mos0(_) => {
-            characteristics.has_mosfets = true;
-            characteristics.has_nonlinear_elements = true;
-        }
-        _ => {}
-    }
 }
 
 /// Updates time constant analysis with new values
 fn update_time_constants(analysis: &mut TimeConstantAnalysis, new_time_constants: &[Numeric]) {
     for &tc in new_time_constants {
         // Filter out extremely small or large values that might be numerical artifacts
-        update_min_max_time_constants(analysis, tc);
-    }
-}
+        // CHECK: Check if this can be refactored with early returns to reduce the nesting
+        if tc > 1e-15 && tc < 1e3 {
+            match analysis.min_time_constant {
+                Some(min_tc) if tc < min_tc => analysis.min_time_constant = Some(tc),
+                None => analysis.min_time_constant = Some(tc),
+                Some(_) => {}
+            }
 
-/// Helper function to analyze RC time constants
-fn analyze_rc_time_constants(
-    resistors: &[Numeric],
-    capacitors: &[Numeric],
-    time_constants: &mut TimeConstantAnalysis,
-) {
-    if !resistors.is_empty() && !capacitors.is_empty() {
-        time_constants.has_rc_circuits = true;
-        let rc_time_constants: Vec<Numeric> = resistors
-            .iter()
-            .flat_map(|&r| capacitors.iter().map(move |&c| r * c))
-            .collect();
-
-        update_time_constants(time_constants, &rc_time_constants);
-    }
-}
-
-/// Helper function to analyze RL time constants
-fn analyze_rl_time_constants(
-    resistors: &[Numeric],
-    inductors: &[Numeric],
-    time_constants: &mut TimeConstantAnalysis,
-) {
-    if !resistors.is_empty() && !inductors.is_empty() {
-        time_constants.has_rl_circuits = true;
-        let rl_time_constants: Vec<Numeric> = inductors
-            .iter()
-            .flat_map(|&l| resistors.iter().map(move |&r| l / r))
-            .collect();
-
-        update_time_constants(time_constants, &rl_time_constants);
-    }
-}
-
-/// Helper function to update min and max time constants
-fn update_min_max_time_constants(analysis: &mut TimeConstantAnalysis, tc: Numeric) {
-    if tc > 1e-15 && tc < 1e3 {
-        // Update min time constant
-        match analysis.min_time_constant {
-            Some(min_tc) if tc < min_tc => analysis.min_time_constant = Some(tc),
-            None => analysis.min_time_constant = Some(tc),
-            Some(_) => {}
-        }
-
-        // Update max time constant
-        match analysis.max_time_constant {
-            Some(max_tc) if tc > max_tc => analysis.max_time_constant = Some(tc),
-            None => analysis.max_time_constant = Some(tc),
-            Some(_) => {}
+            match analysis.max_time_constant {
+                Some(max_tc) if tc > max_tc => analysis.max_time_constant = Some(tc),
+                None => analysis.max_time_constant = Some(tc),
+                Some(_) => {}
+            }
         }
     }
 }
@@ -286,7 +203,7 @@ fn suggest_integration_method(
     has_inductors: bool,
 ) -> IntegrationMethod {
     // Default to Backward Euler for stability, especially with nonlinear elements
-    // Trapezoidal method can be more accurate but may be unstable with nonlinearities
+    // CHECK if this is the best solution. Isnt TRAPS better for nonlinear Elements?
     if has_nonlinear_elements {
         info!("  -> Using Backward Euler for stability with nonlinear elements");
         return IntegrationMethod::BackwardEuler;

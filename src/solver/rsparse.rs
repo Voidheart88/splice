@@ -1,45 +1,7 @@
 #![allow(unused)]
 
-// Performance Note: This solver's performance degraded after refactoring.
-// Known issue: RsparseSolver was previously the fastest solver, but performance
-// significantly decreased after code refactoring. This requires comprehensive
-// profiling and optimization work.
-// 
-// Future work needed:
-// - Performance benchmarking against other solvers
-// - Profiling to identify bottlenecks
-// - Code optimization and potential algorithm improvements
-// - Comparison with current FaerSparseSolver performance
-//
-// For now, FaerSparseSolver is recommended for most use cases.
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
-=======
-// Performance Note: This solver's performance degraded after refactoring.
-// Known issue: RsparseSolver was previously the fastest solver, but performance
-// significantly decreased after code refactoring. This requires comprehensive
-// profiling and optimization work.
-// 
-// Future work needed:
-// - Performance benchmarking against other solvers
-// - Profiling to identify bottlenecks
-// - Code optimization and potential algorithm improvements
-// - Comparison with current FaerSparseSolver performance
-//
-// For now, FaerSparseSolver is recommended for most use cases.
-=======
-// Performance Note: This solver's performance degraded after refactoring.
-// Known issue: RsparseSolver was previously the fastest solver, but performance
-// significantly decreased after code refactoring. This requires comprehensive
-// profiling and optimization work.
-// 
-// Future work needed:
-// - Performance benchmarking against other solvers
-// - Profiling to identify bottlenecks
-// - Code optimization and potential algorithm improvements
-// - Comparison with current FaerSparseSolver performance
-//
-// For now, FaerSparseSolver is recommended for most use cases.
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+// TODO: Performance evaluation needed - this solver was previously the fastest
+// but performance degraded after refactoring. Requires profiling and optimization.
 
 use std::collections::HashMap;
 use std::hash::Hash;
@@ -54,49 +16,11 @@ use num::{Complex, Zero};
 use rsparse::data::{Nmrc, Sprs, Symb, Trpl};
 use rsparse::lusol;
 
-/// Sort entries by column, then by row for sparse matrix construction
-fn sort_entries_by_col_then_row(entries: &mut [(usize, usize, Numeric)]) {
-    entries.sort_unstable_by(|(r1, c1, _), (r2, c2, _)| {
-        c1.cmp(c2).then(r1.cmp(r2))
-    });
-}
-
-/// A backend implementation using the RSparse library.
+// TODO: Enhance documentation to match the comprehensive style of FaerSolver (faer.rs)
+/// A Solver implementation using the RSparse library.
 ///
-/// This solver uses sparse matrices to store the conductance matrix `A` and the vector `b`.
-/// It is suitable for large circuits where memory efficiency and performance are critical.
-/// The sparse format avoids storing zero elements, making it more efficient for circuits
-/// with many nodes but sparse connectivity.
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
-=======
-/// Sort entries by column, then by row for sparse matrix construction
-fn sort_entries_by_col_then_row(entries: &mut [(usize, usize, Numeric)]) {
-    entries.sort_unstable_by(|(r1, c1, _), (r2, c2, _)| {
-        c1.cmp(c2).then(r1.cmp(r2))
-    });
-}
-
-/// A backend implementation using the RSparse library.
-///
-/// This solver uses sparse matrices to store the conductance matrix `A` and the vector `b`.
-/// It is suitable for large circuits where memory efficiency and performance are critical.
-/// The sparse format avoids storing zero elements, making it more efficient for circuits
-/// with many nodes but sparse connectivity.
-=======
-/// Sort entries by column, then by row for sparse matrix construction
-fn sort_entries_by_col_then_row(entries: &mut [(usize, usize, Numeric)]) {
-    entries.sort_unstable_by(|(r1, c1, _), (r2, c2, _)| {
-        c1.cmp(c2).then(r1.cmp(r2))
-    });
-}
-
-/// A backend implementation using the RSparse library.
-///
-/// This solver uses sparse matrices to store the conductance matrix `A` and the vector `b`.
-/// It is suitable for large circuits where memory efficiency and performance are critical.
-/// The sparse format avoids storing zero elements, making it more efficient for circuits
-/// with many nodes but sparse connectivity.
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+/// This solver provides sparse matrix support for efficient handling of large,
+/// sparse circuit matrices commonly encountered in electronic circuit simulations.
 #[derive(Debug)]
 pub struct RSparseSolver {
     vars: usize,
@@ -187,39 +111,19 @@ impl Solver for RSparseSolver {
     }
 
     /// Solves the system of equations (Ax = B for x) and returns a reference to the solution.
-    ///
-    /// This method uses sparse LU decomposition for efficient solving of large systems.
-    /// The process involves:
-    /// 1. Updating the sparse matrix from the hashmap representation
-    /// 2. Performing symbolic analysis if not already done
-    /// 3. Performing LU decomposition
-    /// 4. Solving the system using forward and backward substitution
-    /// 5. Permuting the solution vector
-    ///
-    /// # Returns
-    ///
-    /// * `Ok(&Vec<Numeric>)` - Reference to the solution vector
-    ///
-    /// # Errors
-    ///
-    /// * `SolverError::SymbolicAnalysisMissing` - If symbolic analysis data is missing
-    /// * `SolverError::LuDecompositionFailed` - If LU decomposition fails due to singular matrix
     fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError> {
         self.update_from_hashmap();
         if self.symb.is_none() {
             self.symb = Some(rsparse::sqr(&self.sprs, 1, false))
         }
-<<<<<<< HEAD
-        let mut symb = self.symb.take().ok_or(SolverError::SymbolicAnalysisMissing)?;
-        
-        self.lu = rsparse::lu(&self.sprs, &mut symb, 1e-6)
-            .map_err(|_| SolverError::LuDecompositionFailed)?;
-=======
-        let mut symb = self.symb.take().ok_or(SolverError::SymbolicAnalysisMissing)?;
-        
-        self.lu = rsparse::lu(&self.sprs, &mut symb, 1e-6)
-            .map_err(|_| SolverError::LuDecompositionFailed)?;
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+        // TODO: Consider proper error handling instead of using expect()
+        let mut symb = self.symb.take()
+            .expect("Symbolic analysis data missing. This indicates the solver was not properly initialized.");
+
+        // TODO: Consider proper error handling instead of using expect()
+        self.lu = rsparse::lu(&self.sprs, &mut symb, 1e-6).expect(
+            "LU decomposition failed. This indicates a singular or ill-conditioned matrix.",
+        );
 
         ipvec(self.sprs.n, &self.lu.pinv, &self.b_vec, &mut self.x_vec[..]);
         rsparse::lsolve(&self.lu.l, &mut self.x_vec);
@@ -320,13 +224,16 @@ impl RSparseSolver {
             entries.push((*row + self.vars, *col + self.vars, val.re));
         });
 
-<<<<<<< HEAD
-        // Sort entries by column, then by row
-        sort_entries_by_col_then_row(&mut entries);
-=======
-        // Sort entries by column, then by row
-        sort_entries_by_col_then_row(&mut entries);
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+        // TODO: Consider refactoring to reduce nesting complexity
+        entries.sort_unstable_by(
+            |(r1, c1, _), (r2, c2, _)| {
+                if c1 != c2 {
+                    c1.cmp(c2)
+                } else {
+                    r1.cmp(r2)
+                }
+            },
+        );
 
         self.cplx_sprs.nzmax = entries.len();
         self.cplx_sprs.p.resize(self.cplx_sprs.n + 1, 0);
@@ -382,13 +289,16 @@ impl RSparseSolver {
             .iter()
             .for_each(|((row, col), val)| entries.push((*row, *col, *val)));
 
-<<<<<<< HEAD
-        // Sort entries by column, then by row
-        sort_entries_by_col_then_row(&mut entries);
-=======
-        // Sort entries by column, then by row
-        sort_entries_by_col_then_row(&mut entries);
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+        // TODO: Consider refactoring to reduce nesting complexity
+        entries.sort_unstable_by(
+            |(r1, c1, _), (r2, c2, _)| {
+                if c1 != c2 {
+                    c1.cmp(c2)
+                } else {
+                    r1.cmp(r2)
+                }
+            },
+        );
 
         self.sprs.nzmax = entries.len();
         self.sprs.p.resize(self.sprs.n + 1, 0);
@@ -414,8 +324,10 @@ impl RSparseSolver {
 
 fn ipvec(n: usize, p: &Option<Vec<isize>>, b: &[Numeric], x: &mut [Numeric]) {
     for k in 0..n {
-        if let Some(p_vec) = p {
-            x[p_vec[k] as usize] = b[k];
+        if p.is_some() {
+            x[p.as_ref().expect(
+                "Permutation vector missing in ipvec. This indicates a solver internal error.",
+            )[k] as usize] = b[k];
         } else {
             x[k] = b[k];
         }

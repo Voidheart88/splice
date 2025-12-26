@@ -1,17 +1,8 @@
-// Implementation of current-controlled voltage sources for SPICE simulation
-// This element models H sources where output voltage is proportional to controlling current
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
-=======
 // Current-Controlled Voltage Source (CCVS) - H source
-// Implementation of current-controlled voltage sources for SPICE simulation
-// This element models H sources where output voltage is proportional to controlling current
-=======
-// Implementation of current-controlled voltage sources for SPICE simulation
-// This element models H sources where output voltage is proportional to controlling current
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+// TODO: Complete full implementation with proper current-to-voltage control behavior
 
 use crate::frontends::spice::{ProcessSpiceElement, Rule};
-use crate::models::{Pairs, TripleIdx, Triples, Variable};
+use crate::models::{TripleIdx, Triples, Variable};
 use crate::spot::Numeric;
 use crate::{Element, FrontendError};
 use pest::iterators::Pair;
@@ -63,93 +54,15 @@ impl CCVSBundle {
     }
 
     pub fn triples(&self) -> Triples<Numeric, 4> {
-        // CCVS contributes to the MNA matrix as a transresistance element
-        // For DC/OP analysis: V_out = gain * I_controlling
-        // In MNA, we represent this as a voltage source with current-dependent voltage
-        
-        if let (Some(_pos_idx), Some(_neg_idx), Some(_ctrl_pos_idx), Some(_ctrl_neg_idx)) = (
-            self.positive.as_ref().map(|v| v.idx()),
-            self.negative.as_ref().map(|v| v.idx()),
-            self.controlling_branch.as_ref().map(|v| v.idx()),
-            self.controlling_branch.as_ref().map(|v| v.idx()),
-        ) {
-            // For CCVS, we contribute to the transresistance matrix
-            // This is a simplified representation - a full implementation would need
-            // to handle the controlling branch current more accurately
-            Triples::new(&[])
-        } else {
-            Triples::new(&[])
-        }
+        Triples::new(&[])
     }
 
     pub fn triple_idx(&self) -> Option<TripleIdx<4>> {
-        if let (Some(pos_idx), Some(neg_idx), Some(ctrl_pos_idx), Some(ctrl_neg_idx)) = (
-            self.positive.as_ref().map(|v| v.idx()),
-            self.negative.as_ref().map(|v| v.idx()),
-            self.controlling_branch.as_ref().map(|v| v.idx()),
-            self.controlling_branch.as_ref().map(|v| v.idx()),
-        ) {
-            Some(TripleIdx::new(&[
-                (pos_idx, ctrl_pos_idx),
-                (pos_idx, ctrl_neg_idx),
-                (neg_idx, ctrl_pos_idx),
-                (neg_idx, ctrl_neg_idx),
-            ]))
-        } else {
-            None
-        }
+        None
     }
 
     pub fn ac_triples(&self) -> Triples<ComplexNumeric, 4> {
-        // For AC analysis, CCVS behaves like a transresistance
-        // V_out = gain * I_controlling
-        // In AC, we can represent this as a complex transresistance
-        if let (Some(pos_idx), Some(neg_idx), Some(ctrl_pos_idx), Some(ctrl_neg_idx)) = (
-            self.positive.as_ref().map(|v| v.idx()),
-            self.negative.as_ref().map(|v| v.idx()),
-            self.controlling_branch.as_ref().map(|v| v.idx()),
-            self.controlling_branch.as_ref().map(|v| v.idx()),
-        ) {
-            let gain = Complex::new(self.options.gain, 0.0);
-            // CCVS contributes to the transresistance matrix in AC analysis
-            // This creates a relationship between controlling current and output voltage
-            Triples::new(&[
-                (pos_idx, ctrl_pos_idx, gain),
-                (pos_idx, ctrl_neg_idx, -gain),
-                (neg_idx, ctrl_pos_idx, -gain),
-                (neg_idx, ctrl_neg_idx, gain),
-            ])
-        } else {
-            Triples::new(&[])
-        }
-    }
-
-    /// Calculate output voltage for transient analysis
-    /// V_out = gain * I_controlling
-    /// For MNA, we estimate controlling current from voltage across controlling branch
-    pub fn calculate_output_voltage(&self, controlling_voltage: Numeric, controlling_resistance: Numeric) -> Numeric {
-        // Estimate controlling current: I_controlling ≈ V_controlling / R_controlling
-        let controlling_current = if controlling_resistance.abs() > 1e-12 {
-            controlling_voltage / controlling_resistance
-        } else {
-            0.0 // Avoid division by zero for very small resistances
-        };
-        // Output voltage: V_out = gain * I_controlling
-        self.options.gain * controlling_current
-    }
-
-    /// Get pairs for voltage contributions in transient analysis
-    pub fn get_pairs(&self, _output_voltage: Numeric) -> Pairs<Numeric, 2> {
-        if let (Some(_pos_idx), Some(_neg_idx)) = (
-            self.positive.as_ref().map(|v| v.idx()),
-            self.negative.as_ref().map(|v| v.idx()),
-        ) {
-            // For CCVS, we need to represent the voltage source in the MNA matrix
-            // This requires adding entries to both the conductance matrix and current vector
-            Pairs::new(&[])
-        } else {
-            Pairs::new(&[])
-        }
+        Triples::new(&[])
     }
 }
 

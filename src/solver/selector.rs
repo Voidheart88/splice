@@ -1,6 +1,5 @@
 /// Intelligent solver selection based on circuit characteristics
 use super::{FaerSparseSolver, NalgebraSolver, Solver, SolverError};
-use crate::spot::{DEFAULT_SOLVER_THRESHOLD, MEDIUM_CIRCUIT_THRESHOLD, SMALL_CIRCUIT_THRESHOLD};
 
 /// Solver selection strategy based on circuit size and characteristics
 #[derive(Debug, Clone, Copy)]
@@ -20,17 +19,10 @@ pub struct SolverSelector {
 impl SolverSelector {
     /// Create a new solver selector with default strategy
     pub fn new(strategy: SolverSelectionStrategy) -> Self {
-            circuit_size_threshold: DEFAULT_SOLVER_THRESHOLD,
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
-        }
-=======
         SolverSelector {
             strategy,
-            circuit_size_threshold: DEFAULT_SOLVER_THRESHOLD,
-        }
-=======
-            circuit_size_threshold: DEFAULT_SOLVER_THRESHOLD,
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+            // TODO: Consider moving this threshold constant to spot.rs for centralization
+            circuit_size_threshold: 50, // Default threshold: 50 variables
         }
     }
 
@@ -64,39 +56,16 @@ impl SolverSelector {
 
     /// Select the best solver based on performance data
     fn select_best_solver(&self, vars: usize) -> Result<Box<dyn Solver>, SolverError> {
-        if vars < SMALL_CIRCUIT_THRESHOLD {
-            // Very small circuits: Nalgebra is fastest
-            Ok(Box::new(NalgebraSolver::new(vars)?))
-        } else if vars < MEDIUM_CIRCUIT_THRESHOLD {
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
-            // Small to medium circuits: FaerSparse is best
-            Ok(Box::new(FaerSparseSolver::new(vars)?))
-        } else {
-            // Large circuits: FaerSparse is significantly better
-            Ok(Box::new(FaerSparseSolver::new(vars)?))
-        }
-=======
         // Based on our performance testing:
         // - Small circuits (<10 vars): Nalgebra is fastest
         // - Medium circuits (10-100 vars): FaerSparse is best
         // - Large circuits (>100 vars): FaerSparse dominates
 
-        if vars < SMALL_CIRCUIT_THRESHOLD {
+        // TODO: Consider moving these threshold constants to spot.rs for centralization
+        if vars < 10 {
             // Very small circuits: Nalgebra is fastest
             Ok(Box::new(NalgebraSolver::new(vars)?))
-        } else if vars < MEDIUM_CIRCUIT_THRESHOLD {
-            // Small to medium circuits: FaerSparse is best
-            Ok(Box::new(FaerSparseSolver::new(vars)?))
-        } else {
-            // Large circuits: FaerSparse is significantly better
-            Ok(Box::new(FaerSparseSolver::new(vars)?))
-        }
-=======
-        if vars < SMALL_CIRCUIT_THRESHOLD {
-            // Very small circuits: Nalgebra is fastest
-            Ok(Box::new(NalgebraSolver::new(vars)?))
-        } else if vars < MEDIUM_CIRCUIT_THRESHOLD {
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+        } else if vars < 100 {
             // Small to medium circuits: FaerSparse is best
             Ok(Box::new(FaerSparseSolver::new(vars)?))
         } else {
@@ -105,51 +74,14 @@ impl SolverSelector {
         }
     }
 
-                if vars < SMALL_CIRCUIT_THRESHOLD {
-                    "NalgebraSolver (best for very small circuits)"
-                } else if vars < MEDIUM_CIRCUIT_THRESHOLD {
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
-                    "FaerSparseSolver (best for small-medium circuits)"
-                } else {
-                    "FaerSparseSolver (best for large circuits)"
-                }
-            }
-            SolverSelectionStrategy::Hybrid => {
-                if vars <= self.circuit_size_threshold {
-                    "NalgebraSolver (hybrid strategy: dense for small)"
-                } else {
-                    "FaerSparseSolver (hybrid strategy: sparse for large)"
-                }
-            }
-        }
-    }
-=======
     /// Get a recommendation for solver selection
     pub fn recommend_solver(&self, vars: usize) -> &'static str {
         match self.strategy {
             SolverSelectionStrategy::Automatic => {
-                if vars < SMALL_CIRCUIT_THRESHOLD {
+                // TODO: Consider moving these threshold constants to spot.rs for centralization
+                if vars < 10 {
                     "NalgebraSolver (best for very small circuits)"
-                } else if vars < MEDIUM_CIRCUIT_THRESHOLD {
-                    "FaerSparseSolver (best for small-medium circuits)"
-                } else {
-                    "FaerSparseSolver (best for large circuits)"
-                }
-            }
-            SolverSelectionStrategy::Hybrid => {
-                if vars <= self.circuit_size_threshold {
-                    "NalgebraSolver (hybrid strategy: dense for small)"
-                } else {
-                    "FaerSparseSolver (hybrid strategy: sparse for large)"
-                }
-            }
-        }
-    }
-=======
-                if vars < SMALL_CIRCUIT_THRESHOLD {
-                    "NalgebraSolver (best for very small circuits)"
-                } else if vars < MEDIUM_CIRCUIT_THRESHOLD {
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+                } else if vars < 100 {
                     "FaerSparseSolver (best for small-medium circuits)"
                 } else {
                     "FaerSparseSolver (best for large circuits)"
@@ -166,10 +98,7 @@ impl SolverSelector {
     }
 }
 
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
-=======
-=======
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+// TODO: Consider moving these tests to the dedicated tests folder/module in src/solver/tests
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -180,6 +109,7 @@ mod tests {
 
         // Test that we can create solvers for different sizes
         // We can't easily check the type, but we can verify the selector works
+        // CHECK: Do these thresholds should be located in spot.rs
         assert!(selector.select_solver(5).is_ok());
         assert!(selector.select_solver(50).is_ok());
         assert!(selector.select_solver(200).is_ok());
@@ -190,6 +120,7 @@ mod tests {
         let selector = SolverSelector::new(SolverSelectionStrategy::Hybrid);
 
         // Test that we can create solvers for different sizes
+        // CHECK: Do these thresholds should be located in spot.rs
         assert!(selector.select_solver(5).is_ok());
         assert!(selector.select_solver(200).is_ok());
     }
