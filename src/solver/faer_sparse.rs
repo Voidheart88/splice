@@ -7,11 +7,58 @@ use num::Zero;
 use super::{Solver, SolverError};
 use crate::spot::*;
 
-// TODO: Enhance documentation to match the comprehensive style of FaerSolver (faer.rs)
-/// A backend implementation using the Faer library with sparse matrix support.
+/// A Solver implementation using the Faer library with sparse matrices.
 ///
-/// This solver uses sparse matrix representations for improved memory efficiency
-/// and performance on large, sparse circuit matrices typical in electronic simulations.
+/// This solver uses sparse matrices from the Faer library to store the conductance matrix `A`
+/// and the vector `b`. It is suitable for medium to large circuits where memory efficiency
+/// and performance are critical. The sparse format only stores non-zero elements,
+/// making it more efficient for circuits with many nodes but sparse connectivity.
+///
+/// The solver uses the Compressed Sparse Column (CSC) format, which is efficient for
+/// matrix-vector operations and LU decomposition. It supports both real-valued (DC/OP/Transient)
+/// and complex-valued (AC) analysis through separate sparse matrices for each type.
+///
+/// For real-valued analysis, it uses `SparseColMat<Numeric>` for the conductance matrix.
+/// For complex-valued analysis, it uses `SparseColMat<ComplexNumeric>`.
+///
+/// The solver performs symbolic analysis and LU decomposition for solving linear systems
+/// and is optimized for performance-critical applications.
+>>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+=======
+/// A Solver implementation using the Faer library with sparse matrices.
+///
+/// This solver uses sparse matrices from the Faer library to store the conductance matrix `A`
+/// and the vector `b`. It is suitable for medium to large circuits where memory efficiency
+/// and performance are critical. The sparse format only stores non-zero elements,
+/// making it more efficient for circuits with many nodes but sparse connectivity.
+///
+/// The solver uses the Compressed Sparse Column (CSC) format, which is efficient for
+/// matrix-vector operations and LU decomposition. It supports both real-valued (DC/OP/Transient)
+/// and complex-valued (AC) analysis through separate sparse matrices for each type.
+///
+/// For real-valued analysis, it uses `SparseColMat<Numeric>` for the conductance matrix.
+/// For complex-valued analysis, it uses `SparseColMat<ComplexNumeric>`.
+///
+/// The solver performs symbolic analysis and LU decomposition for solving linear systems
+/// and is optimized for performance-critical applications.
+=======
+/// A Solver implementation using the Faer library with sparse matrices.
+///
+/// This solver uses sparse matrices from the Faer library to store the conductance matrix `A`
+/// and the vector `b`. It is suitable for medium to large circuits where memory efficiency
+/// and performance are critical. The sparse format only stores non-zero elements,
+/// making it more efficient for circuits with many nodes but sparse connectivity.
+///
+/// The solver uses the Compressed Sparse Column (CSC) format, which is efficient for
+/// matrix-vector operations and LU decomposition. It supports both real-valued (DC/OP/Transient)
+/// and complex-valued (AC) analysis through separate sparse matrices for each type.
+///
+/// For real-valued analysis, it uses `SparseColMat<Numeric>` for the conductance matrix.
+/// For complex-valued analysis, it uses `SparseColMat<ComplexNumeric>`.
+///
+/// The solver performs symbolic analysis and LU decomposition for solving linear systems
+/// and is optimized for performance-critical applications.
+>>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
 pub struct FaerSparseSolver {
     /// The conductance matrix `A`.
     a_mat: Vec<Triplet<usize, usize, Numeric>>,

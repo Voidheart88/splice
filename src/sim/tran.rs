@@ -13,6 +13,54 @@ pub(super) trait TranSimulation<SO: Solver> {
     fn run_tran(&mut self, tstep: &Numeric, tstop: &Numeric) -> Result<Sim, SimulatorError>;
 }
 
+impl<SO: Solver> Simulator<SO> {
+    /// Perform Newton-Raphson iteration for a single time step
+    fn perform_newton_raphson_iteration(
+        &mut self,
+        x_initial: &[Numeric],
+        t: &Numeric,
+        timestep: &Numeric,
+        max_iter: usize,
+        tol: Numeric,
+    ) -> Result<Vec<Numeric>, SimulatorError> {
+        let mut x_current = x_initial.to_vec();
+
+        for _ in 0..max_iter {
+            self.solver.reset();
+            self.build_constant_a_mat();
+            self.build_constant_b_vec();
+            self.build_time_variant_a_mat(timestep);
+
+            // Use trapezoidal integration if specified
+            let integration_method = self.get_integration_method();
+            match integration_method {
+                IntegrationMethod::BackwardEuler => {
+                    self.build_time_variant_b_vec(t, timestep);
+                }
+                IntegrationMethod::Trapezoidal => {
+                    self.build_time_variant_b_vec_trapezoidal(t, timestep);
+                }
+            }
+
+            self.build_nonlinear_a_mat(&x_current);
+            self.build_nonlinear_b_vec(&x_current);
+
+            let x_new = self.solver.solve()?.clone();
+
+            if self.has_converged(&x_current, &x_new, tol) {
+                return Ok(x_new);
+            }
+
+            x_current = x_new;
+        }
+
+        Err(SimulatorError::NonConvergentMaxIter {
+            max_iter,
+            tol,
+        })
+    }
+}
+
 impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
     fn run_tran(&mut self, tstep: &Numeric, tstop: &Numeric) -> Result<Sim, SimulatorError> {
         info!("Run transient analysis");
@@ -31,7 +79,7 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
             }
         }
 
-        let mut x_current = x_prev.clone();
+        let x_current = x_prev.clone();
 
         // Store the initial condition (t=0)
         tran_results.push((Numeric::zero(), self.add_var_name(x_current.clone())));
@@ -44,53 +92,75 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
             *tstep
         };
 
-        // Transient simulation time loop
-        // TODO: Consider refactoring to reduce nesting complexity
+<<<<<<< HEAD
+        // Main transient simulation loop
+>>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
         while t < *tstop {
-            // For subsequent time steps, use the previous solution as initial guess
-            x_current = x_prev.clone();
+            // Perform Newton-Raphson iteration for current time step
+            let x_new_final = self.perform_newton_raphson_iteration(
+                &x_prev,
+                &t,
+                &current_timestep,
+                MAXITER,
+                VECTOL,
+            )?;
 
-            // Newton-Raphson iteration within each time step
-            let mut converged = false;
-            let mut x_new_final = x_prev.clone();
+            // Store results
+            tran_results.push((t, self.add_var_name(x_new_final.clone())));
+            x_prev = x_new_final.clone();
 
-            for _ in 0..MAXITER {
-                self.solver.reset();
-                self.build_constant_a_mat();
-                self.build_constant_b_vec();
-                self.build_time_variant_a_mat(&current_timestep);
+            // Update capacitor voltages and inductor currents for next time step
+            self.update_capacitor_voltages(&x_new_final);
+            self.update_inductor_currents(&x_new_final, &current_timestep);
 
-                // Use trapezoidal integration if specified
-                let integration_method = self.get_integration_method();
-                match integration_method {
-                    IntegrationMethod::BackwardEuler => {
-                        self.build_time_variant_b_vec(&t, &current_timestep);
-                    }
-                    IntegrationMethod::Trapezoidal => {
-                        self.build_time_variant_b_vec_trapezoidal(&t, &current_timestep);
-                    }
-                }
-
-                self.build_nonlinear_a_mat(&x_current);
-                self.build_nonlinear_b_vec(&x_current);
-
-                let x_new = self.solver.solve()?.clone();
-
-                if self.has_converged(&x_current, &x_new, VECTOL) {
-                    x_new_final = x_new.clone();
-                    converged = true;
-                    break;
-                }
-
-                x_current = x_new;
+            // Adaptive timestep control
+            if use_adaptive {
+                current_timestep = self.adjust_timestep(&x_prev, &x_new_final, current_timestep);
+                debug!("Adaptive timestep: {} at t = {}", current_timestep, t);
             }
 
-            if !converged {
-                return Err(SimulatorError::NonConvergentMaxIter {
-                    max_iter: MAXITER,
-                    tol: VECTOL,
-                });
+            t += current_timestep;
+        }
+=======
+        // Main transient simulation loop
+        while t < *tstop {
+            // Perform Newton-Raphson iteration for current time step
+            let x_new_final = self.perform_newton_raphson_iteration(
+                &x_prev,
+                &t,
+                &current_timestep,
+                MAXITER,
+                VECTOL,
+            )?;
+
+            // Store results
+            tran_results.push((t, self.add_var_name(x_new_final.clone())));
+            x_prev = x_new_final.clone();
+
+            // Update capacitor voltages and inductor currents for next time step
+            self.update_capacitor_voltages(&x_new_final);
+            self.update_inductor_currents(&x_new_final, &current_timestep);
+
+            // Adaptive timestep control
+            if use_adaptive {
+                current_timestep = self.adjust_timestep(&x_prev, &x_new_final, current_timestep);
+                debug!("Adaptive timestep: {} at t = {}", current_timestep, t);
             }
+
+            t += current_timestep;
+        }
+=======
+        // Main transient simulation loop
+>>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+        while t < *tstop {
+            // Perform Newton-Raphson iteration for current time step
+            let x_new_final = self.perform_newton_raphson_iteration(
+                &x_prev,
+                &t,
+                &current_timestep,
+                MAXITER,
+                VECTOL,
+            )?;
 
             // Store results
             tran_results.push((t, self.add_var_name(x_new_final.clone())));

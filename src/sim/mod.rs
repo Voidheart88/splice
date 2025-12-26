@@ -71,17 +71,20 @@ pub(super) struct Simulator<SO: Solver> {
 impl<SO: Solver> Simulator<SO> {
     /// Returns the integration method to use for transient simulation
     /// Defaults to BackwardEuler for stability
+            .find_map(|opt| opt.get_integration_method())
+>>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+            .unwrap_or(IntegrationMethod::BackwardEuler)
+    }
+=======
     fn get_integration_method(&self) -> IntegrationMethod {
         self.options
             .iter()
-            .find_map(|opt| {
-                // TODO: Consider refactoring to reduce nesting complexity
-                if let SimulationOption::IntegrationMethod(method) = opt {
-                    Some(method.clone())
-                } else {
-                    None
-                }
-            })
+            .find_map(|opt| opt.get_integration_method())
+            .unwrap_or(IntegrationMethod::BackwardEuler)
+    }
+=======
+            .find_map(|opt| opt.get_integration_method())
+>>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
             .unwrap_or(IntegrationMethod::BackwardEuler)
     }
 
@@ -273,6 +276,7 @@ impl<SO: Solver> Simulator<SO> {
 
         for element in &self.elements {
             let mut local_guess = vec![0.0; len];
+<<<<<<< HEAD
             // TODO: Consider refactoring to reduce nesting complexity
             match element {
                 Element::VSource(vsource) => {
@@ -302,6 +306,9 @@ impl<SO: Solver> Simulator<SO> {
                 }
                 _ => {}
             }
+=======
+            self.add_element_guess(element, &mut local_guess);
+>>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
 
             for (i, &val) in local_guess.iter().enumerate() {
                 acc[i] += val;
@@ -309,6 +316,37 @@ impl<SO: Solver> Simulator<SO> {
         }
 
         acc
+    }
+
+    fn add_element_guess(&self, element: &Element, guess: &mut [Numeric]) {
+        match element {
+            Element::VSource(vsource) => {
+                let value = vsource.value();
+                if let Some(node0_idx) = vsource.node0_idx() {
+                    guess[node0_idx] = -value;
+                }
+                if let Some(node1_idx) = vsource.node1_idx() {
+                    guess[node1_idx] = value;
+                }
+            }
+            Element::Diode(diode) => {
+                let a_idx = diode.a_idx();
+                let c_idx = diode.c_idx();
+
+                match (a_idx, c_idx) {
+                    (None, Some(c_idx)) => {
+                        guess[c_idx] = -DIO_GUESS / (Numeric::one() + Numeric::one())
+                    }
+                    (Some(a_idx), None) => guess[a_idx] = DIO_GUESS,
+                    (Some(a_idx), Some(c_idx)) => {
+                        guess[a_idx] = DIO_GUESS / (Numeric::one() + Numeric::one());
+                        guess[c_idx] = -DIO_GUESS / (Numeric::one() + Numeric::one());
+                    }
+                    _ => {}
+                }
+            }
+            _ => {}
+        }
     }
 
     fn has_converged(&self, x_old: &[Numeric], x_new: &[Numeric], tolerance: Numeric) -> bool {
@@ -358,39 +396,19 @@ impl<SO: Solver> Simulator<SO> {
         new_timestep
     }
 
-    /// Updates capacitor voltages after each time step for proper transient simulation
-    /// This is crucial for correct integration of capacitor behavior
-    // CHECK: Check if this can be part of the inductor and capacitor elements
-    fn update_capacitor_voltages(&mut self, x_vec: &[Numeric]) {
-        // TODO: Consider refactoring to reduce nesting complexity
+>>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
         for element in &mut self.elements {
             if let Element::Capacitor(cap) = element {
-                // Calculate voltage across capacitor: V = V(node0) - V(node1)
-                let v_node0 = cap
-                    .node0
-                    .as_ref()
-                    .map(|n| x_vec[n.idx()])
-                    .unwrap_or(Numeric::zero());
-                let v_node1 = cap
-                    .node1
-                    .as_ref()
-                    .map(|n| x_vec[n.idx()])
-                    .unwrap_or(Numeric::zero());
+                let v_node0 = cap.node0.as_ref().map(|n| x_vec[n.idx()]).unwrap_or(Numeric::zero());
+                let v_node1 = cap.node1.as_ref().map(|n| x_vec[n.idx()]).unwrap_or(Numeric::zero());
                 let voltage_across = v_node0 - v_node1;
-
-                // Always update with the actual voltage across the capacitor
-                // This works for both OP initialization and transient steps
                 cap.update_previous_voltage(voltage_across);
             }
         }
     }
 
-    /// This is crucial for correct integration of inductor behavior
-    // CHECK: Check if this can be part of the inductor and capacitor elements themselves
-    fn update_inductor_currents(&mut self, x_vec: &[Numeric], delta_t: &Numeric) {
-        // First, collect all inductor currents
-        let mut inductor_currents: HashMap<Arc<str>, Numeric> = HashMap::new();
 
+<<<<<<< HEAD
         // TODO: Consider refactoring to reduce nesting complexity
         for element in &self.elements {
             if let Element::Inductor(ind) = element {
@@ -428,6 +446,11 @@ impl<SO: Solver> Simulator<SO> {
 
         // Update inductor currents
         // TODO: Consider refactoring to reduce nesting complexity
+=======
+
+    /// Updates regular inductor currents
+    fn update_regular_inductor_currents(&mut self, inductor_currents: &HashMap<Arc<str>, Numeric>) {
+>>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
         for element in &mut self.elements {
             if let Element::Inductor(ind) = element {
                 if let Some(&current) = inductor_currents.get(&ind.name) {
@@ -435,9 +458,15 @@ impl<SO: Solver> Simulator<SO> {
                 }
             }
         }
+    }
 
+<<<<<<< HEAD
         // Update coupled inductor currents
         // TODO: Consider refactoring to reduce nesting complexity
+=======
+    /// Updates coupled inductor currents
+    fn update_coupled_inductor_currents(&mut self, inductor_currents: &HashMap<Arc<str>, Numeric>) {
+>>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
         for element in &mut self.elements {
             if let Element::CoupledInductors(coupled) = element {
                 let inductor1_name = coupled.inductor1();
@@ -451,6 +480,159 @@ impl<SO: Solver> Simulator<SO> {
                 }
             }
         }
+    }
+=======
+    /// Updates capacitor voltages after each time step for proper transient simulation
+    /// This is crucial for correct integration of capacitor behavior
+    // CHECK: Check if this can be part of the inductor and capacitor elements themselves
+    fn update_capacitor_voltages(&mut self, x_vec: &[Numeric]) {
+        for element in &mut self.elements {
+            if let Element::Capacitor(cap) = element {
+                let v_node0 = cap.node0.as_ref().map(|n| x_vec[n.idx()]).unwrap_or(Numeric::zero());
+                let v_node1 = cap.node1.as_ref().map(|n| x_vec[n.idx()]).unwrap_or(Numeric::zero());
+                let voltage_across = v_node0 - v_node1;
+                cap.update_previous_voltage(voltage_across);
+            }
+        }
+    }
+
+    /// Updates regular inductor currents
+    fn update_regular_inductor_currents(&mut self, inductor_currents: &HashMap<Arc<str>, Numeric>) {
+        for element in &mut self.elements {
+            if let Element::Inductor(ind) = element {
+                if let Some(&current) = inductor_currents.get(&ind.name) {
+                    ind.update_previous_current(current);
+                }
+            }
+        }
+    }
+
+    /// Updates coupled inductor currents
+    fn update_coupled_inductor_currents(&mut self, inductor_currents: &HashMap<Arc<str>, Numeric>) {
+        for element in &mut self.elements {
+            if let Element::CoupledInductors(coupled) = element {
+                let inductor1_name = coupled.inductor1();
+                let inductor2_name = coupled.inductor2();
+
+                if let (Some(&current1), Some(&current2)) = (
+                    inductor_currents.get(&inductor1_name),
+                    inductor_currents.get(&inductor2_name),
+                ) {
+                    coupled.update_previous_currents(current1, current2);
+                }
+            }
+        }
+    }
+=======
+>>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+        for element in &mut self.elements {
+            if let Element::Capacitor(cap) = element {
+                let v_node0 = cap.node0.as_ref().map(|n| x_vec[n.idx()]).unwrap_or(Numeric::zero());
+                let v_node1 = cap.node1.as_ref().map(|n| x_vec[n.idx()]).unwrap_or(Numeric::zero());
+                let voltage_across = v_node0 - v_node1;
+                cap.update_previous_voltage(voltage_across);
+            }
+        }
+    }
+
+
+<<<<<<< HEAD
+        // TODO: Consider refactoring to reduce nesting complexity
+        for element in &self.elements {
+            if let Element::Inductor(ind) = element {
+                // Calculate current through inductor using the equivalent conductance
+                // I = G * (V(node0) - V(node1)), where G = Δt/L
+                let v_node0 = ind
+                    .node0
+                    .as_ref()
+                    .map(|n| x_vec[n.idx()])
+                    .unwrap_or(Numeric::zero());
+                let v_node1 = ind
+                    .node1
+                    .as_ref()
+                    .map(|n| x_vec[n.idx()])
+                    .unwrap_or(Numeric::zero());
+                let voltage_across = v_node0 - v_node1;
+
+                // The equivalent conductance is Δt/L, so current = (Δt/L) * voltage
+                // But we need to extract the actual current from the solution
+                // In MNA, the current through the inductor is related to the voltage difference
+                // For a transient simulation, we can calculate the current as:
+                // I = (V(node0) - V(node1)) * (Δt / L)
+                // However, since we're using backward Euler, the current is actually:
+                // I_current = I_prev + (Δt / L) * (V_current - V_prev)
+                // But for updating, we just need the current through the inductor
+
+                // For now, we'll use a simplified approach and calculate current from voltage
+                // This is an approximation and may need refinement
+                let equivalent_conductance = delta_t / ind.value;
+                let current = voltage_across * equivalent_conductance;
+
+                inductor_currents.insert(ind.name.clone(), current);
+            }
+        }
+
+        // Update inductor currents
+        // TODO: Consider refactoring to reduce nesting complexity
+=======
+
+    /// Updates regular inductor currents
+    fn update_regular_inductor_currents(&mut self, inductor_currents: &HashMap<Arc<str>, Numeric>) {
+>>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+        for element in &mut self.elements {
+            if let Element::Inductor(ind) = element {
+                if let Some(&current) = inductor_currents.get(&ind.name) {
+                    ind.update_previous_current(current);
+                }
+            }
+        }
+    }
+
+<<<<<<< HEAD
+        // Update coupled inductor currents
+        // TODO: Consider refactoring to reduce nesting complexity
+=======
+    /// Updates coupled inductor currents
+    fn update_coupled_inductor_currents(&mut self, inductor_currents: &HashMap<Arc<str>, Numeric>) {
+>>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+        for element in &mut self.elements {
+            if let Element::CoupledInductors(coupled) = element {
+                let inductor1_name = coupled.inductor1();
+                let inductor2_name = coupled.inductor2();
+
+                if let (Some(&current1), Some(&current2)) = (
+                    inductor_currents.get(&inductor1_name),
+                    inductor_currents.get(&inductor2_name),
+                ) {
+                    coupled.update_previous_currents(current1, current2);
+                }
+            }
+        }
+    }
+
+    /// This is crucial for correct integration of inductor behavior
+    // CHECK: Check if this can be part of the inductor and capacitor elements themselves
+    fn update_inductor_currents(&mut self, x_vec: &[Numeric], delta_t: &Numeric) {
+        // First, collect all inductor currents
+        let mut inductor_currents: HashMap<Arc<str>, Numeric> = HashMap::new();
+
+        // FIXME: This loop nests too deep and should be refactored
+        for element in &self.elements {
+            if let Element::Inductor(ind) = element {
+                let v_node0 = ind.node0.as_ref().map(|n| x_vec[n.idx()]).unwrap_or(Numeric::zero());
+                let v_node1 = ind.node1.as_ref().map(|n| x_vec[n.idx()]).unwrap_or(Numeric::zero());
+                let voltage_across = v_node0 - v_node1;
+                let equivalent_conductance = delta_t / ind.value;
+                let current = voltage_across * equivalent_conductance;
+                inductor_currents.insert(ind.name.clone(), current);
+            }
+        }
+
+        // Update inductor currents
+        self.update_regular_inductor_currents(&inductor_currents);
+        
+        // Update coupled inductor currents
+        self.update_coupled_inductor_currents(&inductor_currents);
     }
 }
 

@@ -7,7 +7,18 @@ use crate::solver::Solver;
 use crate::spot::*;
 use crate::Simulator;
 
+/// Trait for operating point (OP) simulation.
+/// 
+/// The operating point analysis calculates the DC working point of a circuit
+/// by solving the nonlinear equations iteratively. This is essential for
+/// initializing transient and AC analyses.
 pub(super) trait OpSimulation<SO: Solver> {
+    /// Runs the operating point analysis.
+    ///
+    /// # Returns
+    /// 
+    /// * `Ok(Sim::Op)` - The operating point simulation results with node voltages
+    /// * `Err(SimulatorError)` - If the simulation fails to converge or other errors occur
     fn run_op(&mut self) -> Result<Sim, SimulatorError>;
 }
 
@@ -15,7 +26,9 @@ impl<SO: Solver> OpSimulation<SO> for Simulator<SO> {
     fn run_op(&mut self) -> Result<Sim, SimulatorError> {
         info!("Run operating point analysis");
 
+        // Fast path for linear circuits - solve directly without iteration
         if !self.has_nonlinear_elements() {
+            trace!("Linear circuit detected - using direct solve");
             self.build_constant_a_mat();
             self.build_constant_b_vec();
             let x_vec = self.solver.solve()?.clone();
@@ -23,35 +36,40 @@ impl<SO: Solver> OpSimulation<SO> for Simulator<SO> {
             return Ok(Sim::Op(res));
         }
 
-        // Build the initial guess
+        // Build the initial guess for nonlinear circuits
+        trace!("Nonlinear circuit detected - using iterative Newton-Raphson");
         let mut x = self.generate_initial_guess();
 
-        // Use an iterator for the iterations
+        // Use an iterator for the iterations with maximum iteration limit
         let result = (0..MAXITER)
             .map(|run| {
                 trace!("Iteration: {run}");
-                trace!("Set matrix");
-                self.build_constant_a_mat();
-                self.build_constant_b_vec();
-                self.build_nonlinear_a_mat(&x);
-                self.build_nonlinear_b_vec(&x);
-                trace!("Solve matrix");
-                // Solve for the new x
+                trace!("Building conductance matrix (A) and source vector (B)");
+                
+                // Build the linear and nonlinear parts of the circuit equations
+                self.build_constant_a_mat();  // Linear elements (resistors, etc.)
+                self.build_constant_b_vec();  // Constant sources
+                self.build_nonlinear_a_mat(&x);  // Nonlinear element conductances
+                self.build_nonlinear_b_vec(&x);  // Nonlinear element contributions
+                
+                trace!("Solving linear system");
+                // Solve for the new x using current estimates
                 let x_new = match self.solver.solve().cloned() {
                     // TODO: Optimize to only clone solution when convergence is confirmed
                     Ok(solution) => solution,
                     Err(err) => return Some(Err(err.into())),
                 };
 
-                trace!("Check convergence matrix");
-                // Check for convergence
+                trace!("Checking convergence with tolerance VECTOL={}", VECTOL);
+                // Check for convergence using vector tolerance
                 if self.has_converged(&x, &x_new, VECTOL) {
-                    // If converged, store the result
+                    trace!("Convergence achieved");
+                    // If converged, store the result with variable names
                     let res = self.add_var_name(x_new);
                     return Some(Ok(Sim::Op(res)));
                 }
 
-                trace!("Update x");
+                trace!("Update solution vector for next iteration");
                 // Update x for the next iteration
                 x = x_new;
 
@@ -63,10 +81,13 @@ impl<SO: Solver> OpSimulation<SO> for Simulator<SO> {
         match result {
             Some(Ok(res)) => Ok(res),
             Some(Err(err)) => Err(err),
-            None => Err(SimulatorError::NonConvergentMaxIter {
-                max_iter: MAXITER,
-                tol: VECTOL,
-            }),
+            None => {
+                log::error!("OP analysis failed to converge after {} iterations", MAXITER);
+                Err(SimulatorError::NonConvergentMaxIter {
+                    max_iter: MAXITER,
+                    tol: VECTOL,
+                })
+            },
         }
     }
 }

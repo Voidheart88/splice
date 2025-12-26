@@ -8,11 +8,52 @@ use nalgebra as na;
 #[cfg(test)]
 use nalgebra::DMatrix;
 
-// TODO: Enhance documentation to match the comprehensive style of FaerSolver (faer.rs)
 /// A Solver implementation using the Nalgebra library.
 ///
-/// This solver provides a robust linear algebra backend using the Nalgebra crate,
-/// suitable for medium-sized circuit simulations with dense matrix representations.
+/// This solver uses dense matrices from the Nalgebra library to store the conductance matrix `A`
+/// and the vector `b`. It is suitable for small to medium-sized circuits where the overhead
+/// of sparse matrix operations is not justified. The dense format stores all elements,
+/// including zeros, which makes it simpler but less memory-efficient for large, sparse circuits.
+///
+/// The solver supports both real-valued (DC/OP/Transient) and complex-valued (AC) analysis.
+/// For real-valued analysis, it uses `DMatrix<Numeric>` for the conductance matrix and `DVector<Numeric>`
+/// for the right-hand side vector. For complex-valued analysis, it uses `DMatrix<ComplexNumeric>`
+/// and `DVector<ComplexNumeric>`.
+///
+/// The solver performs LU decomposition for solving linear systems and provides detailed
+/// debugging output when needed.
+>>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+=======
+/// A Solver implementation using the Nalgebra library.
+///
+/// This solver uses dense matrices from the Nalgebra library to store the conductance matrix `A`
+/// and the vector `b`. It is suitable for small to medium-sized circuits where the overhead
+/// of sparse matrix operations is not justified. The dense format stores all elements,
+/// including zeros, which makes it simpler but less memory-efficient for large, sparse circuits.
+///
+/// The solver supports both real-valued (DC/OP/Transient) and complex-valued (AC) analysis.
+/// For real-valued analysis, it uses `DMatrix<Numeric>` for the conductance matrix and `DVector<Numeric>`
+/// for the right-hand side vector. For complex-valued analysis, it uses `DMatrix<ComplexNumeric>`
+/// and `DVector<ComplexNumeric>`.
+///
+/// The solver performs LU decomposition for solving linear systems and provides detailed
+/// debugging output when needed.
+=======
+/// A Solver implementation using the Nalgebra library.
+///
+/// This solver uses dense matrices from the Nalgebra library to store the conductance matrix `A`
+/// and the vector `b`. It is suitable for small to medium-sized circuits where the overhead
+/// of sparse matrix operations is not justified. The dense format stores all elements,
+/// including zeros, which makes it simpler but less memory-efficient for large, sparse circuits.
+///
+/// The solver supports both real-valued (DC/OP/Transient) and complex-valued (AC) analysis.
+/// For real-valued analysis, it uses `DMatrix<Numeric>` for the conductance matrix and `DVector<Numeric>`
+/// for the right-hand side vector. For complex-valued analysis, it uses `DMatrix<ComplexNumeric>`
+/// and `DVector<ComplexNumeric>`.
+///
+/// The solver performs LU decomposition for solving linear systems and provides detailed
+/// debugging output when needed.
+>>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
 pub struct NalgebraSolver {
     /// The conductance matrix `A`.
     a_mat: na::DMatrix<Numeric>,
@@ -124,9 +165,21 @@ impl std::fmt::Debug for NalgebraSolver {
         if self.a_mat.nrows() * self.a_mat.ncols() <= MAX_ITEMS {
             writeln!(f, "  a_mat:\n{:?},", &self.a_mat)?;
         } else {
+                "  a_mat: {}×{} (output truncated)",
+>>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+                self.a_mat.nrows(),
+                self.a_mat.ncols()
+            )?;
+=======
             writeln!(
                 f,
-                "  a_mat: {}×{} (output truncated)", // TODO: Consider using English consistently throughout codebase
+                "  a_mat: {}×{} (output truncated)",
+                self.a_mat.nrows(),
+                self.a_mat.ncols()
+            )?;
+=======
+                "  a_mat: {}×{} (output truncated)",
+>>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
                 self.a_mat.nrows(),
                 self.a_mat.ncols()
             )?;
@@ -135,9 +188,19 @@ impl std::fmt::Debug for NalgebraSolver {
         if self.b_vec.len() <= MAX_ITEMS {
             writeln!(f, "  b_vec:\n{:?},", &self.b_vec)?;
         } else {
+                "  b_vec: {} entries (output truncated)",
+>>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+                self.b_vec.len()
+            )?;
+=======
             writeln!(
                 f,
-                "  b_vec: {} entries (output truncated)", // TODO: Consider using English consistently throughout codebase
+                "  b_vec: {} entries (output truncated)",
+                self.b_vec.len()
+            )?;
+=======
+                "  b_vec: {} entries (output truncated)",
+>>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
                 self.b_vec.len()
             )?;
         }
@@ -145,9 +208,21 @@ impl std::fmt::Debug for NalgebraSolver {
         if self.cplx_a_mat.nrows() * self.cplx_a_mat.ncols() <= MAX_ITEMS {
             writeln!(f, "  cplx_a_mat:\n{:?},", &self.cplx_a_mat)?;
         } else {
+                "  cplx_a_mat: {}×{} (output truncated)",
+>>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+                self.cplx_a_mat.nrows(),
+                self.cplx_a_mat.ncols()
+            )?;
+=======
             writeln!(
                 f,
-                "  cplx_a_mat: {}×{} (output truncated)", // TODO: Consider using English consistently throughout codebase
+                "  cplx_a_mat: {}×{} (output truncated)",
+                self.cplx_a_mat.nrows(),
+                self.cplx_a_mat.ncols()
+            )?;
+=======
+                "  cplx_a_mat: {}×{} (output truncated)",
+>>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
                 self.cplx_a_mat.nrows(),
                 self.cplx_a_mat.ncols()
             )?;
@@ -156,9 +231,19 @@ impl std::fmt::Debug for NalgebraSolver {
         if self.cplx_b_vec.len() <= MAX_ITEMS {
             writeln!(f, "  cplx_b_vec:\n{:?},", &self.cplx_b_vec)?;
         } else {
+                "  cplx_b_vec: {} entries (output truncated)",
+>>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+                self.cplx_b_vec.len()
+            )?;
+=======
             writeln!(
                 f,
-                "  cplx_b_vec: {} entries (output truncated)", // TODO: Consider using English consistently throughout codebase
+                "  cplx_b_vec: {} entries (output truncated)",
+                self.cplx_b_vec.len()
+            )?;
+=======
+                "  cplx_b_vec: {} entries (output truncated)",
+>>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
                 self.cplx_b_vec.len()
             )?;
         }
