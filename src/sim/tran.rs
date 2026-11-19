@@ -66,7 +66,12 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
                     IntegrationMethod::BackwardEuler => {
                         self.build_time_variant_b_vec(&t, &current_timestep);
                     }
-                    IntegrationMethod::Trapezoidal => {
+                                    IntegrationMethod::GearBdf { order } => {
+                    // Currently, Gear BDF of order >1 is not fully implemented.
+                    // Fallback to Backward Euler behavior for stability.
+                    // Future: implement multi-step coefficient matrix assembly.
+                    self.build_time_variant_b_vec(&t, &current_timestep);
+                }
                         self.build_time_variant_b_vec_trapezoidal(&t, &current_timestep);
                     }
                 }

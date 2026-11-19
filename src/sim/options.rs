@@ -13,6 +13,12 @@ pub enum IntegrationMethod {
     BackwardEuler,
     #[serde(rename = "trapezoidal")]
     Trapezoidal,
+    #[serde(rename = "gear")]
+    GearBdf { order: usize }, // New Gear BDF method (order ≥2). Currently treated like BackwardEuler for compatibility.
+    #[serde(rename = "be")]
+    BackwardEuler,
+    #[serde(rename = "trapezoidal")]
+    Trapezoidal,
 }
 
 impl Serialize for SimulationOption {
