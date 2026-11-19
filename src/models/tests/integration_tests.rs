@@ -68,12 +68,12 @@ fn test_default_integration_method() {
 fn test_inductor_integration() {
     let backward_euler = BackwardEuler::new(1e-6);
     let trapezoidal = Trapezoidal::new(1e-6);
-    
+
     // Test inductor equivalent conductance
     let inductance = 1e-3; // 1mH
     let be_conductance = backward_euler.inductor_equivalent_conductance(inductance);
     let trap_conductance = trapezoidal.inductor_equivalent_conductance(inductance);
-    
+
     assert_eq!(be_conductance, 1e-3); // delta_t/L = 1e-6/1e-3 = 1e-3
     assert_eq!(trap_conductance, 2e-3); // 2*delta_t/L = 2e-6/1e-3 = 2e-3
 }

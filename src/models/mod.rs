@@ -389,8 +389,7 @@ fn validate_and_setup_coupled_inductor(
     if !inductor_map.contains_key(&inductor1_name) {
         errors.push(format!(
             "Coupled inductors '{}': Referenced inductor '{}' not found",
-            coupled_name,
-            inductor1_name
+            coupled_name, inductor1_name
         ));
         return;
     }
@@ -398,8 +397,7 @@ fn validate_and_setup_coupled_inductor(
     if !inductor_map.contains_key(&inductor2_name) {
         errors.push(format!(
             "Coupled inductors '{}': Referenced inductor '{}' not found",
-            coupled_name,
-            inductor2_name
+            coupled_name, inductor2_name
         ));
         return;
     }
@@ -408,8 +406,7 @@ fn validate_and_setup_coupled_inductor(
     if inductor1_name == inductor2_name {
         errors.push(format!(
             "Coupled inductors '{}': Inductor '{}' cannot be coupled to itself",
-            coupled_name,
-            inductor1_name
+            coupled_name, inductor1_name
         ));
         return;
     }
@@ -458,8 +455,7 @@ fn validate_coupling_factor(
     if coupling_factor <= Numeric::zero() || coupling_factor >= Numeric::one() {
         errors.push(format!(
             "Coupled inductors '{}': Invalid coupling factor {}. Must be 0 < k < 1",
-            coupled_name,
-            coupling_factor
+            coupled_name, coupling_factor
         ));
     }
 }
@@ -475,8 +471,7 @@ fn validate_inductor_connections(
     if node0_idx.is_none() && node1_idx.is_none() {
         errors.push(format!(
             "Coupled inductors '{}': Inductor '{}' has no node connections",
-            coupled_name,
-            inductor_name
+            coupled_name, inductor_name
         ));
     }
 }

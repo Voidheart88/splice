@@ -124,20 +124,12 @@ impl CapacitorBundle {
         match (node0_idx, node1_idx) {
             (None, Some(node1_idx)) => {
                 // Capacitor connected to ground through node1
-                Triples::new(&[(
-                    node1_idx,
-                    node1_idx,
-                    complex_admittance,
-                )])
-            },
+                Triples::new(&[(node1_idx, node1_idx, complex_admittance)])
+            }
             (Some(node0_idx), None) => {
                 // Capacitor connected to ground through node0
-                Triples::new(&[(
-                    node0_idx,
-                    node0_idx,
-                    complex_admittance,
-                )])
-            },
+                Triples::new(&[(node0_idx, node0_idx, complex_admittance)])
+            }
             (Some(node0_idx), Some(node1_idx)) => {
                 // Capacitor connected between two nodes
                 Triples::new(&[
@@ -146,7 +138,7 @@ impl CapacitorBundle {
                     (node0_idx, node1_idx, -complex_admittance),
                     (node1_idx, node0_idx, -complex_admittance),
                 ])
-            },
+            }
             (None, None) => {
                 // This should not happen as capacitors must have at least one connection
                 Triples::new(&[])

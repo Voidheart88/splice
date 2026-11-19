@@ -21,20 +21,14 @@ impl ProcessSpiceElement for VSourceSinBundle {
         let name = inner
             .next()
             .ok_or_else(|| {
-                FrontendError::ParseError(format!(
-                    "Missing name in sine voltage source: {}",
-                    ele
-                ))
+                FrontendError::ParseError(format!("Missing name in sine voltage source: {}", ele))
             })?
             .as_str();
 
         let node0 = inner
             .next()
             .ok_or_else(|| {
-                FrontendError::ParseError(format!(
-                    "Missing node0 in sine voltage source: {}",
-                    name
-                ))
+                FrontendError::ParseError(format!("Missing node0 in sine voltage source: {}", name))
             })?
             .as_span();
         let node0_str = &ele[node0.start() - offset..node0.end() - offset];
@@ -42,10 +36,7 @@ impl ProcessSpiceElement for VSourceSinBundle {
         let node1 = inner
             .next()
             .ok_or_else(|| {
-                FrontendError::ParseError(format!(
-                    "Missing node1 in sine voltage source: {}",
-                    name
-                ))
+                FrontendError::ParseError(format!("Missing node1 in sine voltage source: {}", name))
             })?
             .as_span();
         let node1_str = &ele[node1.start() - offset..node1.end() - offset];

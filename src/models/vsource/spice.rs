@@ -27,10 +27,7 @@ impl ProcessSpiceElement for VSourceBundle {
         let remaining = parser.parse_remaining_values();
         let ac_value = if !remaining.is_empty() {
             let ac_val_str = remaining[0].split(" ").nth(1).ok_or_else(|| {
-                FrontendError::ParseError(format!(
-                    "Missing AC value in voltage source: {}",
-                    name
-                ))
+                FrontendError::ParseError(format!("Missing AC value in voltage source: {}", name))
             })?;
             let ac_val = ac_val_str.parse::<Numeric>().map_err(|_| {
                 FrontendError::ParseError(format!(

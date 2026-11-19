@@ -483,7 +483,7 @@ impl<SO: Solver> From<Simulation> for Simulator<SO> {
 }
 
 fn is_vsource_with_name(element: &Element, srcnam: &Arc<str>) -> bool {
-    if let Element::VSource(ref vs) = element {
+    if let Element::VSource(vs) = element {
         vs.name() == *srcnam
     } else {
         false
@@ -491,7 +491,7 @@ fn is_vsource_with_name(element: &Element, srcnam: &Arc<str>) -> bool {
 }
 
 fn get_vsource_value(element: &mut Element) -> Option<Numeric> {
-    if let Element::VSource(ref mut vs) = element {
+    if let Element::VSource(vs) = element {
         Some(vs.value())
     } else {
         None

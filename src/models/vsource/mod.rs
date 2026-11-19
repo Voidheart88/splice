@@ -93,14 +93,14 @@ impl VSourceBundle {
                     (branch_idx, node1_idx, Numeric::one()),
                     (node1_idx, branch_idx, Numeric::one()),
                 ])
-            },
+            }
             (Some(node0_idx), None) => {
                 // Voltage source connected to ground through node0
                 Triples::new(&[
                     (branch_idx, node0_idx, -Numeric::one()),
                     (node0_idx, branch_idx, -Numeric::one()),
                 ])
-            },
+            }
             (Some(node0_idx), Some(node1_idx)) => {
                 // Voltage source connected between two nodes
                 Triples::new(&[
@@ -109,7 +109,7 @@ impl VSourceBundle {
                     (branch_idx, node1_idx, -Numeric::one()),
                     (node1_idx, branch_idx, -Numeric::one()),
                 ])
-            },
+            }
             (None, None) => {
                 // This should not happen as voltage sources must have at least one connection
                 Triples::new(&[])
@@ -154,14 +154,14 @@ impl VSourceBundle {
                     (branch_idx, node1_idx, one_complex),
                     (node1_idx, branch_idx, one_complex),
                 ])
-            },
+            }
             (Some(node0_idx), None) => {
                 // Voltage source connected to ground through node0
                 Triples::new(&[
                     (branch_idx, node0_idx, minus_one_complex),
                     (node0_idx, branch_idx, minus_one_complex),
                 ])
-            },
+            }
             (Some(node0_idx), Some(node1_idx)) => {
                 // Voltage source connected between two nodes
                 Triples::new(&[
@@ -170,7 +170,7 @@ impl VSourceBundle {
                     (branch_idx, node1_idx, minus_one_complex),
                     (node1_idx, branch_idx, minus_one_complex),
                 ])
-            },
+            }
             (None, None) => {
                 // This should not happen as voltage sources must have at least one connection
                 Triples::new(&[])

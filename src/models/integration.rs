@@ -1,7 +1,7 @@
 // Integration method traits and implementations
 // This module provides a trait-based abstraction for different integration methods
 // used in transient simulation (e.g., Backward Euler, Forward Euler, Trapezoidal)
-// 
+//
 // The integration methods are implemented as a separate trait system rather than being
 // generic parameters to models. This design choice provides several advantages:
 // 1. Clean separation of concerns - integration is orthogonal to circuit elements
@@ -219,5 +219,3 @@ impl IntegrationMethod for Trapezoidal {
 pub fn default_integration_method() -> impl IntegrationMethod {
     BackwardEuler::new(1e-6) // Default time step
 }
-
-

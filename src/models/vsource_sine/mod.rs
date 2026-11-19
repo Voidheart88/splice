@@ -97,14 +97,14 @@ impl VSourceSinBundle {
                     (branch_idx, node1_idx, Numeric::one()),
                     (node1_idx, branch_idx, Numeric::one()),
                 ])
-            },
+            }
             (Some(node0_idx), None) => {
                 // Voltage source connected to ground through node0
                 Triples::new(&[
                     (branch_idx, node0_idx, -Numeric::one()),
                     (node0_idx, branch_idx, -Numeric::one()),
                 ])
-            },
+            }
             (Some(node0_idx), Some(node1_idx)) => {
                 // Voltage source connected between two nodes
                 Triples::new(&[
@@ -113,7 +113,7 @@ impl VSourceSinBundle {
                     (branch_idx, node1_idx, -Numeric::one()),
                     (node1_idx, branch_idx, -Numeric::one()),
                 ])
-            },
+            }
             (None, None) => {
                 // This should not happen as voltage sources must have at least one connection
                 Triples::new(&[])
@@ -158,14 +158,14 @@ impl VSourceSinBundle {
                     (branch_idx, node1_idx, one_complex),
                     (node1_idx, branch_idx, one_complex),
                 ])
-            },
+            }
             (Some(node0_idx), None) => {
                 // Voltage source connected to ground through node0
                 Triples::new(&[
                     (branch_idx, node0_idx, minus_one_complex),
                     (node0_idx, branch_idx, minus_one_complex),
                 ])
-            },
+            }
             (Some(node0_idx), Some(node1_idx)) => {
                 // Voltage source connected between two nodes
                 Triples::new(&[
@@ -174,7 +174,7 @@ impl VSourceSinBundle {
                     (branch_idx, node1_idx, minus_one_complex),
                     (node1_idx, branch_idx, minus_one_complex),
                 ])
-            },
+            }
             (None, None) => {
                 // This should not happen as voltage sources must have at least one connection
                 Triples::new(&[])
@@ -185,8 +185,8 @@ impl VSourceSinBundle {
     /// Returns the pairs representing vector b.
     pub fn pairs(&self, time: Option<&Numeric>) -> Pairs<Numeric, 2> {
         let value = if let Some(t) = time {
-            // For transient analysis: DC offset + AC component (sinusoidal part)
-            self.dc_offset + self.amplitude
+            // For transient analysis: AC component only (sinusoidal part)
+            self.amplitude
                 * (2.0 * std::f64::consts::PI * self.frequency * t + self.phase).sin()
         } else {
             // For OP analysis: only DC offset
@@ -199,13 +199,15 @@ impl VSourceSinBundle {
     pub fn ac_pairs(&self) -> Pairs<ComplexNumeric, 2> {
         self.ac_value.map_or_else(
             || Pairs::new(&[]),
-            |ac_val| Pairs::new(&[(
-                self.branch_idx(),
-                Complex {
-                    re: ac_val,
-                    im: Numeric::zero(),
-                },
-            )]),
+            |ac_val| {
+                Pairs::new(&[(
+                    self.branch_idx(),
+                    Complex {
+                        re: ac_val,
+                        im: Numeric::zero(),
+                    },
+                )])
+            },
         )
     }
 

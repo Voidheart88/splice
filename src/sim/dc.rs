@@ -55,7 +55,7 @@ impl<SO: Solver> DcSimulation<SO> for Simulator<SO> {
         while voltage <= *vstop {
             {
                 let source = match &mut self.elements[vsource1_idx] {
-                    Element::VSource(ref mut vs) => vs,
+                    Element::VSource(vs) => vs,
                     _ => unreachable!(),
                 };
                 source.set_voltage(voltage);
@@ -68,7 +68,7 @@ impl<SO: Solver> DcSimulation<SO> for Simulator<SO> {
         // TODO: Consider refactoring to reduce nesting complexity
         {
             let source = match &mut self.elements[vsource1_idx] {
-                Element::VSource(ref mut vs) => vs,
+                Element::VSource(vs) => vs,
                 _ => unreachable!(),
             };
             source.set_voltage(voltage_0);

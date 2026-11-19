@@ -75,11 +75,11 @@ impl ResistorBundle {
             (None, Some(node1_idx)) => {
                 // Resistor connected to ground through node1
                 Triples::new(&[(node1_idx, node1_idx, conductance)])
-            },
+            }
             (Some(node0_idx), None) => {
                 // Resistor connected to ground through node0
                 Triples::new(&[(node0_idx, node0_idx, conductance)])
-            },
+            }
             (Some(node0_idx), Some(node1_idx)) => {
                 // Resistor connected between two nodes
                 Triples::new(&[
@@ -88,7 +88,7 @@ impl ResistorBundle {
                     (node0_idx, node1_idx, -conductance),
                     (node1_idx, node0_idx, -conductance),
                 ])
-            },
+            }
             (None, None) => {
                 // This should not happen as resistors must have at least one connection
                 Triples::new(&[])
@@ -126,11 +126,11 @@ impl ResistorBundle {
             (None, Some(node1_idx)) => {
                 // Resistor connected to ground through node1
                 Triples::new(&[(node1_idx, node1_idx, conductance)])
-            },
+            }
             (Some(node0_idx), None) => {
                 // Resistor connected to ground through node0
                 Triples::new(&[(node0_idx, node0_idx, conductance)])
-            },
+            }
             (Some(node0_idx), Some(node1_idx)) => {
                 // Resistor connected between two nodes
                 Triples::new(&[
@@ -139,7 +139,7 @@ impl ResistorBundle {
                     (node0_idx, node1_idx, -conductance),
                     (node1_idx, node0_idx, -conductance),
                 ])
-            },
+            }
             (None, None) => {
                 // This should not happen as resistors must have at least one connection
                 Triples::new(&[])
