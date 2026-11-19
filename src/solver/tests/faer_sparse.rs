@@ -108,6 +108,9 @@ fn solve_no_solution() {
     if result.is_err() {
         panic!("expected")
     }
+    if result.unwrap().iter().any(|val| val.is_infinite() || val.is_nan()) {
+        panic!("expected")
+    }
 }
 
 #[test]
@@ -128,6 +131,9 @@ fn solve_infinite_solutions_dependent() {
 
     let result = solver.solve();
     if result.is_err() {
+        panic!("expected")
+    }
+    if result.unwrap().iter().any(|val| val.is_infinite() || val.is_nan()) {
         panic!("expected")
     }
 }
