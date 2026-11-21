@@ -115,7 +115,9 @@ pub fn bench_resistor_network(c: &mut Criterion) {
     let mut group = c.benchmark_group("Resistor Network");
 
     // Test different grid sizes - keep them small for reasonable benchmark times
-    let configurations = [(5, 5), (10, 10), (50, 50)];
+    // The 50x50 grid leads to very long runtimes for some solvers (e.g., Nalgebra).
+    // It has been removed to keep benchmarks under a minute. Smaller grids are kept.
+    let configurations = [(5, 5), (10, 10)];
 
     for &(rows, cols) in &configurations {
         let size_desc = format!("{rows}x{cols}");
