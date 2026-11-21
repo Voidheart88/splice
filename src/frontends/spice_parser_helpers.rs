@@ -44,6 +44,7 @@ impl<'a> SpiceElementParser<'a> {
         element_name: &str,
         node_name: &str,
     ) -> Result<&'a str, FrontendError> {
+        // FIXME: This nests too deep
         let node_span = self
             .inner
             .next()
@@ -64,6 +65,7 @@ impl<'a> SpiceElementParser<'a> {
         element_name: &str,
         value_name: &str,
     ) -> Result<Numeric, FrontendError> {
+        // FIXME: This nests too deep
         let value_span = self
             .inner
             .next()

@@ -1,8 +1,6 @@
 use crate::frontends::spice::SpiceFrontend;
 use crate::models::Unit;
 
-
-
 #[test]
 fn test_node_units_parsing() {
     let spice_code = "

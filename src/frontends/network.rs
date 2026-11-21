@@ -48,6 +48,7 @@ impl NetworkFrontend {
 
         // Process elements (similar to SerdeFrontend)
         // Check: „similar“ sounds like there is code duplication. Check if this can be refactored in a helper fn
+        // FIXME: This Should be an iterator
         for element in circuit.elements {
             match element {
                 SerdeElement::Resistor(ele) => {
@@ -99,7 +100,7 @@ impl NetworkFrontend {
         }
 
         // Process simulation commands
-        // TODO: Consider refactoring this simulation processing logic to reduce nesting
+        // FIXME: Consider refactoring this simulation processing logic to reduce nesting
         for simulation in circuit.simulations {
             match simulation {
                 SerdeSimulation::OP => {

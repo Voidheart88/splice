@@ -101,6 +101,7 @@ impl PlotBackend {
 
         // Collect the variable names specified in the options.
         let mut filtered_headers = HashSet::new();
+        // FIXME: This could be an iterator
         for option in options {
             if let SimulationOption::Out(vars) = option {
                 for var in vars {
@@ -111,6 +112,7 @@ impl PlotBackend {
 
         // If no filtering is specified, use all headers.
         if filtered_headers.is_empty() {
+            // FIXME: This should be an iterator
             for step_data in data {
                 for (var, _) in step_data {
                     filtered_headers.insert(var.name());
@@ -174,18 +176,22 @@ impl PlotBackend {
         let mut series: Vec<Vec<Numeric>> = Vec::new();
         let mut units: Vec<Unit> = Vec::new();
         let var_count = filtered_data[0].len();
+        // FIXME: This should be an iterator
         for _ in 0..var_count {
             series.push(Vec::new());
         }
+        // FIXME: This should be an iterator
         for var in 0..var_count {
             units.push(filtered_data[0][var].0.unit())
         }
+        // FIXME: This should be an iterator
         for var in 0..var_count {
             for step_data in filtered_data.iter() {
                 series[var].push(step_data[var].1);
             }
         }
 
+        // FIXME: This should be an iterator and this nests too deep
         for (idx, var) in series.iter().enumerate() {
             match units[idx] {
                 Unit::Volt => {
@@ -306,6 +312,7 @@ impl PlotBackend {
             .draw()?;
 
         let var_count = data[0].1.len();
+        // FIXME: This should be an iterator
         for var_idx in 0..var_count {
             let var_name = data[0].1[var_idx].0.name().to_string();
             let unit = data[0].1[var_idx].0.unit();
@@ -362,7 +369,8 @@ impl PlotBackend {
 
         let root = SVGBackend::new(&path, (1440, 900)).into_drawing_area();
         root.fill(&BLACK)?;
-
+        
+        // FIXME: This nests too deep
         let (max_gain, min_gain, max_phase, min_phase) = data
             .iter()
             .flat_map(|(_, vec)| vec.iter())
@@ -453,13 +461,16 @@ impl PlotBackend {
         let mut series_phase: Vec<Vec<Numeric>> = Vec::new();
         let mut units: Vec<Unit> = Vec::new();
         let var_count = data[0].1.len();
+        // FIXME: This should be an iterator
         for _ in 0..var_count {
             series_gain.push(Vec::new());
             series_phase.push(Vec::new());
         }
+        // FIXME: This should be an iterator
         for var in 0..var_count {
             units.push(data[0].1[var].0.unit())
         }
+        // FIXME: This should be an iterator
         for var in 0..var_count {
             for (_, step_data) in data.iter() {
                 let gain = 20.0 * step_data[var].1.norm().log10();
@@ -469,6 +480,7 @@ impl PlotBackend {
             }
         }
 
+        // FIXME: This should be an iterator and this nests too deep
         for (idx, var) in series_gain.iter().enumerate() {
             match units[idx] {
                 Unit::Volt => {
@@ -501,6 +513,7 @@ impl PlotBackend {
             };
         }
 
+        // FIXME: This should be an iterator
         for (idx, var) in series_phase.iter().enumerate() {
             match units[idx] {
                 Unit::Volt => {

@@ -242,7 +242,8 @@ impl SerdeFrontend {
             SerdeFormat::Json => serde_json::from_str(&circuit_string)?,
         };
 
-        // Check: see network frontend „similar“
+        // FIXME: see network frontend „similar“
+        // FIXME: This should be an iterator
         for element in circuit.elements {
             match element {
                 SerdeElement::Resistor(ele) => {
@@ -283,6 +284,7 @@ impl SerdeFrontend {
             };
         }
 
+        // FIXME: This should be an iterator
         for simulation in circuit.simulations {
             match simulation {
                 SerdeSimulation::OP => Self::process_op(&mut commands),
@@ -292,6 +294,7 @@ impl SerdeFrontend {
             };
         }
 
+        // FIXME: This should be an iterator
         for option in circuit.options {
             Self::process_out(&mut options, option);
         }

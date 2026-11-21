@@ -43,11 +43,13 @@ impl NetworkBackend {
         Self { stream }
     }
 
+    // FIXME: This nests way to deep
     fn convert_results(&self, results: SimulationResults) -> Result<NetworkResponse, BackendError> {
         let mut network_results = Vec::new();
 
         for sim_result in results.results {
             match sim_result {
+                // FIXME: an import would make this better readable
                 crate::sim::simulation_result::Sim::Op(vars) => {
                     let variables = vars
                         .into_iter()
@@ -63,6 +65,7 @@ impl NetworkBackend {
                         variables,
                     });
                 }
+                // FIXME: an import would make this better readable
                 crate::sim::simulation_result::Sim::Dc(dc_results) => {
                     // DC results are Vec<Vec<(Variable, Numeric)>> where each inner Vec is a sweep step
                     for (step_idx, variables) in dc_results.iter().enumerate() {
@@ -81,6 +84,7 @@ impl NetworkBackend {
                         });
                     }
                 }
+                // FIXME: an import would make this better readable
                 crate::sim::simulation_result::Sim::Ac(vars) => {
                     for (freq, variables) in vars {
                         let vars_converted = variables
@@ -98,6 +102,7 @@ impl NetworkBackend {
                         });
                     }
                 }
+                // FIXME: an import would make this better readable
                 crate::sim::simulation_result::Sim::Tran(vars) => {
                     for (time, variables) in vars {
                         let vars_converted = variables

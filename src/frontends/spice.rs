@@ -43,6 +43,7 @@ impl SpiceFrontend {
         let parse_result = SpiceParser::parse(Rule::SPICE, spice_code)?
             .next()
             .ok_or(FrontendError::ParseError("unexpected file end".into()))?;
+        // FIXME: This should be an iterator
         for pair in parse_result.into_inner() {
             if pair.as_rule() == Rule::DIRECTIVE {
                 // Create a dummy SpiceFrontend instance to call process_directive
@@ -60,6 +61,7 @@ impl SpiceFrontend {
 
         // Ensure all element names are unique
         let mut names = HashSet::new();
+        // FIXME: This should be an iterator
         for ele in &elements {
             let ele_name = ele.name();
             if !names.insert(ele_name.clone()) {
@@ -93,6 +95,7 @@ impl Frontend for SpiceFrontend {
         let mut variables = Vec::new();
         let mut var_map = HashMap::new();
 
+        // FIXME: This should be an iterator
         for pair in parse_result.into_inner() {
             if pair.as_rule() == Rule::DIRECTIVE {
                 self.process_directive(
@@ -109,6 +112,7 @@ impl Frontend for SpiceFrontend {
         trace!("Check Schematic!");
         // Ensure all element names are unique
         let mut names = HashSet::new();
+        // FIXME: This should be an iterator
         for ele in &elements {
             let ele_name = ele.name();
             if !names.insert(ele_name.clone()) {
@@ -139,6 +143,7 @@ impl SpiceFrontend {
         variables: &mut Vec<Variable>,
         var_map: &mut HashMap<Arc<str>, usize>,
     ) -> Result<(), FrontendError> {
+        // FIXME: This should be an iterator
         for inner in directive.into_inner() {
             match inner.as_rule() {
                 Rule::ELEMENT => self.process_element(inner, variables, elements, var_map)?,
@@ -219,6 +224,7 @@ impl SpiceFrontend {
         })?;
 
         trace!("Parse Schematic!");
+        // FIXME: This nests too deep
         let parse_result = SpiceParser::parse(Rule::SPICE, &circuit_string)
             .map_err(|e| {
                 FrontendError::PestError(format!(
@@ -281,6 +287,7 @@ impl SpiceFrontend {
             .map_err(|_| FrontendError::ParseError("Invalid vstep value".into()))?;
 
         let src2 = inner.next();
+        // FIXME: This nests too deep
         match src2 {
             None => {
                 commands.push(SimulationCommand::Dc(
