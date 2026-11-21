@@ -1,6 +1,7 @@
 // Coupled inductors model for SPICE simulation
 // Implements mutual inductance between two inductors
 // TODO: Simplify to use K L1 L2 kvalue syntax instead of full coupled inductors implementation
+// TODO: There is no SERDE Implementation
 
 use crate::models::pairs::Pairs;
 use crate::models::triples::TripleIdx;
@@ -313,6 +314,7 @@ impl CoupledInductorsBundle {
     }
 }
 
+// FIXME: This should be in the test folder
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -155,6 +155,7 @@ impl ProcessSpiceElement for VCVSBundle {
     }
 }
 
+// FIXME: This should be in the test folder
 #[cfg(test)]
 mod tests {
     use super::*;

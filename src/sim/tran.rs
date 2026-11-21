@@ -23,13 +23,11 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
         let mut x_prev: Vec<Numeric> = self.find_op()?.iter().map(|op| op.1).collect();
 
         // Initialize capacitor voltages and inductor currents for transient analysis
-        for element in &mut self.elements {
-            if let Element::Capacitor(cap) = element {
-                cap.update_previous_voltage(Numeric::zero());
-            } else if let Element::Inductor(ind) = element {
-                ind.update_previous_current(Numeric::zero());
-            }
-        }
+        self.elements.iter_mut().for_each(|element| match element {
+            Element::Capacitor(cap) => cap.update_previous_voltage(Numeric::zero()),
+            Element::Inductor(ind) => ind.update_previous_current(Numeric::zero()),
+            _ => {}
+        });
 
         let mut x_current = x_prev.clone();
 
@@ -54,6 +52,7 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
             let mut converged = false;
             let mut x_new_final = x_prev.clone();
 
+            // FIXME: This should be an iterator
             for _ in 0..MAXITER {
                 self.solver.reset();
                 self.build_constant_a_mat();

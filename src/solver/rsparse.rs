@@ -209,6 +209,7 @@ impl RSparseSolver {
 
         let mut max_row = 0;
         let mut max_col = 0;
+        // FIXME: This should be an iterator
         for ((r, c), _) in self.cplx_a_mat.iter() {
             if *r > max_row {
                 max_row = *r;
@@ -242,6 +243,7 @@ impl RSparseSolver {
         self.cplx_sprs.x.reserve(self.cplx_sprs.nzmax);
 
         let mut current_col = 0;
+        // FIXME: This should be an iterator
         for (idx, (row, col, val)) in entries.into_iter().enumerate() {
             while col > current_col {
                 self.cplx_sprs.p[current_col + 1] = idx as isize;
@@ -273,6 +275,7 @@ impl RSparseSolver {
 
         let mut max_row = 0;
         let mut max_col = 0;
+        // FIXME: This should be an iterator
         for ((r, c), _) in self.a_mat.iter() {
             if *r > max_row {
                 max_row = *r;
@@ -303,6 +306,7 @@ impl RSparseSolver {
         self.sprs.x.reserve(self.sprs.nzmax);
 
         let mut current_col = 0;
+        // FIXME: This should be an iterator
         for (idx, (row, col, val)) in entries.into_iter().enumerate() {
             while col > current_col {
                 self.sprs.p[current_col + 1] = idx as isize;
@@ -311,7 +315,7 @@ impl RSparseSolver {
             self.sprs.i.push(row);
             self.sprs.x.push(val);
         }
-
+        // FIXME: This should be an iterator
         while current_col < self.sprs.n {
             self.sprs.p[current_col + 1] = self.sprs.nzmax as isize;
             current_col += 1;
@@ -320,6 +324,7 @@ impl RSparseSolver {
 }
 
 fn ipvec(n: usize, p: &Option<Vec<isize>>, b: &[Numeric], x: &mut [Numeric]) {
+    // FIXME: This should be an iterator
     for k in 0..n {
         if p.is_some() {
             x[p.as_ref().expect(
@@ -386,7 +391,7 @@ impl RSparseSolver {
         let x = triple.x;
 
         let mut matrix = vec![vec![0.0; n]; m];
-
+        // FIXME: This should be an iterator
         for k in 0..x.len() {
             let row = i[k];
             let col = p[k];
@@ -398,6 +403,7 @@ impl RSparseSolver {
         }
 
         // Print the matrix in a formatted way.
+        // FIXME: This should be an iterator
         for (row, _) in matrix.iter().enumerate().take(m) {
             print!("[");
             for col in 0..n {

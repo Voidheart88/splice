@@ -85,6 +85,7 @@ impl VSourceBundle {
         let node0_idx = self.node0_idx();
         let node1_idx = self.node1_idx();
 
+        // FIXME: Nests too deep
         // Handle different connection cases using pattern matching
         match (node0_idx, node1_idx) {
             (None, Some(node1_idx)) => {
@@ -147,6 +148,7 @@ impl VSourceBundle {
         };
 
         // Handle different connection cases using pattern matching
+        // FIXME: This nests too deep
         match (node0_idx, node1_idx) {
             (None, Some(node1_idx)) => {
                 // Voltage source connected to ground through node1

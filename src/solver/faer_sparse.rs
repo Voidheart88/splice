@@ -80,12 +80,13 @@ impl Solver for FaerSparseSolver {
         };
 
         let res = lu.solve(&self.b_vec);
+        // FIXME: This should be an iterator
         for (idx, val) in res.col_as_slice(0).iter().enumerate() {
             self.x_vec[idx] = *val;
         }
 
         self.a_mat.clear();
-
+        // FIXME: This should be an iterator
         for idx in 0..self.x_vec.len() {
             let value = self.b_vec.get_mut(idx, 0);
             *value = Numeric::zero();

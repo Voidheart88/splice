@@ -395,6 +395,7 @@ fn test_vsource_sin_tran() {
         (1.0, 10.0),
     ];
 
+    // FIXME: should be an iter
     for (expected_time, expected_voltage) in test_points {
         // Find the result closest to the expected time
         // TODO: Consider refactoring to reduce nesting complexity
@@ -554,7 +555,7 @@ fn test_rc_sinusoidal_tran() {
         let mut input_voltage = 0.0;
         let mut output_voltage = 0.0;
         let mut current = 0.0;
-
+        // FIXME: This should be an iterator
         for (var, val) in values {
             if var.name() == Arc::from("1") {
                 input_voltage = *val;
@@ -772,7 +773,8 @@ fn test_ac_rc_cutoff_frequency() {
     let mut prev_freq = 0.0;
     let mut prev_mag = 0.0;
     let mut found_cutoff = false;
-
+    
+    // FIXME: This should be an iterator
     for (freq, values) in ac_results {
         // Find V2 (node 2) - should be the second variable after branch
         let v2_real = values[2].1.re; // node_2 is index 2 (branch=0, node1=1, node2=2)
@@ -865,6 +867,7 @@ fn test_dc_linear_resistor() {
 
     // Verify linearity: I = V/R
     // Resistance is 1kΩ, so I (in A) = V (in V) / 1000
+    // FIXME: This should be an iterator
     for step_data in dc_results {
         // Find voltage and current values
         let mut voltage = 0.0;
@@ -962,6 +965,7 @@ fn test_dc_resistor_divider() {
     };
 
     // Verify voltage division: V2 = V1 * R2/(R1+R2) = V1 * 0.5
+    // FIXME: This should be an iterator
     for step_data in dc_results {
         let mut v1 = 0.0;
         let mut v2 = 0.0;
@@ -1045,6 +1049,7 @@ fn test_rc_step_response() {
     // First, run OP analysis to see initial conditions
     let op_result = simulator.find_op().unwrap();
     println!("OP Analysis Results:");
+    // FIXME: This should be an iterator
     for (var, value) in &op_result {
         println!("  {}: {}V", var.name(), value);
     }
@@ -1062,6 +1067,7 @@ fn test_rc_step_response() {
 
     // Print time series for debugging
     println!("\nTime series (first 10 and last 5 points):");
+    // FIXME: This should be an iterator
     for (i, (time, values)) in tran_results.iter().enumerate() {
         if i < 10 || i >= tran_results.len() - 5 {
             let output = values

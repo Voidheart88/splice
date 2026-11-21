@@ -86,6 +86,7 @@ impl VSourceStepBundle {
         let node1_idx = self.node1_idx();
 
         // Handle different connection cases using pattern matching
+        // FIXME: This nests too deep
         match (node0_idx, node1_idx) {
             (None, Some(node1_idx)) => {
                 // Voltage source connected to ground through node1
@@ -153,6 +154,7 @@ impl VSourceStepBundle {
 
     /// Returns the AC pairs representing vector b.
     pub fn ac_pairs(&self) -> Pairs<ComplexNumeric, 2> {
+        // FIXME: This nests too deep
         self.ac_value.map_or_else(
             || Pairs::new(&[]),
             |ac_val| {

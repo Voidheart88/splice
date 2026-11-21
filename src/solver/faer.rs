@@ -149,6 +149,7 @@ impl Solver for FaerSolver {
         let lu = self.cplx_a_mat.partial_piv_lu();
         let res = lu.solve(&self.cplx_b_vec);
 
+        // FIXME: This should be an iterator
         for (idx, val) in res.col_as_slice(0).iter().enumerate() {
             self.cplx_x_vec[idx] = *val;
         }

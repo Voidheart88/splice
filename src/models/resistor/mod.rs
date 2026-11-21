@@ -71,6 +71,7 @@ impl ResistorBundle {
         let node1_idx = self.node1_idx();
 
         // Handle different connection cases using pattern matching
+        // FIXME: This nests too deep
         match (node0_idx, node1_idx) {
             (None, Some(node1_idx)) => {
                 // Resistor connected to ground through node1

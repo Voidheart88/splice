@@ -74,10 +74,12 @@ impl ProcessSpiceElement for CCVSBundle {
         var_map: &mut std::collections::HashMap<Arc<str>, usize>,
     ) -> Result<(), FrontendError> {
         // Delegate to the module-level function
+        // FIXME: use an import
         super::spice::process_ccvs(element, variables, elements, var_map)
     }
 }
 
+// FIXME: This should be in the test folder
 #[cfg(test)]
 mod tests {
     use super::*;

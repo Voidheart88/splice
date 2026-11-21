@@ -125,28 +125,26 @@ fn analyze_circuit_elements(elements: &[Element]) -> CircuitCharacteristics {
     let mut capacitors = Vec::new();
     let mut inductors = Vec::new();
 
-    for element in elements {
-        match element {
-            Element::Resistor(res) => resistors.push(res.value()),
-            Element::Capacitor(cap) => {
-                capacitors.push(cap.value);
-                characteristics.has_capacitors = true;
-            }
-            Element::Inductor(ind) => {
-                inductors.push(ind.value);
-                characteristics.has_inductors = true;
-            }
-            Element::Diode(_) => {
-                characteristics.has_diodes = true;
-                characteristics.has_nonlinear_elements = true;
-            }
-            Element::Mos0(_) => {
-                characteristics.has_mosfets = true;
-                characteristics.has_nonlinear_elements = true;
-            }
-            _ => {}
+    elements.iter().for_each(|element| match element {
+        Element::Resistor(res) => resistors.push(res.value()),
+        Element::Capacitor(cap) => {
+            capacitors.push(cap.value);
+            characteristics.has_capacitors = true;
         }
-    }
+        Element::Inductor(ind) => {
+            inductors.push(ind.value);
+            characteristics.has_inductors = true;
+        }
+        Element::Diode(_) => {
+            characteristics.has_diodes = true;
+            characteristics.has_nonlinear_elements = true;
+        }
+        Element::Mos0(_) => {
+            characteristics.has_mosfets = true;
+            characteristics.has_nonlinear_elements = true;
+        }
+        _ => {}
+    });
 
     // Analyze time constants
     // CHECK: Check if this can be refactored with early returns for readability
@@ -177,23 +175,16 @@ fn analyze_circuit_elements(elements: &[Element]) -> CircuitCharacteristics {
 
 /// Updates time constant analysis with new values
 fn update_time_constants(analysis: &mut TimeConstantAnalysis, new_time_constants: &[Numeric]) {
-    for &tc in new_time_constants {
-        // Filter out extremely small or large values that might be numerical artifacts
-        // CHECK: Check if this can be refactored with early returns to reduce the nesting
-        if tc > 1e-15 && tc < 1e3 {
-            match analysis.min_time_constant {
-                Some(min_tc) if tc < min_tc => analysis.min_time_constant = Some(tc),
-                None => analysis.min_time_constant = Some(tc),
-                Some(_) => {}
-            }
-
-            match analysis.max_time_constant {
-                Some(max_tc) if tc > max_tc => analysis.max_time_constant = Some(tc),
-                None => analysis.max_time_constant = Some(tc),
-                Some(_) => {}
-            }
-        }
-    }
+    new_time_constants
+        .iter()
+        .copied()
+        .filter(|&tc| tc > 1e-15 && tc < 1e3)
+        .for_each(|tc| {
+            analysis.min_time_constant =
+                Some(analysis.min_time_constant.map_or(tc, |min| min.min(tc)));
+            analysis.max_time_constant =
+                Some(analysis.max_time_constant.map_or(tc, |max| max.max(tc)));
+        });
 }
 
 /// Suggests the optimal integration method based on circuit characteristics

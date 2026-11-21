@@ -73,6 +73,7 @@ pub struct Simulator<SO: Solver> {
 impl<SO: Solver> Simulator<SO> {
     /// Returns the integration method to use for transient simulation
     /// Defaults to BackwardEuler for stability
+    // FIXME: could be an iter
     fn get_integration_method(&self) -> IntegrationMethod {
         self.options
             .iter()
@@ -96,6 +97,7 @@ impl<SO: Solver> Simulator<SO> {
             options: self.options.clone(),
             ..Default::default()
         };
+        // FIXME: could be an iter
         for com in commands {
             let error = self.execute_command(&com);
             match error {
@@ -175,6 +177,7 @@ impl<SO: Solver> Simulator<SO> {
         let guesser = crate::guesser::new_guesser(self.guesser_options.clone());
         let mut x = guesser.guess(self)?;
 
+        // FIXME: could be an iter
         for _ in 0..MAXITER {
             self.solver.reset();
             self.build_constant_a_mat();
@@ -274,6 +277,7 @@ impl<SO: Solver> Simulator<SO> {
         let len = self.vars.len();
         let mut acc = vec![0.0; len];
 
+        // FIXME: could be an iter
         for element in &self.elements {
             let mut local_guess = vec![0.0; len];
             // TODO: Consider refactoring to reduce nesting complexity
@@ -363,7 +367,7 @@ impl<SO: Solver> Simulator<SO> {
 
     /// Updates capacitor voltages after each time step for proper transient simulation
     /// This is crucial for correct integration of capacitor behavior
-    // CHECK: Check if this can be part of the inductor and capacitor elements
+    // TODO: Check if this can be part of the inductor and capacitor elements
     fn update_capacitor_voltages(&mut self, x_vec: &[Numeric]) {
         // TODO: Consider refactoring to reduce nesting complexity
         for element in &mut self.elements {
