@@ -19,67 +19,60 @@ pub enum Sim {
     Ac(Vec<BodeValue>),
 }
 
+#[derive(Serialize)]
+struct OpWrapper<'a> {
+    r#type: &'static str,
+    variables: &'a [(Variable, Numeric)],
+}
+
+#[derive(Serialize)]
+struct DcWrapper<'a> {
+    r#type: &'static str,
+    steps: &'a [Vec<(Variable, Numeric)>],
+}
+
+#[derive(Serialize)]
+struct TranWrapper<'a> {
+    r#type: &'static str,
+    points: &'a [(Numeric, Vec<(Variable, Numeric)>)],
+}
+
+type AcSerializedResult<'a> = Vec<(Numeric, Vec<(&'a Variable, (Numeric, Numeric))>)>;
+
+#[derive(Serialize)]
+struct AcWrapper<'a> {
+    r#type: &'static str,
+    bode_values: AcSerializedResult<'a>,
+}
+
 impl Serialize for Sim {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
         match self {
-            Sim::Op(vars) => {
-                // Local serializer struct for encapsulation
-                #[derive(Serialize)]
-                struct OpWrapper {
-                    r#type: &'static str,
-                    variables: Vec<(Variable, Numeric)>,
-                }
-                OpWrapper {
-                    r#type: "op",
-                    variables: vars.clone(),
-                }
-                .serialize(serializer)
+            Sim::Op(vars) => OpWrapper {
+                r#type: "op",
+                variables: vars,
             }
-            Sim::Dc(steps) => {
-                // Local serializer struct for encapsulation
-                #[derive(Serialize)]
-                struct DcWrapper {
-                    r#type: &'static str,
-                    steps: Vec<Vec<(Variable, Numeric)>>,
-                }
-                DcWrapper {
-                    r#type: "dc",
-                    steps: steps.clone(),
-                }
-                .serialize(serializer)
+            .serialize(serializer),
+            Sim::Dc(steps) => DcWrapper {
+                r#type: "dc",
+                steps,
             }
-            Sim::Tran(points) => {
-                // Local serializer struct for encapsulation
-                #[derive(Serialize)]
-                struct TranWrapper {
-                    r#type: &'static str,
-                    points: Vec<(Numeric, Vec<(Variable, Numeric)>)>,
-                }
-                TranWrapper {
-                    r#type: "tran",
-                    points: points.clone(),
-                }
-                .serialize(serializer)
+            .serialize(serializer),
+            Sim::Tran(points) => TranWrapper {
+                r#type: "tran",
+                points,
             }
+            .serialize(serializer),
             Sim::Ac(bode_values) => {
-                /// Type alias for AC analysis results: (Frequency, Variables)
-                type AcResult = Vec<(Numeric, Vec<(Variable, (Numeric, Numeric))>)>;
-                // Local serializer struct for encapsulation
-                #[derive(Serialize)]
-                struct AcWrapper {
-                    r#type: &'static str,
-                    bode_values: AcResult,
-                }
-                // TODO: Consider refactoring to improve readability and reduce nesting
-                let converted = bode_values
+                let bode_values = bode_values
                     .iter()
                     .map(|(freq, vars)| {
                         let converted_vars = vars
                             .iter()
-                            .map(|(var, complex)| (var.clone(), (complex.re, complex.im)))
+                            .map(|(var, c)| (var, (c.re, c.im)))
                             .collect();
                         (*freq, converted_vars)
                     })
@@ -87,7 +80,7 @@ impl Serialize for Sim {
 
                 AcWrapper {
                     r#type: "ac",
-                    bode_values: converted,
+                    bode_values,
                 }
                 .serialize(serializer)
             }
@@ -99,4 +92,48 @@ impl Serialize for Sim {
 pub struct SimulationResults {
     pub options: Vec<SimulationOption>,
     pub results: Vec<Sim>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::Unit;
+    use num::Complex;
+    use std::sync::Arc;
+
+    #[test]
+    fn test_serialize_op() {
+        let var = Variable::new(Arc::from("node1"), Unit::Volt, 0);
+        let sim = Sim::Op(vec![(var, 1.23)]);
+        let json = serde_json::to_string(&sim).unwrap();
+        assert!(json.contains(r#""type":"op""#));
+        assert!(json.contains("1.23"));
+    }
+
+    #[test]
+    fn test_serialize_dc() {
+        let var = Variable::new(Arc::from("node1"), Unit::Volt, 0);
+        let sim = Sim::Dc(vec![vec![(var, 0.5)]]);
+        let json = serde_json::to_string(&sim).unwrap();
+        assert!(json.contains(r#""type":"dc""#));
+        assert!(json.contains("0.5"));
+    }
+
+    #[test]
+    fn test_serialize_tran() {
+        let var = Variable::new(Arc::from("node1"), Unit::Volt, 0);
+        let sim = Sim::Tran(vec![(0.001, vec![(var, 2.5)])]);
+        let json = serde_json::to_string(&sim).unwrap();
+        assert!(json.contains(r#""type":"tran""#));
+        assert!(json.contains("2.5"));
+    }
+
+    #[test]
+    fn test_serialize_ac() {
+        let var = Variable::new(Arc::from("node1"), Unit::Volt, 0);
+        let sim = Sim::Ac(vec![(1000.0, vec![(var, Complex::new(1.0, -0.5))])]);
+        let json = serde_json::to_string(&sim).unwrap();
+        assert!(json.contains(r#""type":"ac""#));
+        assert!(json.contains("1000"));
+    }
 }

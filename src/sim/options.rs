@@ -17,40 +17,57 @@ pub enum IntegrationMethod {
     GearBdf { order: usize },
 }
 
+#[derive(Serialize)]
+struct OutWrapper<'a> {
+    r#type: &'static str,
+    variables: Vec<&'a str>,
+}
+
+#[derive(Serialize)]
+struct IntegrationMethodWrapper<'a> {
+    r#type: &'static str,
+    method: &'a IntegrationMethod,
+}
+
 impl Serialize for SimulationOption {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
         match self {
-            SimulationOption::Out(vars) => {
-                // Local serializer struct for output variables
-                // Note: Defined inside serialize fn for encapsulation
-                #[derive(Serialize)]
-                struct OutWrapper {
-                    r#type: &'static str,
-                    variables: Vec<String>,
-                }
-                OutWrapper {
-                    r#type: "out",
-                    variables: vars.iter().map(|v| v.to_string()).collect(),
-                }
-                .serialize(serializer)
+            SimulationOption::Out(vars) => OutWrapper {
+                r#type: "out",
+                variables: vars.iter().map(|v| v.as_ref()).collect(),
             }
-            SimulationOption::IntegrationMethod(method) => {
-                // Local serializer struct for integration method
-                // Note: Defined inside serialize fn for encapsulation
-                #[derive(Serialize)]
-                struct IntegrationMethodWrapper {
-                    r#type: &'static str,
-                    method: IntegrationMethod,
-                }
-                IntegrationMethodWrapper {
-                    r#type: "integration",
-                    method: method.clone(),
-                }
-                .serialize(serializer)
+            .serialize(serializer),
+            SimulationOption::IntegrationMethod(method) => IntegrationMethodWrapper {
+                r#type: "integration",
+                method,
             }
+            .serialize(serializer),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_serialize_out() {
+        let opt = SimulationOption::Out(vec![Arc::from("v1"), Arc::from("v2")]);
+        let json = serde_json::to_string(&opt).unwrap();
+        assert_eq!(json, r#"{"type":"out","variables":["v1","v2"]}"#);
+    }
+
+    #[test]
+    fn test_serialize_integration_method() {
+        let opt = SimulationOption::IntegrationMethod(IntegrationMethod::BackwardEuler);
+        let json = serde_json::to_string(&opt).unwrap();
+        assert_eq!(json, r#"{"type":"integration","method":"be"}"#);
+
+        let opt_gear = SimulationOption::IntegrationMethod(IntegrationMethod::GearBdf { order: 2 });
+        let json_gear = serde_json::to_string(&opt_gear).unwrap();
+        assert_eq!(json_gear, r#"{"type":"integration","method":{"gear":{"order":2}}}"#);
     }
 }
