@@ -4,7 +4,9 @@ pub mod backends;
 pub mod frontends;
 pub mod models;
 pub mod sim;
+pub mod guesser;
 pub mod solver;
+
 pub mod spot;
 
 use clap::Parser;

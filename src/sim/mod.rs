@@ -32,7 +32,7 @@ use simulation_result::Sim;
 use simulation_result::SimulationResults;
 
 #[derive(Debug, Error, Diagnostic)]
-pub(crate) enum SimulatorError {
+pub enum SimulatorError {
     #[error("{0}")]
     BackendError(SolverError),
 
@@ -55,7 +55,7 @@ impl From<SolverError> for SimulatorError {
     }
 }
 
-pub(super) struct Simulator<SO: Solver> {
+pub struct Simulator<SO: Solver> {
     /// The elements in the circuit.
     elements: Vec<Element>,
     /// The simulation commands to be executed.
@@ -66,6 +66,8 @@ pub(super) struct Simulator<SO: Solver> {
     vars: Vec<Variable>,
     /// The backend used for solving the circuit equations.
     solver: SO,
+    /// Options for the guesser implementation.
+    guesser_options: crate::guesser::GuesserOptions,
 }
 
 impl<SO: Solver> Simulator<SO> {
@@ -170,7 +172,9 @@ impl<SO: Solver> Simulator<SO> {
             return Ok(res);
         }
 
-        let mut x = self.generate_initial_guess();
+        let mut guesser = crate::guesser::new_guesser(self.guesser_options.clone());
+        let mut x = guesser.guess(self)?;
+
 
         for _ in 0..MAXITER {
             self.solver.reset();
@@ -267,7 +271,7 @@ impl<SO: Solver> Simulator<SO> {
             .for_each(|pair| self.solver.insert_cplx_b(&pair));
     }
 
-    fn generate_initial_guess(&self) -> Vec<Numeric> {
+    pub(crate) fn generate_initial_guess(&self) -> Vec<Numeric> {
         let len = self.vars.len();
         let mut acc = vec![0.0; len];
 
@@ -478,6 +482,7 @@ impl<SO: Solver> From<Simulation> for Simulator<SO> {
             options,
             solver: backend,
             vars: variables,
+            guesser_options: crate::guesser::GuesserOptions::default(),
         }
     }
 }
