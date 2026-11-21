@@ -172,7 +172,7 @@ impl<SO: Solver> Simulator<SO> {
             return Ok(res);
         }
 
-        let mut guesser = crate::guesser::new_guesser(self.guesser_options.clone());
+        let guesser = crate::guesser::new_guesser(self.guesser_options.clone());
         let mut x = guesser.guess(self)?;
 
 
@@ -433,10 +433,8 @@ impl<SO: Solver> Simulator<SO> {
         // Update inductor currents
         // TODO: Consider refactoring to reduce nesting complexity
         for element in &mut self.elements {
-            if let Element::Inductor(ind) = element {
-                if let Some(&current) = inductor_currents.get(&ind.name) {
-                    ind.update_previous_current(current);
-                }
+            if let Element::Inductor(ind) = element && let Some(&current) = inductor_currents.get(&ind.name) {
+                ind.update_previous_current(current);
             }
         }
 
@@ -482,7 +480,7 @@ impl<SO: Solver> From<Simulation> for Simulator<SO> {
             options,
             solver: backend,
             vars: variables,
-            guesser_options: crate::guesser::GuesserOptions::default(),
+            guesser_options: crate::guesser::GuesserOptions,
         }
     }
 }

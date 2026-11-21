@@ -9,7 +9,8 @@ use crate::spot::*; // for UT constant
 /// Options for the extended BJT model. At the moment they are identical to `Bjt0Options`
 /// but can be extended with additional parameters (Early voltage, base resistance, ...).
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub(crate) struct Bjt1Options {
+#[allow(dead_code)]
+pub struct Bjt1Options {
     pub is: Numeric,   // Saturation current
     pub n: Numeric,    // Emission coefficient
     pub beta: Numeric, // Forward current gain
@@ -17,7 +18,6 @@ pub(crate) struct Bjt1Options {
     // pub va: Numeric, // Early voltage
     // pub rb: Numeric, // Base resistance
 }
-
 impl Default for Bjt1Options {
     fn default() -> Self {
         Self {
@@ -31,7 +31,7 @@ impl Default for Bjt1Options {
 /// Wrapper around the simple `Bjt0Bundle`.
 /// All methods delegate to the inner bundle, guaranteeing identical behaviour.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub(crate) struct Bjt1Bundle {
+pub struct Bjt1Bundle {
     inner: super::bjt0::Bjt0Bundle,
     // future fields can be added here
 }
@@ -77,8 +77,8 @@ impl Bjt1Bundle {
         // Forward to inner implementation – still returns 16 entries as in Bjt0.
         self.inner.triples(x_vec)
     }
-    pub fn pairs(&self, x_vec: &[Numeric]) -> Pairs<Numeric, 3> {
-        self.inner.pairs(x_vec)
+    pub fn inner(&self) -> &super::bjt0::Bjt0Bundle {
+        &self.inner
     }
 }
 

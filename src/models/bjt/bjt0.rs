@@ -6,7 +6,7 @@ use crate::spot::*;
 
 /// A structure representing a BJT.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub(crate) struct Bjt0Bundle {
+pub struct Bjt0Bundle {
     name: Arc<str>,
     base: Option<Variable>,
     collector: Option<Variable>,
@@ -16,7 +16,7 @@ pub(crate) struct Bjt0Bundle {
 
 /// An enum representing possible Bjt Ebers Moll options.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub(crate) struct Bjt0Options {
+pub struct Bjt0Options {
     pub(crate) is: Numeric,
     pub(crate) n: Numeric,
     pub(crate) beta: Numeric,
@@ -49,6 +49,20 @@ impl Bjt0Bundle {
             emitter,
             value,
         }
+    }
+
+    // Accessors for testing and external use
+    pub fn base(&self) -> Option<&Variable> {
+        self.base.as_ref()
+    }
+    pub fn collector(&self) -> Option<&Variable> {
+        self.collector.as_ref()
+    }
+    pub fn emitter(&self) -> Option<&Variable> {
+        self.emitter.as_ref()
+    }
+    pub fn options(&self) -> &Bjt0Options {
+        &self.value
     }
 
     /// Returns the name of the diode bundle.

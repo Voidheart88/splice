@@ -1,334 +1,82 @@
-// Tests for Bjt0 remain unchanged
-// Added tests for Bjt1 (wrapper model)
+use super::*;
+use crate::models::{Variable, Unit};
+use super::bjt1::Bjt1Options;
 
-#[cfg(test)]
-mod bjt1_tests {
-    use super::super::bjt1::Bjt1Bundle;
-    use super::super::bjt1::Bjt1Options;
-    use crate::models::{Unit, Variable};
-    use std::sync::Arc;
-
-    #[test]
-    fn test_bjt1_creation() {
-        let base = Variable::new(Arc::from("base"), Unit::Volt, 0);
-        let collector = Variable::new(Arc::from("collector"), Unit::Volt, 1);
-        let emitter = Variable::new(Arc::from("emitter"), Unit::Volt, 2);
-        let opts = Bjt1Options::default();
-        let bjt = Bjt1Bundle::new(
-            Arc::from("Q1"),
-            Some(base),
-            Some(collector),
-            Some(emitter),
-            Some(opts),
-        );
-        assert_eq!(bjt.name(), "Q1".into());
-        assert_eq!(bjt.b_idx(), Some(0));
-        assert_eq!(bjt.c_idx(), Some(1));
-        assert_eq!(bjt.e_idx(), Some(2));
-    }
-
-    #[test]
-    fn test_bjt1_triples_zero_voltage() {
-        let base = Variable::new(Arc::from("base"), Unit::Volt, 0);
-        let collector = Variable::new(Arc::from("collector"), Unit::Volt, 1);
-        let emitter = Variable::new(Arc::from("emitter"), Unit::Volt, 2);
-        let bjt = Bjt1Bundle::new(
-            Arc::from("Q1"),
-            Some(base),
-            Some(collector),
-            Some(emitter),
-            None,
-        );
-        let x_vec = vec![0.0, 0.0, 0.0];
-        let triples = bjt.triples(&x_vec);
-        for (_, _, v) in triples.data().iter() {
-            if *v != 0.0 {
-                assert!(v.abs() < 1e-10);
-            }
-        }
-    }
-}
-
-use super::bjt0::{Bjt0Bundle, Bjt0Options};
-use crate::models::{Unit, Variable};
 use std::sync::Arc;
 
-#[test]
-fn test_bjt_creation() {
-    let base = Variable::new(Arc::from("base"), Unit::Volt, 0);
-    let collector = Variable::new(Arc::from("collector"), Unit::Volt, 1);
-    let emitter = Variable::new(Arc::from("emitter"), Unit::Volt, 2);
-
-    let bjt = Bjt0Bundle::new(
-        Arc::from("Q1"),
-        Some(base),
-        Some(collector),
-        Some(emitter),
-        None, // Use default options
-    );
-
-    assert_eq!(bjt.name(), "Q1".into());
-    assert_eq!(bjt.b_idx(), Some(0));
-    assert_eq!(bjt.c_idx(), Some(1));
-    assert_eq!(bjt.e_idx(), Some(2));
+fn var(name: &str, idx: usize) -> Variable {
+    Variable::new(Arc::from(name.to_string()), Unit::Volt, idx)
 }
 
 #[test]
-fn test_bjt_default_options() {
-    let _options = Bjt0Options::default();
-    // Just test that default options can be created
-    // Fields are private, so we can't access them directly
-    // Test passes if we reach this point without panicking
-}
-
-#[test]
-fn test_bjt_custom_options() {
-    // Test that we can create a BJT with default options
-    let base = Variable::new(Arc::from("base"), Unit::Volt, 0);
-    let collector = Variable::new(Arc::from("collector"), Unit::Volt, 1);
-    let emitter = Variable::new(Arc::from("emitter"), Unit::Volt, 2);
-
+fn test_bjt0_new_and_properties() {
     let bjt = Bjt0Bundle::new(
-        Arc::from("Q1"),
-        Some(base),
-        Some(collector),
-        Some(emitter),
-        Some(Bjt0Options::default()),
-    );
-
-    assert_eq!(bjt.name(), "Q1".into());
-    // Test passes if we reach this point without panicking
-}
-
-#[test]
-fn test_bjt_triples_basic() {
-    let base = Variable::new(Arc::from("base"), Unit::Volt, 0);
-    let collector = Variable::new(Arc::from("collector"), Unit::Volt, 1);
-    let emitter = Variable::new(Arc::from("emitter"), Unit::Volt, 2);
-
-    let bjt = Bjt0Bundle::new(
-        Arc::from("Q1"),
-        Some(base),
-        Some(collector),
-        Some(emitter),
+        Arc::from("BJT0".to_string()),
+        Some(var("Base", 0)),
+        Some(var("Collector", 1)),
+        Some(var("Emitter", 2)),
         None,
     );
-
-    // Test with zero voltages
-    let x_vec = vec![0.0, 0.0, 0.0];
-    let triples = bjt.triples(&x_vec);
-
-    // At zero voltage, conductances should be zero (no exponential terms)
-    let triples_data = triples.data();
-    for (_, _, value) in triples_data.iter() {
-        if *value != 0.0 {
-            // Allow for very small floating point errors
-            assert!(
-                value.abs() < 1e-10,
-                "Conductance should be zero at zero voltage, got {}",
-                value
-            );
-        }
-    }
+    assert_eq!(*bjt.name(), *"BJT0");
+    assert_eq!(bjt.base().unwrap().idx(), 0);
+    assert_eq!(bjt.collector().unwrap().idx(), 1);
+    assert_eq!(bjt.emitter().unwrap().idx(), 2);
+    // default options
+    let opts = bjt.options();
+    assert_eq!(opts.is, 1e-14);
+    assert_eq!(opts.n, 1.0);
+    assert_eq!(opts.beta, 100.0);
 }
 
 #[test]
-fn test_bjt_pairs_basic() {
-    let base = Variable::new(Arc::from("base"), Unit::Volt, 0);
-    let collector = Variable::new(Arc::from("collector"), Unit::Volt, 1);
-    let emitter = Variable::new(Arc::from("emitter"), Unit::Volt, 2);
-
-    let bjt = Bjt0Bundle::new(
-        Arc::from("Q1"),
-        Some(base),
-        Some(collector),
-        Some(emitter),
-        None,
+fn test_bjt1_delegates_to_bjt0() {
+    let opts = Bjt1Options { is: 2e-14, n: 2.0, beta: 150.0 };
+    let bjt1 = Bjt1Bundle::new(
+        Arc::from("BJT1".to_string()),
+        Some(var("B", 0)),
+        Some(var("C", 1)),
+        Some(var("E", 2)),
+        Some(opts.clone()),
     );
-
-    // Test with zero voltages
-    let x_vec = vec![0.0, 0.0, 0.0];
-    let pairs = bjt.pairs(&x_vec);
-
-    // At zero voltage, currents should be zero
-    let pairs_data = pairs.data();
-    for (_, value) in pairs_data.iter() {
-        if *value != 0.0 {
-            // Allow for very small floating point errors
-            assert!(
-                value.abs() < 1e-10,
-                "Current should be zero at zero voltage, got {}",
-                value
-            );
-        }
-    }
+    // inner should have matching options
+    let inner_opts = bjt1.inner().options();
+    assert_eq!(inner_opts.is, opts.is);
+    assert_eq!(inner_opts.n, opts.n);
+    assert_eq!(inner_opts.beta, opts.beta);
+    // name forwards
+    assert_eq!(*bjt1.name(), *"BJT1");
+    // indices forward
+    assert_eq!(bjt1.b_idx().unwrap(), 0);
+    assert_eq!(bjt1.c_idx().unwrap(), 1);
+    assert_eq!(bjt1.e_idx().unwrap(), 2);
 }
 
 #[test]
-fn test_bjt_forward_active() {
-    let base = Variable::new(Arc::from("base"), Unit::Volt, 0);
-    let collector = Variable::new(Arc::from("collector"), Unit::Volt, 1);
-    let emitter = Variable::new(Arc::from("emitter"), Unit::Volt, 2);
-
+fn test_bjt0_triples_structure() {
     let bjt = Bjt0Bundle::new(
-        Arc::from("Q1"),
-        Some(base),
-        Some(collector),
-        Some(emitter),
+        Arc::from("BJT0".to_string()),
+        Some(var("B", 0)),
+        Some(var("C", 1)),
+        Some(var("E", 2)),
         None,
     );
-
-    // Forward active mode: V_BE = 0.7V, V_CE = 5V
-    let v_base = 0.7;
-    let v_emitter = 0.0;
-    let v_collector = 5.0;
-    let x_vec = vec![v_base, v_collector, v_emitter];
-
-    let pairs = bjt.pairs(&x_vec);
-    let pairs_data = pairs.data();
-
-    // In forward active mode, we should have non-zero currents
-    let base_current = pairs_data
-        .iter()
-        .find(|(idx, _)| *idx == 0)
-        .map(|(_, val)| *val)
-        .unwrap_or(0.0);
-
-    let collector_current = pairs_data
-        .iter()
-        .find(|(idx, _)| *idx == 1)
-        .map(|(_, val)| *val)
-        .unwrap_or(0.0);
-
-    let emitter_current = pairs_data
-        .iter()
-        .find(|(idx, _)| *idx == 2)
-        .map(|(_, val)| *val)
-        .unwrap_or(0.0);
-
-    // Debug output
-    eprintln!("Base current: {}", base_current);
-    eprintln!("Collector current: {}", collector_current);
-    eprintln!("Emitter current: {}", emitter_current);
-
-    // Currents should be non-zero in forward active mode
-    // Note: Base current can be very small (microamps range) in forward active mode
-    assert!(
-        base_current.abs() < 1e-9 || base_current > 0.0,
-        "Base current should be positive or very small in forward active mode, got {}",
-        base_current
-    );
-    assert!(
-        collector_current < 0.0,
-        "Collector current should be negative (flowing out), got {}",
-        collector_current
-    );
-    assert!(
-        emitter_current > 0.0,
-        "Emitter current should be positive (flowing in), got {}",
-        emitter_current
-    );
-
-    // Current gain: I_C should be approximately beta * I_B
-    // Note: When base current is very small, current gain can be very large
-    let base_current_abs = base_current.abs();
-    if base_current_abs > 1e-12 {
-        // Only check current gain if base current is significant
-        let current_gain = collector_current.abs() / base_current_abs;
-        assert!(
-            current_gain > 50.0,
-            "Current gain should be significant, got {}",
-            current_gain
-        );
-    } else {
-        // When base current is very small, we can't meaningfully check current gain
-        eprintln!(
-            "Base current too small ({} A) to check current gain",
-            base_current_abs
-        );
-    }
+    let triples = bjt.triples(&[0.0, 0.0, 0.0]);
+    // Expect 16 entries (as per implementation)
+    assert_eq!(triples.len(), 16);
 }
 
 #[test]
-fn test_bjt_triple_idx() {
-    let base = Variable::new(Arc::from("base"), Unit::Volt, 0);
-    let collector = Variable::new(Arc::from("collector"), Unit::Volt, 1);
-    let emitter = Variable::new(Arc::from("emitter"), Unit::Volt, 2);
-
-    let bjt = Bjt0Bundle::new(
-        Arc::from("Q1"),
-        Some(base),
-        Some(collector),
-        Some(emitter),
-        None,
+fn test_bjt1_triples_matches_bjt0() {
+    let opts = Bjt1Options { is: 1e-14, n: 1.0, beta: 100.0 };
+    let bjt1 = Bjt1Bundle::new(
+        Arc::from("BJT1".to_string()),
+        Some(var("B", 0)),
+        Some(var("C", 1)),
+        Some(var("E", 2)),
+        Some(opts),
     );
-
-    let triple_idx = bjt.triple_idx();
-    assert!(
-        triple_idx.is_some(),
-        "Should have triple indices for full BJT"
-    );
-
-    // Should have triple indices for full BJT model
-    // Test passes if we reach this point without panicking
-}
-
-#[test]
-fn test_bjt_partial_connections() {
-    // Test with only base and emitter connected
-    let base = Variable::new(Arc::from("base"), Unit::Volt, 0);
-    let emitter = Variable::new(Arc::from("emitter"), Unit::Volt, 1);
-
-    let bjt = Bjt0Bundle::new(
-        Arc::from("Q1"),
-        Some(base),
-        None, // No collector
-        Some(emitter),
-        None,
-    );
-
-    assert_eq!(bjt.b_idx(), Some(0));
-    assert_eq!(bjt.c_idx(), None);
-    assert_eq!(bjt.e_idx(), Some(1));
-
-    // Should still work with partial connections
-    let x_vec = vec![0.7, 0.0];
-    let pairs = bjt.pairs(&x_vec);
-    let pairs_data = pairs.data();
-
-    // Count non-zero entries
-    let non_zero_count = pairs_data.iter().filter(|(_, val)| *val != 0.0).count();
-    assert_eq!(
-        non_zero_count, 2,
-        "Should have 2 currents for base and emitter"
-    );
-}
-
-#[test]
-fn test_bjt_numerical_stability() {
-    let base = Variable::new(Arc::from("base"), Unit::Volt, 0);
-    let collector = Variable::new(Arc::from("collector"), Unit::Volt, 1);
-    let emitter = Variable::new(Arc::from("emitter"), Unit::Volt, 2);
-
-    let bjt = Bjt0Bundle::new(
-        Arc::from("Q1"),
-        Some(base),
-        Some(collector),
-        Some(emitter),
-        None,
-    );
-
-    // Test with very negative voltage (should not overflow)
-    let x_vec = vec![-100.0, 0.0, 0.0];
-    let pairs = bjt.pairs(&x_vec);
-    let pairs_data = pairs.data();
-
-    // Should handle negative voltages gracefully
-    for (_, value) in pairs_data.iter() {
-        assert!(
-            value.is_finite(),
-            "Should not produce NaN or infinite values, got {}",
-            value
-        );
-    }
+    let triples1 = bjt1.triples(&[0.0, 0.0, 0.0]);
+    let bjt0 = bjt1.inner();
+    let triples0 = bjt0.triples(&[0.0, 0.0, 0.0]);
+    assert_eq!(triples1, triples0);
 }

@@ -37,8 +37,13 @@ pub use self::pairs::Pairs;
 pub use self::resistor::ResistorBundle;
 pub use self::triples::{TripleIdx, Triples};
 pub use self::vsource::VSourceBundle;
-pub use self::vsource_sine::VSourceSinBundle;
 pub use self::vsource_step::VSourceStepBundle;
+pub use self::vsource_sine::VSourceSinBundle;
+
+
+
+pub use self::bjt::Bjt0Bundle;
+pub use self::bjt::Bjt1Bundle;
 
 /// An Enum representing the Unit of the Value - Necessary for parsing and display.
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd, Serialize)]

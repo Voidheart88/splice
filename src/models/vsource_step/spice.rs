@@ -5,7 +5,8 @@ use std::sync::Arc;
 use crate::frontends::get_variable;
 use crate::frontends::spice::ProcessSpiceElement;
 use crate::frontends::FrontendError;
-use crate::models::{Element, Unit, VSourceStepBundle, Variable};
+use crate::models::{Element, Unit, Variable};
+use crate::models::vsource_step::VSourceStepBundle;
 
 impl ProcessSpiceElement for VSourceStepBundle {
     fn process(

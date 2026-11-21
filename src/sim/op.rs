@@ -24,7 +24,7 @@ impl<SO: Solver> OpSimulation<SO> for Simulator<SO> {
         }
 
         // Build the initial guess
-        let mut guesser = crate::guesser::new_guesser(self.guesser_options.clone());
+        let guesser = crate::guesser::new_guesser(self.guesser_options.clone());
         let mut x = guesser.guess(self)?;
 
 

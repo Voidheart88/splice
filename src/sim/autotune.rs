@@ -80,17 +80,15 @@ pub fn analyze_circuit_and_suggest_settings(
         integration_method.clone(),
     ));
 
-    // Suggest optimal timestep for transient simulations
-    if has_transient {
-        if let Some(suggested_timestep) = suggest_optimal_timestep(&circuit_analysis) {
-            info!(
-                "  -> Suggested max timestep: {:.2e} s for transient analysis",
-                suggested_timestep
-            );
-            // Note: Time step suggestions for transient analysis
-            // Current limitation: Time step is part of Tran command structure
-            // TODO: Integrate time step autotuning directly into Tran command processing
-        }
+    // Suggest optimal timestep for transient simulations (collapsed if)
+    if let Some(suggested_timestep) = suggest_optimal_timestep(&circuit_analysis) && has_transient {
+        info!(
+            "  -> Suggested max timestep: {:.2e} s for transient analysis",
+            suggested_timestep
+        );
+        // Note: Time step suggestions for transient analysis
+        // Current limitation: Time step is part of Tran command structure
+        // TODO: Integrate time step autotuning directly into Tran command processing
     }
 
     // Suggest AC analysis parameters if applicable

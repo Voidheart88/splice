@@ -2,7 +2,8 @@ use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
-use crate::models::{Element, Unit, VSourceStepBundle, Variable};
+use crate::models::{Element, Unit, Variable};
+use crate::models::vsource_step::VSourceStepBundle;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
