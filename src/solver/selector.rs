@@ -37,20 +37,11 @@ impl SolverSelector {
     /// Select the appropriate solver based on circuit size
     pub fn select_solver(&self, vars: usize) -> Result<Box<dyn Solver>, SolverError> {
         match self.strategy {
-            SolverSelectionStrategy::Automatic => {
-                // Automatic selection based on performance characteristics
-                self.select_best_solver(vars)
+            SolverSelectionStrategy::Automatic => self.select_best_solver(vars),
+            SolverSelectionStrategy::Hybrid if vars <= self.circuit_size_threshold => {
+                Ok(Box::new(NalgebraSolver::new(vars)?))
             }
-            SolverSelectionStrategy::Hybrid => {
-                // Hybrid approach: sparse for large, dense for small
-                if vars <= self.circuit_size_threshold {
-                    // For small circuits, use Nalgebra (fastest for small systems)
-                    Ok(Box::new(NalgebraSolver::new(vars)?))
-                } else {
-                    // For large circuits, use FaerSparse (best scaling)
-                    Ok(Box::new(FaerSparseSolver::new(vars)?))
-                }
-            }
+            SolverSelectionStrategy::Hybrid => Ok(Box::new(FaerSparseSolver::new(vars)?)),
         }
     }
 
@@ -58,18 +49,10 @@ impl SolverSelector {
     fn select_best_solver(&self, vars: usize) -> Result<Box<dyn Solver>, SolverError> {
         // Based on our performance testing:
         // - Small circuits (<10 vars): Nalgebra is fastest
-        // - Medium circuits (10-100 vars): FaerSparse is best
-        // - Large circuits (>100 vars): FaerSparse dominates
-
-        // TODO: Consider moving these threshold constants to spot.rs for centralization
+        // - Medium to large circuits (>=10 vars): FaerSparse dominates
         if vars < 10 {
-            // Very small circuits: Nalgebra is fastest
             Ok(Box::new(NalgebraSolver::new(vars)?))
-        } else if vars < 100 {
-            // Small to medium circuits: FaerSparse is best
-            Ok(Box::new(FaerSparseSolver::new(vars)?))
         } else {
-            // Large circuits: FaerSparse is significantly better
             Ok(Box::new(FaerSparseSolver::new(vars)?))
         }
     }
@@ -77,23 +60,17 @@ impl SolverSelector {
     /// Get a recommendation for solver selection
     pub fn recommend_solver(&self, vars: usize) -> &'static str {
         match self.strategy {
-            SolverSelectionStrategy::Automatic => {
-                // TODO: Consider moving these threshold constants to spot.rs for centralization
-                if vars < 10 {
-                    "NalgebraSolver (best for very small circuits)"
-                } else if vars < 100 {
-                    "FaerSparseSolver (best for small-medium circuits)"
-                } else {
-                    "FaerSparseSolver (best for large circuits)"
-                }
+            SolverSelectionStrategy::Automatic if vars < 10 => {
+                "NalgebraSolver (best for very small circuits)"
             }
-            SolverSelectionStrategy::Hybrid => {
-                if vars <= self.circuit_size_threshold {
-                    "NalgebraSolver (hybrid strategy: dense for small)"
-                } else {
-                    "FaerSparseSolver (hybrid strategy: sparse for large)"
-                }
+            SolverSelectionStrategy::Automatic if vars < 100 => {
+                "FaerSparseSolver (best for small-medium circuits)"
             }
+            SolverSelectionStrategy::Automatic => "FaerSparseSolver (best for large circuits)",
+            SolverSelectionStrategy::Hybrid if vars <= self.circuit_size_threshold => {
+                "NalgebraSolver (hybrid strategy: dense for small)"
+            }
+            SolverSelectionStrategy::Hybrid => "FaerSparseSolver (hybrid strategy: sparse for large)",
         }
     }
 }

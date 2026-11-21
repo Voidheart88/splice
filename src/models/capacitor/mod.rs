@@ -122,27 +122,15 @@ impl CapacitorBundle {
 
         // Handle different connection cases
         match (node0_idx, node1_idx) {
-            (None, Some(node1_idx)) => {
-                // Capacitor connected to ground through node1
-                Triples::new(&[(node1_idx, node1_idx, complex_admittance)])
-            }
-            (Some(node0_idx), None) => {
-                // Capacitor connected to ground through node0
-                Triples::new(&[(node0_idx, node0_idx, complex_admittance)])
-            }
-            (Some(node0_idx), Some(node1_idx)) => {
-                // Capacitor connected between two nodes
-                Triples::new(&[
-                    (node0_idx, node0_idx, complex_admittance),
-                    (node1_idx, node1_idx, complex_admittance),
-                    (node0_idx, node1_idx, -complex_admittance),
-                    (node1_idx, node0_idx, -complex_admittance),
-                ])
-            }
-            (None, None) => {
-                // This should not happen as capacitors must have at least one connection
-                Triples::new(&[])
-            }
+            (None, Some(node1_idx)) => Triples::new(&[(node1_idx, node1_idx, complex_admittance)]),
+            (Some(node0_idx), None) => Triples::new(&[(node0_idx, node0_idx, complex_admittance)]),
+            (Some(node0_idx), Some(node1_idx)) => Triples::new(&[
+                (node0_idx, node0_idx, complex_admittance),
+                (node1_idx, node1_idx, complex_admittance),
+                (node0_idx, node1_idx, -complex_admittance),
+                (node1_idx, node0_idx, -complex_admittance),
+            ]),
+            (None, None) => Triples::new(&[]),
         }
     }
 
@@ -160,34 +148,22 @@ impl CapacitorBundle {
         }
     }
 
+    fn compute_pairs(&self, g: Numeric) -> Pairs<Numeric, 2> {
+        let v_prev = self.previous_voltage;
+        match (self.node0_idx(), self.node1_idx()) {
+            (Some(idx0), Some(idx1)) => Pairs::new(&[(idx0, -g * v_prev), (idx1, g * v_prev)]),
+            (Some(idx0), None) => Pairs::new(&[(idx0, g * v_prev)]),
+            (None, Some(idx1)) => Pairs::new(&[(idx1, -g * v_prev)]),
+            (None, None) => panic!("Capacitor must have at least one node connected"),
+        }
+    }
+
     /// Returns the pairs representing the right-hand side (RHS) for transient simulation
     /// This implements the backward Euler integration: i = C * (v_current - v_prev) / Δt
     /// Which rearranges to: (C/Δt)*v_current - (C/Δt)*v_prev = i
     /// In MNA, this becomes part of the RHS vector as: b = (C/Δt) * v_prev
     pub fn pairs(&self, delta_t: &Numeric) -> Pairs<Numeric, 2> {
-        let g = self.value / delta_t; // Equivalent conductance
-        let v_prev = self.previous_voltage;
-
-        let node0_idx = if let Some(idx) = self.node0_idx() {
-            idx
-        } else {
-            // If node0 doesn't exist, capacitor is connected to ground through node1
-            let node1_idx = self
-                .node1_idx()
-                .expect("Capacitor must have at least one node connected");
-            return Pairs::new(&[(node1_idx, -g * v_prev)]);
-        };
-        let node1_idx = if let Some(idx) = self.node1_idx() {
-            idx
-        } else {
-            return Pairs::new(&[(node0_idx, g * v_prev)]);
-        };
-
-        // The RHS represents the current contribution from the previous time step
-        // For backward Euler: i = C * (v_current - v_prev) / Δt
-        // Rearranged: C*v_current/Δt - C*v_prev/Δt = i
-        // In MNA, the RHS should be: -C*v_prev/Δt (current flowing INTO the node)
-        Pairs::new(&[(node0_idx, -g * v_prev), (node1_idx, g * v_prev)])
+        self.compute_pairs(self.value / delta_t)
     }
 
     /// Returns the pairs representing the right-hand side (RHS) for transient simulation using trapezoidal integration
@@ -195,29 +171,7 @@ impl CapacitorBundle {
     /// Which rearranges to: (2C/Δt)*v_current - (2C/Δt)*v_prev = i
     /// In MNA, this becomes part of the RHS vector as: b = (2C/Δt) * v_prev
     pub fn pairs_trapezoidal(&self, delta_t: &Numeric) -> Pairs<Numeric, 2> {
-        let g = (self.value * 2.0) / delta_t; // Equivalent conductance for trapezoidal rule
-        let v_prev = self.previous_voltage;
-
-        let node0_idx = if let Some(idx) = self.node0_idx() {
-            idx
-        } else {
-            // If node0 doesn't exist, capacitor is connected to ground through node1
-            let node1_idx = self
-                .node1_idx()
-                .expect("Capacitor must have at least one node connected");
-            return Pairs::new(&[(node1_idx, -g * v_prev)]);
-        };
-        let node1_idx = if let Some(idx) = self.node1_idx() {
-            idx
-        } else {
-            return Pairs::new(&[(node0_idx, g * v_prev)]);
-        };
-
-        // The RHS represents the current contribution from the previous time step
-        // For trapezoidal rule: i = C * (v_current - v_prev) / (Δt/2)
-        // Rearranged: (2C/Δt)*v_current - (2C/Δt)*v_prev = i
-        // In MNA, the RHS should be: -(2C/Δt)*v_prev (current flowing INTO the node)
-        Pairs::new(&[(node0_idx, -g * v_prev), (node1_idx, g * v_prev)])
+        self.compute_pairs((self.value * 2.0) / delta_t)
     }
 }
 

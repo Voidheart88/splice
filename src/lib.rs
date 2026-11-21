@@ -122,10 +122,7 @@ pub fn run() -> Result<()> {
     // Setup coupled inductors by setting their node indices
     let coupling_errors = models::Element::setup_coupled_inductors(&mut sim.elements);
     if !coupling_errors.is_empty() {
-        // FIXME: This should be an iterator
-        for error in &coupling_errors {
-            error!("{}", error);
-        }
+        coupling_errors.iter().for_each(|err| error!("{err}"));
         return Err(SimulatorError::CircuitError(format!(
             "{} circuit coupling error(s) found. Simulation aborted.",
             coupling_errors.len()
