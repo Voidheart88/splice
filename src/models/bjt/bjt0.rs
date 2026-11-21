@@ -17,9 +17,9 @@ pub(crate) struct Bjt0Bundle {
 /// An enum representing possible Bjt Ebers Moll options.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub(crate) struct Bjt0Options {
-    is: Numeric,
-    n: Numeric,
-    beta: Numeric,
+    pub(crate) is: Numeric,
+    pub(crate) n: Numeric,
+    pub(crate) beta: Numeric,
 }
 
 impl Default for Bjt0Options {

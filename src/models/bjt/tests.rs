@@ -1,4 +1,54 @@
-// Basic tests for BJT model
+// Tests for Bjt0 remain unchanged
+// Added tests for Bjt1 (wrapper model)
+
+#[cfg(test)]
+mod bjt1_tests {
+    use super::super::bjt1::Bjt1Bundle;
+    use super::super::bjt1::Bjt1Options;
+    use crate::models::{Unit, Variable};
+    use std::sync::Arc;
+
+    #[test]
+    fn test_bjt1_creation() {
+        let base = Variable::new(Arc::from("base"), Unit::Volt, 0);
+        let collector = Variable::new(Arc::from("collector"), Unit::Volt, 1);
+        let emitter = Variable::new(Arc::from("emitter"), Unit::Volt, 2);
+        let opts = Bjt1Options::default();
+        let bjt = Bjt1Bundle::new(
+            Arc::from("Q1"),
+            Some(base),
+            Some(collector),
+            Some(emitter),
+            Some(opts),
+        );
+        assert_eq!(bjt.name(), "Q1".into());
+        assert_eq!(bjt.b_idx(), Some(0));
+        assert_eq!(bjt.c_idx(), Some(1));
+        assert_eq!(bjt.e_idx(), Some(2));
+    }
+
+    #[test]
+    fn test_bjt1_triples_zero_voltage() {
+        let base = Variable::new(Arc::from("base"), Unit::Volt, 0);
+        let collector = Variable::new(Arc::from("collector"), Unit::Volt, 1);
+        let emitter = Variable::new(Arc::from("emitter"), Unit::Volt, 2);
+        let bjt = Bjt1Bundle::new(
+            Arc::from("Q1"),
+            Some(base),
+            Some(collector),
+            Some(emitter),
+            None,
+        );
+        let x_vec = vec![0.0, 0.0, 0.0];
+        let triples = bjt.triples(&x_vec);
+        for (_, _, v) in triples.data().iter() {
+            if *v != 0.0 {
+                assert!(v.abs() < 1e-10);
+            }
+        }
+    }
+}
+
 use super::bjt0::{Bjt0Bundle, Bjt0Options};
 use crate::models::{Unit, Variable};
 use std::sync::Arc;

@@ -1,5 +1,11 @@
 
-## 0.4.3
+## 0.4.4
+Changelog:
+  - Added extended BJT model (`Bjt1Bundle`) as a wrapper for future Gummel‑Poon implementation.
+  - Updated BJT module exports and made `Bjt0Options` fields accessible for the wrapper.
+  - Added tests for the new BJT model.
+
+
 Cangelog:
   - added sine Source
   - added gain block
