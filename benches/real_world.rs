@@ -6,7 +6,7 @@ use criterion::{BenchmarkId, Criterion};
 use splice::{
     frontends::create_simulation_from_spice,
     run_sim_for_benchmark,
-    solver::{FaerSolver, FaerSparseSolver, NalgebraSolver},
+    solver::{FaerSolver, FaerSparseSolver, NalgebraSolver, RSparseSolver},
 };
 
 /// Generate SPICE code for a resistor ladder circuit
@@ -98,6 +98,13 @@ pub fn bench_resistor_ladder(c: &mut Criterion) {
                     .expect("Simulation failed");
             });
         });
+
+        group.bench_with_input(BenchmarkId::new("RSparse", size), &size, |b, _| {
+            b.iter(|| {
+                run_sim_for_benchmark::<RSparseSolver>(network.clone())
+                    .expect("Simulation failed");
+            });
+        });
     }
 
     group.finish();
@@ -141,6 +148,17 @@ pub fn bench_resistor_network(c: &mut Criterion) {
             |b, _| {
                 b.iter(|| {
                     run_sim_for_benchmark::<NalgebraSolver>(network.clone())
+                        .expect("Simulation failed");
+                });
+            },
+        );
+
+        group.bench_with_input(
+            BenchmarkId::new("RSparse", &size_desc),
+            &size_desc,
+            |b, _| {
+                b.iter(|| {
+                    run_sim_for_benchmark::<RSparseSolver>(network.clone())
                         .expect("Simulation failed");
                 });
             },

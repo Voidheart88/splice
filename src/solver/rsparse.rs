@@ -113,10 +113,10 @@ impl Solver for RSparseSolver {
     /// Solves the system of equations (Ax = B for x) and returns a reference to the solution.
     fn solve(&mut self) -> Result<&Vec<Numeric>, SolverError> {
         self.update_from_hashmap();
+
         if self.symb.is_none() {
             self.symb = Some(rsparse::sqr(&self.sprs, 1, false))
         }
-        // TODO: Consider proper error handling instead of using expect()
         let mut symb = self.symb.take()
             .expect("Symbolic analysis data missing. This indicates the solver was not properly initialized.");
 
@@ -144,11 +144,17 @@ impl Solver for RSparseSolver {
         Ok(&self.cplx_x_vec)
     }
 
-    fn init(&mut self, a_matrix: Vec<(usize, usize)>, cplx_a_matrix: Vec<(usize, usize)>) {
+    fn init(&mut self, mut a_matrix: Vec<(usize, usize)>, mut cplx_a_matrix: Vec<(usize, usize)>) {
+        a_matrix.sort_unstable();
+        a_matrix.dedup();
+
         let mut trpl = Trpl::new();
         a_matrix
             .iter()
             .for_each(|val| trpl.append(val.0, val.1, Numeric::zero()));
+
+        cplx_a_matrix.sort_unstable();
+        cplx_a_matrix.dedup();
 
         let pivot = self.vars;
         let mut cplx_trpl = Trpl::new();
@@ -158,7 +164,6 @@ impl Solver for RSparseSolver {
             cplx_trpl.append(val.0 + pivot, val.1, Numeric::zero());
             cplx_trpl.append(val.0 + pivot, val.1 + pivot, Numeric::zero());
         });
-        trpl.sum_dupl();
 
         let mut sprs = Sprs::new();
         sprs.from_trpl(&trpl);

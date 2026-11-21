@@ -514,3 +514,25 @@ pub fn newton_raphson_test() {
 
     println!("Solution: {x_current:?}");
 }
+
+#[test]
+fn test_rsparse_ladder_performance() {
+    use std::time::Instant;
+    use crate::frontends::create_simulation_from_spice;
+    use crate::run_sim_for_benchmark;
+
+    for size in [10, 100, 1000] {
+        let mut spice_code = String::from("V1 1 0 10\n");
+        for i in 1..=size {
+            spice_code.push_str(&format!("R{i} {} {} 1000\n", i, i + 1));
+        }
+        spice_code.push_str(&format!("R{} {} 0 1000\n", size + 1, size + 1));
+        spice_code.push_str(".op");
+
+        let network = create_simulation_from_spice(&spice_code).unwrap();
+        let t0 = Instant::now();
+        run_sim_for_benchmark::<RSparseSolver>(network).unwrap();
+        assert!(t0.elapsed().as_millis() < 500, "RSparse took too long for size {}: {:?}", size, t0.elapsed());
+    }
+}
+

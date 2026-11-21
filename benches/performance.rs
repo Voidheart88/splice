@@ -76,4 +76,4 @@ criterion_group!(
     bench_payload_scaling_long,
 );
 
-criterion_main!(real_world_benches, network_benches_quick);
+criterion_main!(backend_solve, real_world_benches);
