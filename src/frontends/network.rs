@@ -39,100 +39,103 @@ impl NetworkFrontend {
         Ok(Self { listener, port })
     }
 
+    fn process_element(
+        element: &SerdeElement,
+        variables: &mut Vec<Variable>,
+        elements: &mut Vec<Element>,
+        var_map: &mut HashMap<Arc<str>, usize>,
+    ) {
+        match element {
+            SerdeElement::Resistor(ele) => {
+                ProcessSerdeElement::process(ele, variables, elements, var_map);
+            }
+            SerdeElement::Inductor(ele) => {
+                ProcessSerdeElement::process(ele, variables, elements, var_map);
+            }
+            SerdeElement::Capacitor(ele) => {
+                ProcessSerdeElement::process(ele, variables, elements, var_map);
+            }
+            SerdeElement::VSource(ele) => {
+                ProcessSerdeElement::process(ele, variables, elements, var_map);
+            }
+            SerdeElement::VSourceSin(ele) => {
+                ProcessSerdeElement::process(ele, variables, elements, var_map);
+            }
+            SerdeElement::VSourceStep(ele) => {
+                ProcessSerdeElement::process(ele, variables, elements, var_map);
+            }
+            SerdeElement::ISource(ele) => {
+                ProcessSerdeElement::process(ele, variables, elements, var_map);
+            }
+            SerdeElement::Diode(ele) => {
+                ProcessSerdeElement::process(ele, variables, elements, var_map);
+            }
+            SerdeElement::Mosfet(ele) => {
+                ProcessSerdeElement::process(ele, variables, elements, var_map);
+            }
+            SerdeElement::Gain(ele) => {
+                ProcessSerdeElement::process(ele, variables, elements, var_map);
+            }
+            SerdeElement::VCVS(ele) => {
+                ProcessSerdeElement::process(ele, variables, elements, var_map);
+            }
+            SerdeElement::VCCS(ele) => {
+                ProcessSerdeElement::process(ele, variables, elements, var_map);
+            }
+            SerdeElement::CCCS(ele) => {
+                ProcessSerdeElement::process(ele, variables, elements, var_map);
+            }
+            SerdeElement::CCVS(ele) => {
+                ProcessSerdeElement::process(ele, variables, elements, var_map);
+            }
+            SerdeElement::CoupledInductors(ele) => {
+                ProcessSerdeElement::process(ele, variables, elements, var_map);
+            }
+        }
+    }
+
+    fn convert_simulation_command(simulation: SerdeSimulation) -> SimulationCommand {
+        match simulation {
+            SerdeSimulation::OP => SimulationCommand::Op,
+            SerdeSimulation::DC(dc) => SimulationCommand::Dc(
+                Arc::from(dc.source()),
+                dc.vstart(),
+                dc.vstop(),
+                dc.vstep(),
+                None,
+            ),
+            SerdeSimulation::AC(ac) => SimulationCommand::Ac(
+                ac.fstart(),
+                ac.fstop(),
+                ac.fstep(),
+                ACMode::default(),
+            ),
+            SerdeSimulation::Tran(tran) => {
+                SimulationCommand::Tran(tran.tstep(), tran.tend())
+            }
+        }
+    }
+
     fn convert_circuit(&self, circuit: SerdeCircuit) -> Result<Simulation, FrontendError> {
-        let mut commands: Vec<SimulationCommand> = Vec::new();
-        let mut options: Vec<SimulationOption> = Vec::new();
         let mut elements: Vec<Element> = Vec::new();
         let mut variables: Vec<Variable> = Vec::new();
         let mut var_map: HashMap<Arc<str>, usize> = HashMap::new();
 
-        // Process elements (similar to SerdeFrontend)
-        // Check: „similar“ sounds like there is code duplication. Check if this can be refactored in a helper fn
-        // FIXME: This Should be an iterator
-        for element in circuit.elements {
-            match element {
-                SerdeElement::Resistor(ele) => {
-                    ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-                }
-                SerdeElement::Inductor(ele) => {
-                    ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-                }
-                SerdeElement::Capacitor(ele) => {
-                    ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-                }
-                SerdeElement::VSource(ele) => {
-                    ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-                }
-                SerdeElement::VSourceSin(ele) => {
-                    ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-                }
-                SerdeElement::VSourceStep(ele) => {
-                    ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-                }
-                SerdeElement::ISource(ele) => {
-                    ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-                }
-                SerdeElement::Diode(ele) => {
-                    ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-                }
-                SerdeElement::Mosfet(ele) => {
-                    ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-                }
-                SerdeElement::Gain(ele) => {
-                    ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-                }
-                SerdeElement::VCVS(ele) => {
-                    ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-                }
-                SerdeElement::VCCS(ele) => {
-                    ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-                }
-                SerdeElement::CCCS(ele) => {
-                    ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-                }
-                SerdeElement::CCVS(ele) => {
-                    ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-                }
-                SerdeElement::CoupledInductors(ele) => {
-                    ProcessSerdeElement::process(&ele, &mut variables, &mut elements, &mut var_map);
-                }
-            }
-        }
+        circuit.elements.iter().for_each(|element| {
+            Self::process_element(element, &mut variables, &mut elements, &mut var_map);
+        });
 
-        // Process simulation commands
-        // FIXME: Consider refactoring this simulation processing logic to reduce nesting
-        for simulation in circuit.simulations {
-            match simulation {
-                SerdeSimulation::OP => {
-                    commands.push(SimulationCommand::Op);
-                }
-                SerdeSimulation::DC(dc) => {
-                    commands.push(SimulationCommand::Dc(
-                        Arc::from(dc.source()),
-                        dc.vstart(),
-                        dc.vstop(),
-                        dc.vstep(),
-                        None,
-                    ));
-                }
-                SerdeSimulation::AC(ac) => {
-                    commands.push(SimulationCommand::Ac(
-                        ac.fstart(),
-                        ac.fstop(),
-                        ac.fstep(),
-                        ACMode::default(),
-                    ));
-                }
-                SerdeSimulation::Tran(tran) => {
-                    commands.push(SimulationCommand::Tran(tran.tstep(), tran.tend()));
-                }
-            }
-        }
+        let commands = circuit
+            .simulations
+            .into_iter()
+            .map(Self::convert_simulation_command)
+            .collect();
 
-        // Process options
-        for option in circuit.options {
-            options.push(SimulationOption::Out(vec![Arc::from(option.out)]));
-        }
+        let options = circuit
+            .options
+            .into_iter()
+            .map(|option| SimulationOption::Out(vec![Arc::from(option.out)]))
+            .collect();
 
         Ok(Simulation {
             elements,
@@ -144,5 +147,34 @@ impl NetworkFrontend {
 
     pub fn get_port(&self) -> u16 {
         self.port
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::frontends::serde::SerdeDC;
+
+    #[test]
+    fn test_convert_simulation_command_op() {
+        assert_eq!(
+            NetworkFrontend::convert_simulation_command(SerdeSimulation::OP),
+            SimulationCommand::Op
+        );
+    }
+
+    #[test]
+    fn test_convert_simulation_command_dc() {
+        let dc = SerdeDC::new("V1".to_string(), 0.0, 5.0, 1.0);
+        if let SimulationCommand::Dc(src, start, stop, step, _) =
+            NetworkFrontend::convert_simulation_command(SerdeSimulation::DC(dc))
+        {
+            assert_eq!(src.as_ref(), "V1");
+            assert_eq!(start, 0.0);
+            assert_eq!(stop, 5.0);
+            assert_eq!(step, 1.0);
+        } else {
+            panic!("Expected DC command");
+        }
     }
 }
