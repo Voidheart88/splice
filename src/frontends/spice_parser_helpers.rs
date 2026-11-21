@@ -23,17 +23,18 @@ impl<'a> SpiceElementParser<'a> {
         SpiceElementParser { ele, offset, inner }
     }
 
+    /// Helper to slice the underlying element string from a span
+    fn span_str(&self, span: pest::Span<'a>) -> &'a str {
+        &self.ele[span.start() - self.offset..span.end() - self.offset]
+    }
+
     /// Parse the element name
     pub fn parse_name(&mut self, element_type: &str) -> Result<&'a str, FrontendError> {
-        let name_end = self
+        let pair = self
             .inner
             .next()
-            .ok_or_else(|| {
-                FrontendError::ParseError(format!("Missing name in {}: {}", element_type, self.ele))
-            })?
-            .as_span()
-            .end()
-            - self.offset;
+            .ok_or_else(|| missing_element_error(element_type, self.ele))?;
+        let name_end = pair.as_span().end() - self.offset;
         Ok(&self.ele[0..name_end])
     }
 
@@ -44,18 +45,11 @@ impl<'a> SpiceElementParser<'a> {
         element_name: &str,
         node_name: &str,
     ) -> Result<&'a str, FrontendError> {
-        // FIXME: This nests too deep
-        let node_span = self
+        let pair = self
             .inner
             .next()
-            .ok_or_else(|| {
-                FrontendError::ParseError(format!(
-                    "Missing {} in {} '{}'",
-                    node_name, element_type, element_name
-                ))
-            })?
-            .as_span();
-        Ok(&self.ele[node_span.start() - self.offset..node_span.end() - self.offset])
+            .ok_or_else(|| missing_node_error(element_type, element_name, node_name))?;
+        Ok(self.span_str(pair.as_span()))
     }
 
     /// Parse a numeric value
@@ -65,8 +59,7 @@ impl<'a> SpiceElementParser<'a> {
         element_name: &str,
         value_name: &str,
     ) -> Result<Numeric, FrontendError> {
-        // FIXME: This nests too deep
-        let value_span = self
+        let pair = self
             .inner
             .next()
             .ok_or_else(|| {
@@ -74,39 +67,36 @@ impl<'a> SpiceElementParser<'a> {
                     "Missing {} in {} '{}'",
                     value_name, element_type, element_name
                 ))
-            })?
-            .as_span();
+            })?;
 
-        let value_str = &self.ele[value_span.start() - self.offset..value_span.end() - self.offset];
-        value_str.parse::<Numeric>().map_err(|_| {
-            FrontendError::ParseError(format!(
-                "Invalid {} in {} '{}': must be a number",
-                value_name, element_type, element_name
-            ))
-        })
+        self.span_str(pair.as_span())
+            .parse::<Numeric>()
+            .map_err(|_| invalid_value_error(element_type, element_name, value_name))
     }
 
     /// Parse an optional numeric value
     #[allow(dead_code)]
     pub fn parse_optional_value(&mut self) -> Option<Result<Numeric, FrontendError>> {
         self.inner.next().map(|pair| {
-            let value_span = pair.as_span();
-            let value_str =
-                &self.ele[value_span.start() - self.offset..value_span.end() - self.offset];
-            value_str.parse::<Numeric>().map_err(|_| {
-                FrontendError::ParseError("Invalid optional value: must be a number".to_string())
-            })
+            self.span_str(pair.as_span())
+                .parse::<Numeric>()
+                .map_err(|_| {
+                    FrontendError::ParseError("Invalid optional value: must be a number".to_string())
+                })
         })
     }
 
     /// Parse remaining values as strings
     pub fn parse_remaining_values(&mut self) -> Vec<&'a str> {
-        let mut result = Vec::new();
-        for pair in self.inner.by_ref() {
-            let span = pair.as_span();
-            result.push(&self.ele[span.start() - self.offset..span.end() - self.offset]);
-        }
-        result
+        let ele = self.ele;
+        let offset = self.offset;
+        self.inner
+            .by_ref()
+            .map(|pair| {
+                let span = pair.as_span();
+                &ele[span.start() - offset..span.end() - offset]
+            })
+            .collect()
     }
 
     /// Check if there are more values to parse
@@ -117,13 +107,11 @@ impl<'a> SpiceElementParser<'a> {
 }
 
 /// Helper function to create a standard error message for missing elements
-#[allow(dead_code)]
 pub fn missing_element_error(element_type: &str, ele: &str) -> FrontendError {
     FrontendError::ParseError(format!("Missing name in {}: {}", element_type, ele))
 }
 
 /// Helper function to create a standard error message for missing nodes
-#[allow(dead_code)]
 pub fn missing_node_error(
     element_type: &str,
     element_name: &str,
@@ -136,7 +124,6 @@ pub fn missing_node_error(
 }
 
 /// Helper function to create a standard error message for invalid values
-#[allow(dead_code)]
 pub fn invalid_value_error(
     element_type: &str,
     element_name: &str,
