@@ -2,21 +2,21 @@
 //! Currently forwards all calculations to the simple `Bjt0Bundle` implementation,
 //! providing a compatible API while allowing later extensions.
 
-use std::sync::Arc;
 use super::super::*; // bring common types (`Variable`, `Numeric`, `Triples`, `Pairs`, etc.)
-use crate::spot::*; // for UT constant
+use crate::spot::*;
+use std::sync::Arc; // for UT constant
 
 /// Options for the extended BJT model. At the moment they are identical to `Bjt0Options`
 /// but can be extended with additional parameters (Early voltage, base resistance, ...).
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 #[allow(dead_code)]
 pub struct Bjt1Options {
-    pub is: Numeric,   // Saturation current
-    pub n: Numeric,    // Emission coefficient
+    pub is: Numeric, // Saturation current
+    pub n: Numeric,  // Emission coefficient
     pub beta: Numeric, // Forward current gain
-    // Placeholder for future parameters
-    // pub va: Numeric, // Early voltage
-    // pub rb: Numeric, // Base resistance
+                     // Placeholder for future parameters
+                     // pub va: Numeric, // Early voltage
+                     // pub rb: Numeric, // Base resistance
 }
 impl Default for Bjt1Options {
     fn default() -> Self {
@@ -83,4 +83,3 @@ impl Bjt1Bundle {
 }
 
 // Export the struct for the public module.
-

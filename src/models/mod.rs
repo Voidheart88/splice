@@ -26,8 +26,8 @@ use serde::Serialize;
 
 pub use self::capacitor::CapacitorBundle;
 pub use self::controlled_sources::{CCCSBundle, CCVSBundle, VCCSBundle, VCVSBundle};
-pub use self::coupled_inductors::serde::SerdeCoupledInductors;
 pub use self::coupled_inductors::CoupledInductorsBundle;
+pub use self::coupled_inductors::serde::SerdeCoupledInductors;
 pub use self::diode::DiodeBundle;
 pub use self::gain::GainBundle;
 pub use self::inductor::InductorBundle;
@@ -37,10 +37,8 @@ pub use self::pairs::Pairs;
 pub use self::resistor::ResistorBundle;
 pub use self::triples::{TripleIdx, Triples};
 pub use self::vsource::VSourceBundle;
-pub use self::vsource_step::VSourceStepBundle;
 pub use self::vsource_sine::VSourceSinBundle;
-
-
+pub use self::vsource_step::VSourceStepBundle;
 
 pub use self::bjt::Bjt0Bundle;
 pub use self::bjt::Bjt1Bundle;

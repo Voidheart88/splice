@@ -1,11 +1,11 @@
 use log::info;
 use log::trace;
 
-use crate::sim::simulation_result::Sim;
+use crate::Simulator;
 use crate::sim::SimulatorError;
+use crate::sim::simulation_result::Sim;
 use crate::solver::Solver;
 use crate::spot::*;
-use crate::Simulator;
 
 pub(super) trait OpSimulation<SO: Solver> {
     fn run_op(&mut self) -> Result<Sim, SimulatorError>;
@@ -26,7 +26,6 @@ impl<SO: Solver> OpSimulation<SO> for Simulator<SO> {
         // Build the initial guess
         let guesser = crate::guesser::new_guesser(self.guesser_options.clone());
         let mut x = guesser.guess(self)?;
-
 
         // Use an iterator for the iterations
         let result = (0..MAXITER)

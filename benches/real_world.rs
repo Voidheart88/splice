@@ -101,8 +101,7 @@ pub fn bench_resistor_ladder(c: &mut Criterion) {
 
         group.bench_with_input(BenchmarkId::new("RSparse", size), &size, |b, _| {
             b.iter(|| {
-                run_sim_for_benchmark::<RSparseSolver>(network.clone())
-                    .expect("Simulation failed");
+                run_sim_for_benchmark::<RSparseSolver>(network.clone()).expect("Simulation failed");
             });
         });
     }

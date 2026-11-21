@@ -9,8 +9,8 @@ use num::Zero;
 use rand::prelude::*;
 use rand::rng;
 
-use splice::solver::faer_sparse::FaerSparseSolver;
 use splice::solver::Solver;
+use splice::solver::faer_sparse::FaerSparseSolver;
 use splice::spot::*;
 
 pub fn generate_solvable_system(

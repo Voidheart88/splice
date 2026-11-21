@@ -2,9 +2,8 @@
 
 // Guesser module exposing the public API
 
-pub mod traits;
 pub mod default;
+pub mod traits;
 
-pub use traits::{Guesser, GuesserOptions, new_guesser};
 pub use default::StandardGuesser;
-
+pub use traits::{Guesser, GuesserOptions, new_guesser};

@@ -232,11 +232,7 @@ impl RSparseSolver {
         // TODO: Consider refactoring to reduce nesting complexity
         entries.sort_unstable_by(
             |(r1, c1, _), (r2, c2, _)| {
-                if c1 != c2 {
-                    c1.cmp(c2)
-                } else {
-                    r1.cmp(r2)
-                }
+                if c1 != c2 { c1.cmp(c2) } else { r1.cmp(r2) }
             },
         );
 
@@ -297,11 +293,7 @@ impl RSparseSolver {
         // TODO: Consider refactoring to reduce nesting complexity
         entries.sort_unstable_by(
             |(r1, c1, _), (r2, c2, _)| {
-                if c1 != c2 {
-                    c1.cmp(c2)
-                } else {
-                    r1.cmp(r2)
-                }
+                if c1 != c2 { c1.cmp(c2) } else { r1.cmp(r2) }
             },
         );
 

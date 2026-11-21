@@ -1,4 +1,4 @@
-use crate::solver::{tests::generate_solvable_system, FaerSparseSolver, Solver};
+use crate::solver::{FaerSparseSolver, Solver, tests::generate_solvable_system};
 use crate::spot::*;
 
 #[test]
@@ -108,7 +108,11 @@ fn solve_no_solution() {
     if result.is_err() {
         panic!("expected")
     }
-    if result.unwrap().iter().any(|val| val.is_infinite() || val.is_nan()) {
+    if result
+        .unwrap()
+        .iter()
+        .any(|val| val.is_infinite() || val.is_nan())
+    {
         panic!("expected")
     }
 }
@@ -133,7 +137,11 @@ fn solve_infinite_solutions_dependent() {
     if result.is_err() {
         panic!("expected")
     }
-    if result.unwrap().iter().any(|val| val.is_infinite() || val.is_nan()) {
+    if result
+        .unwrap()
+        .iter()
+        .any(|val| val.is_infinite() || val.is_nan())
+    {
         panic!("expected")
     }
 }

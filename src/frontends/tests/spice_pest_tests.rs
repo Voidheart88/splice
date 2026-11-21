@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
 use crate::{
+    Frontend, Simulation,
     frontends::{DiodeBundle, ResistorBundle, VSourceBundle},
     models::{Element, ISourceBundle, Unit, Variable},
     sim::commands::{ACMode, SimulationCommand},
-    Frontend, Simulation,
 };
 
 use super::super::spice::*;

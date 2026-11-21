@@ -5,7 +5,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 use log::trace;
-use pest::{iterators::Pair, Parser};
+use pest::{Parser, iterators::Pair};
 use pest_derive::Parser;
 
 use super::{
@@ -14,9 +14,9 @@ use super::{
     Variable,
 };
 use crate::frontends::{Frontend, FrontendError, Simulation};
+use crate::models::VSourceBundle;
 use crate::models::vsource_sine::VSourceSinBundle;
 use crate::models::vsource_step::VSourceStepBundle;
-use crate::models::VSourceBundle;
 use crate::sim::commands::{ACMode, SimulationCommand};
 use crate::sim::options::SimulationOption;
 use crate::spot::*;

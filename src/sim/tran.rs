@@ -1,12 +1,12 @@
 use log::{debug, info};
 
+use crate::Simulator;
 use crate::models::Element;
+use crate::sim::SimulatorError;
 use crate::sim::options::IntegrationMethod;
 use crate::sim::simulation_result::Sim;
-use crate::sim::SimulatorError;
 use crate::solver::Solver;
 use crate::spot::*;
-use crate::Simulator;
 use num::Zero;
 
 pub(super) trait TranSimulation<SO: Solver> {

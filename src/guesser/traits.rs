@@ -5,14 +5,11 @@
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GuesserOptions;
 
-
-
 impl Default for GuesserOptions {
     fn default() -> Self {
         GuesserOptions
     }
 }
-
 
 /// Trait that all guesser implementations must satisfy.
 /// It produces an initial guess vector for the given simulator.
@@ -25,10 +22,6 @@ pub trait Guesser<SO: crate::solver::Solver> {
 
 /// Factory function returning a concrete Guesser based on the provided options.
 /// Currently always returns a `StandardGuesser`.
-pub fn new_guesser<SO: crate::solver::Solver>(
-    _options: GuesserOptions,
-) -> Box<dyn Guesser<SO>> {
+pub fn new_guesser<SO: crate::solver::Solver>(_options: GuesserOptions) -> Box<dyn Guesser<SO>> {
     Box::new(crate::guesser::StandardGuesser::new())
 }
-
-

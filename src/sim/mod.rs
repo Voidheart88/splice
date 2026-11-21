@@ -12,12 +12,13 @@ use std::collections::HashMap;
 use std::fmt::{self, Debug};
 use std::sync::Arc;
 
-use itertools::{izip, Itertools};
+use itertools::{Itertools, izip};
 use miette::Diagnostic;
 use num::{Complex, One, Zero};
 use options::SimulationOption;
 use thiserror::Error;
 
+use crate::Simulation;
 use crate::models::{Element, Variable};
 use crate::sim::ac::AcSimulation;
 use crate::sim::dc::DcSimulation;
@@ -26,7 +27,6 @@ use crate::sim::options::IntegrationMethod;
 use crate::sim::tran::TranSimulation;
 use crate::solver::{Solver, SolverError};
 use crate::spot::*;
-use crate::Simulation;
 use commands::SimulationCommand;
 use simulation_result::Sim;
 use simulation_result::SimulationResults;
@@ -174,7 +174,6 @@ impl<SO: Solver> Simulator<SO> {
 
         let guesser = crate::guesser::new_guesser(self.guesser_options.clone());
         let mut x = guesser.guess(self)?;
-
 
         for _ in 0..MAXITER {
             self.solver.reset();
@@ -433,7 +432,9 @@ impl<SO: Solver> Simulator<SO> {
         // Update inductor currents
         // TODO: Consider refactoring to reduce nesting complexity
         for element in &mut self.elements {
-            if let Element::Inductor(ind) = element && let Some(&current) = inductor_currents.get(&ind.name) {
+            if let Element::Inductor(ind) = element
+                && let Some(&current) = inductor_currents.get(&ind.name)
+            {
                 ind.update_previous_current(current);
             }
         }

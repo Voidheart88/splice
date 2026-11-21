@@ -6,7 +6,7 @@ use crate::models::Variable;
 use crate::sim::options::SimulationOption;
 use crate::sim::simulation_result::Sim;
 use crate::spot::*;
-use crate::{sim::simulation_result::SimulationResults, BackendError};
+use crate::{BackendError, sim::simulation_result::SimulationResults};
 
 /// A backend for outputting simulation results as CSV.
 pub struct CsvBackend {}

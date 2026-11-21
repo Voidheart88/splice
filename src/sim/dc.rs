@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
+use crate::Simulator;
 use crate::models::Element;
+use crate::sim::SimulatorError;
 use crate::sim::get_vsource_value;
 use crate::sim::is_vsource_with_name;
 use crate::sim::simulation_result::Sim;
-use crate::sim::SimulatorError;
 use crate::solver::Solver;
 use crate::spot::*;
-use crate::Simulator;
 
 pub(super) trait DcSimulation<SO: Solver> {
     fn run_dc(

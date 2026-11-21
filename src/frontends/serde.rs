@@ -5,6 +5,8 @@ use std::sync::Arc;
 
 use super::{Element, Frontend, FrontendError, Simulation};
 
+use crate::models::SerdeCoupledInductors;
+use crate::models::Variable;
 use crate::models::capacitor::serde::SerdeCapacitor;
 use crate::models::controlled_sources::serde::{SerdeCCCS, SerdeCCVS, SerdeVCCS, SerdeVCVS};
 use crate::models::diode::serde::SerdeDiode;
@@ -16,8 +18,6 @@ use crate::models::resistor::serde::SerdeResistor;
 use crate::models::vsource::serde::SerdeVSource;
 use crate::models::vsource_sine::serde::SerdeVSourceSin;
 use crate::models::vsource_step::serde::SerdeVSourceStep;
-use crate::models::SerdeCoupledInductors;
-use crate::models::Variable;
 use crate::sim::commands::ACMode;
 use crate::sim::commands::SimulationCommand;
 use crate::sim::options::SimulationOption;

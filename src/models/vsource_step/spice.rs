@@ -2,11 +2,11 @@
 /// <Name> <Node0> <Node1> step <initial_value> <final_value> <step_time>
 use std::sync::Arc;
 
+use crate::frontends::FrontendError;
 use crate::frontends::get_variable;
 use crate::frontends::spice::ProcessSpiceElement;
-use crate::frontends::FrontendError;
-use crate::models::{Element, Unit, Variable};
 use crate::models::vsource_step::VSourceStepBundle;
+use crate::models::{Element, Unit, Variable};
 
 impl ProcessSpiceElement for VSourceStepBundle {
     fn process(
@@ -50,9 +50,10 @@ impl ProcessSpiceElement for VSourceStepBundle {
 
         // Ensure we have exactly 3 values
         if values.len() < 3 {
-            return Err(FrontendError::ParseError(
-                format!("Insufficient values for step voltage source '{}': expected 3 values (initial_value, final_value, step_time)", name)
-            ));
+            return Err(FrontendError::ParseError(format!(
+                "Insufficient values for step voltage source '{}': expected 3 values (initial_value, final_value, step_time)",
+                name
+            )));
         }
 
         let initial_value = values[0].parse::<f64>().map_err(|_| {

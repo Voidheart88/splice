@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
+use crate::frontends::FrontendError;
 use crate::frontends::get_variable;
 use crate::frontends::spice::ProcessSpiceElement;
 use crate::frontends::spice_parser_helpers::SpiceElementParser;
-use crate::frontends::FrontendError;
 use crate::models::{Element, Unit, VSourceBundle};
 use crate::spot::*;
 

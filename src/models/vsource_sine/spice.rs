@@ -2,9 +2,9 @@
 /// <Name> <Node0> <Node1> sin[e] <dc_offset> <amplitude> <frequency> <phase>
 use std::sync::Arc;
 
+use crate::frontends::FrontendError;
 use crate::frontends::get_variable;
 use crate::frontends::spice::ProcessSpiceElement;
-use crate::frontends::FrontendError;
 use crate::models::{Element, Unit, VSourceSinBundle, Variable};
 
 impl ProcessSpiceElement for VSourceSinBundle {
@@ -49,9 +49,10 @@ impl ProcessSpiceElement for VSourceSinBundle {
 
         // Ensure we have at least 3 values
         if values.len() < 3 {
-            return Err(FrontendError::ParseError(
-                format!("Insufficient values for sine voltage source '{}': expected at least 3 values (offset, amplitude, frequency)", name)
-            ));
+            return Err(FrontendError::ParseError(format!(
+                "Insufficient values for sine voltage source '{}': expected at least 3 values (offset, amplitude, frequency)",
+                name
+            )));
         }
 
         let dc_offset = values[0].parse::<f64>().map_err(|_| {

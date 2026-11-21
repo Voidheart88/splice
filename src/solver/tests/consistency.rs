@@ -217,8 +217,10 @@ fn test_ill_conditioned_consistency_helper() -> Result<(), String> {
     let failed_count = results.len() - successful_count;
 
     if successful_count > 0 && failed_count > 0 {
-        println!("Mixed results: {} solvers succeeded, {} failed - this is acceptable for ill-conditioned matrices",
-                 successful_count, failed_count);
+        println!(
+            "Mixed results: {} solvers succeeded, {} failed - this is acceptable for ill-conditioned matrices",
+            successful_count, failed_count
+        );
     } else if successful_count > 1 {
         // If multiple solvers succeeded, check consistency
         let base_result = &results[0];

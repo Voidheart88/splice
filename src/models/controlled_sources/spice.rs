@@ -3,11 +3,11 @@
 
 use super::{CCCSBundle, CCVSBundle, VCCSBundle, VCVSBundle};
 use crate::frontends::spice::Rule;
+use crate::models::Unit;
 use crate::models::controlled_sources::cccs::CCCSOptions;
 use crate::models::controlled_sources::ccvs::CCVSOptions;
 use crate::models::controlled_sources::vccs::VCCSOptions;
 use crate::models::controlled_sources::vcvrs::VCVSOptions;
-use crate::models::Unit;
 use crate::spot::Numeric;
 use crate::{Element, FrontendError, Variable};
 use pest::iterators::Pair;

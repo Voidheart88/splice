@@ -1,7 +1,7 @@
 use faer::prelude::*;
-use faer::sparse::linalg::LuError;
 use faer::sparse::SparseColMat;
 use faer::sparse::Triplet;
+use faer::sparse::linalg::LuError;
 use num::Zero;
 
 use super::{Solver, SolverError};

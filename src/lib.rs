@@ -2,9 +2,9 @@
 
 pub mod backends;
 pub mod frontends;
+pub mod guesser;
 pub mod models;
 pub mod sim;
-pub mod guesser;
 pub mod solver;
 
 pub mod spot;
@@ -23,19 +23,19 @@ use solver::{FaerSolver, NalgebraSolver, RSparseSolver, Solvers};
 
 // Import types for network handling
 use crate::{
-    frontends::serde::{ProcessSerdeElement, SerdeCircuit, SerdeElement, SerdeSimulation},
+    FrontendError,
     frontends::Simulation,
+    frontends::serde::{ProcessSerdeElement, SerdeCircuit, SerdeElement, SerdeSimulation},
     models::{Element, Variable},
     sim::{
         commands::{ACMode, SimulationCommand},
         options::SimulationOption,
     },
-    FrontendError,
 };
 
 use crate::{
     frontends::serde::SerdeFormat,
-    sim::{simulation_result::SimulationResults, SimulatorError},
+    sim::{SimulatorError, simulation_result::SimulationResults},
     solver::{FaerSparseSolver, Solver},
 };
 

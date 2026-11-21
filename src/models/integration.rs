@@ -38,7 +38,7 @@ pub trait IntegrationMethod {
     /// Calculates the history current source for a capacitor
     /// This represents the contribution from previous time steps
     fn capacitor_history_current(&self, capacitance: Numeric, previous_voltage: Numeric)
-        -> Numeric;
+    -> Numeric;
 
     /// Calculates the history current source for an inductor
     /// This represents the contribution from previous time steps

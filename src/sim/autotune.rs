@@ -81,7 +81,9 @@ pub fn analyze_circuit_and_suggest_settings(
     ));
 
     // Suggest optimal timestep for transient simulations (collapsed if)
-    if let Some(suggested_timestep) = suggest_optimal_timestep(&circuit_analysis) && has_transient {
+    if let Some(suggested_timestep) = suggest_optimal_timestep(&circuit_analysis)
+        && has_transient
+    {
         info!(
             "  -> Suggested max timestep: {:.2e} s for transient analysis",
             suggested_timestep

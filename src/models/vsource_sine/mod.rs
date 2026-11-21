@@ -186,8 +186,7 @@ impl VSourceSinBundle {
     pub fn pairs(&self, time: Option<&Numeric>) -> Pairs<Numeric, 2> {
         let value = if let Some(t) = time {
             // For transient analysis: AC component only (sinusoidal part)
-            self.amplitude
-                * (2.0 * std::f64::consts::PI * self.frequency * t + self.phase).sin()
+            self.amplitude * (2.0 * std::f64::consts::PI * self.frequency * t + self.phase).sin()
         } else {
             // For OP analysis: only DC offset
             self.dc_offset

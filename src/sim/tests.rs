@@ -7,9 +7,9 @@ use crate::models::{
     CapacitorBundle, Element, ResistorBundle, Unit, VSourceBundle, VSourceSinBundle,
     VSourceStepBundle, Variable,
 };
+use crate::sim::Simulator;
 use crate::sim::commands::{ACMode, SimulationCommand};
 use crate::sim::simulation_result::Sim;
-use crate::sim::Simulator;
 use crate::solver::{FaerSolver, NalgebraSolver, RSparseSolver};
 use crate::spot::*;
 
@@ -602,13 +602,16 @@ fn test_rc_sinusoidal_tran() {
         assert!(
             (first_output - last_output).abs() > 0.1,
             "RC transient simulation failure: Output voltage is constant throughout simulation (first: {}V, last: {}V). This indicates a problem with capacitor charging in transient analysis.",
-            first_output, last_output
+            first_output,
+            last_output
         );
 
         assert!(
             output_voltage >= expected_output_min && output_voltage <= expected_output_max,
             "RC transient simulation failure: Output voltage {}V is outside expected range [{:.1}V, {:.1}V] for RC low-pass filter behavior.",
-            output_voltage, expected_output_min, expected_output_max
+            output_voltage,
+            expected_output_min,
+            expected_output_max
         );
     } else {
         panic!("Could not find results near test time {}s", test_time);
@@ -794,7 +797,9 @@ fn test_ac_rc_cutoff_frequency() {
             assert!(
                 error_percent < 2.0,
                 "AC analysis test FAILED: Cutoff frequency error {:.2}% exceeds 2% tolerance. Expected: {:.2} Hz, Measured: {:.2} Hz",
-                error_percent, expected_fc, cutoff_freq
+                error_percent,
+                expected_fc,
+                cutoff_freq
             );
 
             println!("✅ AC analysis test PASSED (within 2% tolerance)");
@@ -976,7 +981,11 @@ fn test_dc_resistor_divider() {
         assert!(
             abs_diff < 1e-6 || rel_diff < 0.01,
             "Voltage divider test failed at V1={}V: V2_measured={}V, V2_expected={}V, diff={}V ({:.2}%)",
-            v1, v2, expected_v2, abs_diff, rel_diff * 100.0
+            v1,
+            v2,
+            expected_v2,
+            abs_diff,
+            rel_diff * 100.0
         );
     }
 }

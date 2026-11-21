@@ -38,7 +38,9 @@ pub enum FrontendError {
     Unimplemented,
 
     #[error("A suitable frontend could not be found")]
-    #[diagnostic(help("No frontend found that can handle the given input.\n Please check if the file format is supported."))]
+    #[diagnostic(help(
+        "No frontend found that can handle the given input.\n Please check if the file format is supported."
+    ))]
     FrontendNotFound,
 
     #[error("Element {0} already in circuit")]

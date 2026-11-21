@@ -1,6 +1,6 @@
-use super::*;
-use crate::models::{Variable, Unit};
 use super::bjt1::Bjt1Options;
+use super::*;
+use crate::models::{Unit, Variable};
 
 use std::sync::Arc;
 
@@ -30,7 +30,11 @@ fn test_bjt0_new_and_properties() {
 
 #[test]
 fn test_bjt1_delegates_to_bjt0() {
-    let opts = Bjt1Options { is: 2e-14, n: 2.0, beta: 150.0 };
+    let opts = Bjt1Options {
+        is: 2e-14,
+        n: 2.0,
+        beta: 150.0,
+    };
     let bjt1 = Bjt1Bundle::new(
         Arc::from("BJT1".to_string()),
         Some(var("B", 0)),
@@ -67,7 +71,11 @@ fn test_bjt0_triples_structure() {
 
 #[test]
 fn test_bjt1_triples_matches_bjt0() {
-    let opts = Bjt1Options { is: 1e-14, n: 1.0, beta: 100.0 };
+    let opts = Bjt1Options {
+        is: 1e-14,
+        n: 1.0,
+        beta: 100.0,
+    };
     let bjt1 = Bjt1Bundle::new(
         Arc::from("BJT1".to_string()),
         Some(var("B", 0)),

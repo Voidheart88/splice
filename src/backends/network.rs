@@ -1,7 +1,7 @@
 use std::net::TcpStream;
 
 use super::Backend;
-use crate::{sim::simulation_result::SimulationResults, BackendError};
+use crate::{BackendError, sim::simulation_result::SimulationResults};
 use rmp_serde::encode::write as msgpack_write;
 
 #[derive(serde::Serialize)]

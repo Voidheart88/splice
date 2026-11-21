@@ -1,9 +1,9 @@
 // StandardGuesser forwards to the existing Simulator::generate_initial_guess.
 
+use crate::guesser::traits::Guesser;
 use crate::sim::{Simulator, SimulatorError};
 use crate::solver::Solver;
 use crate::spot::Numeric;
-use crate::guesser::traits::Guesser;
 
 /// The default guesser implementation.
 pub struct StandardGuesser {
@@ -26,10 +26,7 @@ impl Default for StandardGuesser {
 
 // Implement the `Guesser` trait for any solver.
 impl<SO: Solver> Guesser<SO> for StandardGuesser {
-    fn guess(
-        &self,
-        sim: &mut Simulator<SO>,
-    ) -> Result<Vec<Numeric>, SimulatorError> {
+    fn guess(&self, sim: &mut Simulator<SO>) -> Result<Vec<Numeric>, SimulatorError> {
         // Directly call the (now public) generate_initial_guess method.
         Ok(sim.generate_initial_guess())
     }

@@ -1,6 +1,6 @@
 use super::Backend;
-use crate::sim::simulation_result::SimulationResults;
 use crate::BackendError;
+use crate::sim::simulation_result::SimulationResults;
 
 pub struct RawBackend {}
 
