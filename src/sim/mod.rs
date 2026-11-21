@@ -65,7 +65,7 @@ pub struct Simulator<SO: Solver> {
     /// The variables used in the simulation.
     vars: Vec<Variable>,
     /// The backend used for solving the circuit equations.
-    solver: SO,
+    pub(crate) solver: SO,
     /// Options for the guesser implementation.
     guesser_options: crate::guesser::GuesserOptions,
 }
@@ -199,7 +199,7 @@ impl<SO: Solver> Simulator<SO> {
         })
     }
 
-    fn build_constant_a_mat(&mut self) {
+    pub(crate) fn build_constant_a_mat(&mut self) {
         self.elements
             .iter()
             .filter_map(|ele| ele.get_constant_triples())
@@ -207,7 +207,7 @@ impl<SO: Solver> Simulator<SO> {
             .for_each(|triplet| self.solver.insert_a(&triplet));
     }
 
-    fn build_constant_b_vec(&mut self) {
+    pub(crate) fn build_constant_b_vec(&mut self) {
         self.elements
             .iter()
             .filter_map(|ele| ele.get_constant_pairs())
