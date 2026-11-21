@@ -231,73 +231,21 @@ impl SerdeFrontend {
         circuit_string: String,
         format: SerdeFormat,
     ) -> Result<Self, FrontendError> {
-        let mut commands: Vec<SimulationCommand> = Vec::new();
-        let mut options: Vec<SimulationOption> = Vec::new();
-        let mut elements: Vec<Element> = Vec::new();
-        let mut variables: Vec<Variable> = Vec::new();
-        let mut var_map: HashMap<Arc<str>, usize> = HashMap::new();
-
         let circuit: SerdeCircuit = match format {
             SerdeFormat::Yaml => serde_yml::from_str(&circuit_string)?,
             SerdeFormat::Json => serde_json::from_str(&circuit_string)?,
         };
 
-        // FIXME: see network frontend „similar“
-        // FIXME: This should be an iterator
-        for element in circuit.elements {
-            match element {
-                SerdeElement::Resistor(ele) => {
-                    ele.process(&mut variables, &mut elements, &mut var_map)
-                }
-                SerdeElement::Inductor(ele) => {
-                    ele.process(&mut variables, &mut elements, &mut var_map)
-                }
-                SerdeElement::CoupledInductors(ele) => {
-                    ele.process(&mut variables, &mut elements, &mut var_map)
-                }
-                SerdeElement::Capacitor(ele) => {
-                    ele.process(&mut variables, &mut elements, &mut var_map)
-                }
-                SerdeElement::VSource(ele) => {
-                    ele.process(&mut variables, &mut elements, &mut var_map)
-                }
-                SerdeElement::VSourceSin(ele) => {
-                    ele.process(&mut variables, &mut elements, &mut var_map)
-                }
-                SerdeElement::VSourceStep(ele) => {
-                    ele.process(&mut variables, &mut elements, &mut var_map)
-                }
-                SerdeElement::ISource(ele) => {
-                    ele.process(&mut variables, &mut elements, &mut var_map)
-                }
-                SerdeElement::Diode(ele) => {
-                    ele.process(&mut variables, &mut elements, &mut var_map)
-                }
-                SerdeElement::Mosfet(ele) => {
-                    ele.process(&mut variables, &mut elements, &mut var_map)
-                }
-                SerdeElement::Gain(ele) => ele.process(&mut variables, &mut elements, &mut var_map),
-                SerdeElement::VCVS(ele) => ele.process(&mut variables, &mut elements, &mut var_map),
-                SerdeElement::VCCS(ele) => ele.process(&mut variables, &mut elements, &mut var_map),
-                SerdeElement::CCCS(ele) => ele.process(&mut variables, &mut elements, &mut var_map),
-                SerdeElement::CCVS(ele) => ele.process(&mut variables, &mut elements, &mut var_map),
-            };
-        }
+        let mut elements: Vec<Element> = Vec::new();
+        let mut variables: Vec<Variable> = Vec::new();
+        let mut var_map: HashMap<Arc<str>, usize> = HashMap::new();
 
-        // FIXME: This should be an iterator
-        for simulation in circuit.simulations {
-            match simulation {
-                SerdeSimulation::OP => Self::process_op(&mut commands),
-                SerdeSimulation::DC(serdedc) => Self::process_dc(&mut commands, serdedc),
-                SerdeSimulation::AC(serdeac) => Self::process_ac(&mut commands, serdeac),
-                SerdeSimulation::Tran(serdetran) => Self::process_tran(&mut commands, serdetran),
-            };
-        }
+        circuit.elements.iter().for_each(|element| {
+            element.process(&mut variables, &mut elements, &mut var_map);
+        });
 
-        // FIXME: This should be an iterator
-        for option in circuit.options {
-            Self::process_out(&mut options, option);
-        }
+        let commands = circuit.simulations.into_iter().map(Into::into).collect();
+        let options = circuit.options.into_iter().map(Into::into).collect();
 
         Ok(Self {
             commands,
@@ -306,41 +254,32 @@ impl SerdeFrontend {
             variables,
         })
     }
+}
 
-    /// Processes an operating point analysis simulation.
-    fn process_op(commands: &mut Vec<SimulationCommand>) {
-        commands.push(SimulationCommand::Op)
+impl From<SerdeSimulation> for SimulationCommand {
+    fn from(simulation: SerdeSimulation) -> Self {
+        match simulation {
+            SerdeSimulation::OP => SimulationCommand::Op,
+            SerdeSimulation::DC(serdedc) => SimulationCommand::Dc(
+                Arc::from(serdedc.source),
+                serdedc.vstart,
+                serdedc.vstop,
+                serdedc.vstep,
+                None,
+            ),
+            SerdeSimulation::AC(serdeac) => {
+                SimulationCommand::Ac(serdeac.fstart, serdeac.fstop, serdeac.fstep, ACMode::Dec)
+            }
+            SerdeSimulation::Tran(serdetran) => {
+                SimulationCommand::Tran(serdetran.tstep, serdetran.tend)
+            }
+        }
     }
+}
 
-    /// Processes a DC sweep simulation.
-    fn process_dc(commands: &mut Vec<SimulationCommand>, serdedc: SerdeDC) {
-        commands.push(SimulationCommand::Dc(
-            Arc::from(serdedc.source),
-            serdedc.vstart,
-            serdedc.vstop,
-            serdedc.vstep,
-            None,
-        ));
-    }
-
-    /// Processes an AC analysis simulation.
-    fn process_ac(commands: &mut Vec<SimulationCommand>, serdeac: SerdeAC) {
-        commands.push(SimulationCommand::Ac(
-            serdeac.fstart,
-            serdeac.fstop,
-            serdeac.fstep,
-            ACMode::Dec,
-        ))
-    }
-
-    /// Processes a transient analysis simulation.
-    fn process_tran(commands: &mut Vec<SimulationCommand>, serdetran: SerdeTran) {
-        commands.push(SimulationCommand::Tran(serdetran.tstep, serdetran.tend))
-    }
-
-    /// Processes output options.
-    fn process_out(options: &mut Vec<SimulationOption>, option: SerdeOption) {
-        options.push(SimulationOption::Out(vec![Arc::from(option.out.as_str())]))
+impl From<SerdeOption> for SimulationOption {
+    fn from(option: SerdeOption) -> Self {
+        SimulationOption::Out(vec![Arc::from(option.out.as_str())])
     }
 }
 
@@ -370,6 +309,33 @@ pub(crate) trait ProcessSerdeElement {
         elements: &mut Vec<Element>,
         var_map: &mut HashMap<Arc<str>, usize>,
     );
+}
+
+impl ProcessSerdeElement for SerdeElement {
+    fn process(
+        &self,
+        variables: &mut Vec<Variable>,
+        elements: &mut Vec<Element>,
+        var_map: &mut HashMap<Arc<str>, usize>,
+    ) {
+        match self {
+            SerdeElement::Resistor(ele) => ele.process(variables, elements, var_map),
+            SerdeElement::Inductor(ele) => ele.process(variables, elements, var_map),
+            SerdeElement::CoupledInductors(ele) => ele.process(variables, elements, var_map),
+            SerdeElement::Capacitor(ele) => ele.process(variables, elements, var_map),
+            SerdeElement::VSource(ele) => ele.process(variables, elements, var_map),
+            SerdeElement::VSourceSin(ele) => ele.process(variables, elements, var_map),
+            SerdeElement::VSourceStep(ele) => ele.process(variables, elements, var_map),
+            SerdeElement::ISource(ele) => ele.process(variables, elements, var_map),
+            SerdeElement::Diode(ele) => ele.process(variables, elements, var_map),
+            SerdeElement::Mosfet(ele) => ele.process(variables, elements, var_map),
+            SerdeElement::Gain(ele) => ele.process(variables, elements, var_map),
+            SerdeElement::VCVS(ele) => ele.process(variables, elements, var_map),
+            SerdeElement::VCCS(ele) => ele.process(variables, elements, var_map),
+            SerdeElement::CCCS(ele) => ele.process(variables, elements, var_map),
+            SerdeElement::CCVS(ele) => ele.process(variables, elements, var_map),
+        }
+    }
 }
 
 impl ProcessSerdeElement for SerdeCoupledInductors {
