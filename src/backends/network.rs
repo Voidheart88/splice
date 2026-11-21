@@ -1,7 +1,11 @@
 use std::net::TcpStream;
 
 use super::Backend;
-use crate::{BackendError, sim::simulation_result::SimulationResults};
+use crate::{
+    BackendError,
+    models::Variable,
+    sim::simulation_result::{Sim, SimulationResults},
+};
 use rmp_serde::encode::write as msgpack_write;
 
 #[derive(serde::Serialize)]
@@ -25,6 +29,16 @@ struct NetworkVariable {
     value: f64,
 }
 
+impl NetworkVariable {
+    fn new(var: &Variable, value: f64) -> Self {
+        Self {
+            name: var.name().to_string(),
+            unit: var.unit().to_string(),
+            value,
+        }
+    }
+}
+
 pub(crate) struct NetworkBackend {
     stream: TcpStream,
 }
@@ -43,90 +57,129 @@ impl NetworkBackend {
         Self { stream }
     }
 
-    // FIXME: This nests way to deep
-    fn convert_results(&self, results: SimulationResults) -> Result<NetworkResponse, BackendError> {
-        let mut network_results = Vec::new();
-
-        for sim_result in results.results {
-            match sim_result {
-                // FIXME: an import would make this better readable
-                crate::sim::simulation_result::Sim::Op(vars) => {
-                    let variables = vars
-                        .into_iter()
-                        .map(|(var, val)| NetworkVariable {
-                            name: var.name().to_string(),
-                            unit: var.unit().to_string(),
-                            value: val,
-                        })
-                        .collect();
-
-                    network_results.push(NetworkSimulationResult {
-                        r#type: "op".to_string(),
-                        variables,
-                    });
-                }
-                // FIXME: an import would make this better readable
-                crate::sim::simulation_result::Sim::Dc(dc_results) => {
-                    // DC results are Vec<Vec<(Variable, Numeric)>> where each inner Vec is a sweep step
-                    for (step_idx, variables) in dc_results.iter().enumerate() {
-                        let vars_converted = variables
-                            .iter()
-                            .map(|(var, val)| NetworkVariable {
-                                name: var.name().to_string(),
-                                unit: var.unit().to_string(),
-                                value: *val,
-                            })
-                            .collect();
-
-                        network_results.push(NetworkSimulationResult {
-                            r#type: format!("dc_step_{}", step_idx),
-                            variables: vars_converted,
-                        });
-                    }
-                }
-                // FIXME: an import would make this better readable
-                crate::sim::simulation_result::Sim::Ac(vars) => {
-                    for (freq, variables) in vars {
-                        let vars_converted = variables
-                            .into_iter()
-                            .map(|(var, val)| NetworkVariable {
-                                name: var.name().to_string(),
-                                unit: var.unit().to_string(),
-                                value: val.re, // Real part for AC analysis
-                            })
-                            .collect();
-
-                        network_results.push(NetworkSimulationResult {
-                            r#type: format!("ac_{}", freq),
-                            variables: vars_converted,
-                        });
-                    }
-                }
-                // FIXME: an import would make this better readable
-                crate::sim::simulation_result::Sim::Tran(vars) => {
-                    for (time, variables) in vars {
-                        let vars_converted = variables
-                            .into_iter()
-                            .map(|(var, val)| NetworkVariable {
-                                name: var.name().to_string(),
-                                unit: var.unit().to_string(),
-                                value: val,
-                            })
-                            .collect();
-
-                        network_results.push(NetworkSimulationResult {
-                            r#type: format!("tran_{}", time),
-                            variables: vars_converted,
-                        });
-                    }
-                }
+    fn convert_sim_result(sim_result: Sim) -> Vec<NetworkSimulationResult> {
+        match sim_result {
+            Sim::Op(vars) => {
+                let variables = vars
+                    .into_iter()
+                    .map(|(var, val)| NetworkVariable::new(&var, val))
+                    .collect();
+                vec![NetworkSimulationResult {
+                    r#type: "op".to_string(),
+                    variables,
+                }]
             }
+            Sim::Dc(dc_results) => dc_results
+                .into_iter()
+                .enumerate()
+                .map(|(step_idx, variables)| {
+                    let vars_converted = variables
+                        .into_iter()
+                        .map(|(var, val)| NetworkVariable::new(&var, val))
+                        .collect();
+                    NetworkSimulationResult {
+                        r#type: format!("dc_step_{step_idx}"),
+                        variables: vars_converted,
+                    }
+                })
+                .collect(),
+            Sim::Ac(vars) => vars
+                .into_iter()
+                .map(|(freq, variables)| {
+                    let vars_converted = variables
+                        .into_iter()
+                        .map(|(var, val)| NetworkVariable::new(&var, val.re))
+                        .collect();
+                    NetworkSimulationResult {
+                        r#type: format!("ac_{freq}"),
+                        variables: vars_converted,
+                    }
+                })
+                .collect(),
+            Sim::Tran(vars) => vars
+                .into_iter()
+                .map(|(time, variables)| {
+                    let vars_converted = variables
+                        .into_iter()
+                        .map(|(var, val)| NetworkVariable::new(&var, val))
+                        .collect();
+                    NetworkSimulationResult {
+                        r#type: format!("tran_{time}"),
+                        variables: vars_converted,
+                    }
+                })
+                .collect(),
         }
+    }
+
+    fn convert_results(&self, results: SimulationResults) -> Result<NetworkResponse, BackendError> {
+        let network_results = results
+            .results
+            .into_iter()
+            .flat_map(Self::convert_sim_result)
+            .collect();
 
         Ok(NetworkResponse {
             status: "success".to_string(),
             results: network_results,
             error: None,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::Unit;
+    use num::Complex;
+    use std::sync::Arc;
+
+    #[test]
+    fn test_convert_sim_result_op() {
+        let var = Variable::new(Arc::from("v1"), Unit::Volt, 0);
+        let sim = Sim::Op(vec![(var, 3.3)]);
+        let results = NetworkBackend::convert_sim_result(sim);
+
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].r#type, "op");
+        assert_eq!(results[0].variables.len(), 1);
+        assert_eq!(results[0].variables[0].name, "v1");
+        assert_eq!(results[0].variables[0].unit, "V");
+        assert_eq!(results[0].variables[0].value, 3.3);
+    }
+
+    #[test]
+    fn test_convert_sim_result_dc() {
+        let var = Variable::new(Arc::from("i1"), Unit::Ampere, 0);
+        let sim = Sim::Dc(vec![vec![(var.clone(), 0.1)], vec![(var, 0.2)]]);
+        let results = NetworkBackend::convert_sim_result(sim);
+
+        assert_eq!(results.len(), 2);
+        assert_eq!(results[0].r#type, "dc_step_0");
+        assert_eq!(results[0].variables[0].value, 0.1);
+        assert_eq!(results[1].r#type, "dc_step_1");
+        assert_eq!(results[1].variables[0].value, 0.2);
+    }
+
+    #[test]
+    fn test_convert_sim_result_ac() {
+        let var = Variable::new(Arc::from("out"), Unit::Volt, 0);
+        let sim = Sim::Ac(vec![(1000.0, vec![(var, Complex::new(2.5, 1.0))])]);
+        let results = NetworkBackend::convert_sim_result(sim);
+
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].r#type, "ac_1000");
+        assert_eq!(results[0].variables[0].value, 2.5);
+    }
+
+    #[test]
+    fn test_convert_sim_result_tran() {
+        let var = Variable::new(Arc::from("node1"), Unit::Volt, 0);
+        let sim = Sim::Tran(vec![(0.01, vec![(var, 4.2)])]);
+        let results = NetworkBackend::convert_sim_result(sim);
+
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].r#type, "tran_0.01");
+        assert_eq!(results[0].variables[0].value, 4.2);
     }
 }
