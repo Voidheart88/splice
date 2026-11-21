@@ -30,6 +30,18 @@ pub struct SpiceFrontend {
     pth: String,
 }
 
+fn validate_unique_elements(elements: &[Element]) -> Result<(), FrontendError> {
+    let mut names = HashSet::new();
+    elements.iter().try_for_each(|ele| {
+        let ele_name = ele.name();
+        if names.insert(ele_name.clone()) {
+            Ok(())
+        } else {
+            Err(FrontendError::ElementDouble(ele_name.to_string()))
+        }
+    })
+}
+
 impl SpiceFrontend {
     /// Create a Simulation directly from SPICE code string for benchmarking
     /// This avoids the overhead of creating temporary files
@@ -43,11 +55,12 @@ impl SpiceFrontend {
         let parse_result = SpiceParser::parse(Rule::SPICE, spice_code)?
             .next()
             .ok_or(FrontendError::ParseError("unexpected file end".into()))?;
-        // FIXME: This should be an iterator
-        for pair in parse_result.into_inner() {
-            if pair.as_rule() == Rule::DIRECTIVE {
-                // Create a dummy SpiceFrontend instance to call process_directive
-                let dummy_frontend = SpiceFrontend { pth: String::new() };
+
+        let dummy_frontend = SpiceFrontend { pth: String::new() };
+        parse_result
+            .into_inner()
+            .filter(|pair| pair.as_rule() == Rule::DIRECTIVE)
+            .try_for_each(|pair| {
                 dummy_frontend.process_directive(
                     pair,
                     &mut commands,
@@ -55,19 +68,11 @@ impl SpiceFrontend {
                     &mut elements,
                     &mut variables,
                     &mut var_map,
-                )?;
-            }
-        }
+                )
+            })?;
 
         // Ensure all element names are unique
-        let mut names = HashSet::new();
-        // FIXME: This should be an iterator
-        for ele in &elements {
-            let ele_name = ele.name();
-            if !names.insert(ele_name.clone()) {
-                return Err(FrontendError::ElementDouble(ele_name.to_string()));
-            }
-        }
+        validate_unique_elements(&elements)?;
 
         Ok(Simulation {
             commands,
@@ -83,11 +88,9 @@ impl Frontend for SpiceFrontend {
         let mut circuit_string = String::new();
         File::open(&self.pth)?.read_to_string(&mut circuit_string)?;
         trace!("Parse Schematic!");
-        let parse_result = SpiceParser::parse(Rule::SPICE, &circuit_string)?.next();
-        let parse_result = match parse_result {
-            Some(res) => res,
-            None => return Err(FrontendError::ParseError("unexpected file end".into())),
-        };
+        let parse_result = SpiceParser::parse(Rule::SPICE, &circuit_string)?
+            .next()
+            .ok_or(FrontendError::ParseError("unexpected file end".into()))?;
 
         let mut commands = Vec::new();
         let mut options = Vec::new();
@@ -95,9 +98,10 @@ impl Frontend for SpiceFrontend {
         let mut variables = Vec::new();
         let mut var_map = HashMap::new();
 
-        // FIXME: This should be an iterator
-        for pair in parse_result.into_inner() {
-            if pair.as_rule() == Rule::DIRECTIVE {
+        parse_result
+            .into_inner()
+            .filter(|pair| pair.as_rule() == Rule::DIRECTIVE)
+            .try_for_each(|pair| {
                 self.process_directive(
                     pair,
                     &mut commands,
@@ -105,20 +109,12 @@ impl Frontend for SpiceFrontend {
                     &mut elements,
                     &mut variables,
                     &mut var_map,
-                )?
-            }
-        }
+                )
+            })?;
 
         trace!("Check Schematic!");
         // Ensure all element names are unique
-        let mut names = HashSet::new();
-        // FIXME: This should be an iterator
-        for ele in &elements {
-            let ele_name = ele.name();
-            if !names.insert(ele_name.clone()) {
-                return Err(FrontendError::ElementDouble(ele_name.to_string()));
-            }
-        }
+        validate_unique_elements(&elements)?;
 
         Ok(Simulation {
             commands,
@@ -143,17 +139,15 @@ impl SpiceFrontend {
         variables: &mut Vec<Variable>,
         var_map: &mut HashMap<Arc<str>, usize>,
     ) -> Result<(), FrontendError> {
-        // FIXME: This should be an iterator
-        for inner in directive.into_inner() {
-            match inner.as_rule() {
-                Rule::ELEMENT => self.process_element(inner, variables, elements, var_map)?,
+        directive
+            .into_inner()
+            .try_for_each(|inner| match inner.as_rule() {
+                Rule::ELEMENT => self.process_element(inner, variables, elements, var_map),
                 Rule::COMMAND => {
-                    self.process_command(inner, commands, options, elements, variables, var_map)?
+                    self.process_command(inner, commands, options, elements, variables, var_map)
                 }
-                _ => {}
-            }
-        }
-        Ok(())
+                _ => Ok(()),
+            })
     }
 
     fn process_command(
@@ -224,33 +218,73 @@ impl SpiceFrontend {
         })?;
 
         trace!("Parse Schematic!");
-        // FIXME: This nests too deep
+        let path_str = full_path.display();
         let parse_result = SpiceParser::parse(Rule::SPICE, &circuit_string)
             .map_err(|e| {
                 FrontendError::PestError(format!(
-                    "Parse error in included file '{}': {}",
-                    full_path.display(),
-                    e
+                    "Parse error in included file '{path_str}': {e}"
                 ))
             })?
             .next()
             .ok_or_else(|| {
                 FrontendError::ParseError(format!(
-                    "Empty parse result for included file '{}'",
-                    full_path.display()
+                    "Empty parse result for included file '{path_str}'"
                 ))
             })?;
 
-        for pair in parse_result.into_inner() {
-            if pair.as_rule() == Rule::DIRECTIVE {
-                self.process_directive(pair, commands, options, elements, variables, var_map)?
-            }
-        }
+        parse_result
+            .into_inner()
+            .filter(|pair| pair.as_rule() == Rule::DIRECTIVE)
+            .try_for_each(|pair| {
+                self.process_directive(pair, commands, options, elements, variables, var_map)
+            })?;
         Ok(())
     }
 
     fn process_op(&self, commands: &mut Vec<SimulationCommand>) {
         commands.push(SimulationCommand::Op)
+    }
+
+    fn parse_second_dc_source(
+        src: Pair<Rule>,
+    ) -> Result<(Arc<str>, Numeric, Numeric, Numeric), FrontendError> {
+        let mut src2 = src.into_inner();
+
+        let source2 = src2
+            .next()
+            .ok_or_else(|| {
+                FrontendError::ParseError("Missing second source in .dc command".into())
+            })?
+            .as_str();
+
+        let vstart2 = src2
+            .next()
+            .ok_or_else(|| {
+                FrontendError::ParseError("Missing vstart2 in .dc command".into())
+            })?
+            .as_str()
+            .parse::<Numeric>()
+            .map_err(|_| FrontendError::ParseError("Invalid vstart2 value".into()))?;
+
+        let vend2 = src2
+            .next()
+            .ok_or_else(|| {
+                FrontendError::ParseError("Missing vend2 in .dc command".into())
+            })?
+            .as_str()
+            .parse::<Numeric>()
+            .map_err(|_| FrontendError::ParseError("Invalid vend2 value".into()))?;
+
+        let vstep2 = src2
+            .next()
+            .ok_or_else(|| {
+                FrontendError::ParseError("Missing vstep2 in .dc command".into())
+            })?
+            .as_str()
+            .parse::<Numeric>()
+            .map_err(|_| FrontendError::ParseError("Invalid vstep2 value".into()))?;
+
+        Ok((Arc::from(source2), vstart2, vend2, vstep2))
     }
 
     fn process_dc(
@@ -286,64 +320,18 @@ impl SpiceFrontend {
             .parse::<Numeric>()
             .map_err(|_| FrontendError::ParseError("Invalid vstep value".into()))?;
 
-        let src2 = inner.next();
-        // FIXME: This nests too deep
-        match src2 {
-            None => {
-                commands.push(SimulationCommand::Dc(
-                    Arc::from(source),
-                    vstart,
-                    vend,
-                    vstep,
-                    None,
-                ));
-            }
-            Some(src) => {
-                let mut src2 = src.into_inner();
+        let second_source = inner
+            .next()
+            .map(Self::parse_second_dc_source)
+            .transpose()?;
 
-                let source2 = src2
-                    .next()
-                    .ok_or_else(|| {
-                        FrontendError::ParseError("Missing second source in .dc command".into())
-                    })?
-                    .as_str();
-
-                let vstart2 = src2
-                    .next()
-                    .ok_or_else(|| {
-                        FrontendError::ParseError("Missing vstart2 in .dc command".into())
-                    })?
-                    .as_str()
-                    .parse::<Numeric>()
-                    .map_err(|_| FrontendError::ParseError("Invalid vstart2 value".into()))?;
-
-                let vend2 = src2
-                    .next()
-                    .ok_or_else(|| {
-                        FrontendError::ParseError("Missing vend2 in .dc command".into())
-                    })?
-                    .as_str()
-                    .parse::<Numeric>()
-                    .map_err(|_| FrontendError::ParseError("Invalid vend2 value".into()))?;
-
-                let vstep2 = src2
-                    .next()
-                    .ok_or_else(|| {
-                        FrontendError::ParseError("Missing vstep2 in .dc command".into())
-                    })?
-                    .as_str()
-                    .parse::<Numeric>()
-                    .map_err(|_| FrontendError::ParseError("Invalid vstep2 value".into()))?;
-
-                commands.push(SimulationCommand::Dc(
-                    Arc::from(source),
-                    vstart,
-                    vend,
-                    vstep,
-                    Some((Arc::from(source2), vstart2, vend2, vstep2)),
-                ));
-            }
-        }
+        commands.push(SimulationCommand::Dc(
+            Arc::from(source),
+            vstart,
+            vend,
+            vstep,
+            second_source,
+        ));
         Ok(())
     }
 
