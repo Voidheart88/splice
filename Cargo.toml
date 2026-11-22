@@ -6,7 +6,7 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 # Tools
-itertools = "0.14"
+itertools = "0.15"
 approx = "0.5"
 nohash-hasher = "0.2"
 rustc-hash = "2.1"
@@ -36,7 +36,7 @@ faer = "0.24"
 [dev-dependencies]
 criterion = { version = "0.8", features = ["html_reports"] }
 assert_float_eq = "1.2"
-rand = "0.9"
+rand = "0.10"
 proptest = "1.12"
 chrono = "0.4"
 
@@ -59,4 +59,3 @@ harness = false
 
 [features]
 default = []
-faer-in-place = []

@@ -1,66 +1,20 @@
+# Eine Liste mit ToDos:
 
-## Erledigte Aufgaben:
-
-### Refactoring von zu tiefer Verschachtelung:
-- [x] src/models/controlled_sources/vccs.rs (Zeile 136)
-- [x] src/solver/rsparse.rs (Zeile 224, 289)
-- [x] src/sim/tran.rs (Zeile 47)
-- [x] src/sim/tests.rs (Zeile 400)
-- [x] src/lib.rs (Zeile 289, 341)
-
-### Verbesserung der Testqualität:
-- [x] src/sim/tests.rs (Zeile 1, 42, 205) - Duplizierter Code eliminiert, bessere Asserts
-
-### Refactoring der Serialisierungslogik:
-- [x] src/sim/simulation_result.rs (Zeile 43, 56, 69) - Wrapper-Strukturen extrahiert
-
-### Refactoring der Schwellenwerte:
-- [x] src/solver/selector.rs (Zeile 24, 64, 68, 82, 85) - Konstanten nach spot.rs verschoben
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
-=======
-Eine Liste mit ToDos:
-
-- Abarbeiten der verbleibenden FIXME und CHECK Markierungen (ursprünglich >90, jetzt ~9)
-- Erstellung eines State-Space basierten Guessers für OP und Transienten-Simulation
+- Abarbeiten der verbleibenden FIXME und CHECK Markierungen 
+  - For/While - Loops sollten wenn möglich gegen Iteratoren getauscht werden
+  - Ein funktionaler Code-Stil sollte beibehalten werden
+  - Die Nestingtiefe sollte auf 4 Ebenen begrenzt werden -- Das betrifft auch eventuelle Ausdrücke, 
+    die so lang sind, dass sie über mehrerere Zeilen gehen.
+  - Die zyklomatische Komplexität sollte minimiert werden
+  - Die Länge der Funktionen sollte klein sein.
+  - Eine Funktion sollte Daten transformieren und nicht mutieren.
+  - Das DRY Prinzip sollt eeingehalten werden -- Auch bei Tests.
 - Update des Style-Guides
-- Erstellung einer State-Space „Simulation“ über eine Graphen-Analyse der Schaltung.
 - Finden einer angenehmen Abkürzung für „SPLICE“
-- Erstellung von zusätzlichen Current-Sources (Sine,Pulse)
-
-## Erledigte Aufgaben:
-
-### Refactoring von zu tiefer Verschachtelung:
-- [x] src/models/controlled_sources/vccs.rs (Zeile 136)
-- [x] src/solver/rsparse.rs (Zeile 224, 289)
-- [x] src/sim/tran.rs (Zeile 47)
-- [x] src/sim/tests.rs (Zeile 400)
-- [x] src/lib.rs (Zeile 289, 341)
-
-### Verbesserung der Testqualität:
-- [x] src/sim/tests.rs (Zeile 1, 42, 205) - Duplizierter Code eliminiert, bessere Asserts
-
-### Refactoring der Serialisierungslogik:
-- [x] src/sim/simulation_result.rs (Zeile 43, 56, 69) - Wrapper-Strukturen extrahiert
-
-### Refactoring der Schwellenwerte:
-- [x] src/solver/selector.rs (Zeile 24, 64, 68, 82, 85) - Konstanten nach spot.rs verschoben
-=======
-
-## Erledigte Aufgaben:
-
-### Refactoring von zu tiefer Verschachtelung:
-- [x] src/models/controlled_sources/vccs.rs (Zeile 136)
-- [x] src/solver/rsparse.rs (Zeile 224, 289)
-- [x] src/sim/tran.rs (Zeile 47)
-- [x] src/sim/tests.rs (Zeile 400)
-- [x] src/lib.rs (Zeile 289, 341)
-
-### Verbesserung der Testqualität:
-- [x] src/sim/tests.rs (Zeile 1, 42, 205) - Duplizierter Code eliminiert, bessere Asserts
-
-### Refactoring der Serialisierungslogik:
-- [x] src/sim/simulation_result.rs (Zeile 43, 56, 69) - Wrapper-Strukturen extrahiert
-
-### Refactoring der Schwellenwerte:
-- [x] src/solver/selector.rs (Zeile 24, 64, 68, 82, 85) - Konstanten nach spot.rs verschoben
->>>>>>> 25bca9d83d58b511eb2e0eadfa6fe1ecd3e23f1e
+- Erstellung von zusätzlichen Current-Sources (Sine, Pulse, Step)
+- Erstellung von zusätzlichen Voltage-Sources (Sine, Pulse, Step)
+- BJT Modelle haben kein serde Modul
+- Erstellung eines Integrator-Blocks zusätzlich zum Gain Block
+- Erstellung eines Sum-Blocks
+- tests/test_rlc_transient.cir schlägt fehl - das sollte es nicht
+- Refactoring: integration.rs gehört eigentlich ins sim Modul

@@ -1,1 +1,1 @@
-= AC-Analyse (.acc)
+= AC-Analyse (.ac)

@@ -1,5 +1,5 @@
 use criterion::Criterion;
-use rand::Rng;
+use rand::RngExt;
 use rand::seq::SliceRandom;
 use rustc_hash::FxHashMap;
 use std::collections::HashMap;

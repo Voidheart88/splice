@@ -101,5 +101,25 @@ Benchmark results are stored under `target/criterion/`.
 ### Features
 - Implement an intelligent solving strategy finder (maybe an AI thingy?)
 
+## Project Structure – Quick Overview
+
+| Path | Purpose / Content |
+|------|-------------------|
+| **`src/`** | Core code. Divided into:<br>• `frontends/` – Parsers for KiCad, SPICE netlists, etc.<br>• `sim/` – Orchestration of AC/DC/OP/TRAN analyses.<br>• `solver/` – Numerical backends (faer, nalgebra, rsparse).<br>• `backends/` – Output formats (CSV, plot, network server). |
+| **`src/models/`** | Component implementations (Resistor, Capacitor, Inductor, Diode, MOSFET, …) including `tests/` per model. |
+| **`src/guesser/`** | Heuristics for automatic parameter estimation. |
+| **`test/`** | Sample netlists (`*.cir`) and small scripts for running/deployment. |
+| **`benches/`** | Criterion benchmarks for performance measurements (e.g., `Faer__solve`). |
+| **`scripts/`** | Helper scripts (e.g., `generate_callgraph.py`). |
+| **`doc/`** | Documentation sources (German & English, `.typ` files). |
+| **`notes/`** | Additional drawings, papers, license info. |
+
+#### How to Quickly Find What You Need
+- **Start a simulation** → `cargo run -- run <path/to/file.cir>` (or the compiled binary `./target/release/splice …`).
+- **Add a new component** → `src/models/<device>/` (see existing models as templates).
+- **CLI extensions** → `src/main.rs` & `src/sim/commands.rs`.
+- **Check performance** → `cargo bench` (benchmark results in `target/criterion/`).
+- **Run tests** → `cargo test` (includes unit, integration, and solver tests).
+
 ---
 Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you shall be dual licensed as above, without any additional terms or conditions.

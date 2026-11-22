@@ -42,7 +42,7 @@ for simulation in circuit.simulations {
 }
 ```
 
-Maybe even better:
+Even better:
 ```
 let commands: Vec<SimulationCommand> = circuit.simulations
     .into_iter()

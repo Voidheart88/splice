@@ -4,10 +4,6 @@
 
 #include "chapters/toc.typ"
 
-#include "chapters/build.typ"
+#include "chapters/user_manual.typ"
 
-#include "chapters/op.typ"
-
-#include "chapters/dc.typ"
-
-#include "chapters/ac.typ"
+#include "chapters/developer_manual.typ"
