@@ -1,50 +1,105 @@
 # Splice - A blazingly fast Spice simulator
+
 The goal of Splice is to provide a better simulation experience.
 
 ## Goals
-  - Better error reporting! Your simulation fails? Splice tells you why. It shows you non-convergent nodes and tries to use the best possible method to choose a solving strategy for your problems. A valid but non-converging simulation is considered a bug!
-  - Faster! Splice uses modern mechanisms like parallel element evaluation to be as fast as possible. The code is   well-tested!
-  - Extensible! The interfaces between frontend, backend, and output modules are well-defined. New models, frontends,  and backends are easy to implement.
-  - Minimal! Splice is runnable on small ARM PCs as well as on your HPC rig.
-  - Useful error-messages!
+- Better error reporting! Your simulation fails? Splice tells you why. It shows you non-convergent nodes and tries to use the best possible method to choose a solving strategy for your problems. A valid but non-converging simulation is considered a bug!
+- Faster! Splice uses modern mechanisms like parallel element evaluation to be as fast as possible. The code is well-tested!
+- Extensible! The interfaces between frontend, backend, and output modules are well-defined. New models, frontends, and backends are easy to implement.
+- Minimal! Splice is runnable on small ARM PCs as well as on your HPC rig.
+- Useful error‑messages!
 
 ## Features
-  - Working .dc simulation
-  - Working .op simulation
-  - Working .ac simulation
-  - Working V,I,R,L,C,D device models
-  - Minimal diode model
-  - Minimal mosfet model
-  - Capacitors and inductors work in .ac simulation
-  - Advanced transient simulation with adaptive time step control
-  - Multiple integration methods (Backward Euler, Trapezoidal)
-  - Network mode with MessagePack protocol - Run Splice as a server for remote simulations
+- Working .dc simulation
+- Working .op simulation
+- Working .ac simulation
+- Working V,I,R,L,C,D device models
+- Minimal diode model
+- Minimal mosfet model
+- Capacitors and inductors work in .ac simulation
+- Advanced transient simulation with adaptive time step control
+- Multiple integration methods (Backward Euler, Trapezoidal)
+- Network mode with MessagePack protocol – run Splice as a server for remote simulations
 
-## Todos/Roadmap:
+## Installation & Build
+```bash
+# Build the project (release mode for best performance)
+cargo build --release
+```
 
-### Frontends:
-  - Build a KiCad frontend
+You can also run the examples directly without installing:
+```bash
+cargo run -- -h   # show CLI help
+cargo run -- run test/simple_ac.cir   # execute a sample circuit
+```
 
-### Solver:
-  - Build a CUDA/OpenCL backend
-  - Improve adaptive time step control with more sophisticated error estimation
+## Quick‑Start
+1. Clone the repository and change into the project directory.
+2. Build the binary as shown above.
+3. Run a simulation on one of the example netlist files in the `test/` directory, e.g.:
+```bash
+./target/release/splice run test/simple_ac.cir
+```
+   This will produce CSV output in the current directory.
 
-### Outputs:
-  - Improve the CSV output
-  - Improve the plot output
-  - Build the raw output
+## Architecture Overview
+Splice is organized into four main crates:
+- **frontends** – parsers for KiCad, SPICE netlists, etc.
+- **sim** – high‑level simulation orchestration (ac, dc, op, tran).
+- **solver** – numeric back‑ends (faer, nalgebra, rsparse) handling the linear systems.
+- **backends** – output formats (CSV, plot, network server) and optional data storage.
+These layers communicate through well‑defined traits, making it straightforward to add new frontends, models, or solvers.
 
-### Models:
-  - Implement magnetic simulations
+## CLI Overview
+| Command | Description |
+|---------|-------------|
+| `ac`    | Perform an AC analysis |
+| `dc`    | Perform a DC sweep |
+| `op`    | Compute the operating point |
+| `tran`  | Perform a transient analysis |
+| `run <file>` | Convenience wrapper to select the appropriate sub‑command based on file extension |
+| `server` | Start the network mode server (MessagePack protocol) |
 
-### Features:
-  - Implement an intelligent solving strategy finder (maybe an AI thingy?)
+Run `splice -h` for a full list of options.
 
-### How to contribute:
-  - Write tests for every module, the frontends, the backends, and the outputs. Tests define the expected behavior.
-  - Find failing simulations and how to make them runnable - we need data to make Splice rock solid. A failing simulation should be considered a bug since reality doesn't fail!
-  - Write benchmarks: Splice is a simulator - simulation should be as fast as possible. The room where your computer is should not need any heating while you simulate!
-  - **Network mode testing**: Help test the new network functionality with different clients and scenarios
-  - **Documentation**: Improve the network mode documentation and add more examples
+## Example Output
+Running the example `test/simple_ac.cir` creates a CSV file with columns for frequency, magnitude, and phase. You can plot it with your favourite tool, e.g. `gnuplot` or Python's `matplotlib`.
 
+## Tests & Benchmarks
+```bash
+# Run all unit and integration tests
+cargo test
+
+# Run performance benchmarks (requires the `criterion` crate)
+cargo bench
+```
+Benchmark results are stored under `target/criterion/`.
+
+## Contributing
+- Write tests for every module, frontend, backend, and output. Tests define the expected behavior.
+- Find failing simulations and make them runnable – a failing simulation should be considered a bug.
+- Write benchmarks: simulation should be as fast as possible.
+- **Network mode testing**: help test the new network functionality with different clients and scenarios.
+- **Documentation**: improve the network mode documentation and add more examples.
+
+## Todos / Roadmap
+### Frontends
+- Build a KiCad frontend
+
+### Solver
+- Build a CUDA/OpenCL backend
+- Improve adaptive time step control with more sophisticated error estimation
+
+### Outputs
+- Improve the CSV output
+- Improve the plot output
+- Build the raw output
+
+### Models
+- Implement magnetic simulations
+
+### Features
+- Implement an intelligent solving strategy finder (maybe an AI thingy?)
+
+---
 Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you shall be dual licensed as above, without any additional terms or conditions.
