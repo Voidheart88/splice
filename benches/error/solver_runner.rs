@@ -18,40 +18,9 @@ pub fn rc_analytical_solution_golden(t: f64, r: f64, c: f64, v_final: f64) -> f6
     v_final * (1.0 - (-t / tau).exp())
 }
 
-/// Extract voltage at a specific time from simulation results
-fn extract_voltage_at_time(results: &SimulationResults, target_time: f64) -> Option<f64> {
-    for result in &results.results {
-        match result {
-            Sim::Tran(data) => {
-                // Find the result closest to the requested time
-                let mut best_voltage: Option<f64> = None;
-                let mut best_error = f64::MAX;
-                
-                for (t, vars) in data {
-                    let error = (*t - target_time).abs();
-                    if error < best_error {
-                        best_error = error;
-                        // Look for V(2) - the voltage at node 2 (capacitor voltage)
-                        for (var, val) in vars {
-                            if var.name() == Arc::from("2") && var.unit() == splice::models::Unit::Volt {
-                                best_voltage = Some(*val);
-                                break;
-                            }
-                        }
-                    }
-                }
-                if best_voltage.is_some() {
-                    return best_voltage;
-                }
-            }
-            _ => {}
-        }
-    }
-    None
-}
-
 /// Calculate Sum of Squared Errors (SSE) between numerical and analytical solution
 /// over the entire time series
+/// Note: This measures the error at node 2 (capacitor voltage), not node 1 (input voltage)
 fn calculate_sse(results: &SimulationResults, r: f64, c: f64, v_final: f64) -> Option<f64> {
     for result in &results.results {
         match result {
