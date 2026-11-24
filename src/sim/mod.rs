@@ -1,5 +1,5 @@
 pub(crate) mod commands;
-pub(crate) mod options;
+pub mod options;
 pub mod simulation_result;
 
 mod ac;
@@ -15,15 +15,16 @@ use std::sync::Arc;
 use itertools::{Itertools, izip};
 use miette::Diagnostic;
 use num::{Complex, One, Zero};
-use options::SimulationOption;
 use thiserror::Error;
+
+// Re-export for convenience
+pub use options::{IntegrationMethod, SimulationOption};
 
 use crate::Simulation;
 use crate::models::{Element, Variable};
 use crate::sim::ac::AcSimulation;
 use crate::sim::dc::DcSimulation;
 use crate::sim::op::OpSimulation;
-use crate::sim::options::IntegrationMethod;
 use crate::sim::tran::TranSimulation;
 use crate::solver::{Solver, SolverError};
 use crate::spot::*;

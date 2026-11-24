@@ -57,6 +57,7 @@ fn calculate_sse(results: &SimulationResults, r: f64, c: f64, v_final: f64) -> O
 /// This circuit has a known analytical solution
 /// Using STEP modifier for voltage source (matches test_step.cir format)
 /// Note: Constants are defined in error.rs (RESISTANCE=1000, CAPACITANCE=100e-9, V_FINAL=10)
+#[allow(dead_code)]
 pub fn generate_rc_step_circuit(resistance: f64, capacitance: f64, timestep: f64, stop_time: f64, v_final: f64) -> String {
     // Create an RC circuit with a step input
     // V1 0 1 STEP 0 V_FINAL 1e-9  (step from 0V to V_FINAL with 1ns step time)

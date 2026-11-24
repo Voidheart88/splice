@@ -59,10 +59,15 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
                 self.build_constant_b_vec();
                 self.build_time_variant_a_mat(&current_timestep);
 
-                // Use trapezoidal integration if specified
+                // Use integration method
                 let integration_method = self.get_integration_method();
                 match integration_method {
                     IntegrationMethod::BackwardEuler => {
+                        self.build_time_variant_b_vec(&t, &current_timestep);
+                    }
+                    IntegrationMethod::ForwardEuler => {
+                        // Forward Euler is explicit, use the same B vector as Backward Euler
+                        // but the solver handles it differently (explicit vs implicit)
                         self.build_time_variant_b_vec(&t, &current_timestep);
                     }
                     IntegrationMethod::Trapezoidal => {

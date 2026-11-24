@@ -14,6 +14,9 @@ pub use nalgebra::NalgebraSolver;
 pub use rsparse::RSparseSolver;
 pub use selector::{SolverSelectionStrategy, SolverSelector};
 
+// Re-export integration methods for benchmarking
+pub use crate::sim::options::IntegrationMethod;
+
 use crate::spot::{ComplexNumeric, Numeric};
 
 /// Errors that can occur in the Solver.

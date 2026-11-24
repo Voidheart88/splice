@@ -11,6 +11,8 @@ pub enum SimulationOption {
 pub enum IntegrationMethod {
     #[serde(rename = "be")]
     BackwardEuler,
+    #[serde(rename = "forward_euler")]
+    ForwardEuler,
     #[serde(rename = "trapezoidal")]
     Trapezoidal,
     #[serde(rename = "gear")]
