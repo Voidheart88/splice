@@ -1,6 +1,6 @@
 pub(crate) mod commands;
 pub(crate) mod options;
-pub(crate) mod simulation_result;
+pub mod simulation_result;
 
 mod ac;
 pub mod autotune;

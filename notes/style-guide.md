@@ -92,4 +92,4 @@ which is more readable and serves the same purpose.
 use `cargo clippy --all-targets --all-features -- -D warnings` after you created code since it prevents you
 to use commonly used anti-patterns
 
-
+## Use extra module files for tests

@@ -57,5 +57,10 @@ opt-level = 3
 name = "performance"
 harness = false
 
+[[bench]]
+name = "exactness"
+harness = false
+path = "benches/exactness.rs"
+
 [features]
 default = []

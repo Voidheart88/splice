@@ -79,6 +79,17 @@ pub fn run_sim_for_benchmark<T: Solver>(sim: Simulation) -> Result<(), String> {
     }
 }
 
+/// Public function to run a simulation with a specific solver and return results
+/// This is exposed for exactness benchmarking purposes
+#[doc(hidden)]
+pub fn run_sim_with_results<T: Solver>(sim: Simulation) -> Result<SimulationResults, String> {
+    let mut sim: Simulator<T> = Simulator::from(sim);
+    match sim.run() {
+        Ok(results) => Ok(results),
+        Err(e) => Err(format!("{:?}", e)),
+    }
+}
+
 pub fn run() -> Result<()> {
     let cli = Cli::parse();
 
