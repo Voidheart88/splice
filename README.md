@@ -109,7 +109,7 @@ Benchmark results are stored under `target/criterion/`.
 | **`src/models/`** | Component implementations (Resistor, Capacitor, Inductor, Diode, MOSFET, …) including `tests/` per model. |
 | **`src/guesser/`** | Heuristics for automatic parameter estimation. |
 | **`test/`** | Sample netlists (`*.cir`) and small scripts for running/deployment. |
-| **`benches/`** | Criterion benchmarks for performance measurements (e.g., `Faer__solve`). |
+| **`benches/`** | Criterion benchmarks for performance measurements (e.g., `Faer__solve`).<br>• `error.rs` - Error benchmark runner that tests numerical accuracy of all solvers against known analytical solutions<br>• `error/` - Subdirectory with individual solver error benchmarks (nalgebra, faer, rsparse, faer_sparse) |
 | **`scripts/`** | Helper scripts (e.g., `generate_callgraph.py`). |
 | **`doc/`** | Documentation sources (German & English, `.typ` files). |
 | **`notes/`** | Additional drawings, papers, license info. |
