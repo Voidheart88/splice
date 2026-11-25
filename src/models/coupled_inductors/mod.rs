@@ -345,6 +345,7 @@ mod tests {
             }),
             value,
             previous_current: Numeric::zero(),
+            current_history: Vec::new(),
         })
     }
 

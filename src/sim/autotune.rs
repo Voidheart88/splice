@@ -2,7 +2,7 @@ use log::info;
 
 use crate::models::Element;
 use crate::sim::commands::SimulationCommand;
-use crate::sim::options::{IntegrationMethod, SimulationOption};
+use crate::sim::options::{IntegrationMethodEnum, SimulationOption};
 use crate::spot::Numeric;
 
 /// Represents a time constant analysis result
@@ -192,29 +192,29 @@ fn suggest_integration_method(
     has_nonlinear_elements: bool,
     has_capacitors: bool,
     has_inductors: bool,
-) -> IntegrationMethod {
+) -> IntegrationMethodEnum {
     // Default to Backward Euler for stability, especially with nonlinear elements
     // CHECK if this is the best solution. Isnt TRAPS better for nonlinear Elements?
     if has_nonlinear_elements {
         info!("  -> Using Backward Euler for stability with nonlinear elements");
-        return IntegrationMethod::BackwardEuler;
+        return IntegrationMethodEnum::BackwardEuler;
     }
 
     // For circuits with capacitors and inductors, trapezoidal can be more accurate
     if has_capacitors && has_inductors {
         info!("  -> Using Trapezoidal for better accuracy with LC circuits");
-        return IntegrationMethod::Trapezoidal;
+        return IntegrationMethodEnum::Trapezoidal;
     }
 
     // For circuits with only capacitors, trapezoidal can be a good choice
     if has_capacitors {
         info!("  -> Using Trapezoidal for better accuracy with capacitive circuits");
-        return IntegrationMethod::Trapezoidal;
+        return IntegrationMethodEnum::Trapezoidal;
     }
 
     // Default to Backward Euler for general stability
     info!("  -> Using Backward Euler as default for stability");
-    IntegrationMethod::BackwardEuler
+    IntegrationMethodEnum::BackwardEuler
 }
 
 /// Suggests optimal timestep based on circuit time constants

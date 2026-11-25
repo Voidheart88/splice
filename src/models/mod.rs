@@ -5,7 +5,6 @@ pub mod coupled_inductors;
 pub mod diode;
 pub mod gain;
 pub mod inductor;
-pub mod integration;
 pub mod isource;
 pub mod mosfet;
 pub mod pairs;
@@ -182,6 +181,28 @@ impl Element {
             Element::Capacitor(ele) => Some(ele.pairs(delta_t)),
             Element::Inductor(ele) => Some(ele.pairs(delta_t)),
             Element::CoupledInductors(ele) => Some(ele.get_pairs()),
+            Element::VCVS(_) => None,
+            Element::VCCS(_) => None,
+            Element::CCCS(_) => None,
+            Element::CCVS(_) => None,
+            _ => None,
+        }
+    }
+
+    /// Returns the time variant pairs of the element using BDF multi-step integration, if applicable.
+    /// This includes the history contribution from previous time steps.
+    #[allow(dead_code)]
+    pub(crate) fn get_time_variant_pairs_bdf(
+        &self,
+        time: Option<&Numeric>,
+        delta_t: &Numeric,
+    ) -> Option<Pairs<Numeric, 2>> {
+        match self {
+            Element::VSourceSin(ele) => Some(ele.pairs(time)), // Time sources use same method
+            Element::VSourceStep(ele) => Some(ele.pairs(time)), // Time sources use same method
+            Element::Capacitor(ele) => Some(ele.pairs_bdf(delta_t)),
+            Element::Inductor(ele) => Some(ele.pairs_bdf(delta_t)),
+            Element::CoupledInductors(ele) => Some(ele.get_pairs()), // Same as Euler for now
             Element::VCVS(_) => None,
             Element::VCCS(_) => None,
             Element::CCCS(_) => None,

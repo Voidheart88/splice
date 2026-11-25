@@ -18,7 +18,8 @@ use num::{Complex, One, Zero};
 use thiserror::Error;
 
 // Re-export for convenience
-pub use options::{IntegrationMethod, SimulationOption};
+pub use options::{IntegrationMethodEnum, SimulationOption};
+pub use crate::solver::integration::IntegrationMethod;
 
 use crate::Simulation;
 use crate::models::{Element, Variable};
@@ -75,7 +76,7 @@ impl<SO: Solver> Simulator<SO> {
     /// Returns the integration method to use for transient simulation
     /// Defaults to BackwardEuler for stability
     // FIXME: could be an iter
-    fn get_integration_method(&self) -> IntegrationMethod {
+    fn get_integration_method(&self) -> IntegrationMethodEnum {
         self.options
             .iter()
             .find_map(|opt| {
@@ -86,7 +87,7 @@ impl<SO: Solver> Simulator<SO> {
                     None
                 }
             })
-            .unwrap_or(IntegrationMethod::BackwardEuler)
+            .unwrap_or(IntegrationMethodEnum::BackwardEuler)
     }
 
     pub fn run(&mut self) -> Result<SimulationResults, SimulatorError> {

@@ -3,8 +3,8 @@ use log::{debug, info};
 use crate::Simulator;
 use crate::models::Element;
 use crate::sim::SimulatorError;
-use crate::sim::options::IntegrationMethod;
 use crate::sim::simulation_result::Sim;
+use crate::sim::options::IntegrationMethodEnum;
 use crate::solver::Solver;
 use crate::spot::*;
 use num::Zero;
@@ -62,18 +62,18 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
                 // Use integration method
                 let integration_method = self.get_integration_method();
                 match integration_method {
-                    IntegrationMethod::BackwardEuler => {
+                    IntegrationMethodEnum::BackwardEuler => {
                         self.build_time_variant_b_vec(&t, &current_timestep);
                     }
-                    IntegrationMethod::ForwardEuler => {
+                    IntegrationMethodEnum::ForwardEuler => {
                         // Forward Euler is explicit, use the same B vector as Backward Euler
                         // but the solver handles it differently (explicit vs implicit)
                         self.build_time_variant_b_vec(&t, &current_timestep);
                     }
-                    IntegrationMethod::Trapezoidal => {
+                    IntegrationMethodEnum::Trapezoidal => {
                         self.build_time_variant_b_vec_trapezoidal(&t, &current_timestep);
                     }
-                    IntegrationMethod::GearBdf { order: _ } => {
+                    IntegrationMethodEnum::GearBdf { order: _ } => {
                         // Fallback to Backward Euler behavior for stability until multi-step is active
                         self.build_time_variant_b_vec(&t, &current_timestep);
                     }

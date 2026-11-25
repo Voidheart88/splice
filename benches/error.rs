@@ -28,6 +28,8 @@ mod faer_sparse_error_trapezoidal;
 mod rsparse_error_forward;
 mod rsparse_error_trapezoidal;
 
+// BDF benchmarks are kept in separate files for future use
+
 use nalgebra_error::{run_nalgebra_error_test, rc_analytical_solution_golden, generate_rc_step_circuit};
 use faer_error::run_faer_error_test;
 use faer_sparse_error::run_faer_sparse_error_test;
@@ -40,6 +42,12 @@ use faer_sparse_error_forward::run_faer_sparse_error_test_forward;
 use faer_sparse_error_trapezoidal::run_faer_sparse_error_test_trapezoidal;
 use rsparse_error_forward::run_rsparse_error_test_forward;
 use rsparse_error_trapezoidal::run_rsparse_error_test_trapezoidal;
+
+// BDF benchmarks are kept separate as they have a different function signature
+// use nalgebra_bdf::{run_nalgebra_bdf1_error_test, run_nalgebra_bdf2_error_test, run_nalgebra_bdf3_error_test};
+// use faer_bdf::{run_faer_bdf1_error_test, run_faer_bdf2_error_test, run_faer_bdf3_error_test};
+// use faer_sparse_bdf::{run_faer_sparse_bdf1_error_test, run_faer_sparse_bdf2_error_test, run_faer_sparse_bdf3_error_test};
+// use rsparse_bdf::{run_rsparse_bdf1_error_test, run_rsparse_bdf2_error_test, run_rsparse_bdf3_error_test};
 
 use owo_colors::OwoColorize;
 
@@ -180,6 +188,10 @@ fn main() {
         run_solver_test_sse("Faer", "Trapezoidal", run_faer_error_test_trapezoidal, tstep);
         run_solver_test_sse("FaerSparse", "Trapezoidal", run_faer_sparse_error_test_trapezoidal, tstep);
         run_solver_test_sse("RSparse", "Trapezoidal", run_rsparse_error_test_trapezoidal, tstep);
+        
+        // BDF benchmarks are kept separate as they have a different function signature
+        // Uncomment and update when refactoring error.rs to support BDF
+        // run_solver_test_sse("Nalgebra", "BDF1", run_nalgebra_bdf1_error_test, tstep);
         
         println!();
     }
