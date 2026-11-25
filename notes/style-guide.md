@@ -93,3 +93,86 @@ use `cargo clippy --all-targets --all-features -- -D warnings` after you created
 to use commonly used anti-patterns
 
 ## Use extra module files for tests
+
+Test code should be placed in dedicated test files rather than inline test modules:
+- `src/module/tests.rs` - Main test file for a module
+- `src/module/tests/submodule.rs` - Organized test submodules when needed
+
+This keeps production code focused and makes tests easier to navigate.
+
+
+## TODO and FIXME Comments
+
+**Avoid using TODO/FIXME comments in production code.** Instead:
+
+1. **For bugs**: Fix them immediately or create a GitHub issue
+2. **For improvements**: Track in project backlog (e.g., `notes/todo.md`)
+3. **For incomplete features**: Either complete them or remove the comment if the code works as-is
+
+Inline TODOs create technical debt and clutter the codebase. If something needs attention, make it trackable and actionable.
+
+
+## Use `unreachable!()` vs `todo!()` Appropriately
+
+Choose the right macro for unreachable code paths:
+
+- **`unreachable!()`** - For code paths that should never be reached logically
+  ```rust
+  match result {
+      Sim::Op(items) => items,
+      Sim::Dc(_) => unreachable!("init_sim tests only run OP commands"),
+  }
+  ```
+
+- **`todo!()`** - Only during active development, never commit with `todo!()`
+  
+Always add a descriptive message explaining why the path is unreachable.
+
+
+## Prefer Iterator Patterns
+
+Convert loops to iterator-based code where it improves clarity:
+
+```rust
+// Before
+for (i, item) in items.iter().enumerate() {
+    // use i and item
+}
+
+// After (when possible)
+items.iter().enumerate().for_each(|(i, item)| {
+    // use i and item
+});
+```
+
+However, prioritize readability over cleverness. Simple for-loops are fine when they're clearer.
+
+
+## Limit Nesting Depth
+
+Keep nesting to **maximum 3-4 levels**. Use early returns and guard clauses:
+
+```rust
+// Instead of deep nesting
+if let Some(value) = opt {
+    if let Some(inner) = value.inner {
+        if inner.valid() {
+            // do something
+        }
+    }
+}
+
+// Use early returns
+let Some(value) = opt else { return; };
+let Some(inner) = value.inner else { return; };
+if !inner.valid() { return; }
+// do something
+```
+
+
+## Centralize Constants
+
+Move magic numbers and configuration values to appropriate central locations:
+- Solver thresholds → `src/spot.rs`
+- Simulation limits → `src/sim/mod.rs`
+- Model-specific constants → respective model modules
