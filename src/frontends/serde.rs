@@ -7,6 +7,7 @@ use super::{Element, Frontend, FrontendError, Simulation};
 
 use crate::models::SerdeCoupledInductors;
 use crate::models::Variable;
+use crate::models::bjt::serde::{SerdeBjt0, SerdeBjt1};
 use crate::models::capacitor::serde::SerdeCapacitor;
 use crate::models::controlled_sources::serde::{SerdeCCCS, SerdeCCVS, SerdeVCCS, SerdeVCVS};
 use crate::models::diode::serde::SerdeDiode;
@@ -49,6 +50,10 @@ pub enum SerdeElement {
     Diode(SerdeDiode),
     #[serde(rename = "mosfet")]
     Mosfet(SerdeMos0),
+    #[serde(rename = "bjt0")]
+    Bjt0(SerdeBjt0),
+    #[serde(rename = "bjt1")]
+    Bjt1(SerdeBjt1),
     #[serde(rename = "gain")]
     Gain(SerdeGain),
     #[serde(rename = "vcvs")]
@@ -328,6 +333,8 @@ impl ProcessSerdeElement for SerdeElement {
             SerdeElement::VSourceStep(ele) => ele.process(variables, elements, var_map),
             SerdeElement::ISource(ele) => ele.process(variables, elements, var_map),
             SerdeElement::Diode(ele) => ele.process(variables, elements, var_map),
+            SerdeElement::Bjt0(ele) => ele.process(variables, elements, var_map),
+            SerdeElement::Bjt1(ele) => ele.process(variables, elements, var_map),
             SerdeElement::Mosfet(ele) => ele.process(variables, elements, var_map),
             SerdeElement::Gain(ele) => ele.process(variables, elements, var_map),
             SerdeElement::VCVS(ele) => ele.process(variables, elements, var_map),

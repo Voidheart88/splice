@@ -65,8 +65,8 @@ fn test_bjt0_triples_structure() {
         None,
     );
     let triples = bjt.triples(&[0.0, 0.0, 0.0]);
-    // Expect 16 entries (as per implementation)
-    assert_eq!(triples.len(), 16);
+    // Expect 12 entries: 4 (BE) + 4 (BC) + 2 (transistor action) + 2 (CE path)
+    assert_eq!(triples.len(), 12);
 }
 
 #[test]

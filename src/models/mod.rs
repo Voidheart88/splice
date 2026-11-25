@@ -126,6 +126,8 @@ pub enum Element {
     Resistor(ResistorBundle),
     Diode(DiodeBundle),
     Mos0(Mos0Bundle),
+    Bjt0(Bjt0Bundle),
+    Bjt1(Bjt1Bundle),
     VSource(VSourceBundle),
     VSourceSin(VSourceSinBundle),
     VSourceStep(VSourceStepBundle),
@@ -278,6 +280,8 @@ impl Element {
         match self {
             Element::Diode(_) => None,
             Element::Mos0(_) => None,
+            Element::Bjt0(_) => None,
+            Element::Bjt1(_) => None,
             Element::Capacitor(cap) => Some(cap.ac_triples(freq)),
             Element::Inductor(ind) => Some(ind.ac_triples(freq)),
             Element::CoupledInductors(coupled) => Some(coupled.get_ac_triples(freq)),
@@ -299,6 +303,8 @@ impl Element {
         match self {
             Element::Diode(_) => None,
             Element::Mos0(_) => None,
+            Element::Bjt0(_) => None,
+            Element::Bjt1(_) => None,
             Element::Capacitor(_) => None,
             Element::Inductor(_) => None,
             Element::Resistor(_) => None,
@@ -323,6 +329,8 @@ impl Element {
             Element::Resistor(ele) => ele.name(),
             Element::Diode(ele) => ele.name(),
             Element::Mos0(ele) => ele.name(),
+            Element::Bjt0(ele) => ele.name(),
+            Element::Bjt1(ele) => ele.name(),
             Element::VSource(ele) => ele.name(),
             Element::VSourceStep(ele) => ele.name(),
             Element::ISource(ele) => ele.name(),
@@ -345,6 +353,8 @@ impl Element {
             Element::Resistor(ele) => ele.triple_idx(),
             Element::Diode(ele) => ele.triple_idx(),
             Element::Mos0(ele) => ele.triple_idx(),
+            Element::Bjt0(_) => None, // BJT uses TripleIdx<12>
+            Element::Bjt1(_) => None, // BJT uses TripleIdx<12>
             Element::VSource(ele) => ele.triple_idx(),
             Element::VSourceStep(ele) => ele.triple_idx(),
             Element::Gain(ele) => ele.triple_idx(),
@@ -361,6 +371,8 @@ impl Element {
         match self {
             Element::Diode(_) => None,
             Element::Mos0(_) => None,
+            Element::Bjt0(_) => None,
+            Element::Bjt1(_) => None,
             Element::Capacitor(cap) => cap.triple_idx(),
             Element::Inductor(ind) => ind.triple_idx(),
             Element::CoupledInductors(coupled) => coupled.get_cplx_triple_indices(),
