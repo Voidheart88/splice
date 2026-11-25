@@ -133,7 +133,6 @@ impl VCCSBundle {
             self.controlling_negative.as_ref().map(|v| v.idx()),
         ) {
             // VCCS AC contributions (same as DC since it's linear and frequency-independent)
-            // TODO: Consider refactoring to reduce nesting complexity
             Triples::new(&[
                 (
                     pos_idx,
@@ -170,64 +169,11 @@ impl ProcessSpiceElement for VCCSBundle {
         var_map: &mut std::collections::HashMap<Arc<str>, usize>,
     ) -> Result<(), FrontendError> {
         // Delegate to the module-level function
-        // FIXME: use an import
-        super::spice::process_vccs(element, variables, elements, var_map)
-    }
-}
-
-// FIXME: This should be in the test folder
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::models::Unit;
-    use std::sync::Arc;
-
-    fn create_var(name: &str, idx: usize) -> Variable {
-        Variable::new(Arc::from(name), Unit::Volt, idx)
-    }
-
-    #[test]
-    fn test_vccs_creation() {
-        let vccs = VCCSBundle::new(Arc::from("G1"), None, None, None, None, None);
-        assert_eq!(vccs.name(), Arc::from("G1"));
-        assert_eq!(vccs.options.transconductance, 1.0);
-    }
-
-    #[test]
-    fn test_vccs_with_options() {
-        let options = VCCSOptions {
-            transconductance: 0.1,
-        };
-        let vccs = VCCSBundle::new(Arc::from("G1"), None, None, None, None, Some(options));
-        assert_eq!(vccs.options.transconductance, 0.1);
-    }
-
-    #[test]
-    fn test_vccs_triples() {
-        let v1 = create_var("1", 0);
-        let v2 = create_var("2", 1);
-        let v3 = create_var("3", 2);
-        let v4 = create_var("4", 3);
-
-        let vccs = VCCSBundle::new(
-            Arc::from("G1"),
-            Some(v3.clone()),
-            Some(v4.clone()),
-            Some(v1.clone()),
-            Some(v2.clone()),
-            Some(VCCSOptions {
-                transconductance: 0.05,
-            }),
-        );
-
-        let triples = vccs.triples();
-        assert_eq!(triples.len(), 4);
-
-        // Check specific triple values
-        let data = triples.data();
-        assert_eq!(data[0], (2, 0, 0.05)); // pos-ctrl_pos with transconductance
-        assert_eq!(data[1], (2, 1, -0.05)); // pos-ctrl_neg with -transconductance
-        assert_eq!(data[2], (3, 0, -0.05)); // neg-ctrl_pos with -transconductance
-        assert_eq!(data[3], (3, 1, 0.05)); // neg-ctrl_neg with transconductance
+        crate::models::controlled_sources::spice::process_vccs(
+            element,
+            variables,
+            elements,
+            var_map,
+        )
     }
 }

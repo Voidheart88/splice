@@ -7,7 +7,6 @@ use num::Zero;
 use super::{Solver, SolverError};
 use crate::spot::*;
 
-// TODO: Enhance documentation to match the comprehensive style of FaerSolver (faer.rs)
 /// A backend implementation using the Faer library with sparse matrix support.
 ///
 /// This solver uses sparse matrix representations for improved memory efficiency
@@ -80,17 +79,16 @@ impl Solver for FaerSparseSolver {
         };
 
         let res = lu.solve(&self.b_vec);
-        // FIXME: This should be an iterator
-        for (idx, val) in res.col_as_slice(0).iter().enumerate() {
-            self.x_vec[idx] = *val;
-        }
+        self.x_vec
+            .iter_mut()
+            .zip(res.col_as_slice(0).iter())
+            .for_each(|(dest, src)| *dest = *src);
 
         self.a_mat.clear();
-        // FIXME: This should be an iterator
-        for idx in 0..self.x_vec.len() {
-            let value = self.b_vec.get_mut(idx, 0);
-            *value = Numeric::zero();
-        }
+        self.b_vec
+            .row_iter_mut()
+            .flat_map(|row| row.iter_mut())
+            .for_each(|val| *val = Numeric::zero());
         Ok(&self.x_vec)
     }
 
@@ -140,6 +138,7 @@ impl From<LuError> for SolverError {
     }
 }
 
+//Opens some Methods for Testing reasons
 #[cfg(test)]
 impl FaerSparseSolver {
     /// Returns the number of rows in the matrix `a_mat`.

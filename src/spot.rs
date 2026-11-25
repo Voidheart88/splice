@@ -38,3 +38,6 @@ pub(crate) const ADAPTIVE_TOLERANCE: Numeric = 1e-4;
 pub(crate) const ADAPTIVE_SAFETY_FACTOR: Numeric = 0.9;
 pub(crate) const ADAPTIVE_MAX_GROWTH_FACTOR: Numeric = 2.0;
 pub(crate) const ADAPTIVE_MIN_GROWTH_FACTOR: Numeric = 0.5;
+
+/// Default threshold for solver selection (number of variables)
+pub const SOLVER_SELECTION_THRESHOLD: usize = 50;

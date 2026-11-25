@@ -1,8 +1,5 @@
 #![allow(unused)]
 
-// TODO: Performance evaluation needed - this solver was previously the fastest
-// but performance degraded after refactoring. Requires profiling and optimization.
-
 use std::collections::HashMap;
 use std::hash::Hash;
 
@@ -16,7 +13,6 @@ use num::{Complex, Zero};
 use rsparse::data::{Nmrc, Sprs, Symb, Trpl};
 use rsparse::lusol;
 
-// TODO: Enhance documentation to match the comprehensive style of FaerSolver (faer.rs)
 /// A Solver implementation using the RSparse library.
 ///
 /// This solver provides sparse matrix support for efficient handling of large,
@@ -120,7 +116,6 @@ impl Solver for RSparseSolver {
         let mut symb = self.symb.take()
             .expect("Symbolic analysis data missing. This indicates the solver was not properly initialized.");
 
-        // TODO: Consider proper error handling instead of using expect()
         self.lu = rsparse::lu(&self.sprs, &mut symb, 1e-6).expect(
             "LU decomposition failed. This indicates a singular or ill-conditioned matrix.",
         );
@@ -207,17 +202,12 @@ impl RSparseSolver {
             return;
         }
 
-        let mut max_row = 0;
-        let mut max_col = 0;
-        // FIXME: This should be an iterator
-        for ((r, c), _) in self.cplx_a_mat.iter() {
-            if *r > max_row {
-                max_row = *r;
-            }
-            if *c > max_col {
-                max_col = *c;
-            }
-        }
+        let (max_row, max_col) = self
+            .cplx_a_mat
+            .iter()
+            .fold((0, 0), |(max_r, max_c), ((r, c), _)| {
+                (max_r.max(*r), max_c.max(*c))
+            });
 
         self.cplx_sprs.m = 2 * (max_row + 1);
         self.cplx_sprs.n = 2 * (max_col + 1);
@@ -230,7 +220,6 @@ impl RSparseSolver {
             entries.push((*row + self.vars, *col + self.vars, val.re));
         });
 
-        // TODO: Consider refactoring to reduce nesting complexity
         entries.sort_unstable_by(
             |(r1, c1, _), (r2, c2, _)| {
                 if c1 != c2 { c1.cmp(c2) } else { r1.cmp(r2) }
@@ -243,7 +232,6 @@ impl RSparseSolver {
         self.cplx_sprs.x.reserve(self.cplx_sprs.nzmax);
 
         let mut current_col = 0;
-        // FIXME: This should be an iterator
         for (idx, (row, col, val)) in entries.into_iter().enumerate() {
             while col > current_col {
                 self.cplx_sprs.p[current_col + 1] = idx as isize;
@@ -273,17 +261,12 @@ impl RSparseSolver {
             return;
         }
 
-        let mut max_row = 0;
-        let mut max_col = 0;
-        // FIXME: This should be an iterator
-        for ((r, c), _) in self.a_mat.iter() {
-            if *r > max_row {
-                max_row = *r;
-            }
-            if *c > max_col {
-                max_col = *c;
-            }
-        }
+        let (max_row, max_col) = self
+            .a_mat
+            .iter()
+            .fold((0, 0), |(max_r, max_c), ((r, c), _)| {
+                (max_r.max(*r), max_c.max(*c))
+            });
 
         self.sprs.m = max_row + 1;
         self.sprs.n = max_col + 1;
@@ -293,7 +276,6 @@ impl RSparseSolver {
             .iter()
             .for_each(|((row, col), val)| entries.push((*row, *col, *val)));
 
-        // TODO: Consider refactoring to reduce nesting complexity
         entries.sort_unstable_by(
             |(r1, c1, _), (r2, c2, _)| {
                 if c1 != c2 { c1.cmp(c2) } else { r1.cmp(r2) }
@@ -306,7 +288,6 @@ impl RSparseSolver {
         self.sprs.x.reserve(self.sprs.nzmax);
 
         let mut current_col = 0;
-        // FIXME: This should be an iterator
         for (idx, (row, col, val)) in entries.into_iter().enumerate() {
             while col > current_col {
                 self.sprs.p[current_col + 1] = idx as isize;
@@ -315,7 +296,6 @@ impl RSparseSolver {
             self.sprs.i.push(row);
             self.sprs.x.push(val);
         }
-        // FIXME: This should be an iterator
         while current_col < self.sprs.n {
             self.sprs.p[current_col + 1] = self.sprs.nzmax as isize;
             current_col += 1;
@@ -324,18 +304,18 @@ impl RSparseSolver {
 }
 
 fn ipvec(n: usize, p: &Option<Vec<isize>>, b: &[Numeric], x: &mut [Numeric]) {
-    // FIXME: This should be an iterator
-    for k in 0..n {
-        if p.is_some() {
-            x[p.as_ref().expect(
-                "Permutation vector missing in ipvec. This indicates a solver internal error.",
-            )[k] as usize] = b[k];
-        } else {
-            x[k] = b[k];
-        }
+    if let Some(pvec) = p.as_ref() {
+        b.iter().take(n).enumerate().for_each(|(k, &val)| {
+            x[pvec[k] as usize] = val;
+        });
+    } else {
+        x.iter_mut().zip(b.iter()).take(n).for_each(|(dest, &src)| {
+            *dest = src;
+        });
     }
 }
 
+//Opens some Methods for Testing reasons
 #[cfg(test)]
 impl RSparseSolver {
     /// Returns the length of the vector `b_vec`.
@@ -391,28 +371,32 @@ impl RSparseSolver {
         let x = triple.x;
 
         let mut matrix = vec![vec![0.0; n]; m];
-        // FIXME: This should be an iterator
-        for k in 0..x.len() {
-            let row = i[k];
-            let col = p[k];
-            if row < m && col < n as isize {
-                matrix[row][col as usize] = x[k];
-            } else {
-                warn!("Warning: Index out of bounds detected for element at index {k}. Skipping.",);
-            }
-        }
+        i.iter()
+            .zip(p.iter())
+            .zip(x.iter())
+            .enumerate()
+            .for_each(|(k, ((&row, &col), &val))| {
+                if row < m && col < n as isize {
+                    matrix[row][col as usize] = val;
+                } else {
+                    warn!("Warning: Index out of bounds detected for element at index {k}. Skipping.",);
+                }
+            });
 
         // Print the matrix in a formatted way.
-        // FIXME: This should be an iterator
-        for (row, _) in matrix.iter().enumerate().take(m) {
+        matrix.iter().take(m).for_each(|row_data| {
             print!("[");
-            for col in 0..n {
-                print!("{:>8.2}", matrix[row][col]); // Format to 2 decimal places, right-aligned, 8 chars wide
-                if col < n - 1 {
-                    print!(", ");
-                }
-            }
+            row_data
+                .iter()
+                .take(n)
+                .enumerate()
+                .for_each(|(col, val)| {
+                    print!("{:>8.2}", val);
+                    if col < n - 1 {
+                        print!(", ");
+                    }
+                });
             println!("]");
-        }
+        });
     }
 }

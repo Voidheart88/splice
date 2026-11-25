@@ -70,31 +70,26 @@ impl ResistorBundle {
         let node0_idx = self.node0_idx();
         let node1_idx = self.node1_idx();
 
-        // Handle different connection cases using pattern matching
-        // FIXME: This nests too deep
-        match (node0_idx, node1_idx) {
-            (None, Some(node1_idx)) => {
-                // Resistor connected to ground through node1
-                Triples::new(&[(node1_idx, node1_idx, conductance)])
-            }
-            (Some(node0_idx), None) => {
-                // Resistor connected to ground through node0
-                Triples::new(&[(node0_idx, node0_idx, conductance)])
-            }
-            (Some(node0_idx), Some(node1_idx)) => {
-                // Resistor connected between two nodes
-                Triples::new(&[
-                    (node0_idx, node0_idx, conductance),
-                    (node1_idx, node1_idx, conductance),
-                    (node0_idx, node1_idx, -conductance),
-                    (node1_idx, node0_idx, -conductance),
-                ])
-            }
-            (None, None) => {
-                // This should not happen as resistors must have at least one connection
-                Triples::new(&[])
-            }
+        // Handle different connection cases using early returns
+        if let (None, Some(node1_idx)) = (node0_idx, node1_idx) {
+            // Resistor connected to ground through node1
+            return Triples::new(&[(node1_idx, node1_idx, conductance)]);
         }
+        if let (Some(node0_idx), None) = (node0_idx, node1_idx) {
+            // Resistor connected to ground through node0
+            return Triples::new(&[(node0_idx, node0_idx, conductance)]);
+        }
+        if let (Some(node0_idx), Some(node1_idx)) = (node0_idx, node1_idx) {
+            // Resistor connected between two nodes
+            return Triples::new(&[
+                (node0_idx, node0_idx, conductance),
+                (node1_idx, node1_idx, conductance),
+                (node0_idx, node1_idx, -conductance),
+                (node1_idx, node0_idx, -conductance),
+            ]);
+        }
+        // This should not happen as resistors must have at least one connection
+        Triples::new(&[])
     }
 
     /// Returns the triples indices.

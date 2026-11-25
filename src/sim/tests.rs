@@ -1,5 +1,3 @@
-// TODO: Consider refactoring tests into separate modules organized by functionality
-
 use std::sync::Arc;
 
 use crate::frontends::Simulation;
@@ -13,7 +11,6 @@ use crate::sim::simulation_result::Sim;
 use crate::solver::{FaerSolver, NalgebraSolver, RSparseSolver};
 use crate::spot::*;
 
-// TODO: Refactor init_sim_x tests to use helper functions and reduce code duplication
 #[test]
 fn init_sim_rsparse() {
     let commands = vec![SimulationCommand::Op];
@@ -55,9 +52,9 @@ fn init_sim_rsparse() {
 
     let result = match result.results[0].clone() {
         Sim::Op(items) => items,
-        Sim::Dc(_) => todo!(),
-        Sim::Ac(_) => todo!(),
-        Sim::Tran(_) => todo!(),
+        Sim::Dc(_) => unreachable!("init_sim tests only run OP commands, should not get DC result"),
+        Sim::Ac(_) => unreachable!("init_sim tests only run OP commands, should not get AC result"),
+        Sim::Tran(_) => unreachable!("init_sim tests only run OP commands, should not get Tran result"),
     };
 
     let branch_curr = result[0].clone();
@@ -109,9 +106,9 @@ fn init_sim_faer() {
 
     let result = match result.results[0].clone() {
         Sim::Op(items) => items,
-        Sim::Dc(_) => todo!(),
-        Sim::Ac(_) => todo!(),
-        Sim::Tran(_) => todo!(),
+        Sim::Dc(_) => unreachable!("init_sim tests only run OP commands, should not get DC result"),
+        Sim::Ac(_) => unreachable!("init_sim tests only run OP commands, should not get AC result"),
+        Sim::Tran(_) => unreachable!("init_sim tests only run OP commands, should not get Tran result"),
     };
 
     let branch_curr = result[0].clone();
@@ -163,9 +160,9 @@ fn init_sim_nalgebra() {
 
     let result = match result.results[0].clone() {
         Sim::Op(items) => items,
-        Sim::Dc(_) => todo!(),
-        Sim::Ac(_) => todo!(),
-        Sim::Tran(_) => todo!(),
+        Sim::Dc(_) => unreachable!("init_sim tests only run OP commands, should not get DC result"),
+        Sim::Ac(_) => unreachable!("init_sim tests only run OP commands, should not get AC result"),
+        Sim::Tran(_) => unreachable!("init_sim tests only run OP commands, should not get Tran result"),
     };
 
     let branch_curr = result[0].clone();
@@ -176,7 +173,6 @@ fn init_sim_nalgebra() {
     assert_eq!(node_vol, node_vol_exp);
 }
 
-// TODO: Enhance test with specific assertions to catch potential errors
 #[test]
 fn run_sim_tran() {
     // Tests the transient simulation with a constant voltage source.
@@ -223,7 +219,7 @@ fn run_sim_tran() {
 
     let result = match result.results[0].clone() {
         Sim::Tran(res) => res,
-        _ => todo!(),
+        _ => unreachable!("run_sim_tran only runs Tran commands, should not get other result type"),
     };
 
     for res in result {
@@ -395,10 +391,8 @@ fn test_vsource_sin_tran() {
         (1.0, 10.0),
     ];
 
-    // FIXME: should be an iter
     for (expected_time, expected_voltage) in test_points {
         // Find the result closest to the expected time
-        // TODO: Consider refactoring to reduce nesting complexity
         if let Some(&(time, ref values)) = tran_results
             .iter()
             .min_by_key(|(t, _)| ((*t - expected_time).abs() * 1000.0) as i32)
@@ -555,7 +549,6 @@ fn test_rc_sinusoidal_tran() {
         let mut input_voltage = 0.0;
         let mut output_voltage = 0.0;
         let mut current = 0.0;
-        // FIXME: This should be an iterator
         for (var, val) in values {
             if var.name() == Arc::from("1") {
                 input_voltage = *val;
@@ -774,7 +767,6 @@ fn test_ac_rc_cutoff_frequency() {
     let mut prev_mag = 0.0;
     let mut found_cutoff = false;
     
-    // FIXME: This should be an iterator
     for (freq, values) in ac_results {
         // Find V2 (node 2) - should be the second variable after branch
         let v2_real = values[2].1.re; // node_2 is index 2 (branch=0, node1=1, node2=2)
@@ -867,7 +859,6 @@ fn test_dc_linear_resistor() {
 
     // Verify linearity: I = V/R
     // Resistance is 1kΩ, so I (in A) = V (in V) / 1000
-    // FIXME: This should be an iterator
     for step_data in dc_results {
         // Find voltage and current values
         let mut voltage = 0.0;
@@ -965,7 +956,6 @@ fn test_dc_resistor_divider() {
     };
 
     // Verify voltage division: V2 = V1 * R2/(R1+R2) = V1 * 0.5
-    // FIXME: This should be an iterator
     for step_data in dc_results {
         let mut v1 = 0.0;
         let mut v2 = 0.0;
@@ -1049,7 +1039,6 @@ fn test_rc_step_response() {
     // First, run OP analysis to see initial conditions
     let op_result = simulator.find_op().unwrap();
     println!("OP Analysis Results:");
-    // FIXME: This should be an iterator
     for (var, value) in &op_result {
         println!("  {}: {}V", var.name(), value);
     }
@@ -1067,7 +1056,6 @@ fn test_rc_step_response() {
 
     // Print time series for debugging
     println!("\nTime series (first 10 and last 5 points):");
-    // FIXME: This should be an iterator
     for (i, (time, values)) in tran_results.iter().enumerate() {
         if i < 10 || i >= tran_results.len() - 5 {
             let output = values
@@ -1160,3 +1148,45 @@ fn test_adaptive_timestep_clamping() {
     assert!(ADAPTIVE_SAFETY_FACTOR < 1.0);
     assert!(ADAPTIVE_SAFETY_FACTOR > 0.5);
 }
+
+#[cfg(test)]
+mod options_tests {
+    use super::*;
+    use crate::sim::{IntegrationMethodEnum, SimulationOption};
+
+    #[test]
+    fn test_serialize_out() {
+        let opt = SimulationOption::Out(vec![Arc::from("v1"), Arc::from("v2")]);
+        let json = serde_json::to_string(&opt).unwrap();
+        assert_eq!(json, r#"{"type":"out","variables":["v1","v2"]}"#);
+    }
+
+    #[test]
+    fn test_serialize_integration_method() {
+        let opt = SimulationOption::IntegrationMethod(IntegrationMethodEnum::BackwardEuler);
+        let json = serde_json::to_string(&opt).unwrap();
+        assert_eq!(json, r#"{"type":"integration","method":"be"}"#);
+
+        let opt_gear = SimulationOption::IntegrationMethod(IntegrationMethodEnum::GearBdf { order: 2 });
+        let json_gear = serde_json::to_string(&opt_gear).unwrap();
+        assert_eq!(json_gear, r#"{"type":"integration","method":{"gear":{"order":2}}}"#);
+    }
+
+    #[test]
+    fn test_integration_method_to_object() {
+        let be = IntegrationMethodEnum::BackwardEuler;
+        let method = be.to_integration_method(1e-6);
+        assert_eq!(method.name(), "Backward Euler");
+        assert!(!method.is_multistep());
+    }
+
+    #[test]
+    fn test_bdf_integration_method_to_object() {
+        let bdf = IntegrationMethodEnum::GearBdf { order: 2 };
+        let method = bdf.to_integration_method(1e-6);
+        assert_eq!(method.name(), "BDF2");
+        assert!(method.is_multistep());
+    }
+}
+
+

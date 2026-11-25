@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
 use full_palette::{LIGHTBLUE, RED_500};
 use plotters::style::full_palette::GREEN_500;
@@ -100,24 +101,21 @@ impl PlotBackend {
         root.fill(&BLACK)?;
 
         // Collect the variable names specified in the options.
-        let mut filtered_headers = HashSet::new();
-        // FIXME: This could be an iterator
+        let mut filtered_headers: HashSet<Arc<str>> = HashSet::new();
         for option in options {
             if let SimulationOption::Out(vars) = option {
                 for var in vars {
-                    filtered_headers.insert(var);
+                    filtered_headers.insert(var.clone());
                 }
             }
         }
 
         // If no filtering is specified, use all headers.
         if filtered_headers.is_empty() {
-            // FIXME: This should be an iterator
-            for step_data in data {
-                for (var, _) in step_data {
-                    filtered_headers.insert(var.name());
-                }
-            }
+            filtered_headers.extend(
+                data.iter()
+                    .flat_map(|step_data| step_data.iter().map(|(var, _)| var.name())),
+            );
         }
 
         let filtered_data: Vec<Vec<(Variable, Numeric)>> = data
@@ -172,26 +170,20 @@ impl PlotBackend {
             .light_line_style(GREY_800)
             .draw()?;
 
-        // Create a series containing both voltage and current data
-        let mut series: Vec<Vec<Numeric>> = Vec::new();
-        let mut units: Vec<Unit> = Vec::new();
         let var_count = filtered_data[0].len();
-        // FIXME: This should be an iterator
-        for _ in 0..var_count {
-            series.push(Vec::new());
-        }
-        // FIXME: This should be an iterator
-        for var in 0..var_count {
-            units.push(filtered_data[0][var].0.unit())
-        }
-        // FIXME: This should be an iterator
-        for var in 0..var_count {
-            for step_data in filtered_data.iter() {
-                series[var].push(step_data[var].1);
+        // Create a series containing both voltage and current data
+        let mut series: Vec<Vec<Numeric>> = Vec::with_capacity(var_count);
+        let mut units: Vec<Unit> = Vec::with_capacity(var_count);
+        
+        series.extend((0..var_count).map(|_| Vec::new()));
+        units.extend(filtered_data[0].iter().map(|(var, _)| var.unit()));
+        
+        for step_data in filtered_data.iter() {
+            for var_idx in 0..var_count {
+                series[var_idx].push(step_data[var_idx].1);
             }
         }
 
-        // FIXME: This should be an iterator and this nests too deep
         for (idx, var) in series.iter().enumerate() {
             match units[idx] {
                 Unit::Volt => {
@@ -311,11 +303,9 @@ impl PlotBackend {
             .light_line_style(GREY_800)
             .draw()?;
 
-        let var_count = data[0].1.len();
-        // FIXME: This should be an iterator
-        for var_idx in 0..var_count {
-            let var_name = data[0].1[var_idx].0.name().to_string();
-            let unit = data[0].1[var_idx].0.unit();
+        for (var_idx, (var, _)) in data[0].1.iter().enumerate() {
+            let var_name = var.name().to_string();
+            let unit = var.unit();
 
             let points: Vec<(Numeric, Numeric)> = data
                 .iter()
@@ -370,7 +360,6 @@ impl PlotBackend {
         let root = SVGBackend::new(&path, (1440, 900)).into_drawing_area();
         root.fill(&BLACK)?;
         
-        // FIXME: This nests too deep
         let (max_gain, min_gain, max_phase, min_phase) = data
             .iter()
             .flat_map(|(_, vec)| vec.iter())
@@ -456,31 +445,25 @@ impl PlotBackend {
             .light_line_style(GREY_800)
             .draw()?;
 
-        // Create a series containing both gain and phase data
-        let mut series_gain: Vec<Vec<Numeric>> = Vec::new();
-        let mut series_phase: Vec<Vec<Numeric>> = Vec::new();
-        let mut units: Vec<Unit> = Vec::new();
         let var_count = data[0].1.len();
-        // FIXME: This should be an iterator
-        for _ in 0..var_count {
-            series_gain.push(Vec::new());
-            series_phase.push(Vec::new());
-        }
-        // FIXME: This should be an iterator
-        for var in 0..var_count {
-            units.push(data[0].1[var].0.unit())
-        }
-        // FIXME: This should be an iterator
-        for var in 0..var_count {
-            for (_, step_data) in data.iter() {
-                let gain = 20.0 * step_data[var].1.norm().log10();
-                let phase = step_data[var].1.arg().to_degrees();
-                series_gain[var].push(gain);
-                series_phase[var].push(phase);
+        // Create a series containing both gain and phase data
+        let mut series_gain: Vec<Vec<Numeric>> = Vec::with_capacity(var_count);
+        let mut series_phase: Vec<Vec<Numeric>> = Vec::with_capacity(var_count);
+        let mut units: Vec<Unit> = Vec::with_capacity(var_count);
+        
+        series_gain.extend((0..var_count).map(|_| Vec::new()));
+        series_phase.extend((0..var_count).map(|_| Vec::new()));
+        units.extend(data[0].1.iter().map(|(var, _)| var.unit()));
+        
+        for (_, step_data) in data.iter() {
+            for var_idx in 0..var_count {
+                let gain = 20.0 * step_data[var_idx].1.norm().log10();
+                let phase = step_data[var_idx].1.arg().to_degrees();
+                series_gain[var_idx].push(gain);
+                series_phase[var_idx].push(phase);
             }
         }
 
-        // FIXME: This should be an iterator and this nests too deep
         for (idx, var) in series_gain.iter().enumerate() {
             match units[idx] {
                 Unit::Volt => {
@@ -513,7 +496,6 @@ impl PlotBackend {
             };
         }
 
-        // FIXME: This should be an iterator
         for (idx, var) in series_phase.iter().enumerate() {
             match units[idx] {
                 Unit::Volt => {

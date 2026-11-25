@@ -164,7 +164,6 @@ pub fn run() -> Result<()> {
         Backends::Network => {
             // Network backend requires accepting connection from frontend
             // Current implementation uses a temporary listener on port 8081
-            // TODO: Refactor to pass stream directly from frontend in production
             let listener = std::net::TcpListener::bind("0.0.0.0:8081")
                 .map_err(|e| BackendError::IoError(e.to_string()))?;
             let (stream, _) = listener

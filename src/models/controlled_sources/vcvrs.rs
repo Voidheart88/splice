@@ -151,83 +151,11 @@ impl ProcessSpiceElement for VCVSBundle {
         var_map: &mut std::collections::HashMap<Arc<str>, usize>,
     ) -> Result<(), FrontendError> {
         // Delegate to the module-level function
-        super::spice::process_vcvs(element, variables, elements, var_map)
-    }
-}
-
-// FIXME: This should be in the test folder
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::models::Unit;
-    use std::sync::Arc;
-
-    fn create_var(name: &str, idx: usize) -> Variable {
-        Variable::new(Arc::from(name), Unit::Volt, idx)
-    }
-
-    #[test]
-    fn test_vcvs_creation() {
-        let vcvs = VCVSBundle::new(Arc::from("E1"), None, None, None, None, None);
-        assert_eq!(vcvs.name(), Arc::from("E1"));
-        assert_eq!(vcvs.options.gain, 1.0);
-    }
-
-    #[test]
-    fn test_vcvs_with_options() {
-        let options = VCVSOptions { gain: 10.0 };
-        let vcvs = VCVSBundle::new(Arc::from("E1"), None, None, None, None, Some(options));
-        assert_eq!(vcvs.options.gain, 10.0);
-    }
-
-    #[test]
-    fn test_vcvs_triples() {
-        let v1 = create_var("1", 0);
-        let v2 = create_var("2", 1);
-        let v3 = create_var("3", 2);
-        let v4 = create_var("4", 3);
-
-        let vcvs = VCVSBundle::new(
-            Arc::from("E1"),
-            Some(v3.clone()),
-            Some(v4.clone()),
-            Some(v1.clone()),
-            Some(v2.clone()),
-            Some(VCVSOptions { gain: 2.0 }),
-        );
-
-        let triples = vcvs.triples();
-        assert_eq!(triples.len(), 4);
-
-        // Check specific triple values
-        let data = triples.data();
-        assert_eq!(data[0], (2, 0, 2.0)); // pos-ctrl_pos with gain
-        assert_eq!(data[1], (2, 1, -2.0)); // pos-ctrl_neg with -gain
-        assert_eq!(data[2], (3, 0, -2.0)); // neg-ctrl_pos with -gain
-        assert_eq!(data[3], (3, 1, 2.0)); // neg-ctrl_neg with gain
-    }
-
-    #[test]
-    fn test_vcvs_triple_indices() {
-        let v1 = create_var("1", 0);
-        let v2 = create_var("2", 1);
-        let v3 = create_var("3", 2);
-        let v4 = create_var("4", 3);
-
-        let vcvs = VCVSBundle::new(
-            Arc::from("E1"),
-            Some(v3.clone()),
-            Some(v4.clone()),
-            Some(v1.clone()),
-            Some(v2.clone()),
-            None,
-        );
-
-        let indices = vcvs.triple_idx().unwrap();
-        let data = indices.data();
-        assert_eq!(data[0], (2, 0));
-        assert_eq!(data[1], (2, 1));
-        assert_eq!(data[2], (3, 0));
-        assert_eq!(data[3], (3, 1));
+        crate::models::controlled_sources::spice::process_vcvs(
+            element,
+            variables,
+            elements,
+            var_map,
+        )
     }
 }

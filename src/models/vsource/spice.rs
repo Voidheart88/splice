@@ -25,8 +25,9 @@ impl ProcessSpiceElement for VSourceBundle {
 
         // Parse optional AC value using the helper's remaining values
         let remaining = parser.parse_remaining_values();
-        // FIXME: This nests too deep
-        let ac_value = if !remaining.is_empty() {
+        let ac_value = if remaining.is_empty() {
+            None
+        } else {
             let ac_val_str = remaining[0].split(" ").nth(1).ok_or_else(|| {
                 FrontendError::ParseError(format!("Missing AC value in voltage source: {}", name))
             })?;
@@ -37,8 +38,6 @@ impl ProcessSpiceElement for VSourceBundle {
                 ))
             })?;
             Some(ac_val)
-        } else {
-            None
         };
 
         // Create branch variable

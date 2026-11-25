@@ -68,32 +68,3 @@ impl NetworkFrontend {
         self.port
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use crate::frontends::serde::{SerdeDC, SerdeSimulation};
-    use crate::sim::commands::SimulationCommand;
-
-    #[test]
-    fn test_convert_simulation_command_op() {
-        assert_eq!(
-            SimulationCommand::from(SerdeSimulation::OP),
-            SimulationCommand::Op
-        );
-    }
-
-    #[test]
-    fn test_convert_simulation_command_dc() {
-        let dc = SerdeDC::new("V1".to_string(), 0.0, 5.0, 1.0);
-        if let SimulationCommand::Dc(src, start, stop, step, _) =
-            SimulationCommand::from(SerdeSimulation::DC(dc))
-        {
-            assert_eq!(src.as_ref(), "V1");
-            assert_eq!(start, 0.0);
-            assert_eq!(stop, 5.0);
-            assert_eq!(step, 1.0);
-        } else {
-            panic!("Expected DC command");
-        }
-    }
-}

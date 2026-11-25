@@ -75,12 +75,10 @@ pub struct Simulator<SO: Solver> {
 impl<SO: Solver> Simulator<SO> {
     /// Returns the integration method to use for transient simulation
     /// Defaults to BackwardEuler for stability
-    // FIXME: could be an iter
     fn get_integration_method(&self) -> IntegrationMethodEnum {
         self.options
             .iter()
             .find_map(|opt| {
-                // TODO: Consider refactoring to reduce nesting complexity
                 if let SimulationOption::IntegrationMethod(method) = opt {
                     Some(method.clone())
                 } else {
@@ -99,7 +97,6 @@ impl<SO: Solver> Simulator<SO> {
             options: self.options.clone(),
             ..Default::default()
         };
-        // FIXME: could be an iter
         for com in commands {
             let error = self.execute_command(&com);
             match error {
@@ -179,7 +176,6 @@ impl<SO: Solver> Simulator<SO> {
         let guesser = crate::guesser::new_guesser(self.guesser_options.clone());
         let mut x = guesser.guess(self)?;
 
-        // FIXME: could be an iter
         for _ in 0..MAXITER {
             self.solver.reset();
             self.build_constant_a_mat();
@@ -279,10 +275,8 @@ impl<SO: Solver> Simulator<SO> {
         let len = self.vars.len();
         let mut acc = vec![0.0; len];
 
-        // FIXME: could be an iter
-        for element in &self.elements {
+        self.elements.iter().for_each(|element| {
             let mut local_guess = vec![0.0; len];
-            // TODO: Consider refactoring to reduce nesting complexity
             match element {
                 Element::VSource(vsource) => {
                     let value = vsource.value();
@@ -312,10 +306,11 @@ impl<SO: Solver> Simulator<SO> {
                 _ => {}
             }
 
-            for (i, &val) in local_guess.iter().enumerate() {
-                acc[i] += val;
-            }
-        }
+            local_guess
+                .iter()
+                .enumerate()
+                .for_each(|(i, &val)| acc[i] += val);
+        });
 
         acc
     }
@@ -369,9 +364,7 @@ impl<SO: Solver> Simulator<SO> {
 
     /// Updates capacitor voltages after each time step for proper transient simulation
     /// This is crucial for correct integration of capacitor behavior
-    // TODO: Check if this can be part of the inductor and capacitor elements
     fn update_capacitor_voltages(&mut self, x_vec: &[Numeric]) {
-        // TODO: Consider refactoring to reduce nesting complexity
         for element in &mut self.elements {
             if let Element::Capacitor(cap) = element {
                 // Calculate voltage across capacitor: V = V(node0) - V(node1)
@@ -395,12 +388,10 @@ impl<SO: Solver> Simulator<SO> {
     }
 
     /// This is crucial for correct integration of inductor behavior
-    // CHECK: Check if this can be part of the inductor and capacitor elements themselves
     fn update_inductor_currents(&mut self, x_vec: &[Numeric], delta_t: &Numeric) {
         // First, collect all inductor currents
         let mut inductor_currents: HashMap<Arc<str>, Numeric> = HashMap::new();
 
-        // TODO: Consider refactoring to reduce nesting complexity
         for element in &self.elements {
             if let Element::Inductor(ind) = element {
                 // Calculate current through inductor using the equivalent conductance
@@ -436,7 +427,6 @@ impl<SO: Solver> Simulator<SO> {
         }
 
         // Update inductor currents
-        // TODO: Consider refactoring to reduce nesting complexity
         for element in &mut self.elements {
             if let Element::Inductor(ind) = element
                 && let Some(&current) = inductor_currents.get(&ind.name)
@@ -446,7 +436,6 @@ impl<SO: Solver> Simulator<SO> {
         }
 
         // Update coupled inductor currents
-        // TODO: Consider refactoring to reduce nesting complexity
         for element in &mut self.elements {
             if let Element::CoupledInductors(coupled) = element {
                 let inductor1_name = coupled.inductor1();

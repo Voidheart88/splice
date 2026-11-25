@@ -506,6 +506,4 @@ fn has_valid_connections(node0_idx: Option<usize>, node1_idx: Option<usize>) -> 
 }
 
 #[cfg(test)]
-mod tests {
-    pub mod integration_tests;
-}
+mod tests;

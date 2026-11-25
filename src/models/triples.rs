@@ -133,6 +133,7 @@ impl<const N: usize> TripleIdx<N> {
 }
 
 #[cfg(test)]
+//Some Methods solely for Testing  
 impl<T, const N: usize> Triples<T, N> {
     pub fn len(&self) -> usize {
         self.length
@@ -143,6 +144,7 @@ impl<T, const N: usize> Triples<T, N> {
 }
 
 #[cfg(test)]
+//Some Methods solely for Testing  
 impl<const N: usize> TripleIdx<N> {
     pub fn len(&self) -> usize {
         self.length

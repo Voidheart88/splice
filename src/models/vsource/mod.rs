@@ -85,37 +85,32 @@ impl VSourceBundle {
         let node0_idx = self.node0_idx();
         let node1_idx = self.node1_idx();
 
-        // FIXME: Nests too deep
-        // Handle different connection cases using pattern matching
-        match (node0_idx, node1_idx) {
-            (None, Some(node1_idx)) => {
-                // Voltage source connected to ground through node1
-                Triples::new(&[
-                    (branch_idx, node1_idx, Numeric::one()),
-                    (node1_idx, branch_idx, Numeric::one()),
-                ])
-            }
-            (Some(node0_idx), None) => {
-                // Voltage source connected to ground through node0
-                Triples::new(&[
-                    (branch_idx, node0_idx, -Numeric::one()),
-                    (node0_idx, branch_idx, -Numeric::one()),
-                ])
-            }
-            (Some(node0_idx), Some(node1_idx)) => {
-                // Voltage source connected between two nodes
-                Triples::new(&[
-                    (branch_idx, node0_idx, Numeric::one()),
-                    (node0_idx, branch_idx, Numeric::one()),
-                    (branch_idx, node1_idx, -Numeric::one()),
-                    (node1_idx, branch_idx, -Numeric::one()),
-                ])
-            }
-            (None, None) => {
-                // This should not happen as voltage sources must have at least one connection
-                Triples::new(&[])
-            }
+        // Handle different connection cases using early returns
+        if let (None, Some(node1_idx)) = (node0_idx, node1_idx) {
+            // Voltage source connected to ground through node1
+            return Triples::new(&[
+                (branch_idx, node1_idx, Numeric::one()),
+                (node1_idx, branch_idx, Numeric::one()),
+            ]);
         }
+        if let (Some(node0_idx), None) = (node0_idx, node1_idx) {
+            // Voltage source connected to ground through node0
+            return Triples::new(&[
+                (branch_idx, node0_idx, -Numeric::one()),
+                (node0_idx, branch_idx, -Numeric::one()),
+            ]);
+        }
+        if let (Some(node0_idx), Some(node1_idx)) = (node0_idx, node1_idx) {
+            // Voltage source connected between two nodes
+            return Triples::new(&[
+                (branch_idx, node0_idx, Numeric::one()),
+                (node0_idx, branch_idx, Numeric::one()),
+                (branch_idx, node1_idx, -Numeric::one()),
+                (node1_idx, branch_idx, -Numeric::one()),
+            ]);
+        }
+        // This should not happen as voltage sources must have at least one connection
+        Triples::new(&[])
     }
 
     /// Returns the triples indices.
@@ -147,37 +142,32 @@ impl VSourceBundle {
             im: Numeric::zero(),
         };
 
-        // Handle different connection cases using pattern matching
-        // FIXME: This nests too deep
-        match (node0_idx, node1_idx) {
-            (None, Some(node1_idx)) => {
-                // Voltage source connected to ground through node1
-                Triples::new(&[
-                    (branch_idx, node1_idx, one_complex),
-                    (node1_idx, branch_idx, one_complex),
-                ])
-            }
-            (Some(node0_idx), None) => {
-                // Voltage source connected to ground through node0
-                Triples::new(&[
-                    (branch_idx, node0_idx, minus_one_complex),
-                    (node0_idx, branch_idx, minus_one_complex),
-                ])
-            }
-            (Some(node0_idx), Some(node1_idx)) => {
-                // Voltage source connected between two nodes
-                Triples::new(&[
-                    (branch_idx, node0_idx, one_complex),
-                    (node0_idx, branch_idx, one_complex),
-                    (branch_idx, node1_idx, minus_one_complex),
-                    (node1_idx, branch_idx, minus_one_complex),
-                ])
-            }
-            (None, None) => {
-                // This should not happen as voltage sources must have at least one connection
-                Triples::new(&[])
-            }
+        // Handle different connection cases using early returns
+        if let (None, Some(node1_idx)) = (node0_idx, node1_idx) {
+            // Voltage source connected to ground through node1
+            return Triples::new(&[
+                (branch_idx, node1_idx, one_complex),
+                (node1_idx, branch_idx, one_complex),
+            ]);
         }
+        if let (Some(node0_idx), None) = (node0_idx, node1_idx) {
+            // Voltage source connected to ground through node0
+            return Triples::new(&[
+                (branch_idx, node0_idx, minus_one_complex),
+                (node0_idx, branch_idx, minus_one_complex),
+            ]);
+        }
+        if let (Some(node0_idx), Some(node1_idx)) = (node0_idx, node1_idx) {
+            // Voltage source connected between two nodes
+            return Triples::new(&[
+                (branch_idx, node0_idx, one_complex),
+                (node0_idx, branch_idx, one_complex),
+                (branch_idx, node1_idx, minus_one_complex),
+                (node1_idx, branch_idx, minus_one_complex),
+            ]);
+        }
+        // This should not happen as voltage sources must have at least one connection
+        Triples::new(&[])
     }
 
     /// Returns a reference to the pair representing vector b.

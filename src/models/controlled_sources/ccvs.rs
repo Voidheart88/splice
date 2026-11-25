@@ -1,5 +1,4 @@
 // Current-Controlled Voltage Source (CCVS) - H source
-// TODO: Complete full implementation with proper current-to-voltage control behavior
 
 use crate::frontends::spice::{ProcessSpiceElement, Rule};
 use crate::models::{TripleIdx, Triples, Variable};
@@ -74,20 +73,11 @@ impl ProcessSpiceElement for CCVSBundle {
         var_map: &mut std::collections::HashMap<Arc<str>, usize>,
     ) -> Result<(), FrontendError> {
         // Delegate to the module-level function
-        // FIXME: use an import
-        super::spice::process_ccvs(element, variables, elements, var_map)
-    }
-}
-
-// FIXME: This should be in the test folder
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::sync::Arc;
-
-    #[test]
-    fn test_ccvs_creation() {
-        let ccvs = CCVSBundle::new(Arc::from("H1"), None, None, None, None);
-        assert_eq!(ccvs.name(), Arc::from("H1"));
+        crate::models::controlled_sources::spice::process_ccvs(
+            element,
+            variables,
+            elements,
+            var_map,
+        )
     }
 }

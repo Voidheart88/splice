@@ -1,5 +1,4 @@
 // Current-Controlled Current Source (CCCS) - F source
-// TODO: Complete full implementation with proper current control behavior
 
 use crate::frontends::spice::{ProcessSpiceElement, Rule};
 use crate::models::{TripleIdx, Triples, Variable};
@@ -74,20 +73,11 @@ impl ProcessSpiceElement for CCCSBundle {
         var_map: &mut std::collections::HashMap<Arc<str>, usize>,
     ) -> Result<(), FrontendError> {
         // Delegate to the module-level function
-        // FIXME: use an import
-        super::spice::process_cccs(element, variables, elements, var_map)
-    }
-}
-
-// FIXME: This should be in the test folder
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::sync::Arc;
-
-    #[test]
-    fn test_cccs_creation() {
-        let cccs = CCCSBundle::new(Arc::from("F1"), None, None, None, None);
-        assert_eq!(cccs.name(), Arc::from("F1"));
+        crate::models::controlled_sources::spice::process_cccs(
+            element,
+            variables,
+            elements,
+            var_map,
+        )
     }
 }

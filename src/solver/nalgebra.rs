@@ -5,10 +5,7 @@ use crate::spot::{ComplexNumeric, Numeric}; // Ensure these are correctly import
 use na::LU;
 
 use nalgebra as na;
-#[cfg(test)]
-use nalgebra::DMatrix;
 
-// TODO: Enhance documentation to match the comprehensive style of FaerSolver (faer.rs)
 /// A Solver implementation using the Nalgebra library.
 ///
 /// This solver provides a robust linear algebra backend using the Nalgebra crate,
@@ -126,7 +123,7 @@ impl std::fmt::Debug for NalgebraSolver {
         } else {
             writeln!(
                 f,
-                "  a_mat: {}×{} (output truncated)", // TODO: Consider using English consistently throughout codebase
+                "  a_mat: {}×{} (output truncated)",
                 self.a_mat.nrows(),
                 self.a_mat.ncols()
             )?;
@@ -137,7 +134,7 @@ impl std::fmt::Debug for NalgebraSolver {
         } else {
             writeln!(
                 f,
-                "  b_vec: {} entries (output truncated)", // TODO: Consider using English consistently throughout codebase
+                "  b_vec: {} entries (output truncated)",
                 self.b_vec.len()
             )?;
         }
@@ -147,7 +144,7 @@ impl std::fmt::Debug for NalgebraSolver {
         } else {
             writeln!(
                 f,
-                "  cplx_a_mat: {}×{} (output truncated)", // TODO: Consider using English consistently throughout codebase
+                "  cplx_a_mat: {}×{} (output truncated)",
                 self.cplx_a_mat.nrows(),
                 self.cplx_a_mat.ncols()
             )?;
@@ -158,7 +155,7 @@ impl std::fmt::Debug for NalgebraSolver {
         } else {
             writeln!(
                 f,
-                "  cplx_b_vec: {} entries (output truncated)", // TODO: Consider using English consistently throughout codebase
+                "  cplx_b_vec: {} entries (output truncated)",
                 self.cplx_b_vec.len()
             )?;
         }
@@ -167,6 +164,7 @@ impl std::fmt::Debug for NalgebraSolver {
     }
 }
 
+//Opens some Methods for Testing reasons
 #[cfg(test)]
 impl NalgebraSolver {
     pub fn rows(&self) -> usize {
@@ -185,3 +183,6 @@ impl NalgebraSolver {
         &self.a_mat
     }
 }
+
+#[cfg(test)]
+use nalgebra::DMatrix;

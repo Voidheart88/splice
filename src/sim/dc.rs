@@ -51,13 +51,8 @@ impl<SO: Solver> DcSimulation<SO> for Simulator<SO> {
         let mut voltage = *vstart;
 
         // DC sweep voltage loop
-        // TODO: Consider refactoring to reduce nesting complexity
         while voltage <= *vstop {
-            {
-                let source = match &mut self.elements[vsource1_idx] {
-                    Element::VSource(vs) => vs,
-                    _ => unreachable!(),
-                };
+            if let Element::VSource(source) = &mut self.elements[vsource1_idx] {
                 source.set_voltage(voltage);
             }
             dc_results.push(self.find_op()?);
@@ -65,12 +60,7 @@ impl<SO: Solver> DcSimulation<SO> for Simulator<SO> {
         }
 
         // Reset source voltage after sweep
-        // TODO: Consider refactoring to reduce nesting complexity
-        {
-            let source = match &mut self.elements[vsource1_idx] {
-                Element::VSource(vs) => vs,
-                _ => unreachable!(),
-            };
+        if let Element::VSource(source) = &mut self.elements[vsource1_idx] {
             source.set_voltage(voltage_0);
         }
 

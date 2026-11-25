@@ -90,7 +90,6 @@ pub fn analyze_circuit_and_suggest_settings(
         );
         // Note: Time step suggestions for transient analysis
         // Current limitation: Time step is part of Tran command structure
-        // TODO: Integrate time step autotuning directly into Tran command processing
     }
 
     // Suggest AC analysis parameters if applicable

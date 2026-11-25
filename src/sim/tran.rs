@@ -43,7 +43,6 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
         };
 
         // Transient simulation time loop
-        // TODO: Consider refactoring to reduce nesting complexity
         while t < *tstop {
             // For subsequent time steps, use the previous solution as initial guess
             x_current = x_prev.clone();
@@ -52,7 +51,6 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
             let mut converged = false;
             let mut x_new_final = x_prev.clone();
 
-            // FIXME: This should be an iterator
             for _ in 0..MAXITER {
                 self.solver.reset();
                 self.build_constant_a_mat();

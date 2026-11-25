@@ -16,3 +16,6 @@ pub use cccs::CCCSBundle;
 pub use ccvs::CCVSBundle;
 pub use vccs::VCCSBundle;
 pub use vcvrs::VCVSBundle;
+
+#[cfg(test)]
+mod tests;

@@ -4,6 +4,7 @@ mod faer;
 mod faer_sparse;
 mod nalgebra;
 mod rsparse;
+mod selector;
 
 use std::collections::HashMap;
 
