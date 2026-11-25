@@ -52,16 +52,59 @@ impl CCVSBundle {
         self.name.clone()
     }
 
+    /// Returns the constant triples for the CCVS
+    /// CCVS equation: V(out) = gain * I(control)
+    /// Note: CCVS requires special MNA handling as it's a voltage source
+    /// This provides the control relationship triples
     pub fn triples(&self) -> Triples<Numeric, 4> {
-        Triples::new(&[])
+        if let (Some(pos_idx), Some(neg_idx), Some(ctrl_branch_idx)) = (
+            self.positive.as_ref().map(|v| v.idx()),
+            self.negative.as_ref().map(|v| v.idx()),
+            self.controlling_branch.as_ref().map(|v| v.idx()),
+        ) {
+            // CCVS matrix contributions
+            // The voltage across pos-neg is controlled by current through ctrl_branch
+            Triples::new(&[
+                (pos_idx, ctrl_branch_idx, self.options.gain),
+                (neg_idx, ctrl_branch_idx, -self.options.gain),
+            ])
+        } else {
+            Triples::new(&[])
+        }
     }
 
+    /// Returns the triple indices for the CCVS
     pub fn triple_idx(&self) -> Option<TripleIdx<4>> {
-        None
+        if let (Some(pos_idx), Some(neg_idx), Some(ctrl_branch_idx)) = (
+            self.positive.as_ref().map(|v| v.idx()),
+            self.negative.as_ref().map(|v| v.idx()),
+            self.controlling_branch.as_ref().map(|v| v.idx()),
+        ) {
+            Some(TripleIdx::new(&[
+                (pos_idx, ctrl_branch_idx),
+                (neg_idx, ctrl_branch_idx),
+            ]))
+        } else {
+            None
+        }
     }
 
+    /// Returns the AC triples for the CCVS
+    /// For AC analysis, the CCVS behaves the same as in DC since it's a linear element
     pub fn ac_triples(&self) -> Triples<ComplexNumeric, 4> {
-        Triples::new(&[])
+        if let (Some(pos_idx), Some(neg_idx), Some(ctrl_branch_idx)) = (
+            self.positive.as_ref().map(|v| v.idx()),
+            self.negative.as_ref().map(|v| v.idx()),
+            self.controlling_branch.as_ref().map(|v| v.idx()),
+        ) {
+            let gain = ComplexNumeric::new(self.options.gain, 0.0);
+            Triples::new(&[
+                (pos_idx, ctrl_branch_idx, gain),
+                (neg_idx, ctrl_branch_idx, -gain),
+            ])
+        } else {
+            Triples::new(&[])
+        }
     }
 }
 

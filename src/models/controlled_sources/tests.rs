@@ -9,6 +9,53 @@ fn test_cccs_creation() {
     assert_eq!(cccs.name(), "F1".into());
 }
 
+#[test]
+fn test_cccs_triples() {
+    use crate::models::Unit;
+    use crate::models::Variable;
+    use crate::models::controlled_sources::CCCSBundle;
+    use crate::models::controlled_sources::cccs::CCCSOptions;
+
+    let ctrl_branch = Variable::new("V1#branch".into(), Unit::Ampere, 0);
+    let v1 = Variable::new("1".into(), Unit::Volt, 1);
+    let v2 = Variable::new("2".into(), Unit::Volt, 2);
+
+    let cccs = CCCSBundle::new(
+        "F1".into(),
+        Some(v1),
+        Some(v2),
+        Some(ctrl_branch),
+        Some(CCCSOptions { gain: 3.0 }),
+    );
+
+    let triples = cccs.triples();
+    assert_eq!(triples.len(), 2);
+
+    // Check specific triple values
+    // CCCS: I(out) = gain * I(control)
+    let data = triples.data();
+    assert_eq!(data[0], (1, 0, 3.0)); // pos-ctrl_branch with gain
+    assert_eq!(data[1], (2, 0, -3.0)); // neg-ctrl_branch with -gain
+}
+
+#[test]
+fn test_cccs_triple_indices() {
+    use crate::models::Unit;
+    use crate::models::Variable;
+    use crate::models::controlled_sources::CCCSBundle;
+
+    let ctrl_branch = Variable::new("V1#branch".into(), Unit::Ampere, 0);
+    let v1 = Variable::new("1".into(), Unit::Volt, 1);
+    let v2 = Variable::new("2".into(), Unit::Volt, 2);
+
+    let cccs = CCCSBundle::new("F1".into(), Some(v1), Some(v2), Some(ctrl_branch), None);
+
+    let indices = cccs.triple_idx().unwrap();
+    let data = indices.data();
+    assert_eq!(data[0], (1, 0));
+    assert_eq!(data[1], (2, 0));
+}
+
 // CCVS tests
 #[test]
 fn test_ccvs_creation() {
@@ -16,6 +63,53 @@ fn test_ccvs_creation() {
 
     let ccvs = CCVSBundle::new("H1".into(), None, None, None, None);
     assert_eq!(ccvs.name(), "H1".into());
+}
+
+#[test]
+fn test_ccvs_triples() {
+    use crate::models::Unit;
+    use crate::models::Variable;
+    use crate::models::controlled_sources::CCVSBundle;
+    use crate::models::controlled_sources::ccvs::CCVSOptions;
+
+    let ctrl_branch = Variable::new("V1#branch".into(), Unit::Ampere, 0);
+    let v1 = Variable::new("1".into(), Unit::Volt, 1);
+    let v2 = Variable::new("2".into(), Unit::Volt, 2);
+
+    let ccvs = CCVSBundle::new(
+        "H1".into(),
+        Some(v1),
+        Some(v2),
+        Some(ctrl_branch),
+        Some(CCVSOptions { gain: 5.0 }),
+    );
+
+    let triples = ccvs.triples();
+    assert_eq!(triples.len(), 2);
+
+    // Check specific triple values
+    // CCVS: V(out) = gain * I(control)
+    let data = triples.data();
+    assert_eq!(data[0], (1, 0, 5.0)); // pos-ctrl_branch with gain
+    assert_eq!(data[1], (2, 0, -5.0)); // neg-ctrl_branch with -gain
+}
+
+#[test]
+fn test_ccvs_triple_indices() {
+    use crate::models::Unit;
+    use crate::models::Variable;
+    use crate::models::controlled_sources::CCVSBundle;
+
+    let ctrl_branch = Variable::new("V1#branch".into(), Unit::Ampere, 0);
+    let v1 = Variable::new("1".into(), Unit::Volt, 1);
+    let v2 = Variable::new("2".into(), Unit::Volt, 2);
+
+    let ccvs = CCVSBundle::new("H1".into(), Some(v1), Some(v2), Some(ctrl_branch), None);
+
+    let indices = ccvs.triple_idx().unwrap();
+    let data = indices.data();
+    assert_eq!(data[0], (1, 0));
+    assert_eq!(data[1], (2, 0));
 }
 
 // VCCS tests

@@ -52,16 +52,58 @@ impl CCCSBundle {
         self.name.clone()
     }
 
+    /// Returns the constant triples for the CCCS
+    /// CCCS equation: I(out) = gain * I(control)
+    /// This contributes to the matrix as:
+    /// pos * gain * ctrl_branch
+    /// neg * -gain * ctrl_branch
     pub fn triples(&self) -> Triples<Numeric, 4> {
-        Triples::new(&[])
+        if let (Some(pos_idx), Some(neg_idx), Some(ctrl_branch_idx)) = (
+            self.positive.as_ref().map(|v| v.idx()),
+            self.negative.as_ref().map(|v| v.idx()),
+            self.controlling_branch.as_ref().map(|v| v.idx()),
+        ) {
+            Triples::new(&[
+                (pos_idx, ctrl_branch_idx, self.options.gain),
+                (neg_idx, ctrl_branch_idx, -self.options.gain),
+            ])
+        } else {
+            Triples::new(&[])
+        }
     }
 
+    /// Returns the triple indices for the CCCS
     pub fn triple_idx(&self) -> Option<TripleIdx<4>> {
-        None
+        if let (Some(pos_idx), Some(neg_idx), Some(ctrl_branch_idx)) = (
+            self.positive.as_ref().map(|v| v.idx()),
+            self.negative.as_ref().map(|v| v.idx()),
+            self.controlling_branch.as_ref().map(|v| v.idx()),
+        ) {
+            Some(TripleIdx::new(&[
+                (pos_idx, ctrl_branch_idx),
+                (neg_idx, ctrl_branch_idx),
+            ]))
+        } else {
+            None
+        }
     }
 
+    /// Returns the AC triples for the CCCS
+    /// For AC analysis, the CCCS behaves the same as in DC since it's a linear element
     pub fn ac_triples(&self) -> Triples<ComplexNumeric, 4> {
-        Triples::new(&[])
+        if let (Some(pos_idx), Some(neg_idx), Some(ctrl_branch_idx)) = (
+            self.positive.as_ref().map(|v| v.idx()),
+            self.negative.as_ref().map(|v| v.idx()),
+            self.controlling_branch.as_ref().map(|v| v.idx()),
+        ) {
+            let gain = ComplexNumeric::new(self.options.gain, 0.0);
+            Triples::new(&[
+                (pos_idx, ctrl_branch_idx, gain),
+                (neg_idx, ctrl_branch_idx, -gain),
+            ])
+        } else {
+            Triples::new(&[])
+        }
     }
 }
 
