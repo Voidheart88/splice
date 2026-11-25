@@ -145,7 +145,7 @@ items.iter().enumerate().for_each(|(i, item)| {
 });
 ```
 
-However, prioritize readability over cleverness. Simple for-loops are fine when they're clearer.
+However, prioritize readability over cleverness. You might implement new iterators if they sevr.
 
 
 ## Limit Nesting Depth

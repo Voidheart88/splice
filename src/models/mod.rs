@@ -5,6 +5,7 @@ pub mod coupled_inductors;
 pub mod diode;
 pub mod gain;
 pub mod inductor;
+pub mod integrator;
 pub mod isource;
 pub mod isource_pulse;
 pub mod isource_sine;
@@ -34,6 +35,7 @@ pub use self::coupled_inductors::serde::SerdeCoupledInductors;
 pub use self::diode::DiodeBundle;
 pub use self::gain::GainBundle;
 pub use self::inductor::InductorBundle;
+pub use self::integrator::IntegratorBundle;
 pub use self::isource::ISourceBundle;
 pub use self::isource_pulse::ISourcePulseBundle;
 pub use self::isource_sine::ISourceSinBundle;
@@ -133,6 +135,7 @@ pub enum Element {
     VSourceStep(VSourceStepBundle),
     ISource(ISourceBundle),
     Gain(GainBundle),
+    Integrator(IntegratorBundle),
     VCVS(VCVSBundle),
     VCCS(VCCSBundle),
     CCCS(CCCSBundle),
@@ -175,6 +178,7 @@ impl Element {
             Element::Capacitor(ele) => Some(ele.triples(Some(delta_t))),
             Element::Inductor(ele) => Some(ele.triples(Some(delta_t))),
             Element::CoupledInductors(ele) => Some(ele.get_time_variant_triples(delta_t)),
+            Element::Integrator(ele) => Some(ele.triples(Some(delta_t))),
             _ => None,
         }
     }
@@ -191,6 +195,7 @@ impl Element {
             Element::Capacitor(ele) => Some(ele.pairs(delta_t)),
             Element::Inductor(ele) => Some(ele.pairs(delta_t)),
             Element::CoupledInductors(ele) => Some(ele.get_pairs()),
+            Element::Integrator(_) => None, // Integrator pairs handled separately with x_vec
             Element::VCVS(_) => None,
             Element::VCCS(_) => None,
             Element::CCCS(_) => None,
@@ -289,6 +294,7 @@ impl Element {
             Element::VSource(vsource) => Some(vsource.ac_triples()),
             Element::VSourceStep(_) => None,
             Element::Gain(gain) => Some(gain.ac_triples()),
+            Element::Integrator(ele) => Some(ele.ac_triples(freq)),
             Element::VCVS(vcvs) => Some(vcvs.ac_triples()),
             Element::VCCS(vccs) => Some(vccs.ac_triples()),
             Element::CCCS(cccs) => Some(cccs.ac_triples()),
@@ -317,6 +323,7 @@ impl Element {
             Element::CCVS(_) => None,
             Element::ISource(_) => None,
             Element::Gain(_) => None,
+            Element::Integrator(_) => None,
             Element::VSourceSin(_) => None,
         }
     }
@@ -335,6 +342,7 @@ impl Element {
             Element::VSourceStep(ele) => ele.name(),
             Element::ISource(ele) => ele.name(),
             Element::Gain(ele) => ele.name(),
+            Element::Integrator(ele) => ele.name(),
             Element::VCVS(ele) => ele.name(),
             Element::VCCS(ele) => ele.name(),
             Element::CCCS(ele) => ele.name(),
@@ -358,6 +366,7 @@ impl Element {
             Element::VSource(ele) => ele.triple_idx(),
             Element::VSourceStep(ele) => ele.triple_idx(),
             Element::Gain(ele) => ele.triple_idx(),
+            Element::Integrator(ele) => ele.triple_idx(),
             Element::VCVS(ele) => ele.triple_idx(),
             Element::VCCS(ele) => ele.triple_idx(),
             Element::CCCS(ele) => ele.triple_idx(),
@@ -380,6 +389,7 @@ impl Element {
             Element::VSource(vsource) => vsource.triple_idx(),
             Element::VSourceStep(vsource) => vsource.triple_idx(),
             Element::Gain(ele) => ele.triple_idx(),
+            Element::Integrator(ele) => ele.triple_idx(),
             Element::VCVS(ele) => ele.triple_idx(),
             Element::VCCS(ele) => ele.triple_idx(),
             Element::CCCS(ele) => ele.triple_idx(),
