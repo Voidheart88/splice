@@ -10,7 +10,7 @@
   - Eine Funktion sollte Daten transformieren und nicht mutieren.
   - Das DRY Prinzip sollt eeingehalten werden -- Auch bei Tests.
 - Update des Style-Guides
-- Erstellung von zusätzlichen Current-Sources (Sine, Pulse, Step)
+- ~~Erstellung von zusätzlichen Current-Sources (Sine, Pulse, Step)~~ ✅
 - Erstellung von zusätzlichen Voltage-Sources (Sine, Pulse, Step)
 - BJT Modelle haben kein serde Modul
 - Erstellung eines Integrator-Blocks zusätzlich zum Gain Block
