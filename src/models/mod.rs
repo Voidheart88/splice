@@ -14,6 +14,7 @@ pub mod pairs;
 pub mod resistor;
 pub mod triples;
 pub mod vsource;
+pub mod vsource_pulse;
 pub mod vsource_sine;
 pub mod vsource_step;
 
@@ -42,6 +43,7 @@ pub use self::pairs::Pairs;
 pub use self::resistor::ResistorBundle;
 pub use self::triples::{TripleIdx, Triples};
 pub use self::vsource::VSourceBundle;
+pub use self::vsource_pulse::VSourcePulseBundle;
 pub use self::vsource_sine::VSourceSinBundle;
 pub use self::vsource_step::VSourceStepBundle;
 
