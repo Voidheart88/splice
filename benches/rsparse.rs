@@ -3,8 +3,8 @@ use std::{collections::HashMap, hint::black_box};
 use criterion::{BatchSize, Criterion};
 use num::{One, Zero};
 
-use rand::rng;
 use rand::RngExt;
+use rand::rng;
 use splice::{
     solver::{RSparseSolver, Solver},
     spot::Numeric,

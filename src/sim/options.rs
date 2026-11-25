@@ -1,7 +1,9 @@
 use serde::Serialize;
 use std::sync::Arc;
 
-use crate::solver::integration::{BackwardEuler, ForwardEuler, IntegrationMethod, Trapezoidal, BDF};
+use crate::solver::integration::{
+    BDF, BackwardEuler, ForwardEuler, IntegrationMethod, Trapezoidal,
+};
 
 /// Simulation options that can be set via .options command
 #[derive(Debug, Clone, PartialEq, PartialOrd)]

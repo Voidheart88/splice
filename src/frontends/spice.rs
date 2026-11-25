@@ -221,9 +221,7 @@ impl SpiceFrontend {
         let path_str = full_path.display();
         let parse_result = SpiceParser::parse(Rule::SPICE, &circuit_string)
             .map_err(|e| {
-                FrontendError::PestError(format!(
-                    "Parse error in included file '{path_str}': {e}"
-                ))
+                FrontendError::PestError(format!("Parse error in included file '{path_str}': {e}"))
             })?
             .next()
             .ok_or_else(|| {
@@ -259,27 +257,21 @@ impl SpiceFrontend {
 
         let vstart2 = src2
             .next()
-            .ok_or_else(|| {
-                FrontendError::ParseError("Missing vstart2 in .dc command".into())
-            })?
+            .ok_or_else(|| FrontendError::ParseError("Missing vstart2 in .dc command".into()))?
             .as_str()
             .parse::<Numeric>()
             .map_err(|_| FrontendError::ParseError("Invalid vstart2 value".into()))?;
 
         let vend2 = src2
             .next()
-            .ok_or_else(|| {
-                FrontendError::ParseError("Missing vend2 in .dc command".into())
-            })?
+            .ok_or_else(|| FrontendError::ParseError("Missing vend2 in .dc command".into()))?
             .as_str()
             .parse::<Numeric>()
             .map_err(|_| FrontendError::ParseError("Invalid vend2 value".into()))?;
 
         let vstep2 = src2
             .next()
-            .ok_or_else(|| {
-                FrontendError::ParseError("Missing vstep2 in .dc command".into())
-            })?
+            .ok_or_else(|| FrontendError::ParseError("Missing vstep2 in .dc command".into()))?
             .as_str()
             .parse::<Numeric>()
             .map_err(|_| FrontendError::ParseError("Invalid vstep2 value".into()))?;
@@ -320,10 +312,7 @@ impl SpiceFrontend {
             .parse::<Numeric>()
             .map_err(|_| FrontendError::ParseError("Invalid vstep value".into()))?;
 
-        let second_source = inner
-            .next()
-            .map(Self::parse_second_dc_source)
-            .transpose()?;
+        let second_source = inner.next().map(Self::parse_second_dc_source).transpose()?;
 
         commands.push(SimulationCommand::Dc(
             Arc::from(source),

@@ -11,7 +11,7 @@ use thiserror::Error;
 
 pub use faer::FaerSolver;
 pub use faer_sparse::FaerSparseSolver;
-pub use integration::{BackwardEuler, ForwardEuler, IntegrationMethod, Trapezoidal, BDF};
+pub use integration::{BDF, BackwardEuler, ForwardEuler, IntegrationMethod, Trapezoidal};
 pub use nalgebra::NalgebraSolver;
 pub use rsparse::RSparseSolver;
 pub use selector::{SolverSelectionStrategy, SolverSelector};

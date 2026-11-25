@@ -44,17 +44,9 @@ impl NetworkFrontend {
             element.process(&mut variables, &mut elements, &mut var_map);
         });
 
-        let commands = circuit
-            .simulations
-            .into_iter()
-            .map(Into::into)
-            .collect();
+        let commands = circuit.simulations.into_iter().map(Into::into).collect();
 
-        let options = circuit
-            .options
-            .into_iter()
-            .map(Into::into)
-            .collect();
+        let options = circuit.options.into_iter().map(Into::into).collect();
 
         Ok(Simulation {
             elements,

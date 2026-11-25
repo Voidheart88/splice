@@ -87,7 +87,7 @@ impl CapacitorBundle {
     /// This should be called after each time step with the current voltage
     pub fn update_previous_voltage(&mut self, voltage: Numeric) {
         self.previous_voltage = voltage;
-        
+
         // For BDF multi-step methods, store the voltage in history
         self.voltage_history.insert(0, voltage);
         // Keep only the last few values (typically 2-3 for BDF2-3)
@@ -199,11 +199,11 @@ impl CapacitorBundle {
         // For BDF, the history contribution is computed using the BDF coefficients
         // Since we don't have access to the BDF order here, we use a simplified approach
         // that computes the contribution based on the stored voltage history
-        
+
         // Use the backward Euler equivalent conductance as a baseline
         // The actual BDF contribution depends on the order
         let g = self.value / delta_t; // Backward Euler conductance
-        
+
         // Compute the history contribution based on stored voltage history
         // For BDF2: V_hist = (1/4) * V_prev (approximately)
         // For BDF3: V_hist = more complex weighted sum

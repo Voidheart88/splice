@@ -75,7 +75,7 @@ impl InductorBundle {
     /// This should be called after each time step with the current current
     pub fn update_previous_current(&mut self, current: Numeric) {
         self.previous_current = current;
-        
+
         // For BDF multi-step methods, store the current in history
         self.current_history.insert(0, current);
         // Keep only the last few values (typically 2-3 for BDF2-3)
@@ -216,10 +216,10 @@ impl InductorBundle {
         // For BDF, the history contribution is computed using the BDF coefficients
         // Since we don't have access to the BDF order here, we use a simplified approach
         // that computes the contribution based on the stored current history
-        
+
         // Use the backward Euler equivalent conductance as a baseline
         let r = delta_t / self.value; // Backward Euler conductance = delta_t / L
-        
+
         // Compute the history contribution based on stored current history
         // For BDF2: I_hist = (1/4) * I_prev (approximately)
         // For BDF3: I_hist = more complex weighted sum

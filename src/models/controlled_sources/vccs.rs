@@ -170,10 +170,7 @@ impl ProcessSpiceElement for VCCSBundle {
     ) -> Result<(), FrontendError> {
         // Delegate to the module-level function
         crate::models::controlled_sources::spice::process_vccs(
-            element,
-            variables,
-            elements,
-            var_map,
+            element, variables, elements, var_map,
         )
     }
 }

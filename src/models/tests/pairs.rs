@@ -25,7 +25,7 @@ fn test_pairs_index_out_of_bounds() {
 fn test_pairs_iteration() {
     let pairs: Pairs<f64, 3> = Pairs::new(&[(0, 1.0), (1, 2.0), (2, 3.0)]);
     let mut iter = pairs.into_iter();
-    
+
     assert_eq!(iter.next(), Some(&(0, 1.0)));
     assert_eq!(iter.next(), Some(&(1, 2.0)));
     assert_eq!(iter.next(), Some(&(2, 3.0)));

@@ -74,10 +74,7 @@ impl ProcessSpiceElement for CCVSBundle {
     ) -> Result<(), FrontendError> {
         // Delegate to the module-level function
         crate::models::controlled_sources::spice::process_ccvs(
-            element,
-            variables,
-            elements,
-            var_map,
+            element, variables, elements, var_map,
         )
     }
 }

@@ -1,5 +1,7 @@
 // Integration tests for different integration methods
-use crate::solver::integration::{BackwardEuler, ForwardEuler, IntegrationMethod, Trapezoidal, BDF, MultiStepMethod};
+use crate::solver::integration::{
+    BDF, BackwardEuler, ForwardEuler, IntegrationMethod, MultiStepMethod, Trapezoidal,
+};
 
 #[test]
 fn test_backward_euler_name() {
@@ -85,7 +87,7 @@ fn test_trapezoidal() {
     assert!(method.is_implicit());
     assert_eq!(method.order(), 2);
     assert!(!method.is_multistep());
-    
+
     // For Trapezoidal: G_eq = 2C/delta_t
     let c = 1e-9;
     let g = method.capacitor_equivalent_conductance(c);
@@ -108,12 +110,12 @@ fn test_bdf2() {
     assert_eq!(method.order(), 2);
     assert!(method.is_implicit());
     assert!(method.is_multistep());
-    
+
     // BDF2 capacitor conductance: G_eq = (4/3)*C/delta_t
     let c = 1e-9;
     let g = method.capacitor_equivalent_conductance(c);
     // (4/3) * 1e-9 / 1e-6 = (4/3) * 1e-3 ≈ 1.333e-3
-    assert!((g - 4.0/3.0 * 1e-3).abs() < 1e-10);
+    assert!((g - 4.0 / 3.0 * 1e-3).abs() < 1e-10);
 }
 
 #[test]
@@ -128,7 +130,7 @@ fn test_bdf3() {
 #[test]
 fn test_bdf_history() {
     let mut method = BDF::new(1e-6, 3);
-    
+
     // Push history values
     // Note: push_capacitor_history inserts at position 0 (most recent first)
     // Each push adds to the front, so after multiple pushes:
@@ -138,30 +140,50 @@ fn test_bdf_history() {
     method.push_capacitor_history(1.0);
     method.push_capacitor_history(0.9);
     method.push_capacitor_history(0.8);
-    
+
     let history = method.capacitor_history();
     assert_eq!(history.len(), 3);
     // history[0] = 0.8 (most recent), history[1] = 0.9, history[2] = 1.0 (oldest)
-    assert!((history[0] - 0.8).abs() < 1e-10, "history[0] = {}", history[0]);
-    assert!((history[1] - 0.9).abs() < 1e-10, "history[1] = {}", history[1]);
-    assert!((history[2] - 1.0).abs() < 1e-10, "history[2] = {}", history[2]);
+    assert!(
+        (history[0] - 0.8).abs() < 1e-10,
+        "history[0] = {}",
+        history[0]
+    );
+    assert!(
+        (history[1] - 0.9).abs() < 1e-10,
+        "history[1] = {}",
+        history[1]
+    );
+    assert!(
+        (history[2] - 1.0).abs() < 1e-10,
+        "history[2] = {}",
+        history[2]
+    );
 }
 
 #[test]
 fn test_bdf_truncation() {
     let mut method = BDF::new(1e-6, 2);
-    
+
     // Push more history values than order
     method.push_capacitor_history(1.0);
     method.push_capacitor_history(0.9);
     method.push_capacitor_history(0.8);
     method.push_capacitor_history(0.7); // Should be truncated
-    
+
     let history = method.capacitor_history();
     assert_eq!(history.len(), 2); // Should only keep 2 values
     // After truncation: history[0]=0.7, history[1]=0.8
-    assert!((history[0] - 0.7).abs() < 1e-10, "history[0] = {}", history[0]);
-    assert!((history[1] - 0.8).abs() < 1e-10, "history[1] = {}", history[1]);
+    assert!(
+        (history[0] - 0.7).abs() < 1e-10,
+        "history[0] = {}",
+        history[0]
+    );
+    assert!(
+        (history[1] - 0.8).abs() < 1e-10,
+        "history[1] = {}",
+        history[1]
+    );
 }
 
 #[test]
@@ -170,7 +192,7 @@ fn test_bdf_clear_history() {
     method.push_capacitor_history(1.0);
     method.push_capacitor_history(0.9);
     assert_eq!(method.capacitor_history().len(), 2);
-    
+
     method.clear_history();
     assert!(method.capacitor_history().is_empty());
 }
@@ -184,15 +206,15 @@ fn test_bdf_coefficients() {
 
     // BDF2: (4/3)*y(t+dt) - (1/3)*y(t) = (2/3)*dt*f
     let coeffs2 = BDF::bdf_coefficients(2);
-    assert!((coeffs2[0] - 4.0/3.0).abs() < 1e-10);
-    assert!((coeffs2[1] - (-1.0/3.0)).abs() < 1e-10);
+    assert!((coeffs2[0] - 4.0 / 3.0).abs() < 1e-10);
+    assert!((coeffs2[1] - (-1.0 / 3.0)).abs() < 1e-10);
     assert!((coeffs2[2] - (-1.0)).abs() < 1e-10);
 
     // BDF3: (18/11)*y(t+dt) - (9/11)*y(t) + (2/11)*y(t-dt) = (6/11)*dt*f
     let coeffs3 = BDF::bdf_coefficients(3);
-    assert!((coeffs3[0] - 18.0/11.0).abs() < 1e-10);
-    assert!((coeffs3[1] - (-9.0/11.0)).abs() < 1e-10);
-    assert!((coeffs3[2] - 2.0/11.0).abs() < 1e-10);
+    assert!((coeffs3[0] - 18.0 / 11.0).abs() < 1e-10);
+    assert!((coeffs3[1] - (-9.0 / 11.0)).abs() < 1e-10);
+    assert!((coeffs3[2] - 2.0 / 11.0).abs() < 1e-10);
     assert!((coeffs3[3] - (-1.0)).abs() < 1e-10);
 }
 
@@ -206,7 +228,7 @@ fn test_integration_method_default() {
 fn test_bdf_history_contribution() {
     let method = BDF::new(1e-6, 2);
     let c = 1e-9;
-    
+
     let contribution = method.capacitor_history_contribution(c);
     // With empty history, contribution should be 0
     assert!((contribution - 0.0).abs() < 1e-10);

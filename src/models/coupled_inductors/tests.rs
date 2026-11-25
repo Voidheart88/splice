@@ -1,6 +1,6 @@
-use crate::{Element, Variable};
 use crate::models::coupled_inductors::CoupledInductorsBundle;
 use crate::spot::Numeric;
+use crate::{Element, Variable};
 use num::Zero;
 use std::sync::Arc;
 
@@ -32,12 +32,7 @@ fn create_test_inductor(
     })
 }
 
-fn create_test_coupled(
-    name: &str,
-    inductor1: &str,
-    inductor2: &str,
-    coupling: Numeric,
-) -> Element {
+fn create_test_coupled(name: &str, inductor1: &str, inductor2: &str, coupling: Numeric) -> Element {
     Element::CoupledInductors(CoupledInductorsBundle {
         name: Arc::from(name),
         inductor1: Arc::from(inductor1),

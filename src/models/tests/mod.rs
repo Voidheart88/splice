@@ -1,3 +1,3 @@
+mod integration_tests;
 mod pairs;
 mod triples;
-mod integration_tests;

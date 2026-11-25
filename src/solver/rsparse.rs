@@ -379,23 +379,21 @@ impl RSparseSolver {
                 if row < m && col < n as isize {
                     matrix[row][col as usize] = val;
                 } else {
-                    warn!("Warning: Index out of bounds detected for element at index {k}. Skipping.",);
+                    warn!(
+                        "Warning: Index out of bounds detected for element at index {k}. Skipping.",
+                    );
                 }
             });
 
         // Print the matrix in a formatted way.
         matrix.iter().take(m).for_each(|row_data| {
             print!("[");
-            row_data
-                .iter()
-                .take(n)
-                .enumerate()
-                .for_each(|(col, val)| {
-                    print!("{:>8.2}", val);
-                    if col < n - 1 {
-                        print!(", ");
-                    }
-                });
+            row_data.iter().take(n).enumerate().for_each(|(col, val)| {
+                print!("{:>8.2}", val);
+                if col < n - 1 {
+                    print!(", ");
+                }
+            });
             println!("]");
         });
     }

@@ -54,7 +54,9 @@ fn init_sim_rsparse() {
         Sim::Op(items) => items,
         Sim::Dc(_) => unreachable!("init_sim tests only run OP commands, should not get DC result"),
         Sim::Ac(_) => unreachable!("init_sim tests only run OP commands, should not get AC result"),
-        Sim::Tran(_) => unreachable!("init_sim tests only run OP commands, should not get Tran result"),
+        Sim::Tran(_) => {
+            unreachable!("init_sim tests only run OP commands, should not get Tran result")
+        }
     };
 
     let branch_curr = result[0].clone();
@@ -108,7 +110,9 @@ fn init_sim_faer() {
         Sim::Op(items) => items,
         Sim::Dc(_) => unreachable!("init_sim tests only run OP commands, should not get DC result"),
         Sim::Ac(_) => unreachable!("init_sim tests only run OP commands, should not get AC result"),
-        Sim::Tran(_) => unreachable!("init_sim tests only run OP commands, should not get Tran result"),
+        Sim::Tran(_) => {
+            unreachable!("init_sim tests only run OP commands, should not get Tran result")
+        }
     };
 
     let branch_curr = result[0].clone();
@@ -162,7 +166,9 @@ fn init_sim_nalgebra() {
         Sim::Op(items) => items,
         Sim::Dc(_) => unreachable!("init_sim tests only run OP commands, should not get DC result"),
         Sim::Ac(_) => unreachable!("init_sim tests only run OP commands, should not get AC result"),
-        Sim::Tran(_) => unreachable!("init_sim tests only run OP commands, should not get Tran result"),
+        Sim::Tran(_) => {
+            unreachable!("init_sim tests only run OP commands, should not get Tran result")
+        }
     };
 
     let branch_curr = result[0].clone();
@@ -766,7 +772,7 @@ fn test_ac_rc_cutoff_frequency() {
     let mut prev_freq = 0.0;
     let mut prev_mag = 0.0;
     let mut found_cutoff = false;
-    
+
     for (freq, values) in ac_results {
         // Find V2 (node 2) - should be the second variable after branch
         let v2_real = values[2].1.re; // node_2 is index 2 (branch=0, node1=1, node2=2)
@@ -1167,9 +1173,13 @@ mod options_tests {
         let json = serde_json::to_string(&opt).unwrap();
         assert_eq!(json, r#"{"type":"integration","method":"be"}"#);
 
-        let opt_gear = SimulationOption::IntegrationMethod(IntegrationMethodEnum::GearBdf { order: 2 });
+        let opt_gear =
+            SimulationOption::IntegrationMethod(IntegrationMethodEnum::GearBdf { order: 2 });
         let json_gear = serde_json::to_string(&opt_gear).unwrap();
-        assert_eq!(json_gear, r#"{"type":"integration","method":{"gear":{"order":2}}}"#);
+        assert_eq!(
+            json_gear,
+            r#"{"type":"integration","method":{"gear":{"order":2}}}"#
+        );
     }
 
     #[test]
@@ -1188,5 +1198,3 @@ mod options_tests {
         assert!(method.is_multistep());
     }
 }
-
-

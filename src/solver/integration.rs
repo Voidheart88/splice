@@ -327,25 +327,28 @@ pub struct BDF {
 
 impl BDF {
     /// Creates a new BDF integrator with the given time step and order
-    /// 
+    ///
     /// # Arguments
     /// * `delta_t` - Time step size
     /// * `order` - Order of the BDF method (1 to 6)
-    /// 
+    ///
     /// # Returns
     /// A new BDF integrator
-    /// 
+    ///
     /// # Panics
     /// Panics if order is 0 or greater than 6 (BDF stability limit)
     pub fn new(delta_t: Numeric, order: usize) -> Self {
         // BDF methods are only stable for orders 1-6
-        assert!(order >= 1 && order <= 6, 
-            "BDF order must be between 1 and 6, got {}", order);
-        
+        assert!(
+            order >= 1 && order <= 6,
+            "BDF order must be between 1 and 6, got {}",
+            order
+        );
+
         // For order k, we need k previous values (including current)
         // history[0] = current, history[1] = previous, ..., history[k-1] = k-1 steps back
         let capacity = order;
-        
+
         BDF {
             delta_t,
             order,
@@ -365,12 +368,27 @@ impl BDF {
     /// where beta = 1 for all BDF methods
     pub fn bdf_coefficients(order: usize) -> Vec<Numeric> {
         match order {
-            1 => vec![1.0, -1.0],  // y(t+dt) - y(t) = dt*f
-            2 => vec![4.0/3.0, -1.0/3.0, -1.0],
-            3 => vec![18.0/11.0, -9.0/11.0, 2.0/11.0, -1.0],
-            4 => vec![48.0/25.0, -36.0/25.0, 16.0/25.0, -3.0/25.0, -1.0],
-            5 => vec![300.0/137.0, -300.0/137.0, 200.0/137.0, -75.0/137.0, 12.0/137.0, -1.0],
-            6 => vec![360.0/147.0, -450.0/147.0, 400.0/147.0, -225.0/147.0, 72.0/147.0, -10.0/147.0, -1.0],
+            1 => vec![1.0, -1.0], // y(t+dt) - y(t) = dt*f
+            2 => vec![4.0 / 3.0, -1.0 / 3.0, -1.0],
+            3 => vec![18.0 / 11.0, -9.0 / 11.0, 2.0 / 11.0, -1.0],
+            4 => vec![48.0 / 25.0, -36.0 / 25.0, 16.0 / 25.0, -3.0 / 25.0, -1.0],
+            5 => vec![
+                300.0 / 137.0,
+                -300.0 / 137.0,
+                200.0 / 137.0,
+                -75.0 / 137.0,
+                12.0 / 137.0,
+                -1.0,
+            ],
+            6 => vec![
+                360.0 / 147.0,
+                -450.0 / 147.0,
+                400.0 / 147.0,
+                -225.0 / 147.0,
+                72.0 / 147.0,
+                -10.0 / 147.0,
+                -1.0,
+            ],
             _ => panic!("BDF order must be between 1 and 6"),
         }
     }
@@ -381,10 +399,10 @@ impl BDF {
         if self.capacitor_history.is_empty() {
             return 0.0;
         }
-        
+
         let coeffs = Self::bdf_coefficients(self.order);
-        let alpha0 = coeffs[0];  // Coefficient for current value
-        
+        let alpha0 = coeffs[0]; // Coefficient for current value
+
         // Sum of weighted history values: sum(-alpha[i]/alpha[0] * V[i])
         let mut contribution = 0.0;
         for (i, &v) in self.capacitor_history.iter().enumerate() {
@@ -393,7 +411,7 @@ impl BDF {
                 contribution += coeff * v;
             }
         }
-        
+
         // Multiply by G_eq = (alpha0 * C) / delta_t
         let g_eq = (alpha0 * capacitance) / self.delta_t;
         g_eq * contribution
@@ -404,10 +422,10 @@ impl BDF {
         if self.inductor_history.is_empty() {
             return 0.0;
         }
-        
+
         let coeffs = Self::bdf_coefficients(self.order);
         let alpha0 = coeffs[0];
-        
+
         let mut contribution = 0.0;
         for (i, &i_val) in self.inductor_history.iter().enumerate() {
             if i < coeffs.len() - 1 {
@@ -415,7 +433,7 @@ impl BDF {
                 contribution += coeff * i_val;
             }
         }
-        
+
         // For inductor: V = L * dI/dt
         // G_eq = (alpha0 * delta_t) / L
         let g_eq = (alpha0 * self.delta_t) / inductance;
@@ -463,7 +481,11 @@ impl IntegrationMethod for BDF {
         0.0
     }
 
-    fn inductor_history_current(&self, _inductance: Numeric, _previous_current: Numeric) -> Numeric {
+    fn inductor_history_current(
+        &self,
+        _inductance: Numeric,
+        _previous_current: Numeric,
+    ) -> Numeric {
         0.0
     }
 
@@ -489,15 +511,15 @@ impl MultiStepMethod for BDF {
         // history[0] is the most recent value
         // BDF formula: sum(alpha_i * V_i) = alpha0 * C/dt * V_current
         // History contribution: sum(-alpha[i]/alpha0 * V[i]) * (alpha0 * C/dt)
-        
+
         if history.is_empty() {
             return 0.0;
         }
-        
+
         let coeffs = Self::bdf_coefficients(self.order);
         let alpha0 = coeffs[0];
         let g_eq = (alpha0 * capacitance) / self.delta_t;
-        
+
         let mut contribution = 0.0;
         for (i, &v) in history.iter().enumerate() {
             if i < coeffs.len() - 1 {
@@ -505,7 +527,7 @@ impl MultiStepMethod for BDF {
                 contribution += coeff * v;
             }
         }
-        
+
         g_eq * contribution
     }
 
@@ -513,11 +535,11 @@ impl MultiStepMethod for BDF {
         if history.is_empty() {
             return 0.0;
         }
-        
+
         let coeffs = Self::bdf_coefficients(self.order);
         let alpha0 = coeffs[0];
         let g_eq = (alpha0 * self.delta_t) / inductance;
-        
+
         let mut contribution = 0.0;
         for (i, &i_val) in history.iter().enumerate() {
             if i < coeffs.len() - 1 {
@@ -525,7 +547,7 @@ impl MultiStepMethod for BDF {
                 contribution += coeff * i_val;
             }
         }
-        
+
         g_eq * contribution
     }
 
@@ -642,15 +664,15 @@ mod tests {
 
         // BDF2: (4/3)*y(t+dt) - (1/3)*y(t) = (2/3)*dt*f
         let coeffs2 = BDF::bdf_coefficients(2);
-        assert!((coeffs2[0] - 4.0/3.0).abs() < 1e-10);
-        assert!((coeffs2[1] - (-1.0/3.0)).abs() < 1e-10);
+        assert!((coeffs2[0] - 4.0 / 3.0).abs() < 1e-10);
+        assert!((coeffs2[1] - (-1.0 / 3.0)).abs() < 1e-10);
         assert!((coeffs2[2] - (-1.0)).abs() < 1e-10);
     }
 
     #[test]
     fn test_capacitor_history() {
         let mut method = BDF::new(1e-6, 3);
-        
+
         // Push history values
         // Note: push_capacitor_history inserts at position 0 (most recent first)
         // After truncation to 3 values, we get [most_recent, ..., oldest]
@@ -658,13 +680,25 @@ mod tests {
         method.push_capacitor_history(0.9);
         method.push_capacitor_history(0.8);
         method.push_capacitor_history(0.7); // Should be truncated, keeping [0.7, 0.8, 0.9]
-        
+
         let history = method.capacitor_history();
         assert_eq!(history.len(), 3); // Should only keep 3 values
         // history[0] = 0.7 (most recent), history[1] = 0.8, history[2] = 0.9 (oldest)
-        assert!((history[0] - 0.7).abs() < 1e-9, "history[0] = {}, expected 0.7", history[0]);
-        assert!((history[1] - 0.8).abs() < 1e-9, "history[1] = {}, expected 0.8", history[1]);
-        assert!((history[2] - 0.9).abs() < 1e-9, "history[2] = {}, expected 0.9", history[2]);
+        assert!(
+            (history[0] - 0.7).abs() < 1e-9,
+            "history[0] = {}, expected 0.7",
+            history[0]
+        );
+        assert!(
+            (history[1] - 0.8).abs() < 1e-9,
+            "history[1] = {}, expected 0.8",
+            history[1]
+        );
+        assert!(
+            (history[2] - 0.9).abs() < 1e-9,
+            "history[2] = {}, expected 0.9",
+            history[2]
+        );
     }
 
     #[test]
@@ -673,7 +707,7 @@ mod tests {
         method.push_capacitor_history(1.0);
         method.push_capacitor_history(0.9);
         assert_eq!(method.capacitor_history().len(), 2);
-        
+
         method.clear_history();
         assert!(method.capacitor_history().is_empty());
     }
@@ -682,10 +716,10 @@ mod tests {
     fn test_capacitor_history_contribution() {
         let method = BDF::new(1e-6, 2);
         let c = 1e-9; // 1 nF
-        
+
         // With BDF2: (4/3)*V_current - (1/3)*V_prev = (2/3)*dt * I
         // History contribution should account for the -(-1/3)/(4/3) = 1/4 factor
-        
+
         let contribution = method.capacitor_history_contribution(c);
         // Since history is empty, contribution should be 0
         assert!((contribution - 0.0).abs() < 1e-10);

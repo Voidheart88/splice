@@ -101,7 +101,7 @@ impl<'a, T, const N: usize> IntoIterator for &'a Pairs<T, N> {
 }
 
 #[cfg(test)]
-//Some Methods solely for Testing  
+//Some Methods solely for Testing
 impl<T, const N: usize> Pairs<T, N> {
     pub fn len(&self) -> usize {
         self.length

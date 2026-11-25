@@ -74,10 +74,7 @@ impl ProcessSpiceElement for CCCSBundle {
     ) -> Result<(), FrontendError> {
         // Delegate to the module-level function
         crate::models::controlled_sources::spice::process_cccs(
-            element,
-            variables,
-            elements,
-            var_map,
+            element, variables, elements, var_map,
         )
     }
 }

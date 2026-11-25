@@ -18,8 +18,8 @@ use num::{Complex, One, Zero};
 use thiserror::Error;
 
 // Re-export for convenience
-pub use options::{IntegrationMethodEnum, SimulationOption};
 pub use crate::solver::integration::IntegrationMethod;
+pub use options::{IntegrationMethodEnum, SimulationOption};
 
 use crate::Simulation;
 use crate::models::{Element, Variable};

@@ -59,15 +59,12 @@ impl<'a> SpiceElementParser<'a> {
         element_name: &str,
         value_name: &str,
     ) -> Result<Numeric, FrontendError> {
-        let pair = self
-            .inner
-            .next()
-            .ok_or_else(|| {
-                FrontendError::ParseError(format!(
-                    "Missing {} in {} '{}'",
-                    value_name, element_type, element_name
-                ))
-            })?;
+        let pair = self.inner.next().ok_or_else(|| {
+            FrontendError::ParseError(format!(
+                "Missing {} in {} '{}'",
+                value_name, element_type, element_name
+            ))
+        })?;
 
         self.span_str(pair.as_span())
             .parse::<Numeric>()
@@ -81,7 +78,9 @@ impl<'a> SpiceElementParser<'a> {
             self.span_str(pair.as_span())
                 .parse::<Numeric>()
                 .map_err(|_| {
-                    FrontendError::ParseError("Invalid optional value: must be a number".to_string())
+                    FrontendError::ParseError(
+                        "Invalid optional value: must be a number".to_string(),
+                    )
                 })
         })
     }

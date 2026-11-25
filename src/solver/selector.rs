@@ -69,7 +69,9 @@ impl SolverSelector {
             SolverSelectionStrategy::Hybrid if vars <= self.circuit_size_threshold => {
                 "NalgebraSolver (hybrid strategy: dense for small)"
             }
-            SolverSelectionStrategy::Hybrid => "FaerSparseSolver (hybrid strategy: sparse for large)",
+            SolverSelectionStrategy::Hybrid => {
+                "FaerSparseSolver (hybrid strategy: sparse for large)"
+            }
         }
     }
 }

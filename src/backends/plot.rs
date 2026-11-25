@@ -174,10 +174,10 @@ impl PlotBackend {
         // Create a series containing both voltage and current data
         let mut series: Vec<Vec<Numeric>> = Vec::with_capacity(var_count);
         let mut units: Vec<Unit> = Vec::with_capacity(var_count);
-        
+
         series.extend((0..var_count).map(|_| Vec::new()));
         units.extend(filtered_data[0].iter().map(|(var, _)| var.unit()));
-        
+
         for step_data in filtered_data.iter() {
             for var_idx in 0..var_count {
                 series[var_idx].push(step_data[var_idx].1);
@@ -359,7 +359,7 @@ impl PlotBackend {
 
         let root = SVGBackend::new(&path, (1440, 900)).into_drawing_area();
         root.fill(&BLACK)?;
-        
+
         let (max_gain, min_gain, max_phase, min_phase) = data
             .iter()
             .flat_map(|(_, vec)| vec.iter())
@@ -450,11 +450,11 @@ impl PlotBackend {
         let mut series_gain: Vec<Vec<Numeric>> = Vec::with_capacity(var_count);
         let mut series_phase: Vec<Vec<Numeric>> = Vec::with_capacity(var_count);
         let mut units: Vec<Unit> = Vec::with_capacity(var_count);
-        
+
         series_gain.extend((0..var_count).map(|_| Vec::new()));
         series_phase.extend((0..var_count).map(|_| Vec::new()));
         units.extend(data[0].1.iter().map(|(var, _)| var.unit()));
-        
+
         for (_, step_data) in data.iter() {
             for var_idx in 0..var_count {
                 let gain = 20.0 * step_data[var_idx].1.norm().log10();

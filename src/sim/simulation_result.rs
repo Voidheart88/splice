@@ -70,10 +70,8 @@ impl Serialize for Sim {
                 let bode_values = bode_values
                     .iter()
                     .map(|(freq, vars)| {
-                        let converted_vars = vars
-                            .iter()
-                            .map(|(var, c)| (var, (c.re, c.im)))
-                            .collect();
+                        let converted_vars =
+                            vars.iter().map(|(var, c)| (var, (c.re, c.im))).collect();
                         (*freq, converted_vars)
                     })
                     .collect();
