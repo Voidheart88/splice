@@ -12,7 +12,7 @@
 - Update des Style-Guides
 - ~~Erstellung von zusätzlichen Current-Sources (Sine, Pulse, Step)~~ ✅
 - ~~Erstellung von zusätzlichen Voltage-Sources (Sine, Pulse, Step)~~ ✅
-- BJT Modelle haben kein serde Modul
+- ~~BJT Modelle haben kein serde Modul~~ ✅
 - Erstellung eines Integrator-Blocks zusätzlich zum Gain Block
 - Erstellung eines Sum-Blocks
 - tests/test_rlc_transient.cir schlägt fehl - das sollte es nicht
