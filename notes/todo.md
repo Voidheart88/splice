@@ -16,5 +16,5 @@
 - ~~Erstellung eines Integrator-Blocks zusätzlich zum Gain Block~~ ✅
 - ~~Erstellung eines Sum-Blocks~~ ✅
 - ~~Implementation einer Armijo Schrittweitensteuerung für das Newtonverfahren.~~ ✅
-- tests/test_rlc_transient.cir schlägt fehl - das sollte es nicht
+- ~~tests/test_rlc_transient.cir schlägt fehl - das sollte es nicht~~ ✅
 - ~~Refactoring: integration.rs gehört eigentlich ins sim Modul~~ ✅
