@@ -135,7 +135,11 @@ pub enum Element {
     VSource(VSourceBundle),
     VSourceSin(VSourceSinBundle),
     VSourceStep(VSourceStepBundle),
+    VSourcePulse(VSourcePulseBundle),
     ISource(ISourceBundle),
+    ISourcePulse(ISourcePulseBundle),
+    ISourceSin(ISourceSinBundle),
+    ISourceStep(ISourceStepBundle),
     Gain(GainBundle),
     Integrator(IntegratorBundle),
     Summer(SummerBundle),
@@ -169,6 +173,7 @@ impl Element {
             Element::VSourceSin(ele) => Some(ele.pairs(None)),
             Element::VSource(ele) => Some(ele.pairs()),
             Element::ISource(ele) => Some(ele.pairs()),
+            Element::ISourcePulse(ele) => Some(ele.pairs()),
             _ => None,
         }
     }
@@ -196,6 +201,10 @@ impl Element {
         match self {
             Element::VSourceSin(ele) => Some(ele.pairs(time)),
             Element::VSourceStep(ele) => Some(ele.pairs(time)),
+            Element::VSourcePulse(ele) => Some(ele.pairs(time)),
+            Element::ISourceSin(ele) => Some(ele.pairs_at_time(time)),
+            Element::ISourceStep(ele) => Some(ele.pairs_at_time(time)),
+            Element::ISourcePulse(ele) => Some(ele.pairs_at_time(time)),
             Element::Capacitor(ele) => Some(ele.pairs(delta_t)),
             Element::Inductor(ele) => Some(ele.pairs(delta_t)),
             Element::CoupledInductors(ele) => Some(ele.get_pairs()),
@@ -219,6 +228,10 @@ impl Element {
         match self {
             Element::VSourceSin(ele) => Some(ele.pairs(time)), // Time sources use same method
             Element::VSourceStep(ele) => Some(ele.pairs(time)), // Time sources use same method
+            Element::VSourcePulse(ele) => Some(ele.pairs(time)),
+            Element::ISourceSin(ele) => Some(ele.pairs_at_time(time)),
+            Element::ISourceStep(ele) => Some(ele.pairs_at_time(time)),
+            Element::ISourcePulse(ele) => Some(ele.pairs_at_time(time)),
             Element::Capacitor(ele) => Some(ele.pairs_bdf(delta_t)),
             Element::Inductor(ele) => Some(ele.pairs_bdf(delta_t)),
             Element::CoupledInductors(ele) => Some(ele.get_pairs()), // Same as Euler for now
@@ -239,6 +252,10 @@ impl Element {
         match self {
             Element::VSourceSin(ele) => Some(ele.pairs(time)), // Time sources use same method
             Element::VSourceStep(ele) => Some(ele.pairs(time)), // Time sources use same method
+            Element::VSourcePulse(ele) => Some(ele.pairs(time)),
+            Element::ISourceSin(ele) => Some(ele.pairs_at_time(time)),
+            Element::ISourceStep(ele) => Some(ele.pairs_at_time(time)),
+            Element::ISourcePulse(ele) => Some(ele.pairs_at_time(time)),
             Element::Capacitor(ele) => Some(ele.pairs_trapezoidal(delta_t)),
             Element::Inductor(ele) => Some(ele.pairs_trapezoidal(delta_t)),
             Element::CoupledInductors(ele) => Some(ele.get_pairs()), // Same as Euler for now
@@ -297,6 +314,12 @@ impl Element {
             Element::Resistor(res) => Some(res.ac_triples()),
             Element::VSource(vsource) => Some(vsource.ac_triples()),
             Element::VSourceStep(_) => None,
+            Element::VSourcePulse(_) => None,
+            Element::VSourceSin(_) => None,
+            Element::ISource(_) => None,
+            Element::ISourcePulse(_) => None,
+            Element::ISourceSin(_) => None,
+            Element::ISourceStep(_) => None,
             Element::Gain(gain) => Some(gain.ac_triples()),
             Element::Integrator(ele) => Some(ele.ac_triples(freq)),
             Element::Summer(ele) => Some(ele.ac_triples()),
@@ -304,8 +327,6 @@ impl Element {
             Element::VCCS(vccs) => Some(vccs.ac_triples()),
             Element::CCCS(cccs) => Some(cccs.ac_triples()),
             Element::CCVS(ccvs) => Some(ccvs.ac_triples()),
-            Element::ISource(_) => None,
-            Element::VSourceSin(_) => None,
         }
     }
 
@@ -321,16 +342,20 @@ impl Element {
             Element::Resistor(_) => None,
             Element::VSource(ele) => Some(ele.ac_pairs()),
             Element::VSourceStep(ele) => Some(ele.ac_pairs()),
+            Element::VSourcePulse(_) => None,
+            Element::VSourceSin(_) => None,
             Element::CoupledInductors(_) => None,
             Element::VCVS(_) => None,
             Element::VCCS(_) => None,
             Element::CCCS(_) => None,
             Element::CCVS(_) => None,
             Element::ISource(_) => None,
+            Element::ISourcePulse(_) => None,
+            Element::ISourceSin(_) => None,
+            Element::ISourceStep(_) => None,
             Element::Gain(_) => None,
             Element::Integrator(_) => None,
             Element::Summer(_) => None,
-            Element::VSourceSin(_) => None,
         }
     }
 
@@ -346,7 +371,12 @@ impl Element {
             Element::Bjt1(ele) => ele.name(),
             Element::VSource(ele) => ele.name(),
             Element::VSourceStep(ele) => ele.name(),
+            Element::VSourcePulse(ele) => ele.name(),
+            Element::VSourceSin(ele) => ele.name(),
             Element::ISource(ele) => ele.name(),
+            Element::ISourcePulse(ele) => ele.name(),
+            Element::ISourceSin(ele) => ele.name(),
+            Element::ISourceStep(ele) => ele.name(),
             Element::Gain(ele) => ele.name(),
             Element::Integrator(ele) => ele.name(),
             Element::Summer(ele) => ele.name(),
@@ -355,7 +385,6 @@ impl Element {
             Element::CCCS(ele) => ele.name(),
             Element::CCVS(ele) => ele.name(),
             Element::CoupledInductors(ele) => ele.name(),
-            Element::VSourceSin(ele) => ele.name(),
         }
     }
 
@@ -372,6 +401,8 @@ impl Element {
             Element::Bjt1(_) => None, // BJT uses TripleIdx<12>
             Element::VSource(ele) => ele.triple_idx(),
             Element::VSourceStep(ele) => ele.triple_idx(),
+            Element::VSourcePulse(ele) => ele.triple_idx(),
+            Element::VSourceSin(ele) => ele.triple_idx(),
             Element::Gain(ele) => ele.triple_idx(),
             Element::Integrator(ele) => ele.triple_idx(),
             Element::Summer(ele) => ele.triple_idx(),
@@ -380,7 +411,9 @@ impl Element {
             Element::CCCS(ele) => ele.triple_idx(),
             Element::CCVS(ele) => ele.triple_idx(),
             Element::ISource(_) => None,
-            Element::VSourceSin(ele) => ele.triple_idx(),
+            Element::ISourcePulse(_) => None,
+            Element::ISourceSin(_) => None,
+            Element::ISourceStep(_) => None,
         }
     }
     /// Returns the indices of the complex triples for the element.
@@ -396,6 +429,8 @@ impl Element {
             Element::Resistor(res) => res.triple_idx(),
             Element::VSource(vsource) => vsource.triple_idx(),
             Element::VSourceStep(vsource) => vsource.triple_idx(),
+            Element::VSourcePulse(vsource) => vsource.triple_idx(),
+            Element::VSourceSin(vsource) => vsource.triple_idx(),
             Element::Gain(ele) => ele.triple_idx(),
             Element::Integrator(ele) => ele.triple_idx(),
             Element::Summer(ele) => ele.triple_idx(),
@@ -404,7 +439,9 @@ impl Element {
             Element::CCCS(ele) => ele.triple_idx(),
             Element::CCVS(ele) => ele.triple_idx(),
             Element::ISource(_) => None,
-            Element::VSourceSin(ele) => ele.triple_idx(),
+            Element::ISourcePulse(_) => None,
+            Element::ISourceSin(_) => None,
+            Element::ISourceStep(_) => None,
         }
     }
 

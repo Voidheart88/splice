@@ -160,6 +160,109 @@ impl VSourcePulseBundle {
     pub fn ac_value(&self) -> Option<Numeric> {
         self.ac_value
     }
+
+    /// Returns the triples representing matrix A.
+    pub fn triples(&self) -> Triples<Numeric, 4> {
+        let branch_idx = self.branch.idx();
+        let node0_idx = self.node0.as_ref().map(|v| v.idx());
+        let node1_idx = self.node1.as_ref().map(|v| v.idx());
+
+        // Handle different connection cases using early returns
+        if let (None, Some(node1_idx)) = (node0_idx, node1_idx) {
+            // Voltage source connected to ground through node1
+            return Triples::new(&[
+                (branch_idx, node1_idx, Numeric::one()),
+                (node1_idx, branch_idx, Numeric::one()),
+            ]);
+        }
+        if let (Some(node0_idx), None) = (node0_idx, node1_idx) {
+            // Voltage source connected to ground through node0
+            return Triples::new(&[
+                (branch_idx, node0_idx, -Numeric::one()),
+                (node0_idx, branch_idx, -Numeric::one()),
+            ]);
+        }
+        if let (Some(node0_idx), Some(node1_idx)) = (node0_idx, node1_idx) {
+            // Voltage source connected between two nodes
+            return Triples::new(&[
+                (branch_idx, node0_idx, Numeric::one()),
+                (node0_idx, branch_idx, Numeric::one()),
+                (branch_idx, node1_idx, -Numeric::one()),
+                (node1_idx, branch_idx, -Numeric::one()),
+            ]);
+        }
+        // This should not happen as voltage sources must have at least one connection
+        Triples::new(&[])
+    }
+
+    /// Returns the triples indices.
+    pub fn triple_idx(&self) -> Option<TripleIdx<4>> {
+        match (
+            self.node0.as_ref().map(|v| v.idx()),
+            self.node1.as_ref().map(|v| v.idx()),
+        ) {
+            (None, None) => None,
+            (None, Some(idx_1)) => Some(TripleIdx::new(&[(idx_1, idx_1)])),
+            (Some(idx_0), None) => Some(TripleIdx::new(&[(idx_0, idx_0)])),
+            (Some(idx_0), Some(idx_1)) => Some(TripleIdx::new(&[
+                (idx_0, idx_0),
+                (idx_1, idx_1),
+                (idx_0, idx_1),
+                (idx_1, idx_0),
+            ])),
+        }
+    }
+
+    /// Returns the pairs representing vector b.
+    pub fn pairs(&self, time: Option<&Numeric>) -> Pairs<Numeric, 2> {
+        let value = match time {
+            Some(t) => self.voltage_at_time(*t),
+            None => self.initial_value,
+        };
+        Pairs::new(&[(self.branch.idx(), value)])
+    }
+
+    /// Returns the AC triples.
+    pub fn ac_triples(&self) -> Triples<ComplexNumeric, 4> {
+        let branch_idx = self.branch.idx();
+        let node0_idx = self.node0.as_ref().map(|v| v.idx());
+        let node1_idx = self.node1.as_ref().map(|v| v.idx());
+
+        if let (Some(node0_idx), Some(node1_idx)) = (node0_idx, node1_idx) {
+            Triples::new(&[
+                (branch_idx, node0_idx, ComplexNumeric::one()),
+                (node0_idx, branch_idx, ComplexNumeric::one()),
+                (branch_idx, node1_idx, -ComplexNumeric::one()),
+                (node1_idx, branch_idx, -ComplexNumeric::one()),
+            ])
+        } else if let (Some(node0_idx), None) = (node0_idx, node1_idx) {
+            Triples::new(&[
+                (branch_idx, node0_idx, -ComplexNumeric::one()),
+                (node0_idx, branch_idx, -ComplexNumeric::one()),
+            ])
+        } else if let (None, Some(node1_idx)) = (node0_idx, node1_idx) {
+            Triples::new(&[
+                (branch_idx, node1_idx, ComplexNumeric::one()),
+                (node1_idx, branch_idx, ComplexNumeric::one()),
+            ])
+        } else {
+            Triples::new(&[])
+        }
+    }
+
+    /// Returns the AC pairs.
+    pub fn ac_pairs(&self) -> Pairs<ComplexNumeric, 2> {
+        let Some(ac_val) = self.ac_value else {
+            return Pairs::new(&[]);
+        };
+        Pairs::new(&[(
+            self.branch.idx(),
+            ComplexNumeric {
+                re: ac_val,
+                im: Numeric::zero(),
+            },
+        )])
+    }
 }
 
 #[cfg(test)]

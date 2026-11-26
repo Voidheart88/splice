@@ -14,9 +14,13 @@ use crate::models::diode::serde::SerdeDiode;
 use crate::models::gain::serde::SerdeGain;
 use crate::models::inductor::serde::SerdeInductor;
 use crate::models::isource::serde::SerdeISource;
+use crate::models::isource_pulse::serde::SerdeISourcePulse;
+use crate::models::isource_sine::serde::SerdeISourceSin;
+use crate::models::isource_step::serde::SerdeISourceStep;
 use crate::models::mosfet::serde::SerdeMos0;
 use crate::models::resistor::serde::SerdeResistor;
 use crate::models::vsource::serde::SerdeVSource;
+use crate::models::vsource_pulse::serde::SerdeVSourcePulse;
 use crate::models::vsource_sine::serde::SerdeVSourceSin;
 use crate::models::vsource_step::serde::SerdeVSourceStep;
 use crate::sim::commands::ACMode;
@@ -44,8 +48,16 @@ pub enum SerdeElement {
     VSourceSin(SerdeVSourceSin),
     #[serde(rename = "vsource_step")]
     VSourceStep(SerdeVSourceStep),
+    #[serde(rename = "vsource_pulse")]
+    VSourcePulse(SerdeVSourcePulse),
     #[serde(rename = "isource")]
     ISource(SerdeISource),
+    #[serde(rename = "isource_sine")]
+    ISourceSin(SerdeISourceSin),
+    #[serde(rename = "isource_step")]
+    ISourceStep(SerdeISourceStep),
+    #[serde(rename = "isource_pulse")]
+    ISourcePulse(SerdeISourcePulse),
     #[serde(rename = "diode")]
     Diode(SerdeDiode),
     #[serde(rename = "mosfet")]
@@ -362,7 +374,11 @@ impl ProcessSerdeElement for SerdeElement {
             SerdeElement::VSource(ele) => ele.process(variables, elements, var_map),
             SerdeElement::VSourceSin(ele) => ele.process(variables, elements, var_map),
             SerdeElement::VSourceStep(ele) => ele.process(variables, elements, var_map),
+            SerdeElement::VSourcePulse(ele) => ele.process(variables, elements, var_map),
             SerdeElement::ISource(ele) => ele.process(variables, elements, var_map),
+            SerdeElement::ISourceSin(ele) => ele.process(variables, elements, var_map),
+            SerdeElement::ISourceStep(ele) => ele.process(variables, elements, var_map),
+            SerdeElement::ISourcePulse(ele) => ele.process(variables, elements, var_map),
             SerdeElement::Diode(ele) => ele.process(variables, elements, var_map),
             SerdeElement::Bjt0(ele) => ele.process(variables, elements, var_map),
             SerdeElement::Bjt1(ele) => ele.process(variables, elements, var_map),

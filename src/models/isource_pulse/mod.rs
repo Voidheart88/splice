@@ -92,6 +92,23 @@ impl ISourcePulseBundle {
         }
     }
 
+    /// Returns the pairs representing the current source contributions to the vector b.
+    /// For transient analysis, uses the current value at the given time.
+    pub fn pairs_at_time(&self, time: Option<&Numeric>) -> Pairs<Numeric, 2> {
+        let value = match time {
+            Some(t) => self.current_at_time(*t),
+            None => self.initial_value,
+        };
+        match (&self.node0, &self.node1) {
+            (None, None) => Pairs::new(&[]),
+            (Some(node0), None) => Pairs::new(&[(node0.idx(), -value)]),
+            (None, Some(node1)) => Pairs::new(&[(node1.idx(), value)]),
+            (Some(node0), Some(node1)) => {
+                Pairs::new(&[(node0.idx(), -value), (node1.idx(), value)])
+            }
+        }
+    }
+
     /// Returns the current value at a given time for transient analysis.
     ///
     /// The pulse waveform:

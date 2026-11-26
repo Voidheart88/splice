@@ -98,6 +98,28 @@ impl ISourceSinBundle {
             }
         }
     }
+
+    /// Returns the pairs representing the current source contributions to the vector b.
+    /// For transient analysis, uses the sinusoidal current at the given time.
+    pub fn pairs_at_time(&self, time: Option<&Numeric>) -> Pairs<Numeric, 2> {
+        let value = match time {
+            Some(t) => {
+                // Calculate sinusoidal current: dc_offset + amplitude * sin(2*pi*frequency*t + phase)
+                let angular_freq = 2.0 * std::f64::consts::PI * self.frequency;
+                let phase_rad = self.phase.to_radians();
+                self.dc_offset + self.amplitude * (angular_freq * *t + phase_rad).sin()
+            }
+            None => self.dc_offset,
+        };
+        match (&self.node0, &self.node1) {
+            (None, None) => Pairs::new(&[]),
+            (Some(node0), None) => Pairs::new(&[(node0.idx(), -value)]),
+            (None, Some(node1)) => Pairs::new(&[(node1.idx(), value)]),
+            (Some(node0), Some(node1)) => {
+                Pairs::new(&[(node0.idx(), -value), (node1.idx(), value)])
+            }
+        }
+    }
 }
 
 #[cfg(test)]

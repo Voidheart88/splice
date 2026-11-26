@@ -1,35 +1,57 @@
 // SPICE parsing for pulse current sources
 // Syntax: Ixxx n+ n- PULSE(initial pulsed delay risetime falltime pulsewidth period)
-// TODO: Implement full SPICE parsing
 
+use crate::frontends::get_variable;
 use crate::frontends::spice::{ProcessSpiceElement, Rule};
+use crate::frontends::spice_parser_helpers::SpiceElementParser;
+use crate::models::{Element, ISourcePulseBundle, Unit};
 use crate::{FrontendError, Variable};
 use pest::iterators::Pair;
 use std::sync::Arc;
 
-use super::ISourcePulseBundle;
-
 impl ProcessSpiceElement for ISourcePulseBundle {
     fn process(
         element: Pair<Rule>,
-        _variables: &mut Vec<Variable>,
-        _elements: &mut Vec<crate::Element>,
-        _var_map: &mut std::collections::HashMap<Arc<str>, usize>,
+        variables: &mut Vec<Variable>,
+        elements: &mut Vec<crate::Element>,
+        var_map: &mut std::collections::HashMap<Arc<str>, usize>,
     ) -> Result<(), FrontendError> {
-        // TODO: Implement full SPICE parsing for pulse current sources
-        let name = Arc::from(element.as_str());
+        // Use the helper parser for common parsing logic
+        let mut parser = SpiceElementParser::new(element);
 
-        // Placeholder - full implementation needed
-        let _isource = ISourcePulseBundle::new(
-            name, None, None, 0.0,  // initial_value
-            1.0,  // pulsed_value
-            0.0,  // delay_time
-            1e-9, // rise_time
-            1e-9, // fall_time
-            1e-6, // pulse_width
-            1e-5, // period
+        // Parse name and nodes
+        let name = parser.parse_name("pulse current source")?;
+        let node0_str = parser.parse_node("pulse current source", name, "node0")?;
+        let node1_str = parser.parse_node("pulse current source", name, "node1")?;
+
+        // Parse pulse parameters
+        let initial_value = parser.parse_value("pulse current source", name, "initial_value")?;
+        let pulsed_value = parser.parse_value("pulse current source", name, "pulsed_value")?;
+        let delay_time = parser.parse_value("pulse current source", name, "delay_time")?;
+        let rise_time = parser.parse_value("pulse current source", name, "rise_time")?;
+        let fall_time = parser.parse_value("pulse current source", name, "fall_time")?;
+        let pulse_width = parser.parse_value("pulse current source", name, "pulse_width")?;
+        let period = parser.parse_value("pulse current source", name, "period")?;
+
+        // Create node variables
+        let node0 = get_variable(node0_str, Unit::Ampere, variables, var_map);
+        let node1 = get_variable(node1_str, Unit::Ampere, variables, var_map);
+
+        // Create the pulse current source
+        let isource = ISourcePulseBundle::new(
+            Arc::from(name),
+            node0,
+            node1,
+            initial_value,
+            pulsed_value,
+            delay_time,
+            rise_time,
+            fall_time,
+            pulse_width,
+            period,
         );
 
+        elements.push(Element::ISourcePulse(isource));
         Ok(())
     }
 }
