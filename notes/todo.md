@@ -33,11 +33,11 @@
 - [ ] `src/models/summer/serde.rs` - Implement full SERDE support
 - [ ] `src/models/summer/spice.rs` - Implement full SPICE parsing for summer blocks
 
-### Code Review Items (CHECK)
-- [ ] `src/solver/tests/selector.rs:9` - Check if thresholds should be located in spot.rs
-- [ ] `src/solver/tests/selector.rs:20` - Check if thresholds should be located in spot.rs
-- [ ] `src/sim/autotune.rs:149` - Check if this can be refactored with early returns for readability
-- [ ] `src/sim/autotune.rs:196` - Check if TRAPS is better for nonlinear elements
+### Code Review Items (CHECK) ✅ ALL RESOLVED
+- [x] `src/solver/tests/selector.rs:9` - Thresholds already in spot.rs ✅
+- [x] `src/solver/tests/selector.rs:20` - Thresholds already in spot.rs ✅
+- [x] `src/sim/autotune.rs:149` - Refactored with early returns ✅
+- [x] `src/sim/autotune.rs:196` - Enhanced documentation for Backward Euler choice ✅
 
 ## Code Organisation:
 - Right now the integraton methords are more or less integrated in the integrator module in sim.
