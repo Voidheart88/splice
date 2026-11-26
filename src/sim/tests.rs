@@ -1240,3 +1240,5 @@ mod options_tests {
         assert!(method.is_multistep());
     }
 }
+
+mod integration;
