@@ -193,7 +193,7 @@ ELE_GAIN = {
 }
 
 // -------------------------------------------------------------------------------------------------
-// Simulation commands (OP, DC, AC, TRAN, INCLUDE, OUT)
+// Simulation commands (OP, DC, AC, TRAN, INCLUDE, OUT, OPTIONS)
 // -------------------------------------------------------------------------------------------------
 COMMAND = {
     CMD_OP
@@ -202,6 +202,7 @@ COMMAND = {
   | CMD_TRAN
   | CMD_INCLUDE
   | CMD_OUT
+  | CMD_OPTIONS
 }
 
 // Open‑loop operating point calculation – `.op`
@@ -244,6 +245,20 @@ CMD_TRAN = { ^".tran" ~ WHITE_SPACE+ ~ VALUE ~ WHITE_SPACE+ ~ VALUE }
 // Misc commands
 CMD_INCLUDE = { ^".include" ~ WHITE_SPACE+ ~ (ASCII_ALPHANUMERIC | ".")+ }
 CMD_OUT     = { ^".out" ~ WHITE_SPACE+ ~ NODE+ ~ ((WHITE_SPACE+ ~ NODE+)+ | WHITE_SPACE*) }
+
+// Options command - supports GMIN and RSHUNT
+// Syntax: .options gmin=<value> rshunt=<value>
+CMD_OPTIONS = {
+    ^".options" ~ WHITE_SPACE+ ~ CMD_OPTIONS_PARAMS
+}
+CMD_OPTIONS_PARAMS = {
+    CMD_OPTIONS_PARAM ~ (WHITE_SPACE+ ~ CMD_OPTIONS_PARAM)*
+}
+CMD_OPTIONS_PARAM = {
+    CMD_OPTIONS_GMIN | CMD_OPTIONS_RSHUNT
+}
+CMD_OPTIONS_GMIN = { ^"gmin" ~ WHITE_SPACE* ~ "=" ~ WHITE_SPACE* ~ VALUE }
+CMD_OPTIONS_RSHUNT = { ^"rshunt" ~ WHITE_SPACE* ~ "=" ~ WHITE_SPACE* ~ VALUE }
 
 // -------------------------------------------------------------------------------------------------
 // Controlled Sources

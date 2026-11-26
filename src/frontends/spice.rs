@@ -173,6 +173,7 @@ impl SpiceFrontend {
                 self.process_include(command, commands, options, elements, variables, var_map)?
             }
             Rule::CMD_OUT => self.process_out(command, options)?,
+            Rule::CMD_OPTIONS => self.process_options(command, options)?,
             _ => {}
         }
         Ok(())
@@ -408,6 +409,49 @@ impl SpiceFrontend {
         }
 
         options.push(SimulationOption::Out(nodes));
+        Ok(())
+    }
+
+    fn process_options(
+        &self,
+        command: Pair<Rule>,
+        options: &mut Vec<SimulationOption>,
+    ) -> Result<(), FrontendError> {
+        // Parse .options gmin=<value> rshunt=<value>
+        let params = command.into_inner();
+
+        for param in params {
+            let param_str = param.as_str();
+
+            if param_str.starts_with("gmin") {
+                // Extract value after '='
+                if let Some(eq_pos) = param_str.find('=') {
+                    let value_str = param_str[eq_pos + 1..].trim();
+                    if let Ok(value) = value_str.parse::<f64>() {
+                        options.push(SimulationOption::GMin(value));
+                    } else {
+                        return Err(FrontendError::ParseError(format!(
+                            "Invalid GMIN value: {}",
+                            value_str
+                        )));
+                    }
+                }
+            } else if param_str.starts_with("rshunt") {
+                // Extract value after '='
+                if let Some(eq_pos) = param_str.find('=') {
+                    let value_str = param_str[eq_pos + 1..].trim();
+                    if let Ok(value) = value_str.parse::<f64>() {
+                        options.push(SimulationOption::RShunt(value));
+                    } else {
+                        return Err(FrontendError::ParseError(format!(
+                            "Invalid RSHUNT value: {}",
+                            value_str
+                        )));
+                    }
+                }
+            }
+        }
+
         Ok(())
     }
 

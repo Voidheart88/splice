@@ -2,7 +2,6 @@ use log::info;
 
 use crate::Simulator;
 use crate::sim::SimulatorError;
-use crate::sim::newton_armijo::NewtonArmijo;
 use crate::sim::simulation_result::Sim;
 use crate::solver::Solver;
 use crate::spot::*;

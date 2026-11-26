@@ -63,8 +63,22 @@ fn init_sim_rsparse() {
     let branch_curr_exp = (Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0), -1.0);
     let node_vol = result[1].clone();
     let node_vol_exp = (Variable::new(Arc::from("1"), Unit::Volt, 1), 10.0);
-    assert_eq!(branch_curr, branch_curr_exp);
-    assert_eq!(node_vol, node_vol_exp);
+
+    // Use approximate equality due to GMIN/RSHUNT conductances
+    assert_eq!(branch_curr.0, branch_curr_exp.0);
+    assert!(
+        (branch_curr.1 - branch_curr_exp.1).abs() < 1e-6,
+        "Branch current: expected {}, got {}",
+        branch_curr_exp.1,
+        branch_curr.1
+    );
+    assert_eq!(node_vol.0, node_vol_exp.0);
+    assert!(
+        (node_vol.1 - node_vol_exp.1).abs() < 1e-6,
+        "Node voltage: expected {}, got {}",
+        node_vol_exp.1,
+        node_vol.1
+    );
 }
 
 #[test]
@@ -119,8 +133,22 @@ fn init_sim_faer() {
     let branch_curr_exp = (Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0), -1.0);
     let node_vol = result[1].clone();
     let node_vol_exp = (Variable::new(Arc::from("1"), Unit::Volt, 1), 10.0);
-    assert_eq!(branch_curr, branch_curr_exp);
-    assert_eq!(node_vol, node_vol_exp);
+
+    // Use approximate equality due to GMIN/RSHUNT conductances
+    assert_eq!(branch_curr.0, branch_curr_exp.0);
+    assert!(
+        (branch_curr.1 - branch_curr_exp.1).abs() < 1e-6,
+        "Branch current: expected {}, got {}",
+        branch_curr_exp.1,
+        branch_curr.1
+    );
+    assert_eq!(node_vol.0, node_vol_exp.0);
+    assert!(
+        (node_vol.1 - node_vol_exp.1).abs() < 1e-6,
+        "Node voltage: expected {}, got {}",
+        node_vol_exp.1,
+        node_vol.1
+    );
 }
 
 #[test]
@@ -175,8 +203,22 @@ fn init_sim_nalgebra() {
     let branch_curr_exp = (Variable::new(Arc::from("V1#branch"), Unit::Ampere, 0), -1.0);
     let node_vol = result[1].clone();
     let node_vol_exp = (Variable::new(Arc::from("1"), Unit::Volt, 1), 10.0);
-    assert_eq!(branch_curr, branch_curr_exp);
-    assert_eq!(node_vol, node_vol_exp);
+
+    // Use approximate equality due to GMIN/RSHUNT conductances
+    assert_eq!(branch_curr.0, branch_curr_exp.0);
+    assert!(
+        (branch_curr.1 - branch_curr_exp.1).abs() < 1e-6,
+        "Branch current: expected {}, got {}",
+        branch_curr_exp.1,
+        branch_curr.1
+    );
+    assert_eq!(node_vol.0, node_vol_exp.0);
+    assert!(
+        (node_vol.1 - node_vol_exp.1).abs() < 1e-6,
+        "Node voltage: expected {}, got {}",
+        node_vol_exp.1,
+        node_vol.1
+    );
 }
 
 #[test]

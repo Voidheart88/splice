@@ -2,12 +2,30 @@ use serde::Serialize;
 use std::sync::Arc;
 
 use crate::sim::integration::{BDF, BackwardEuler, ForwardEuler, IntegrationMethod, Trapezoidal};
+use crate::spot::Numeric;
 
 /// Simulation options that can be set via .options command
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum SimulationOption {
     Out(Vec<Arc<str>>),
     IntegrationMethod(IntegrationMethodEnum),
+    /// Minimum conductance added between every node and ground (default: 1e-12 S)
+    /// Prevents singular matrices in circuits with floating nodes
+    GMin(Numeric),
+    /// Shunt resistance from every node to ground (default: 1e9 Ω)
+    /// Alternative to GMIN, prevents floating nodes
+    RShunt(Numeric),
+}
+
+/// Default values for simulation options
+pub mod defaults {
+    use crate::spot::Numeric;
+
+    /// Default minimum conductance (1e-12 S)
+    pub const GMIN: Numeric = 1e-12;
+
+    /// Default shunt resistance (1e9 Ω)
+    pub const RSHUNT: Numeric = 1e9;
 }
 
 /// Integration method enum - this wraps the trait objects
@@ -66,6 +84,18 @@ struct IntegrationMethodWrapper<'a> {
     method: &'a IntegrationMethodEnum,
 }
 
+#[derive(Serialize)]
+struct GMinWrapper {
+    r#type: &'static str,
+    value: f64,
+}
+
+#[derive(Serialize)]
+struct RShuntWrapper {
+    r#type: &'static str,
+    value: f64,
+}
+
 impl Serialize for SimulationOption {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -80,6 +110,16 @@ impl Serialize for SimulationOption {
             SimulationOption::IntegrationMethod(method) => IntegrationMethodWrapper {
                 r#type: "integration",
                 method,
+            }
+            .serialize(serializer),
+            SimulationOption::GMin(value) => GMinWrapper {
+                r#type: "gmin",
+                value: *value as f64,
+            }
+            .serialize(serializer),
+            SimulationOption::RShunt(value) => RShuntWrapper {
+                r#type: "rshunt",
+                value: *value as f64,
             }
             .serialize(serializer),
         }

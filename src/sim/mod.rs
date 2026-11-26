@@ -91,6 +91,36 @@ impl<SO: Solver> Simulator<SO> {
             .unwrap_or(IntegrationMethodEnum::BackwardEuler)
     }
 
+    /// Returns the GMIN value (minimum conductance to ground)
+    /// Defaults to 1e-12 S if not specified
+    fn get_gmin(&self) -> Numeric {
+        self.options
+            .iter()
+            .find_map(|opt| {
+                if let SimulationOption::GMin(value) = opt {
+                    Some(*value)
+                } else {
+                    None
+                }
+            })
+            .unwrap_or(crate::sim::options::defaults::GMIN)
+    }
+
+    /// Returns the RSHUNT value (shunt resistance to ground)
+    /// Defaults to 1e9 Ω if not specified
+    fn get_rshunt(&self) -> Numeric {
+        self.options
+            .iter()
+            .find_map(|opt| {
+                if let SimulationOption::RShunt(value) = opt {
+                    Some(*value)
+                } else {
+                    None
+                }
+            })
+            .unwrap_or(crate::sim::options::defaults::RSHUNT)
+    }
+
     pub fn run(&mut self) -> Result<SimulationResults, SimulatorError> {
         //Inits matrices and sparsity patterns
         self.init_solver();
@@ -208,6 +238,9 @@ impl<SO: Solver> Simulator<SO> {
             .filter_map(|ele| ele.get_constant_triples())
             .flat_map(|triples| triples.data())
             .for_each(|triplet| self.solver.insert_a(&triplet));
+
+        // Add GMIN and RSHUNT conductances to prevent floating nodes
+        self.add_gmin_rshunt();
     }
 
     pub(crate) fn build_constant_b_vec(&mut self) {
@@ -272,6 +305,33 @@ impl<SO: Solver> Simulator<SO> {
             .filter_map(|ele| ele.get_ac_pairs(freq))
             .flat_map(|pairs| pairs.data())
             .for_each(|pair| self.solver.insert_cplx_b(&pair));
+    }
+
+    /// Adds GMIN and RSHUNT conductances from every node to ground
+    /// This prevents singular matrices in circuits with floating nodes
+    fn add_gmin_rshunt(&mut self) {
+        let gmin = self.get_gmin();
+        let rshunt = self.get_rshunt();
+
+        // Convert RSHUNT to conductance (G = 1/R)
+        let gshunt = if rshunt > 0.0 { 1.0 / rshunt } else { 0.0 };
+
+        // Total conductance to add from each node to ground
+        let g_total = gmin + gshunt;
+
+        // Skip if both are zero
+        if g_total <= 0.0 {
+            return;
+        }
+
+        // Add conductance from each node to ground (node 0)
+        // We iterate over all variables (nodes) and add g_total to the diagonal
+        for (idx, _var) in self.vars.iter().enumerate() {
+            // Skip ground node (index 0)
+            if idx > 0 {
+                self.solver.insert_a(&(idx, idx, g_total));
+            }
+        }
     }
 
     pub(crate) fn generate_initial_guess(&self) -> Vec<Numeric> {

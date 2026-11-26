@@ -21,7 +21,7 @@ use crate::models::vsource_sine::serde::SerdeVSourceSin;
 use crate::models::vsource_step::serde::SerdeVSourceStep;
 use crate::sim::commands::ACMode;
 use crate::sim::commands::SimulationCommand;
-use crate::sim::options::SimulationOption;
+use crate::sim::options::{IntegrationMethodEnum, SimulationOption};
 use crate::spot::*;
 use serde::{Deserialize, Serialize};
 
@@ -162,12 +162,19 @@ impl SerdeTran {
 }
 
 /// Represents simulation output options.
-/// Currently only supports specifying output variables.
+/// Simulation option for serialized circuit formats (YAML/JSON).
+/// Supports output variables, integration method, GMIN, and RSHUNT.
 #[derive(Default, Debug, Deserialize, Serialize)]
 #[serde(rename = "option")]
 pub struct SerdeOption {
     /// The output variable or node to save.
-    pub out: String,
+    pub out: Option<String>,
+    /// Integration method: "be", "forward_euler", "trapezoidal", or "gear"
+    pub integration: Option<String>,
+    /// Minimum conductance to ground (default: 1e-12 S)
+    pub gmin: Option<f64>,
+    /// Shunt resistance to ground (default: 1e9 Ω)
+    pub rshunt: Option<f64>,
 }
 
 /// Represents a circuit defined in a serialization format (e.g., YAML or JSON).
@@ -284,7 +291,31 @@ impl From<SerdeSimulation> for SimulationCommand {
 
 impl From<SerdeOption> for SimulationOption {
     fn from(option: SerdeOption) -> Self {
-        SimulationOption::Out(vec![Arc::from(option.out.as_str())])
+        // Check for GMIN first
+        if let Some(gmin) = option.gmin {
+            return SimulationOption::GMin(gmin);
+        }
+
+        // Check for RSHUNT
+        if let Some(rshunt) = option.rshunt {
+            return SimulationOption::RShunt(rshunt);
+        }
+
+        // Check for integration method
+        if let Some(method) = option.integration {
+            let integration_method = match method.as_str() {
+                "be" | "backward_euler" => IntegrationMethodEnum::BackwardEuler,
+                "forward_euler" => IntegrationMethodEnum::ForwardEuler,
+                "trapezoidal" => IntegrationMethodEnum::Trapezoidal,
+                "gear" | "bdf" => IntegrationMethodEnum::GearBdf { order: 2 },
+                _ => IntegrationMethodEnum::BackwardEuler,
+            };
+            return SimulationOption::IntegrationMethod(integration_method);
+        }
+
+        // Default to OUT (backward compatibility)
+        let out_name = option.out.unwrap_or_default();
+        SimulationOption::Out(vec![Arc::from(out_name.as_str())])
     }
 }
 

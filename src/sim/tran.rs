@@ -3,7 +3,6 @@ use log::{debug, info};
 use crate::Simulator;
 use crate::models::Element;
 use crate::sim::SimulatorError;
-use crate::sim::newton_armijo::ResidualNorm;
 use crate::sim::options::IntegrationMethodEnum;
 use crate::sim::simulation_result::Sim;
 use crate::solver::Solver;

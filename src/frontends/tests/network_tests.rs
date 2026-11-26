@@ -25,7 +25,10 @@ fn test_network_frontend_basic() {
         ],
         simulations: vec![SerdeSimulation::OP],
         options: vec![SerdeOption {
-            out: "n1".to_string(),
+            out: Some("n1".to_string()),
+            integration: None,
+            gmin: None,
+            rshunt: None,
         }],
     };
 
@@ -77,7 +80,10 @@ fn test_network_integration() {
         ],
         simulations: vec![SerdeSimulation::OP],
         options: vec![SerdeOption {
-            out: "n1".to_string(),
+            out: Some("n1".to_string()),
+            integration: None,
+            gmin: None,
+            rshunt: None,
         }],
     };
 
@@ -129,7 +135,10 @@ fn test_network_dc_analysis() {
             crate::frontends::serde::SerdeDC::new("V1".to_string(), 0.0, 10.0, 2.5),
         )],
         options: vec![SerdeOption {
-            out: "n1".to_string(),
+            out: Some("n1".to_string()),
+            integration: None,
+            gmin: None,
+            rshunt: None,
         }],
     };
 
