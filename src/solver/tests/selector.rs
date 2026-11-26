@@ -5,8 +5,6 @@ fn test_automatic_solver_selection() {
     let selector = SolverSelector::new(SolverSelectionStrategy::Automatic);
 
     // Test that we can create solvers for different sizes
-    // We can't easily check the type, but we can verify the selector works
-    // CHECK: Do these thresholds should be located in spot.rs
     assert!(selector.select_solver(5).is_ok());
     assert!(selector.select_solver(50).is_ok());
     assert!(selector.select_solver(200).is_ok());
@@ -17,7 +15,6 @@ fn test_hybrid_solver_selection() {
     let selector = SolverSelector::new(SolverSelectionStrategy::Hybrid);
 
     // Test that we can create solvers for different sizes
-    // CHECK: Do these thresholds should be located in spot.rs
     assert!(selector.select_solver(5).is_ok());
     assert!(selector.select_solver(200).is_ok());
 }

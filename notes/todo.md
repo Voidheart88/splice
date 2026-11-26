@@ -1,4 +1,4 @@
-# Eine Liste mit ToDos:
+# ToDos:
 
 ## Code Quality (Style Guide)
 - Abarbeiten der verbleibenden FIXME, CHECK und TODO Markierungen 
@@ -39,8 +39,7 @@
 - [ ] `src/sim/autotune.rs:149` - Check if this can be refactored with early returns for readability
 - [ ] `src/sim/autotune.rs:196` - Check if TRAPS is better for nonlinear elements
 
-## Completed ✅
-- ~~Update des Style-Guides~~ ✅
-- ~~tests/test_rlc_transient.cir schlägt fehl~~ ✅ (Fixed with GMIN/RSHUNT options)
-
-## Code Orgi
+## Code Organisation:
+- Right now the integraton methords are more or less integrated in the integrator module in sim.
+  - Check if it can be split up in submodules
+- Find a way to semi-automatic visualize the data-flow for the user to improve management decisions

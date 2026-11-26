@@ -146,30 +146,50 @@ fn analyze_circuit_elements(elements: &[Element]) -> CircuitCharacteristics {
     });
 
     // Analyze time constants
-    // CHECK: Check if this can be refactored with early returns for readability
     if !resistors.is_empty() {
-        if !capacitors.is_empty() {
-            characteristics.time_constants.has_rc_circuits = true;
-            let rc_time_constants: Vec<Numeric> = resistors
-                .iter()
-                .flat_map(|&r| capacitors.iter().map(move |&c| r * c))
-                .collect();
-
-            update_time_constants(&mut characteristics.time_constants, &rc_time_constants);
-        }
-
-        if !inductors.is_empty() {
-            characteristics.time_constants.has_rl_circuits = true;
-            let rl_time_constants: Vec<Numeric> = inductors
-                .iter()
-                .flat_map(|&l| resistors.iter().map(move |&r| l / r))
-                .collect();
-
-            update_time_constants(&mut characteristics.time_constants, &rl_time_constants);
-        }
+        analyze_rc_time_constants(&resistors, &capacitors, &mut characteristics.time_constants);
+        analyze_rl_time_constants(&resistors, &inductors, &mut characteristics.time_constants);
     }
 
     characteristics
+}
+
+/// Analyzes RC time constants from resistor and capacitor values
+fn analyze_rc_time_constants(
+    resistors: &[Numeric],
+    capacitors: &[Numeric],
+    analysis: &mut TimeConstantAnalysis,
+) {
+    if capacitors.is_empty() {
+        return;
+    }
+
+    analysis.has_rc_circuits = true;
+    let rc_time_constants: Vec<Numeric> = resistors
+        .iter()
+        .flat_map(|&r| capacitors.iter().map(move |&c| r * c))
+        .collect();
+
+    update_time_constants(analysis, &rc_time_constants);
+}
+
+/// Analyzes RL time constants from resistor and inductor values
+fn analyze_rl_time_constants(
+    resistors: &[Numeric],
+    inductors: &[Numeric],
+    analysis: &mut TimeConstantAnalysis,
+) {
+    if inductors.is_empty() {
+        return;
+    }
+
+    analysis.has_rl_circuits = true;
+    let rl_time_constants: Vec<Numeric> = inductors
+        .iter()
+        .flat_map(|&l| resistors.iter().map(move |&r| l / r))
+        .collect();
+
+    update_time_constants(analysis, &rl_time_constants);
 }
 
 /// Updates time constant analysis with new values
@@ -192,8 +212,13 @@ fn suggest_integration_method(
     has_capacitors: bool,
     has_inductors: bool,
 ) -> IntegrationMethodEnum {
-    // Default to Backward Euler for stability, especially with nonlinear elements
-    // CHECK if this is the best solution. Isnt TRAPS better for nonlinear Elements?
+    // Backward Euler is preferred for nonlinear elements due to:
+    // 1. Unconditional stability (L-stable) - crucial for nonlinear convergence
+    // 2. Numerical damping - prevents oscillations common with nonlinear elements
+    // 3. Robustness - more forgiving with difficult nonlinearities (diodes, MOSFETs)
+    //
+    // Note: TRAPS would offer better accuracy but is not implemented.
+    // Trapezoidal is more accurate but can cause numerical oscillations with nonlinear elements.
     if has_nonlinear_elements {
         info!("  -> Using Backward Euler for stability with nonlinear elements");
         return IntegrationMethodEnum::BackwardEuler;
