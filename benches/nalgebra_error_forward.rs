@@ -104,7 +104,7 @@ pub fn run_nalgebra_error_test_forward(
     network
         .options
         .push(splice::sim::SimulationOption::IntegrationMethod(
-            splice::sim::IntegrationMethod::ForwardEuler,
+            splice::sim::IntegrationMethodEnum::ForwardEuler,
         ));
 
     let results = run_sim_with_results::<NalgebraSolver>(network)

@@ -29,7 +29,10 @@ fn create_simple_rc_circuit() -> SerdeCircuit {
         ],
         simulations: vec![SerdeSimulation::OP],
         options: vec![SerdeOption {
-            out: "n1".to_string(),
+            out: Some("n1".to_string()),
+            integration: None,
+            gmin: None,
+            rshunt: None,
         }],
     }
 }
@@ -73,7 +76,10 @@ fn create_medium_circuit(size: usize) -> SerdeCircuit {
         elements,
         simulations: vec![SerdeSimulation::OP],
         options: vec![SerdeOption {
-            out: format!("n{}", size + 1),
+            out: Some(format!("n{}", size + 1)),
+            integration: None,
+            gmin: None,
+            rshunt: None,
         }],
     }
 }
@@ -130,7 +136,10 @@ fn create_large_circuit(rows: usize, cols: usize) -> SerdeCircuit {
         elements,
         simulations: vec![SerdeSimulation::OP],
         options: vec![SerdeOption {
-            out: "n1".to_string(),
+            out: Some("n1".to_string()),
+            integration: None,
+            gmin: None,
+            rshunt: None,
         }],
     }
 }

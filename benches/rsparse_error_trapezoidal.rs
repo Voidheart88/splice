@@ -104,7 +104,7 @@ pub fn run_rsparse_error_test_trapezoidal(
     network
         .options
         .push(splice::sim::SimulationOption::IntegrationMethod(
-            splice::sim::IntegrationMethod::Trapezoidal,
+            splice::sim::IntegrationMethodEnum::Trapezoidal,
         ));
 
     let results = run_sim_with_results::<RSparseSolver>(network)

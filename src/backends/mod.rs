@@ -83,3 +83,6 @@ pub trait Backend {
     /// A `Result` which is `Ok` if the output was successful, or an `BackendError` if an error occurred.
     fn output(&self, res: SimulationResults) -> Result<(), BackendError>;
 }
+
+#[cfg(test)]
+mod tests;
