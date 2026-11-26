@@ -1,4 +1,4 @@
-use crate::solver::integration::{IntegrationMethod, MultiStepMethod};
+use crate::sim::integration::{IntegrationMethod, MultiStepMethod};
 use crate::spot::Numeric;
 
 /// Trait extension for multi-step integration methods

@@ -1,5 +1,5 @@
 // Integration tests for different integration methods
-use crate::solver::integration::{
+use crate::sim::integration::{
     BDF, BackwardEuler, ForwardEuler, IntegrationMethod, MultiStepMethod, Trapezoidal,
 };
 
@@ -220,7 +220,7 @@ fn test_bdf_coefficients() {
 
 #[test]
 fn test_integration_method_default() {
-    let method = crate::solver::integration::default_integration_method();
+    let method = crate::sim::integration::default_integration_method();
     assert_eq!(method.name(), "Backward Euler");
 }
 

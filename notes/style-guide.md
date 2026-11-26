@@ -88,9 +88,11 @@ while voltage <= *vstop {
 which is more readable and serves the same purpose.
 
 
-## Use cargo clippy
+## Use cargo clippy and cargo fmt
 use `cargo clippy --all-targets --all-features -- -D warnings` after you created code since it prevents you
-to use commonly used anti-patterns
+to use commonly used anti-patterns.
+use `cargo fmt` after you created code since it formats the code to a known standard. 
+use `cargo fmt` before you check for nesting depth.
 
 ## Use extra module files for tests
 
@@ -174,5 +176,5 @@ if !inner.valid() { return; }
 
 Move magic numbers and configuration values to appropriate central locations:
 - Solver thresholds → `src/spot.rs`
-- Simulation limits → `src/sim/mod.rs`
+- Simulation limits → `src/spot.rs`
 - Model-specific constants → respective model modules

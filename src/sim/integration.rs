@@ -727,7 +727,7 @@ mod tests {
 
     #[test]
     fn test_integration_method_default() {
-        let method = crate::solver::integration::default_integration_method();
+        let method = super::default_integration_method();
         assert_eq!(method.name(), "Backward Euler");
     }
 }

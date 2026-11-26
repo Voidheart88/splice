@@ -1,4 +1,5 @@
 pub(crate) mod commands;
+pub mod integration;
 pub mod options;
 pub mod simulation_result;
 
@@ -18,7 +19,7 @@ use num::{Complex, One, Zero};
 use thiserror::Error;
 
 // Re-export for convenience
-pub use crate::solver::integration::IntegrationMethod;
+pub use integration::IntegrationMethod;
 pub use options::{IntegrationMethodEnum, SimulationOption};
 
 use crate::Simulation;
