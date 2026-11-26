@@ -13,12 +13,14 @@ use crate::models::controlled_sources::serde::{SerdeCCCS, SerdeCCVS, SerdeVCCS, 
 use crate::models::diode::serde::SerdeDiode;
 use crate::models::gain::serde::SerdeGain;
 use crate::models::inductor::serde::SerdeInductor;
+use crate::models::integrator::serde::SerdeIntegrator;
 use crate::models::isource::serde::SerdeISource;
 use crate::models::isource_pulse::serde::SerdeISourcePulse;
 use crate::models::isource_sine::serde::SerdeISourceSin;
 use crate::models::isource_step::serde::SerdeISourceStep;
 use crate::models::mosfet::serde::SerdeMos0;
 use crate::models::resistor::serde::SerdeResistor;
+use crate::models::summer::serde::SerdeSummer;
 use crate::models::vsource::serde::SerdeVSource;
 use crate::models::vsource_pulse::serde::SerdeVSourcePulse;
 use crate::models::vsource_sine::serde::SerdeVSourceSin;
@@ -68,6 +70,10 @@ pub enum SerdeElement {
     Bjt1(SerdeBjt1),
     #[serde(rename = "gain")]
     Gain(SerdeGain),
+    #[serde(rename = "integrator")]
+    Integrator(SerdeIntegrator),
+    #[serde(rename = "summer")]
+    Summer(SerdeSummer),
     #[serde(rename = "vcvs")]
     VCVS(SerdeVCVS),
     #[serde(rename = "vccs")]
@@ -384,6 +390,8 @@ impl ProcessSerdeElement for SerdeElement {
             SerdeElement::Bjt1(ele) => ele.process(variables, elements, var_map),
             SerdeElement::Mosfet(ele) => ele.process(variables, elements, var_map),
             SerdeElement::Gain(ele) => ele.process(variables, elements, var_map),
+            SerdeElement::Integrator(ele) => ele.process(variables, elements, var_map),
+            SerdeElement::Summer(ele) => ele.process(variables, elements, var_map),
             SerdeElement::VCVS(ele) => ele.process(variables, elements, var_map),
             SerdeElement::VCCS(ele) => ele.process(variables, elements, var_map),
             SerdeElement::CCCS(ele) => ele.process(variables, elements, var_map),

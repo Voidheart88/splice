@@ -15,23 +15,23 @@
 
 ### Current Sources - SERDE Support
 - [x] `src/models/isource_pulse/serde.rs` - Implement full SERDE support ✅
-- [ ] `src/models/isource_step/serde.rs` - Implement full SERDE support
-- [ ] `src/models/isource_sine/serde.rs` - Implement full SERDE support
+- [x] `src/models/isource_step/serde.rs` - Implement full SERDE support ✅
+- [x] `src/models/isource_sine/serde.rs` - Implement full SERDE support ✅
 
 ### Current Sources - SPICE Parsing
 - [x] `src/models/isource_pulse/spice.rs` - Implement full SPICE parsing for pulse current sources ✅
-- [ ] `src/models/isource_step/spice.rs` - Implement full SPICE parsing for step current sources
-- [ ] `src/models/isource_sine/spice.rs` - Implement full SPICE parsing for sinusoidal current sources
+- [x] `src/models/isource_step/spice.rs` - Implement full SPICE parsing for step current sources ✅
+- [x] `src/models/isource_sine/spice.rs` - Implement full SPICE parsing for sinusoidal current sources ✅
 
 ### Voltage Sources - SERDE/SPICE Support
 - [x] `src/models/vsource_pulse/serde.rs` - Implement full SERDE support ✅
 - [x] `src/models/vsource_pulse/spice.rs` - Implement full SPICE parsing for pulse voltage sources ✅
 
 ### Functional Blocks - SERDE/SPICE Support
-- [ ] `src/models/integrator/serde.rs` - Implement full SERDE support
-- [ ] `src/models/integrator/spice.rs` - Implement full SPICE parsing for integrator blocks
-- [ ] `src/models/summer/serde.rs` - Implement full SERDE support
-- [ ] `src/models/summer/spice.rs` - Implement full SPICE parsing for summer blocks
+- [x] `src/models/integrator/serde.rs` - Implement full SERDE support ✅
+- [x] `src/models/integrator/spice.rs` - Implement full SPICE parsing for integrator blocks ✅
+- [x] `src/models/summer/serde.rs` - Implement full SERDE support ✅
+- [x] `src/models/summer/spice.rs` - Implement full SPICE parsing for summer blocks ✅
 
 ### Code Review Items (CHECK) ✅ ALL RESOLVED
 - [x] `src/solver/tests/selector.rs:9` - Thresholds already in spot.rs ✅

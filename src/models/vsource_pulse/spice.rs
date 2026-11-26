@@ -1,40 +1,66 @@
 // SPICE parsing for pulse voltage sources
 // Syntax: Vxxx n+ n- PULSE(initial pulsed delay risetime falltime pulsewidth period)
-// TODO: Implement full SPICE parsing
 
+use crate::frontends::get_variable;
 use crate::frontends::spice::{ProcessSpiceElement, Rule};
+use crate::frontends::spice_parser_helpers::SpiceElementParser;
+use crate::models::{Element, Unit, VSourcePulseBundle};
 use crate::{FrontendError, Variable};
 use pest::iterators::Pair;
 use std::sync::Arc;
 
-use super::VSourcePulseBundle;
-
 impl ProcessSpiceElement for VSourcePulseBundle {
     fn process(
         element: Pair<Rule>,
-        _variables: &mut Vec<Variable>,
-        _elements: &mut Vec<crate::Element>,
-        _var_map: &mut std::collections::HashMap<Arc<str>, usize>,
+        variables: &mut Vec<Variable>,
+        elements: &mut Vec<crate::Element>,
+        var_map: &mut std::collections::HashMap<Arc<str>, usize>,
     ) -> Result<(), FrontendError> {
-        // TODO: Implement full SPICE parsing for pulse voltage sources
-        let name = Arc::from(element.as_str());
+        // Use the helper parser for common parsing logic
+        let mut parser = SpiceElementParser::new(element);
 
-        // Placeholder - full implementation needed
-        let _vsource = VSourcePulseBundle::new(
-            name,
-            Variable::new("V1#branch".into(), crate::models::Unit::Ampere, 0),
+        // Parse name and nodes
+        let name = parser.parse_name("pulse voltage source")?;
+        let node0_str = parser.parse_node("pulse voltage source", name, "node0")?;
+        let node1_str = parser.parse_node("pulse voltage source", name, "node1")?;
+
+        // Parse pulse parameters
+        let initial_value = parser.parse_value("pulse voltage source", name, "initial_value")?;
+        let pulsed_value = parser.parse_value("pulse voltage source", name, "pulsed_value")?;
+        let delay_time = parser.parse_value("pulse voltage source", name, "delay_time")?;
+        let rise_time = parser.parse_value("pulse voltage source", name, "rise_time")?;
+        let fall_time = parser.parse_value("pulse voltage source", name, "fall_time")?;
+        let pulse_width = parser.parse_value("pulse voltage source", name, "pulse_width")?;
+        let period = parser.parse_value("pulse voltage source", name, "period")?;
+
+        // Create branch and node variables
+        let branch = get_variable(
+            &format!("{}#branch", name),
+            Unit::Ampere,
+            variables,
+            var_map,
+        )
+        .expect("Failed to create branch variable for VSourcePulse");
+        let node0 = get_variable(node0_str, Unit::Volt, variables, var_map);
+        let node1 = get_variable(node1_str, Unit::Volt, variables, var_map);
+
+        // Create the pulse voltage source (ac_value not parsed from SPICE)
+        let vsource = VSourcePulseBundle::new(
+            Arc::from(name),
+            branch,
+            node0,
+            node1,
+            initial_value,
+            pulsed_value,
+            delay_time,
+            rise_time,
+            fall_time,
+            pulse_width,
+            period,
             None,
-            None,
-            0.0,  // initial_value
-            1.0,  // pulsed_value
-            0.0,  // delay_time
-            1e-9, // rise_time
-            1e-9, // fall_time
-            1e-6, // pulse_width
-            1e-5, // period
-            None, // ac_value
         );
 
+        elements.push(Element::VSourcePulse(vsource));
         Ok(())
     }
 }

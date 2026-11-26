@@ -71,6 +71,26 @@ impl<'a> SpiceElementParser<'a> {
             .map_err(|_| invalid_value_error(element_type, element_name, value_name))
     }
 
+    /// Parse a numeric value with a default if not present
+    pub fn parse_value_or_default(
+        &mut self,
+        _element_type: &str,
+        _element_name: &str,
+        _value_name: &str,
+        default: Numeric,
+    ) -> Result<Numeric, FrontendError> {
+        // Try to parse the value, return default if not available
+        if let Some(pair) = self.inner.next() {
+            self.span_str(pair.as_span())
+                .parse::<Numeric>()
+                .map_err(|_| {
+                    FrontendError::ParseError(format!("Invalid {} - must be a number", _value_name))
+                })
+        } else {
+            Ok(default)
+        }
+    }
+
     /// Parse an optional numeric value
     #[allow(dead_code)]
     pub fn parse_optional_value(&mut self) -> Option<Result<Numeric, FrontendError>> {

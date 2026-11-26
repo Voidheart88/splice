@@ -587,7 +587,6 @@ pub fn default_integration_method() -> impl IntegrationMethod {
     BackwardEuler::new(1e-6) // Default time step
 }
 
-//TODO: Move this to a tests module in the test folder!
 #[cfg(test)]
 mod tests {
     use super::*;
