@@ -13,6 +13,11 @@
 
 ## Code Organisation:
 - [x] Move integration tests to dedicated test file ✅
-- Right now the integrator methords are more or less integrated in the integrator module in sim.
-  - Check if it can be split up in submodules
-- Find a way to semi-automatic visualize the data-flow for the user to improve management decisions
+- [x] Refactor integrator methods into submodules ✅
+  - Split `src/sim/integration.rs` (588 lines) into modular structure:
+    - `src/sim/integration/mod.rs` - Traits + re-exports
+    - `src/sim/integration/backward_euler.rs` - BackwardEuler implementation
+    - `src/sim/integration/forward_euler.rs` - ForwardEuler implementation
+    - `src/sim/integration/trapezoidal.rs` - Trapezoidal implementation
+    - `src/sim/integration/bdf.rs` - BDF implementation
+- [ ] Find a way to semi-automatic visualize the data-flow for the user to improve management decisions
