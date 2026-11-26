@@ -12,6 +12,7 @@
   - Das DRY Prinzip sollte eingehalten werden -- Auch bei Tests.
 
 ## Code Organisation:
-- Right now the integraton methords are more or less integrated in the integrator module in sim.
+- [x] Move integration tests to dedicated test file ✅
+- Right now the integrator methords are more or less integrated in the integrator module in sim.
   - Check if it can be split up in submodules
 - Find a way to semi-automatic visualize the data-flow for the user to improve management decisions

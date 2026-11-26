@@ -1242,3 +1242,5 @@ mod options_tests {
 }
 
 mod integration;
+mod newton_armijo;
+mod simulation_result;
