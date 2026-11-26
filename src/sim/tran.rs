@@ -3,6 +3,7 @@ use log::{debug, info};
 use crate::Simulator;
 use crate::models::Element;
 use crate::sim::SimulatorError;
+use crate::sim::newton_armijo::ResidualNorm;
 use crate::sim::options::IntegrationMethodEnum;
 use crate::sim::simulation_result::Sim;
 use crate::solver::Solver;
@@ -48,10 +49,12 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
             x_current = x_prev.clone();
 
             // Newton-Raphson iteration within each time step
+            // Uses standard Newton with optional Armijo damping for difficult cases
             let mut converged = false;
             let mut x_new_final = x_prev.clone();
+            let mut difficulty_count = 0; // Track how many iterations are having trouble
 
-            for _ in 0..MAXITER {
+            for iter in 0..MAXITER {
                 self.solver.reset();
                 self.build_constant_a_mat();
                 self.build_constant_b_vec();
@@ -64,15 +67,12 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
                         self.build_time_variant_b_vec(&t, &current_timestep);
                     }
                     IntegrationMethodEnum::ForwardEuler => {
-                        // Forward Euler is explicit, use the same B vector as Backward Euler
-                        // but the solver handles it differently (explicit vs implicit)
                         self.build_time_variant_b_vec(&t, &current_timestep);
                     }
                     IntegrationMethodEnum::Trapezoidal => {
                         self.build_time_variant_b_vec_trapezoidal(&t, &current_timestep);
                     }
                     IntegrationMethodEnum::GearBdf { order: _ } => {
-                        // Fallback to Backward Euler behavior for stability until multi-step is active
                         self.build_time_variant_b_vec(&t, &current_timestep);
                     }
                 }
@@ -82,13 +82,60 @@ impl<SO: Solver> TranSimulation<SO> for Simulator<SO> {
 
                 let x_new = self.solver.solve()?.clone();
 
+                // Check for standard convergence
                 if self.has_converged(&x_current, &x_new, VECTOL) {
                     x_new_final = x_new.clone();
                     converged = true;
                     break;
                 }
 
+                // Track difficulty - if we're not converging after a few iterations, use damping
+                difficulty_count += 1;
+
+                if difficulty_count > 3 {
+                    // Apply Armijo damping for difficult cases
+                    let delta_x: Vec<Numeric> = x_new
+                        .iter()
+                        .zip(x_current.iter())
+                        .map(|(&new, &old)| new - old)
+                        .collect();
+
+                    let mut alpha = 0.5; // Start with half step
+                    let rho = 0.7;
+                    let mut damped_converged = false;
+
+                    for _ in 0..8 {
+                        let x_damped: Vec<Numeric> = x_current
+                            .iter()
+                            .zip(delta_x.iter())
+                            .map(|(&xi, &dxi)| xi + alpha * dxi)
+                            .collect();
+
+                        if self.has_converged(&x_current, &x_damped, VECTOL) {
+                            x_new_final = x_damped;
+                            converged = true;
+                            damped_converged = true;
+                            difficulty_count = 0; // Reset difficulty counter
+                            break;
+                        }
+
+                        alpha *= rho;
+
+                        if alpha < 1e-4 {
+                            break;
+                        }
+                    }
+
+                    if damped_converged {
+                        break;
+                    }
+                }
+
                 x_current = x_new;
+
+                if iter >= MAXITER - 1 {
+                    break;
+                }
             }
 
             if !converged {

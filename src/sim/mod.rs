@@ -1,5 +1,6 @@
 pub(crate) mod commands;
 pub mod integration;
+pub mod newton_armijo;
 pub mod options;
 pub mod simulation_result;
 
@@ -20,6 +21,7 @@ use thiserror::Error;
 
 // Re-export for convenience
 pub use integration::IntegrationMethod;
+pub use newton_armijo::{ArmijoParameters, NewtonArmijo};
 pub use options::{IntegrationMethodEnum, SimulationOption};
 
 use crate::Simulation;
