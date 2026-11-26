@@ -13,6 +13,7 @@ pub mod isource_step;
 pub mod mosfet;
 pub mod pairs;
 pub mod resistor;
+pub mod summer;
 pub mod triples;
 pub mod vsource;
 pub mod vsource_pulse;
@@ -43,6 +44,7 @@ pub use self::isource_step::ISourceStepBundle;
 pub use self::mosfet::Mos0Bundle;
 pub use self::pairs::Pairs;
 pub use self::resistor::ResistorBundle;
+pub use self::summer::SummerBundle;
 pub use self::triples::{TripleIdx, Triples};
 pub use self::vsource::VSourceBundle;
 pub use self::vsource_pulse::VSourcePulseBundle;
@@ -136,6 +138,7 @@ pub enum Element {
     ISource(ISourceBundle),
     Gain(GainBundle),
     Integrator(IntegratorBundle),
+    Summer(SummerBundle),
     VCVS(VCVSBundle),
     VCCS(VCCSBundle),
     CCCS(CCCSBundle),
@@ -151,6 +154,7 @@ impl Element {
             Element::VSourceStep(ele) => Some(ele.triples()),
             Element::Resistor(ele) => Some(ele.triples()),
             Element::Gain(ele) => Some(ele.triples()), // Gain ist linear und konstant
+            Element::Summer(ele) => Some(ele.triples()), // Summer ist linear und konstant
             Element::VCVS(ele) => Some(ele.triples()),
             Element::VCCS(ele) => Some(ele.triples()),
             Element::CCCS(ele) => Some(ele.triples()),
@@ -295,6 +299,7 @@ impl Element {
             Element::VSourceStep(_) => None,
             Element::Gain(gain) => Some(gain.ac_triples()),
             Element::Integrator(ele) => Some(ele.ac_triples(freq)),
+            Element::Summer(ele) => Some(ele.ac_triples()),
             Element::VCVS(vcvs) => Some(vcvs.ac_triples()),
             Element::VCCS(vccs) => Some(vccs.ac_triples()),
             Element::CCCS(cccs) => Some(cccs.ac_triples()),
@@ -324,6 +329,7 @@ impl Element {
             Element::ISource(_) => None,
             Element::Gain(_) => None,
             Element::Integrator(_) => None,
+            Element::Summer(_) => None,
             Element::VSourceSin(_) => None,
         }
     }
@@ -343,6 +349,7 @@ impl Element {
             Element::ISource(ele) => ele.name(),
             Element::Gain(ele) => ele.name(),
             Element::Integrator(ele) => ele.name(),
+            Element::Summer(ele) => ele.name(),
             Element::VCVS(ele) => ele.name(),
             Element::VCCS(ele) => ele.name(),
             Element::CCCS(ele) => ele.name(),
@@ -367,6 +374,7 @@ impl Element {
             Element::VSourceStep(ele) => ele.triple_idx(),
             Element::Gain(ele) => ele.triple_idx(),
             Element::Integrator(ele) => ele.triple_idx(),
+            Element::Summer(ele) => ele.triple_idx(),
             Element::VCVS(ele) => ele.triple_idx(),
             Element::VCCS(ele) => ele.triple_idx(),
             Element::CCCS(ele) => ele.triple_idx(),
@@ -390,6 +398,7 @@ impl Element {
             Element::VSourceStep(vsource) => vsource.triple_idx(),
             Element::Gain(ele) => ele.triple_idx(),
             Element::Integrator(ele) => ele.triple_idx(),
+            Element::Summer(ele) => ele.triple_idx(),
             Element::VCVS(ele) => ele.triple_idx(),
             Element::VCCS(ele) => ele.triple_idx(),
             Element::CCCS(ele) => ele.triple_idx(),
