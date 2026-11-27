@@ -1,21 +1,11 @@
+#![cfg(feature = "bench-internals")]
+
 // Error benchmark for Faer solver
 
 use std::sync::Arc;
 
-use splice::frontends::create_simulation_from_spice;
-use splice::run_sim_with_results;
+use splice::bench_prelude::*;
 use splice::sim::simulation_result::{Sim, SimulationResults};
-use splice::solver::FaerSolver;
-
-/// Calculate the analytical solution for RC step response using higher precision golden sample.
-/// Uses f64 with the standard library's exp() function which provides ~15-17 decimal digits
-/// of precision - sufficient as a reference for f64 numerical results.
-/// V(t) = V_final * (1 - exp(-t/RC))
-/// Note: Constants are defined in error.rs (RESISTANCE=1000, CAPACITANCE=100e-9, V_FINAL=10)
-pub fn rc_analytical_solution_golden(t: f64, r: f64, c: f64, v_final: f64) -> f64 {
-    let tau = r * c;
-    v_final * (1.0 - (-t / tau).exp())
-}
 
 /// Calculate Sum of Squared Errors (SSE) between numerical and analytical solution
 /// over the entire time series

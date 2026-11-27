@@ -86,6 +86,34 @@ cargo bench --features bench-internals
 
 This feature is used by the benchmark suite to access internal solver and simulation components.
 
+### Benchmark Prelude Module
+
+When using the `bench-internals` feature, you can use the benchmark prelude module to simplify your benchmark code:
+
+```rust
+#[cfg(feature = "bench-internals")]
+use splice::bench_prelude::*;
+```
+
+The prelude re-exports commonly used types and utilities:
+- `Numeric` - The numeric type used throughout splice
+- `Solver` - The solver trait
+- `FaerSolver`, `FaerSparseSolver`, `NalgebraSolver`, `RSparseSolver` - Solver implementations
+- `Unit`, `Variable` - Model types
+- `SerdeCircuit`, `SerdeElement`, `SerdeOption`, `SerdeSimulation` - Frontend types
+- `create_simulation_from_spice()` - Parse SPICE netlists
+- `run_sim_for_benchmark()`, `run_sim_with_results()` - Simulation runners
+- `generate_solvable_system()` - Helper function to generate test linear systems
+- `create_simple_rc_circuit()` - Helper function to create a simple RC test circuit
+- `create_medium_circuit(size)` - Helper function to create medium-sized test circuits
+- `create_large_circuit(rows, cols)` - Helper function to create large resistor grid circuits
+- `generate_rc_step_circuit()` - Helper function to create RC step response circuits for error testing
+- `rc_analytical_solution_golden()` - Analytical solution for RC step response
+
+This reduces boilerplate in benchmark files and ensures consistency across the benchmark suite.
+
+**Note:** The `bench_prelude` module is excluded from public documentation (`#[doc(hidden)]`) as it is intended for internal benchmark use only.
+
 ## Contributing
 - Write tests for every module, frontend, backend, and output. Tests define the expected behavior.
 - Find failing simulations and make them runnable – a failing simulation should be considered a bug.

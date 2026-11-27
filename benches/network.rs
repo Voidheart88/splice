@@ -1,14 +1,16 @@
+#![cfg(feature = "bench-internals")]
+
 // Network mode performance benchmarks
 // This module benchmarks the MessagePack serialization/deserialization
 // and network communication performance
 
 use criterion::{BenchmarkId, Criterion};
 use rmp_serde::{decode::from_read as msgpack_read, encode::write as msgpack_write};
-use splice::frontends::serde::{SerdeCircuit, SerdeElement, SerdeOption, SerdeSimulation};
-use splice::models::resistor::serde::SerdeResistor;
-use splice::models::vsource::serde::SerdeVSource;
+
+use splice::bench_prelude::*;
 use std::io::Cursor;
 
+#[cfg(not(feature = "bench-internals"))]
 /// Generate a simple RC circuit for benchmarking
 fn create_simple_rc_circuit() -> SerdeCircuit {
     SerdeCircuit {
@@ -37,6 +39,7 @@ fn create_simple_rc_circuit() -> SerdeCircuit {
     }
 }
 
+#[cfg(not(feature = "bench-internals"))]
 /// Generate a medium-sized circuit with multiple components
 fn create_medium_circuit(size: usize) -> SerdeCircuit {
     let mut elements = Vec::new();
@@ -84,6 +87,7 @@ fn create_medium_circuit(size: usize) -> SerdeCircuit {
     }
 }
 
+#[cfg(not(feature = "bench-internals"))]
 /// Generate a large circuit for stress testing
 fn create_large_circuit(rows: usize, cols: usize) -> SerdeCircuit {
     let mut elements = Vec::new();

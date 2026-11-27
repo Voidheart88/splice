@@ -3,10 +3,9 @@
 // The Benchmarks are ran in the performance.rs module
 
 use criterion::{BenchmarkId, Criterion};
-use splice::{
-    frontends::create_simulation_from_spice,
-    run_sim_for_benchmark,
-    solver::{FaerSolver, FaerSparseSolver, NalgebraSolver, RSparseSolver},
+use splice::bench_prelude::{
+    create_simulation_from_spice, run_sim_for_benchmark, FaerSolver, FaerSparseSolver,
+    NalgebraSolver, RSparseSolver,
 };
 
 /// Generate SPICE code for a resistor ladder circuit

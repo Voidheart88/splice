@@ -304,3 +304,7 @@ fn convert_serde_circuit_to_simulation(circuit: SerdeCircuit) -> Result<Simulati
         variables,
     })
 }
+
+#[cfg(feature = "bench-internals")]
+#[doc(hidden)]
+pub mod bench_prelude;

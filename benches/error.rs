@@ -15,6 +15,8 @@
 //
 // Run with: cargo bench --bench error
 
+#![cfg(feature = "bench-internals")]
+
 mod faer_error;
 mod faer_error_forward;
 mod faer_error_trapezoidal;
@@ -36,14 +38,14 @@ use faer_error_trapezoidal::run_faer_error_test_trapezoidal;
 use faer_sparse_error::run_faer_sparse_error_test;
 use faer_sparse_error_forward::run_faer_sparse_error_test_forward;
 use faer_sparse_error_trapezoidal::run_faer_sparse_error_test_trapezoidal;
-use nalgebra_error::{
-    generate_rc_step_circuit, rc_analytical_solution_golden, run_nalgebra_error_test,
-};
+use nalgebra_error::{generate_rc_step_circuit, run_nalgebra_error_test};
 use nalgebra_error_forward::run_nalgebra_error_test_forward;
 use nalgebra_error_trapezoidal::run_nalgebra_error_test_trapezoidal;
 use rsparse_error::run_rsparse_error_test;
 use rsparse_error_forward::run_rsparse_error_test_forward;
 use rsparse_error_trapezoidal::run_rsparse_error_test_trapezoidal;
+
+use splice::bench_prelude::rc_analytical_solution_golden;
 
 // BDF benchmarks are kept separate as they have a different function signature
 // use nalgebra_bdf::{run_nalgebra_bdf1_error_test, run_nalgebra_bdf2_error_test, run_nalgebra_bdf3_error_test};

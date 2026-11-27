@@ -1,7 +1,7 @@
 use criterion::Criterion;
+use splice::bench_prelude::{Unit, Variable};
 use splice::models::diode::{DiodeBundle, DiodeOptions};
 use splice::models::resistor::ResistorBundle;
-use splice::models::{Unit, Variable};
 use std::hint::black_box;
 use std::sync::Arc;
 
