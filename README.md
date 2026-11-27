@@ -75,6 +75,17 @@ cargo bench
 ```
 Benchmark results are stored under `target/criterion/`.
 
+### Benchmarking Internal Functions
+
+By default, some internal modules are only `pub(crate)` to keep the public API clean.
+To benchmark internal functions, enable the `bench-internals` feature:
+
+```bash
+cargo bench --features bench-internals
+```
+
+This feature is used by the benchmark suite to access internal solver and simulation components.
+
 ## Contributing
 - Write tests for every module, frontend, backend, and output. Tests define the expected behavior.
 - Find failing simulations and make them runnable – a failing simulation should be considered a bug.

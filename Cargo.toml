@@ -66,3 +66,7 @@ path = "benches/error.rs"
 
 [features]
 default = []
+# Feature for benchmarking internal functions.
+# Enables access to internal modules that are normally pub(crate).
+# Usage: cargo bench --features bench-internals
+bench-internals = []
