@@ -24,8 +24,15 @@
   - These are numerical precision tests that can be sensitive to floating-point rounding
   - If a solver test fails, re-running `cargo test` usually resolves it
   - Consider making these tests more robust with relaxed tolerances or deterministic seeds
+  - find out how failed tests could be reproduced since we try to be as robust as possible
 
 ## Code Organisation:
+- [ ] Make the data flow better visible in code:
+  - the front-end produces data which should be transformed via From(frontend_data) this should go until output is produced.
+  - this can be applied to network loops as well. 
+  - Prio: high
+  - this should also be part of the coding guidelines
+  - this applies to all levels of Processing
 - [x] Move integration tests to dedicated test file ✅
 - [x] Refactor integrator methods into submodules ✅
   - Split `src/sim/integration.rs` (588 lines) into modular structure:
@@ -91,6 +98,8 @@
 - [ ] Add support for KiCad no-connect markers
 - [ ] Add comprehensive error messages for unsupported components
 - [ ] Create example KiCad schematics for documentation
+- [ ] the front-end may also generate parasitic extraction from PCB files
+- 
 
 ## Public interface:
 - [ ] Define the pub interface for the lib part
