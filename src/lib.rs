@@ -1,6 +1,6 @@
 #![deny(unsafe_code)]
 
-pub mod backends;
+pub(crate) mod backends;
 pub mod frontends;
 pub(crate) mod guesser;
 pub mod models;
