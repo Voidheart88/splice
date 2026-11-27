@@ -10,7 +10,6 @@ notes/data_flow_report.html
 notes/data_flow_analysis.json
 notes/callgraph.dot
 notes/callgraph.png
-# Old artifact locations (scripts folder should only contain .py files)
 scripts/data_flow_report.html
 scripts/data_flow_analysis.json
 scripts/callgraph.dot
