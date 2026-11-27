@@ -2,7 +2,7 @@
 
 pub mod backends;
 pub mod frontends;
-pub mod guesser;
+pub(crate) mod guesser;
 pub mod models;
 pub mod sim;
 pub mod solver;

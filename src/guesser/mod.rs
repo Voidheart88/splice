@@ -1,9 +1,9 @@
-// Guesser module exposing the public API
+// Guesser module - internal implementation for initial guess generation.
+// Not part of the public API, used internally by sim module.
 
-// Guesser module exposing the public API
+pub(crate) mod default;
+pub(crate) mod traits;
 
-pub mod default;
-pub mod traits;
-
-pub use default::StandardGuesser;
-pub use traits::{Guesser, GuesserOptions, new_guesser};
+pub(crate) use default::StandardGuesser;
+pub(crate) use traits::{GuesserOptions, new_guesser};
+// Note: Guesser trait is used indirectly through new_guesser() return type
