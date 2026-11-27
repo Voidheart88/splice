@@ -77,12 +77,20 @@
 - [x] Add net connection parsing ✅
 - [x] Add value parsing with unit suffixes ✅
 - [x] Add test infrastructure ✅
-- [ ] Fix property parsing for full KiCad compatibility
+- [x] Fix property parsing for full KiCad compatibility ✅
+- [ ] Implement resistor support (currently parsing but not creating elements)
+- [ ] Implement capacitor support (requires Variable setup)
+- [ ] Implement inductor support (requires Variable setup)
 - [ ] Implement voltage source support (requires branch variables for MNA)
-- [ ] Implement capacitor and inductor support
+- [ ] Implement current source support (requires Variable setup)
 - [ ] Implement BJT and MOSFET support
 - [ ] Implement controlled sources (VCVS, VCCS, CCCS, CCVS)
-- [ ] Add support for KiCad SPICE directives
+- [ ] Add support for KiCad SPICE directives embedded in schematics
+- [ ] Add support for KiCad global labels and hierarchical sheets
+- [ ] Add support for KiCad power symbols (#PWR)
+- [ ] Add support for KiCad no-connect markers
+- [ ] Add comprehensive error messages for unsupported components
+- [ ] Create example KiCad schematics for documentation
 
 ## Public interface:
 - [ ] Define the pub interface for the lib part
