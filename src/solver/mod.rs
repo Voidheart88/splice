@@ -1,18 +1,52 @@
+// Solver backends - public for benchmarks with bench-internals feature
+#[cfg(not(feature = "bench-internals"))]
 pub mod faer;
+#[cfg(not(feature = "bench-internals"))]
 pub mod faer_sparse;
+#[cfg(not(feature = "bench-internals"))]
 pub mod nalgebra;
+#[cfg(not(feature = "bench-internals"))]
 pub mod rsparse;
+#[cfg(not(feature = "bench-internals"))]
 pub mod selector;
+
+#[cfg(feature = "bench-internals")]
+pub(crate) mod faer;
+#[cfg(feature = "bench-internals")]
+pub(crate) mod faer_sparse;
+#[cfg(feature = "bench-internals")]
+pub(crate) mod nalgebra;
+#[cfg(feature = "bench-internals")]
+pub(crate) mod rsparse;
+#[cfg(feature = "bench-internals")]
+pub(crate) mod selector;
 
 use clap::ValueEnum;
 use miette::Diagnostic;
 use thiserror::Error;
 
+// Re-exports gated by bench-internals feature
+#[cfg(not(feature = "bench-internals"))]
 pub use faer::FaerSolver;
+#[cfg(not(feature = "bench-internals"))]
 pub use faer_sparse::FaerSparseSolver;
+#[cfg(not(feature = "bench-internals"))]
 pub use nalgebra::NalgebraSolver;
+#[cfg(not(feature = "bench-internals"))]
 pub use rsparse::RSparseSolver;
+#[cfg(not(feature = "bench-internals"))]
 pub use selector::{SolverSelectionStrategy, SolverSelector};
+
+#[cfg(feature = "bench-internals")]
+pub(crate) use faer::FaerSolver;
+#[cfg(feature = "bench-internals")]
+pub(crate) use faer_sparse::FaerSparseSolver;
+#[cfg(feature = "bench-internals")]
+pub(crate) use nalgebra::NalgebraSolver;
+#[cfg(feature = "bench-internals")]
+pub(crate) use rsparse::RSparseSolver;
+#[cfg(feature = "bench-internals")]
+pub(crate) use selector::{SolverSelectionStrategy, SolverSelector};
 
 use crate::spot::{ComplexNumeric, Numeric};
 
