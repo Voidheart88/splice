@@ -1,11 +1,11 @@
 pub(crate) mod commands;
 pub mod integration;
-pub mod newton_armijo;
+pub(crate) mod newton_armijo;
 pub mod options;
 pub mod simulation_result;
 
 mod ac;
-pub mod autotune;
+pub(crate) mod autotune;
 mod dc;
 mod op;
 mod tran;
@@ -21,8 +21,8 @@ use thiserror::Error;
 
 // Re-export for convenience
 pub use integration::IntegrationMethod;
-pub use newton_armijo::{ArmijoParameters, NewtonArmijo};
 pub use options::{IntegrationMethodEnum, SimulationOption};
+// Note: NewtonArmijo and ArmijoParameters are now pub(crate) - internal only
 
 use crate::Simulation;
 use crate::models::{Element, Variable};
