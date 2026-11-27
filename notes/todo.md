@@ -10,3 +10,9 @@
   - Eine Funktion sollte Daten transformieren und nicht mutieren.
   - Das DRY Prinzip sollt eeingehalten werden -- Auch bei Tests.
 - Update des Style-Guides
+- Update der Dokumentation.
+  - Beschreibung des Spice frontends
+  - Beschreibung aller Module
+  - Vergleich der Integration
+  - Beschreibung aller Optionen 
+  - die Infos sollten aus den docstrings der parts kommen.
