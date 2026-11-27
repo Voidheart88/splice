@@ -5,9 +5,16 @@ pub mod frontends;
 pub(crate) mod guesser;
 pub mod models;
 pub mod sim;
-pub mod solver;
 
+#[cfg(not(feature = "bench-internals"))]
+pub mod solver;
+#[cfg(feature = "bench-internals")]
+pub(crate) mod solver;
+
+#[cfg(not(feature = "bench-internals"))]
 pub mod spot;
+#[cfg(feature = "bench-internals")]
+pub(crate) mod spot;
 
 use clap::Parser;
 use log::{error, info};
