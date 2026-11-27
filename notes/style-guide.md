@@ -178,3 +178,7 @@ Move magic numbers and configuration values to appropriate central locations:
 - Solver thresholds → `src/spot.rs`
 - Simulation limits → `src/spot.rs`
 - Model-specific constants → respective model modules
+
+## Versioning
+
+Do not forget to bump the patch version before committing to master.

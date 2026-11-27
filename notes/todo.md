@@ -20,5 +20,18 @@
     - `src/sim/integration/forward_euler.rs` - ForwardEuler implementation
     - `src/sim/integration/trapezoidal.rs` - Trapezoidal implementation
     - `src/sim/integration/bdf.rs` - BDF implementation
-- [ ] Find a way to semi-automatic visualize the data-flow for the user to improve management decisions
+- [x] Add data-flow visualization tool ✅
+  - Created `scripts/data_flow_analyzer.py` 
+  - Tracks 128 data structures and From trait implementations
+  - Generates interactive HTML report showing data transformations
+  - Identified main pipeline: SerdeCircuit → Simulation → Simulator → Results
 - [ ] Find a way to reduce the publicity of the interface — a lot of pubs are just for benchmarking
+
+## Documentation:
+- [ ] Update des Style-Guides
+- [ ] Update der Dokumentation
+  - [ ] Beschreibung des Spice frontends
+  - [ ] Beschreibung aller Module
+  - [ ] Vergleich der Integration
+  - [ ] Beschreibung aller Optionen 
+  - [ ] die Infos sollten aus den docstrings der parts kommen.
