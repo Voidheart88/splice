@@ -1,0 +1,32 @@
+# Cargo configuration for faster builds on Windows
+
+[target.x86_64-pc-windows-msvc]
+# Use LLD linker instead of default link.exe (2-5x faster linking)
+linker = "rust-lld.exe"
+
+# Optional: For even faster builds, you can use mold when it has better Windows support
+# linker = "mold.exe"  # Requires: cargo install mold
+# rustflags = ["-C", "link-arg=-fuse-ld=mold"]
+
+[profile.dev]
+# Faster dev builds - line tables only for backtraces
+debug = "line-tables-only"
+
+# No debug info for dependencies (they're rarely debugged)
+# Keep optimizations for dependencies (prevents them from being slow)
+[profile.dev.package."*"]
+debug = false
+opt-level = 3
+
+[profile.release]
+# Keep LTO for benchmarks (needed for accurate performance measurements)
+opt-level = 3
+lto = "fat"
+debug = true
+
+# Optional: Faster release builds with thin LTO (slightly less optimized but faster)
+# lto = "thin"
+
+[profile.bench]
+# Use same settings as release for accurate benchmarks
+inherits = "release"
