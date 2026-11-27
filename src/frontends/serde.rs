@@ -216,7 +216,7 @@ pub struct SerdeFrontend {
 }
 
 /// Specifies the serialization format for the circuit definition.
-pub(crate) enum SerdeFormat {
+pub enum SerdeFormat {
     /// YAML format.
     Yaml,
     /// JSON format.
@@ -234,7 +234,7 @@ impl SerdeFrontend {
     /// # Returns
     ///
     /// * `Result<Self, FrontendError>` - A new `SerdeFrontend` instance if successful, or an error.
-    pub(crate) fn try_new_from_path(
+    pub fn try_new_from_path(
         path: String,
         format: SerdeFormat,
     ) -> Result<Self, FrontendError> {
@@ -349,7 +349,7 @@ impl Frontend for SerdeFrontend {
 }
 
 /// Trait for processing serialized circuit elements into internal representations.
-pub(crate) trait ProcessSerdeElement {
+pub trait ProcessSerdeElement {
     /// Processes the element, updating the provided vectors and hashmap.
     ///
     /// # Arguments

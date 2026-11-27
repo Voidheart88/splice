@@ -11,7 +11,7 @@ use super::serde::ProcessSerdeElement;
 use super::serde::SerdeCircuit;
 use rmp_serde::decode::from_read;
 
-pub(crate) struct NetworkFrontend {
+pub struct NetworkFrontend {
     listener: TcpListener,
     port: u16,
 }

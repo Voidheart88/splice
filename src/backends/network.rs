@@ -39,7 +39,7 @@ impl NetworkVariable {
     }
 }
 
-pub(crate) struct NetworkBackend {
+pub struct NetworkBackend {
     stream: TcpStream,
 }
 

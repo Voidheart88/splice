@@ -8,10 +8,10 @@ use miette::Diagnostic;
 use plotters::drawing::DrawingAreaErrorKind;
 use thiserror::Error;
 
-pub(crate) use csv::CsvBackend;
-pub(crate) use network::NetworkBackend;
-pub(crate) use plot::PlotBackend;
-pub(crate) use raw::RawBackend;
+pub use csv::CsvBackend;
+pub use network::NetworkBackend;
+pub use plot::PlotBackend;
+pub use raw::RawBackend;
 
 use crate::sim::simulation_result::SimulationResults;
 

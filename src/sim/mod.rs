@@ -5,7 +5,7 @@ pub mod options;
 pub mod simulation_result;
 
 mod ac;
-pub(crate) mod autotune;
+pub mod autotune;
 mod dc;
 mod op;
 mod tran;

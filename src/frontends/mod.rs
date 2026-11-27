@@ -15,14 +15,14 @@ use thiserror::Error;
 use crate::models::*;
 use crate::sim::commands::SimulationCommand;
 use crate::sim::options::SimulationOption;
-pub(crate) use kicad::KicadFrontend;
-pub(crate) use network::NetworkFrontend;
-pub(crate) use serde::SerdeFrontend;
-pub(crate) use spice::SpiceFrontend;
+pub use kicad::KicadFrontend;
+pub use network::NetworkFrontend;
+pub use serde::SerdeFrontend;
+pub use spice::SpiceFrontend;
 
 /// Supported frontends for CLI selection.
 #[derive(Copy, Clone, ValueEnum, PartialEq, Eq, PartialOrd, Ord)]
-pub(crate) enum Frontends {
+pub enum Frontends {
     Spice,
     Yaml,
     Json,
