@@ -77,12 +77,16 @@ fn test_kicad_file_not_found() {
 #[test]
 fn test_kicad_value_parsing_with_suffixes() {
     // Test various KiCad value formats
-    assert_eq!(KicadFrontend::parse_value("10k").unwrap(), 10000.0);
-    assert_eq!(KicadFrontend::parse_value("100n").unwrap(), 100e-9);
-    assert_eq!(KicadFrontend::parse_value("1u").unwrap(), 1e-6);
-    assert_eq!(KicadFrontend::parse_value("4.7u").unwrap(), 4.7e-6);
-    assert_eq!(KicadFrontend::parse_value("5").unwrap(), 5.0);
-    assert_eq!(KicadFrontend::parse_value("2.2meg").unwrap(), 2.2e6);
-    assert_eq!(KicadFrontend::parse_value("10p").unwrap(), 10e-12);
-    assert_eq!(KicadFrontend::parse_value("1f").unwrap(), 1e-15);
+    let assert_approx_eq = |actual: f64, expected: f64, msg: &str| {
+        assert!((actual - expected).abs() < expected * 1e-6, "{}: {} != {}", msg, actual, expected);
+    };
+    
+    assert_approx_eq(KicadFrontend::parse_value("10k").unwrap(), 10000.0, "10k");
+    assert_approx_eq(KicadFrontend::parse_value("100n").unwrap(), 100e-9, "100n");
+    assert_approx_eq(KicadFrontend::parse_value("1u").unwrap(), 1e-6, "1u");
+    assert_approx_eq(KicadFrontend::parse_value("4.7u").unwrap(), 4.7e-6, "4.7u");
+    assert_approx_eq(KicadFrontend::parse_value("5").unwrap(), 5.0, "5");
+    assert_approx_eq(KicadFrontend::parse_value("2.2meg").unwrap(), 2.2e6, "2.2meg");
+    assert_approx_eq(KicadFrontend::parse_value("10p").unwrap(), 10e-12, "10p");
+    assert_approx_eq(KicadFrontend::parse_value("1f").unwrap(), 1e-15, "1f");
 }

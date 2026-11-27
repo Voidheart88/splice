@@ -17,24 +17,26 @@ NUMBER = @{ "-"? ~ ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? }
 
 // KiCad Schematic root
 KICAD_SCH = {
-    ^"(" ~ "kicad_sch" ~ SEXP_CONTENT* ~ ")"
+    ^"(" ~ "kicad_sch" ~ sch_item* ~ ")"
 }
 
-// Top-level sections
-SCH_SECTION = {
+// Top-level items that can appear in a schematic
+sch_item = {
     version |
     generator |
     uuid |
-    (lib_symbols | symbol | net)
+    lib_symbols |
+    symbol |
+    net
 }
 
-version = { "version" ~ NUMBER }
-generator = { "generator" ~ ATOM }
-uuid = { "uuid" ~ UUID }
+version = { "(" ~ "version" ~ NUMBER ~ ")" }
+generator = { "(" ~ "generator" ~ ATOM ~ ")" }
+uuid = { "(" ~ "uuid" ~ UUID ~ ")" }
 UUID = { (ASCII_DIGIT | "-" | "a" | "b" | "c" | "d" | "e" | "f")+ }
 
 // Library symbols (component definitions)
-lib_symbols = { "lib_symbols" ~ (symbol_def)* }
+lib_symbols = { "(" ~ "lib_symbols" ~ (symbol_def)* ~ ")" }
 symbol_def = { "(" ~ "symbol" ~ ATOM ~ SEXP_CONTENT* ~ ")" }
 
 // Component instances
@@ -74,7 +76,7 @@ hide = { "(" ~ "hide" ~ ("yes" | "no") ~ ")" }
 // Pin connections
 pin = {
     "(" ~ "pin" ~ STRING ~
-    (uuid | net_pin | alternate_node)? ~
+    (uuid | net_pin | alternate_node)* ~
     ")"
 }
 net_pin = { "(" ~ "net" ~ STRING ~ ")" }
@@ -84,7 +86,7 @@ node_ref = { "(" ~ "node" ~ (comp_ref | pin)? ~ ")" }
 // Net definitions
 net = {
     "(" ~ "net" ~
-    (code | name | (node)+)? ~
+    (code | name | node)* ~
     ")"
 }
 code = { "(" ~ "code" ~ NUMBER ~ ")" }
@@ -92,7 +94,7 @@ code = { "(" ~ "code" ~ NUMBER ~ ")" }
 // Node references in nets
 node = {
     "(" ~ "node" ~
-    (comp_ref | pin)? ~
+    (comp_ref | pin)* ~
     ")"
 }
 

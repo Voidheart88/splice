@@ -74,10 +74,22 @@ impl KicadFrontend {
             .ok_or_else(|| FrontendError::ParseError("Empty or invalid KiCad schematic".into()))?;
 
         for section in parse_result.into_inner() {
-            match section.as_rule() {
-                Rule::symbol => self.parse_symbol(section, &mut schematic)?,
-                Rule::net => self.parse_net(section, &mut schematic)?,
-                _ => {}
+            // sch_item wraps the actual content, so we need to go one level deeper
+            let inner = if section.as_rule() == Rule::sch_item {
+                section.into_inner().next()
+            } else {
+                Some(section.clone())
+            };
+            
+            if let Some(item) = inner {
+                match item.as_rule() {
+                    Rule::symbol => self.parse_symbol(item, &mut schematic)?,
+                    Rule::net => self.parse_net(item, &mut schematic)?,
+                    Rule::version | Rule::generator | Rule::uuid | Rule::lib_symbols => {
+                        // Skip metadata
+                    }
+                    _ => {}
+                }
             }
         }
 
