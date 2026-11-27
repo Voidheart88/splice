@@ -569,7 +569,7 @@ class DataFlowAnalyzer:
         
         return '\n'.join(lines)
     
-    def generate_html_report(self, output_path: str = "data_flow_report.html"):
+    def generate_html_report(self, output_path: str = "notes/data_flow_report.html"):
         """Generate interactive HTML report"""
         mermaid_diagram = self.generate_mermaid()
         
@@ -779,7 +779,7 @@ class DataFlowAnalyzer:
         print(f"\n[OK] HTML report generated: {output_path}")
         return output_path
     
-    def export_json(self, output_path: str = "data_flow_analysis.json"):
+    def export_json(self, output_path: str = "notes/data_flow_analysis.json"):
         """Export analysis as JSON for further processing"""
         data = {
             'structures': {
@@ -823,7 +823,7 @@ def main():
     
     parser = argparse.ArgumentParser(description='Analyze data flow in Splice codebase')
     parser.add_argument('--src', default=None, help='Source directory')
-    parser.add_argument('--output', default='data_flow_report.html', help='Output HTML file')
+    parser.add_argument('--output', default='notes/data_flow_report.html', help='Output HTML file (default: notes/data_flow_report.html)')
     parser.add_argument('--json', action='store_true', help='Also export JSON')
     parser.add_argument('--mermaid', action='store_true', help='Print Mermaid diagram')
     

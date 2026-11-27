@@ -4,10 +4,13 @@ target
 heaptrack.*
 perf.data
 perf.data.old
-# Generated reports
-data_flow_report.html
+# Generated reports and artifacts (keep notes/*.md files)
+notes/public_api_report.md
+notes/data_flow_report.html
+notes/data_flow_analysis.json
+notes/callgraph.dot
+notes/callgraph.png
+# Old artifact locations (scripts folder should only contain .py files)
 scripts/data_flow_report.html
 scripts/data_flow_analysis.json
-# Analysis outputs (keep notes/*.md, ignore generated reports)
-notes/public_api_report.md
-notes/public_items_*.txt
+scripts/callgraph.dot

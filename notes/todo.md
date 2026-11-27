@@ -26,95 +26,29 @@
   - Generates interactive HTML report showing data transformations
   - Identified main pipeline: SerdeCircuit → Simulation → Simulator → Results
 - [x] Reduce interface publicity via `bench-internals` feature ✅
-  - **Approach**: Add `bench-internals` feature to Cargo.toml, gate public items
-  - **Phase 1: Infrastructure** ✅ COMPLETE
-    - [x] Add `bench-internals = []` feature to `Cargo.toml`
-    - [x] Update all benchmarks to use `--features bench-internals` (verified compiles)
-    - [x] Test: `cargo build --lib` ✅ and `cargo bench --features bench-internals` ✅
-  - **Phase 2: Module-by-Module Audit** (Per-Module Approach) - IN PROGRESS
-    - [x] **`src/lib.rs`** - Root module exports ✅
-      - [x] Audit: `pub mod backends/frontends/guesser/models/sim/solver/spot`
-      - [x] **`guesser` module**: Made `pub(crate)` - NOT used by benchmarks, internal only ✅
-      - [ ] **Remaining modules**: backends, frontends, models, sim, solver, spot
-    - [ ] **`src/models/mod.rs`** - Model re-exports (55 pub use statements)
-      - [ ] Audit: All `pub use` statements for Bundle structs
-      - [ ] Check benchmark usage: `benches/models.rs` imports
-      - [ ] Likely candidates for `pub(crate)` with feature gate:
-        - [ ] `pub mod bjt/capacitor/controlled_sources/...` (21 model modules)
-        - [ ] `pub use` re-exports for Bundle types
-      - [ ] Keep public: Types used in examples or external API
-    - [ ] **`src/sim/mod.rs`** - Simulation internals
-      - [ ] Audit: `pub mod integration/newton_armijo/options/simulation_result/autotune`
-      - [ ] Check benchmark usage: `benches/` imports from `splice::sim::`
-      - [ ] Likely candidates:
-        - [ ] `pub mod integration` - Used by benchmarks? Check `benches/`
-        - [ ] `pub mod autotune` - Internal only?
-        - [ ] `pub use IntegrationMethod/NewtonArmijo/etc.` - External API?
-    - [ ] **`src/solver/mod.rs`** - Solver backends
-      - [ ] Audit: `pub mod faer/faer_sparse/nalgebra/rsparse/selector`
-      - [ ] Check benchmark usage: `benches/faer.rs`, `benches/nalgebra.rs`, etc.
-      - [ ] Likely candidates:
-        - [ ] All solver modules are benchmark-heavy
-        - [ ] Consider: Keep `pub` but gate with `bench-internals`
-    - [ ] **`src/frontends/mod.rs`** - Frontend parsers
-      - [ ] Audit: `pub mod serde` (public) vs `pub(crate) mod spice`
-      - [ ] Check benchmark usage: `benches/network.rs` uses `SerdeCircuit`
-      - [ ] Likely candidates:
-        - [ ] `pub mod serde` - Used by network benchmark, may need to stay public
-        - [ ] `pub(crate) mod spice` - Already restricted ✅
-    - [ ] **`src/backends/mod.rs`** - Output backends
-      - [ ] Audit: Backend module visibility
-      - [ ] Check benchmark usage
-    - [ ] **`src/guesser/mod.rs`** - Guessing infrastructure
-      - [ ] Audit: `pub mod default/traits` and `pub use` statements
-      - [ ] Check if used externally or benchmark-only
-    - [ ] **`src/spot/mod.rs`** - Numeric types (if exists)
-      - [ ] Audit: Type exports
-      - [ ] Check benchmark usage: `benches/faer.rs` uses `splice::spot::*`
-  - **Phase 3: Implementation Pattern** (After Audit)
-    - [ ] For each module, apply pattern:
-      ```rust
-      // Before:
-      pub mod internal_module;
-      
-      // After:
-      #[cfg(not(feature = "bench-internals"))]
-      pub mod internal_module;
-      
-      #[cfg(feature = "bench-internals")]
-      pub(crate) mod internal_module;
-      ```
-    - [ ] For re-exports:
-      ```rust
-      // Before:
-      pub use internal::Type;
-      
-      // After:
-      #[cfg(not(feature = "bench-internals"))]
-      pub use internal::Type;
-      
-      #[cfg(feature = "bench-internals")]
-      pub(crate) use internal::Type;
-      ```
-  - **Phase 4: Testing & Validation**
-    - [ ] Test normal build: `cargo build --lib`
-    - [ ] Test with feature: `cargo build --features bench-internals`
-    - [ ] Run benchmarks: `cargo bench --features bench-internals`
-    - [ ] Check docs: `cargo doc --no-deps` (verify bench-internals items hidden)
-    - [ ] Run tests: `cargo test`
-  - **Phase 5: Documentation**
-    - [ ] Add feature documentation to `README.md`
-    - [ ] Add inline comments explaining the pattern
-    - [ ] Update `CONTRIBUTING.md` for benchmark authors
-  - **Estimated Effort**: 5-8 hours total
-    - Phase 1: 30 min
-    - Phase 2: 2-3 hours (audit all modules)
-    - Phase 3: 2-3 hours (implementation)
-    - Phase 4: 1 hour
-    - Phase 5: 30 min
+  - **Approach**: Created `bench_prelude` module with `#[doc(hidden)]` instead of gating individual modules
+  - **Implementation** ✅ COMPLETE (Nov 2026)
+    - [x] Created `src/bench_prelude.rs` with consolidated imports and utilities
+    - [x] Added `#[doc(hidden)]` to exclude from public documentation
+    - [x] Exported: Solvers, Numeric, Unit, Variable, Serde types, helper functions
+    - [x] Refactored all 20+ benchmark files to use `splice::bench_prelude::*`
+    - [x] Added `#![cfg(feature = "bench-internals")]` to all benchmark files
+    - [x] Updated `README.md` with comprehensive prelude documentation
+    - [x] Updated `doc/en/architecture.md` with prelude section
+    - [x] Verified: `cargo check --benches --features bench-internals` ✅
+    - [x] Verified: `bench_prelude` hidden from docs (`cargo doc`) ✅
+  - **Benefits**:
+    - Eliminates code duplication (e.g., `generate_solvable_system` in 4 files)
+    - Reduces boilerplate across benchmark suite
+    - Maintains clean public API without conditional compilation complexity
+    - Easier maintenance: changes propagate automatically
+  - **Committed**: Git commit `4faa4fb` - "refactor(benchmarks): consolidate imports with bench_prelude module"
 
 ## Documentation:
 - [ ] Update des Style-Guides
+- [x] Benchmark prelude documentation ✅
+  - [x] Added to `README.md` with full export list
+  - [x] Added to `doc/en/architecture.md` in Benchmarking section
 - [ ] Update der Dokumentation
   - [ ] Beschreibung des Spice frontends
   - [ ] Beschreibung aller Module
@@ -124,3 +58,6 @@
 
 ## Public interface:
 - [ ] Define the pub interface for the lib part
+- [x] Benchmarks excluded from public API ✅
+  - [x] `bench_prelude` marked with `#[doc(hidden)]`
+  - [x] All benchmark files feature-gated with `#![cfg(feature = "bench-internals")]`
