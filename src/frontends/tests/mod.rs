@@ -1,3 +1,4 @@
+mod kicad_tests;
 mod network_tests;
 mod node_units_tests;
 mod pest_parser_tests;

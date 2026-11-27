@@ -1,0 +1,144 @@
+// KiCad S-expression grammar for schematic files (.kicad_sch)
+// Reference: https://dev-docs.kicad.org/en/file-formats/sexpr-intro/
+
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+
+// S-expression basics
+SEXP = { "(" ~ SEXP_CONTENT* ~ ")" }
+SEXP_CONTENT = { SEXP | ATOM | STRING | NUMBER }
+
+// Atomic values
+ATOM = @{ (ASCII_ALPHA | "_" | "#" | "$") ~ (ASCII_ALPHANUMERIC | "_" | "-" | "." | ":" | "/" | " ")* }
+STRING = ${ "\"" ~ (ESC_CHAR | (!"\"" ~ ANY))* ~ "\"" }
+ESC_CHAR = _{ "\\" ~ ("\"" | "\\" | "n" | "r" | "t") }
+
+// Numbers (with optional sign and decimal)
+NUMBER = @{ "-"? ~ ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? }
+
+// KiCad Schematic root
+KICAD_SCH = {
+    ^"(" ~ "kicad_sch" ~ SEXP_CONTENT* ~ ")"
+}
+
+// Top-level sections
+SCH_SECTION = {
+    version |
+    generator |
+    uuid |
+    (lib_symbols | symbol | net)
+}
+
+version = { "version" ~ NUMBER }
+generator = { "generator" ~ ATOM }
+uuid = { "uuid" ~ UUID }
+UUID = { (ASCII_DIGIT | "-" | "a" | "b" | "c" | "d" | "e" | "f")+ }
+
+// Library symbols (component definitions)
+lib_symbols = { "lib_symbols" ~ (symbol_def)* }
+symbol_def = { "(" ~ "symbol" ~ ATOM ~ SEXP_CONTENT* ~ ")" }
+
+// Component instances
+symbol = {
+    "(" ~ "symbol" ~
+    (lib_id | at | property | pin | uuid)* ~
+    ")"
+}
+
+lib_id = { "(" ~ "lib_id" ~ STRING ~ ")" }
+at = { "(" ~ "at" ~ NUMBER ~ NUMBER ~ (NUMBER)? ~ ")" }
+unit = { "(" ~ "unit" ~ NUMBER ~ ")" }
+convert = { "(" ~ "convert" ~ NUMBER ~ ")" }
+in_bom = { "(" ~ "in_bom" ~ ("yes" | "no") ~ ")" }
+on_board = { "(" ~ "on_board" ~ ("yes" | "no") ~ ")" }
+fields0 = { "(" ~ "fields" ~ (field)* ~ ")" }
+field = { "(" ~ "field" ~ (name | comp_ref | at | effects0) ~ ")" }
+name = { "(" ~ "name" ~ STRING ~ ")" }
+comp_ref = { "(" ~ "ref" ~ STRING ~ ")" }
+effects0 = { "(" ~ "effects" ~ SEXP_CONTENT* ~ ")" }
+
+// Component properties
+property = {
+    "(" ~ "property" ~ STRING ~ STRING ~
+    (at | effects | uuid)? ~
+    ")"
+}
+effects = { "(" ~ "effects" ~ (font | justify | hide)? ~ ")" }
+font = { "(" ~ "font" ~ (size | thickness | bold | italic)? ~ ")" }
+size = { "(" ~ "size" ~ NUMBER ~ NUMBER ~ ")" }
+thickness = { "(" ~ "thickness" ~ NUMBER ~ ")" }
+bold = { "(" ~ "bold" ~ ("yes" | "no") ~ ")" }
+italic = { "(" ~ "italic" ~ ("yes" | "no") ~ ")" }
+justify = { "(" ~ "justify" ~ ("left" | "right" | "center") ~ ("top" | "bottom" | "center")? ~ ")" }
+hide = { "(" ~ "hide" ~ ("yes" | "no") ~ ")" }
+
+// Pin connections
+pin = {
+    "(" ~ "pin" ~ STRING ~
+    (uuid | net_pin | alternate_node)? ~
+    ")"
+}
+net_pin = { "(" ~ "net" ~ STRING ~ ")" }
+alternate_node = { "(" ~ "alternate_node" ~ (node_ref | pin)? ~ ")" }
+node_ref = { "(" ~ "node" ~ (comp_ref | pin)? ~ ")" }
+
+// Net definitions
+net = {
+    "(" ~ "net" ~
+    (code | name | (node)+)? ~
+    ")"
+}
+code = { "(" ~ "code" ~ NUMBER ~ ")" }
+
+// Node references in nets
+node = {
+    "(" ~ "node" ~
+    (comp_ref | pin)? ~
+    ")"
+}
+
+// Wire connections
+wire = {
+    "(" ~ "wire" ~
+    (pts | stroke | uuid)? ~
+    ")"
+}
+pts = { "(" ~ "pts" ~ (xy)+ ~ ")" }
+xy = { "(" ~ "xy" ~ NUMBER ~ NUMBER ~ ")" }
+stroke = { "(" ~ "stroke" ~ SEXP_CONTENT* ~ ")" }
+
+// Junctions
+junction = {
+    "(" ~ "junction" ~
+    (at | uuid)? ~
+    ")"
+}
+
+// Labels
+label = {
+    "(" ~ "label" ~
+    (at |fields1 | uuid)? ~
+    ")"
+}
+fields1 = { "(" ~ "fields" ~ (field)+ ~ ")" }
+
+// Global labels
+global_label = {
+    "(" ~ "global_label" ~
+    (text | shape | at | fields2 | uuid)? ~
+    ")"
+}
+text = { "(" ~ "text" ~ STRING ~ ")" }
+shape = { "(" ~ "shape" ~ ("input" | "output" | "bidirectional" | "tri_state" | "passive") ~ ")" }
+fields2 = { "(" ~ "fields" ~ (field)+ ~ ")" }
+
+// No connect marker
+no_connect = {
+    "(" ~ "no_connect" ~
+    (at | uuid)? ~
+    ")"
+}
+
+// SPICE directives embedded in KiCad
+spice_directive = {
+    "(" ~ "property" ~ "\"SPICE_DIRECTIVE\"" ~ STRING ~ ")"
+}
