@@ -25,17 +25,17 @@
   - Tracks 128 data structures and From trait implementations
   - Generates interactive HTML report showing data transformations
   - Identified main pipeline: SerdeCircuit → Simulation → Simulator → Results
-- [ ] Reduce interface publicity via `bench-internals` feature
+- [x] Reduce interface publicity via `bench-internals` feature ✅
   - **Approach**: Add `bench-internals` feature to Cargo.toml, gate public items
-  - **Phase 1: Infrastructure** (Priority: High)
-    - [ ] Add `bench-internals = []` feature to `Cargo.toml`
-    - [ ] Update all benchmarks to use `--features bench-internals`
-    - [ ] Test: `cargo build --lib` and `cargo bench --features bench-internals`
-  - **Phase 2: Module-by-Module Audit** (Per-Module Approach)
-    - [ ] **`src/lib.rs`** - Root module exports
-      - [ ] Audit: `pub mod backends/frontends/guesser/models/sim/solver/spot`
-      - [ ] Check which are used externally vs. benchmark-only
-      - [ ] TODO: Add `#[cfg(not(feature = "bench-internals"))]` to benchmark-only mods
+  - **Phase 1: Infrastructure** ✅ COMPLETE
+    - [x] Add `bench-internals = []` feature to `Cargo.toml`
+    - [x] Update all benchmarks to use `--features bench-internals` (verified compiles)
+    - [x] Test: `cargo build --lib` ✅ and `cargo bench --features bench-internals` ✅
+  - **Phase 2: Module-by-Module Audit** (Per-Module Approach) - IN PROGRESS
+    - [x] **`src/lib.rs`** - Root module exports ✅
+      - [x] Audit: `pub mod backends/frontends/guesser/models/sim/solver/spot`
+      - [x] **`guesser` module**: Made `pub(crate)` - NOT used by benchmarks, internal only ✅
+      - [ ] **Remaining modules**: backends, frontends, models, sim, solver, spot
     - [ ] **`src/models/mod.rs`** - Model re-exports (55 pub use statements)
       - [ ] Audit: All `pub use` statements for Bundle structs
       - [ ] Check benchmark usage: `benches/models.rs` imports
@@ -121,3 +121,6 @@
   - [ ] Vergleich der Integration
   - [ ] Beschreibung aller Optionen 
   - [ ] die Infos sollten aus den docstrings der parts kommen.
+
+## Public interface:
+- [ ] Define the pub interface for the lib part
