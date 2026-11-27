@@ -19,6 +19,12 @@
 - [x] Add integration tests for Newton-Armijo on actual circuits ✅ (existing RC tests pass)
 - [x] Verify all simulations converge with Newton-Armijo ✅ (387 tests passing)
 
+## Test Infrastructure
+- [ ] Some solver tests are flaky and may fail intermittently (e.g., `solver::tests::nalgebra::nalgebra_solve`)
+  - These are numerical precision tests that can be sensitive to floating-point rounding
+  - If a solver test fails, re-running `cargo test` usually resolves it
+  - Consider making these tests more robust with relaxed tolerances or deterministic seeds
+
 ## Code Organisation:
 - [x] Move integration tests to dedicated test file ✅
 - [x] Refactor integrator methods into submodules ✅
