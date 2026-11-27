@@ -11,7 +11,7 @@ use pest_derive::Parser;
 use super::{
     CCCSBundle, CCVSBundle, CapacitorBundle, CoupledInductorsBundle, DiodeBundle, Element,
     GainBundle, ISourceBundle, InductorBundle, Mos0Bundle, ResistorBundle, VCCSBundle, VCVSBundle,
-    Variable,
+    Unit, Variable,
 };
 use crate::frontends::{Frontend, FrontendError, Simulation};
 use crate::models::VSourceBundle;
@@ -145,6 +145,9 @@ impl SpiceFrontend {
                 Rule::ELEMENT => self.process_element(inner, variables, elements, var_map),
                 Rule::COMMAND => {
                     self.process_command(inner, commands, options, elements, variables, var_map)
+                }
+                Rule::DIRECTIVE_NODE_UNITS => {
+                    self.process_node_units(inner, variables, var_map)
                 }
                 _ => Ok(()),
             })
@@ -450,6 +453,72 @@ impl SpiceFrontend {
                     }
                 }
             }
+        }
+
+        Ok(())
+    }
+
+    fn process_node_units(
+        &self,
+        command: Pair<Rule>,
+        variables: &mut Vec<Variable>,
+        var_map: &mut HashMap<Arc<str>, usize>,
+    ) -> Result<(), FrontendError> {
+        // Get the full text of the directive and parse it manually
+        let directive_text = command.as_str();
+        
+        // Remove the ".node_units" keyword
+        let assignments_text = directive_text
+            .strip_prefix(".node_units")
+            .or_else(|| directive_text.strip_prefix(".NODE_UNITS"))
+            .or_else(|| directive_text.strip_prefix(".Node_Units"))
+            .ok_or_else(|| FrontendError::ParseError("Invalid .node_units directive".into()))?
+            .trim();
+        
+        if assignments_text.is_empty() {
+            return Err(FrontendError::ParseError("No assignments in .node_units directive".into()));
+        }
+        
+        // Split by whitespace to get individual assignments (node=unit)
+        for assignment in assignments_text.split_whitespace() {
+            // Parse node=unit
+            let parts: Vec<&str> = assignment.split('=').collect();
+            
+            if parts.len() != 2 {
+                return Err(FrontendError::ParseError(format!(
+                    "Invalid assignment format '{}'. Expected 'node=unit'",
+                    assignment
+                )));
+            }
+            
+            let node_name = parts[0].trim();
+            let unit_str = parts[1].trim();
+
+            // Validate unit
+            let unit = match unit_str {
+                "V" => Unit::Volt,
+                "A" => Unit::Ampere,
+                _ => {
+                    return Err(FrontendError::ParseError(format!(
+                        "Unknown unit '{}' in .node_units. Supported units: V, A",
+                        unit_str
+                    )));
+                }
+            };
+
+            // Check if node exists
+            let node_arc = Arc::from(node_name);
+            let node_idx = var_map.get(&node_arc).copied().ok_or_else(|| {
+                FrontendError::ParseError(format!(
+                    "Node '{}' in .node_units does not exist in the circuit",
+                    node_name
+                ))
+            })?;
+
+            // Update the variable's unit
+            let old_var = &variables[node_idx];
+            let new_var = old_var.with_unit(unit);
+            variables[node_idx] = new_var;
         }
 
         Ok(())

@@ -113,6 +113,11 @@ impl Variable {
     pub fn idx(&self) -> usize {
         self.2
     }
+
+    /// Creates a new Variable with an updated unit
+    pub fn with_unit(&self, unit: Unit) -> Self {
+        Variable(self.0.clone(), unit, self.2)
+    }
 }
 
 impl From<(Arc<str>, Unit, usize)> for Variable {
