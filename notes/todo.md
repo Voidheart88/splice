@@ -70,6 +70,20 @@
   - [ ] Beschreibung aller Optionen 
   - [ ] die Infos sollten aus den docstrings der parts kommen.
 
+## KiCad Frontend
+- [x] Create pest grammar for KiCad S-expression format ✅
+- [x] Implement KicadFrontend struct with Frontend trait ✅
+- [x] Add basic component parsing (R, C, L, V, I) ✅
+- [x] Add net connection parsing ✅
+- [x] Add value parsing with unit suffixes ✅
+- [x] Add test infrastructure ✅
+- [ ] Fix property parsing for full KiCad compatibility
+- [ ] Implement voltage source support (requires branch variables for MNA)
+- [ ] Implement capacitor and inductor support
+- [ ] Implement BJT and MOSFET support
+- [ ] Implement controlled sources (VCVS, VCCS, CCCS, CCVS)
+- [ ] Add support for KiCad SPICE directives
+
 ## Public interface:
 - [ ] Define the pub interface for the lib part
 - [x] Benchmarks excluded from public API ✅
