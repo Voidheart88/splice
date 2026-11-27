@@ -21,3 +21,4 @@
     - `src/sim/integration/trapezoidal.rs` - Trapezoidal implementation
     - `src/sim/integration/bdf.rs` - BDF implementation
 - [ ] Find a way to semi-automatic visualize the data-flow for the user to improve management decisions
+- [ ] Find a way to reduce the publicity of the interface — a lot of pubs are just for benchmarking
