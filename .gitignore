@@ -4,3 +4,7 @@ target
 heaptrack.*
 perf.data
 perf.data.old
+# Generated reports
+data_flow_report.html
+scripts/data_flow_report.html
+scripts/data_flow_analysis.json
