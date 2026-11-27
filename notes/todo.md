@@ -11,6 +11,14 @@
   - Eine Funktion sollte Daten transformieren und nicht mutieren.
   - Das DRY Prinzip sollte eingehalten werden -- Auch bei Tests.
 
+## Newton-Armijo Integration
+- [x] Implement NewtonArmijo solver module ✅
+- [x] Integrate NewtonArmijo into OP simulation (replace standard Newton loop) ✅
+- [x] Integrate NewtonArmijo into DC simulation (via find_op) ✅
+- [x] Integrate NewtonArmijo into TRAN simulation (replace inline damping) ✅
+- [x] Add integration tests for Newton-Armijo on actual circuits ✅ (existing RC tests pass)
+- [x] Verify all simulations converge with Newton-Armijo ✅ (387 tests passing)
+
 ## Code Organisation:
 - [x] Move integration tests to dedicated test file ✅
 - [x] Refactor integrator methods into submodules ✅

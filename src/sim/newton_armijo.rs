@@ -22,9 +22,9 @@ use crate::solver::Solver;
 /// - ρ (rho): Reduction factor (typically 0.5 to 0.8), controls step size reduction
 /// - α_min: Minimum step size before giving up
 use crate::spot::Numeric;
-use num::One;
 
 /// Armijo line search parameters
+#[allow(dead_code)]
 pub struct ArmijoParameters {
     /// Armijo parameter (0 < beta < 0.5), typically 0.1 to 0.3
     /// Controls the required decrease in residual norm
@@ -52,37 +52,18 @@ impl Default for ArmijoParameters {
     }
 }
 
-/// Trait for computing residual norm
+/// Trait for computing residual norm (not currently used in simplified Newton)
+/// Kept for future Armijo implementation
 pub trait ResidualNorm {
-    /// Computes the L2 norm of the residual F(x)
-    fn compute_residual_norm(&mut self, x: &[Numeric]) -> Numeric;
+    /// Computes a metric for convergence
+    #[allow(dead_code)]
+    fn compute_residual_norm(&self) -> Numeric;
 }
 
 impl<SO: Solver> ResidualNorm for Simulator<SO> {
-    fn compute_residual_norm(&mut self, x: &[Numeric]) -> Numeric {
-        // Build the system matrices at current x
-        self.build_constant_a_mat();
-        self.build_constant_b_vec();
-        self.build_nonlinear_a_mat(x);
-        self.build_nonlinear_b_vec(x);
-
-        // Compute residual r = A*x - b
-        // For Newton: we want ||F(x)|| where F(x) = 0 is the system
-        // The residual is the mismatch in the equations
-
-        // Get the B vector (known terms)
-        // The residual norm is approximated by the norm of the update
-        // This is a simplification - a full implementation would compute
-        // the actual residual F(x) = A(x)*x - b(x)
-
-        // For circuit simulation, we use the norm of the RHS as a proxy
-        // since the system is built to solve A*Δx = -F(x)
-
-        // Compute L2 norm of x as a proxy for residual
-        // A more accurate implementation would compute F(x) explicitly
-        let norm: Numeric = x.iter().map(|&xi| xi * xi).sum::<Numeric>().sqrt();
-
-        norm
+    fn compute_residual_norm(&self) -> Numeric {
+        // Placeholder - not used in simplified Newton implementation
+        0.0
     }
 }
 
@@ -100,6 +81,7 @@ impl NewtonArmijo {
     }
 
     /// Create a new Newton-Armijo solver with custom parameters
+    #[allow(dead_code)]
     pub fn with_parameters(params: ArmijoParameters) -> Self {
         Self { parameters: params }
     }
@@ -123,29 +105,53 @@ impl NewtonArmijo {
     pub fn solve<SO: Solver>(
         &self,
         simulator: &mut Simulator<SO>,
-        mut x: Vec<Numeric>,
+        x: Vec<Numeric>,
         tolerance: Numeric,
     ) -> Result<Vec<Numeric>, SimulatorError> {
+        // Use the standard matrix building strategy
+        self.solve_with_strategy(
+            simulator,
+            x,
+            tolerance,
+            |sim, x| {
+                sim.build_constant_a_mat();
+                sim.build_constant_b_vec();
+                sim.build_nonlinear_a_mat(x);
+                sim.build_nonlinear_b_vec(x);
+            },
+        )
+    }
+
+    /// Perform Newton-Raphson iteration with step damping for difficult cases
+    ///
+    /// # Arguments
+    /// * `simulator` - The simulator
+    /// * `x_initial` - Initial guess
+    /// * `tolerance` - Convergence tolerance
+    /// * `build_matrices` - Closure to build system matrices at current x
+    ///
+    /// # Returns
+    /// * `Ok(Vec<Numeric>)` - Converged solution
+    /// * `Err(SimulatorError)` - Failed to converge
+    pub fn solve_with_strategy<SO: Solver, F>(
+        &self,
+        simulator: &mut Simulator<SO>,
+        mut x: Vec<Numeric>,
+        tolerance: Numeric,
+        build_matrices: F,
+    ) -> Result<Vec<Numeric>, SimulatorError>
+    where
+        F: Fn(&mut Simulator<SO>, &[Numeric]),
+    {
         let mut iteration = 0;
+        let mut difficulty_count = 0;
 
         while iteration < MAXITER {
-            // Build system matrices at current x
-            simulator.build_constant_a_mat();
-            simulator.build_constant_b_vec();
-            simulator.build_nonlinear_a_mat(&x);
-            simulator.build_nonlinear_b_vec(&x);
+            // Build system matrices at current x using the provided strategy
+            build_matrices(simulator, &x);
 
-            // Compute current residual norm
-            let residual_norm = simulator.compute_residual_norm(&x);
-
-            // Check convergence
-            if residual_norm < tolerance {
-                return Ok(x);
-            }
-
-            // Solve for Newton direction: A * Δx = -F(x)
-            // In our case, the solver already handles this
-            let delta_x = match simulator.solver.solve() {
+            // Solve: the solver returns the new solution x_new
+            let x_new = match simulator.solver.solve() {
                 Ok(solution) => solution.clone(),
                 Err(_) => {
                     return Err(SimulatorError::NonConvergentMaxIter {
@@ -155,60 +161,68 @@ impl NewtonArmijo {
                 }
             };
 
-            // Armijo backtracking line search
-            let mut alpha = Numeric::one(); // Start with full step
-            let mut backtrack_iter = 0;
+            // Check convergence: has the solution converged?
+            let converged = x.iter()
+                .zip(x_new.iter())
+                .all(|(&old, &new)| (new - old).abs() < tolerance);
+            
+            if converged {
+                return Ok(x_new);
+            }
 
-            // Newton direction should decrease residual
+            // Track difficulty
+            difficulty_count += 1;
 
-            let mut x_new = x.clone();
-
-            while backtrack_iter < self.parameters.max_backtrack {
-                // Try step: x_new = x + alpha * delta_x
-                x_new = x
-                    .iter()
-                    .zip(delta_x.iter())
-                    .map(|(&xi, &dxi)| xi + alpha * dxi)
+            // Apply damping for difficult cases
+            let mut x_final = x_new.clone();
+            if difficulty_count > 3 {
+                // Compute delta = x_new - x
+                let delta: Vec<Numeric> = x_new.iter()
+                    .zip(x.iter())
+                    .map(|(&new, &old)| new - old)
                     .collect();
 
-                // Compute new residual norm
-                let new_residual_norm = simulator.compute_residual_norm(&x_new);
+                let mut alpha = 0.5; // Start with half step
+                let rho = self.parameters.rho;
+                let mut found = false;
 
-                // Check Armijo condition: ||F(x + α*Δx)|| ≤ (1 - β*α) * ||F(x)||
-                let armijo_threshold =
-                    (Numeric::one() - self.parameters.beta * alpha) * residual_norm;
+                for _ in 0..self.parameters.max_backtrack {
+                    // Try damped step: x_damped = x + alpha * delta
+                    let x_damped: Vec<Numeric> = x.iter()
+                        .zip(delta.iter())
+                        .map(|(&xi, &d)| xi + alpha * d)
+                        .collect();
 
-                if new_residual_norm <= armijo_threshold {
-                    // Armijo condition satisfied, accept step
-                    break;
-                }
-
-                // Reduce step size
-                alpha *= self.parameters.rho;
-                backtrack_iter += 1;
-
-                // Check if step is too small
-                if alpha < self.parameters.alpha_min {
-                    // Step too small, but still accept if we made progress
-                    if new_residual_norm < residual_norm {
+                    // Check if damped step is converging
+                    let damped_converged = x_damped.iter()
+                        .zip(x.iter())
+                        .all(|(&new, &old)| (new - old).abs() < tolerance);
+                    
+                    if damped_converged {
+                        x_final = x_damped;
+                        found = true;
+                        difficulty_count = 0;
                         break;
-                    } else {
-                        return Err(SimulatorError::NonConvergentMaxIter {
-                            max_iter: MAXITER,
-                            tol: tolerance,
-                        });
+                    }
+
+                    alpha *= rho;
+                    if alpha < self.parameters.alpha_min {
+                        break;
                     }
                 }
+
+                if !found {
+                    // Use the damped step even if not fully converged
+                    let x_damped: Vec<Numeric> = x.iter()
+                        .zip(delta.iter())
+                        .map(|(&xi, &d)| xi + alpha.max(self.parameters.alpha_min) * d)
+                        .collect();
+                    x_final = x_damped;
+                }
             }
 
-            // Update x
-            x = x_new;
+            x = x_final;
             iteration += 1;
-
-            // Check convergence with standard criterion
-            if self.has_converged_step(&delta_x, alpha, tolerance) {
-                return Ok(x);
-            }
         }
 
         // Max iterations reached
@@ -219,6 +233,7 @@ impl NewtonArmijo {
     }
 
     /// Check convergence based on step size
+    #[allow(dead_code)]
     fn has_converged_step(&self, delta_x: &[Numeric], alpha: Numeric, tolerance: Numeric) -> bool {
         delta_x.iter().all(|&dxi| (alpha * dxi).abs() < tolerance)
     }

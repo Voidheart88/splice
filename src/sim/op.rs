@@ -2,6 +2,7 @@ use log::info;
 
 use crate::Simulator;
 use crate::sim::SimulatorError;
+use crate::sim::newton_armijo::NewtonArmijo;
 use crate::sim::simulation_result::Sim;
 use crate::solver::Solver;
 use crate::spot::*;
@@ -27,36 +28,8 @@ impl<SO: Solver> OpSimulation<SO> for Simulator<SO> {
         let x = guesser.guess(self)?;
 
         // Use Newton-Raphson with Armijo step size control for global convergence
-        // For now, use the standard Newton iteration
-        let mut x_current = x;
-        let mut converged = false;
-
-        for _ in 0..MAXITER {
-            self.build_constant_a_mat();
-            self.build_constant_b_vec();
-            self.build_nonlinear_a_mat(&x_current);
-            self.build_nonlinear_b_vec(&x_current);
-
-            let x_new = match self.solver.solve() {
-                Ok(solution) => solution.clone(),
-                Err(_) => break,
-            };
-
-            if self.has_converged(&x_current, &x_new, VECTOL) {
-                x_current = x_new;
-                converged = true;
-                break;
-            }
-
-            x_current = x_new;
-        }
-
-        if !converged {
-            return Err(SimulatorError::NonConvergentMaxIter {
-                max_iter: MAXITER,
-                tol: VECTOL,
-            });
-        }
+        let armijo_solver = NewtonArmijo::new();
+        let x_current = armijo_solver.solve(&mut *self, x, VECTOL)?;
 
         let res = self.add_var_name(x_current);
         Ok(Sim::Op(res))

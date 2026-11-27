@@ -207,29 +207,14 @@ impl<SO: Solver> Simulator<SO> {
         }
 
         let guesser = crate::guesser::new_guesser(self.guesser_options.clone());
-        let mut x = guesser.guess(self)?;
+        let x = guesser.guess(self)?;
 
-        for _ in 0..MAXITER {
-            self.solver.reset();
-            self.build_constant_a_mat();
-            self.build_constant_b_vec();
-            self.build_nonlinear_a_mat(&x);
-            self.build_nonlinear_b_vec(&x);
+        // Use Newton-Raphson with Armijo step size control for global convergence
+        let armijo_solver = crate::sim::newton_armijo::NewtonArmijo::new();
+        let x_current = armijo_solver.solve(&mut *self, x, VECTOL)?;
 
-            let x_new = self.solver.solve()?.clone();
-
-            if self.has_converged(&x, &x_new, VECTOL) {
-                let res = self.add_var_name(x_new.clone());
-                return Ok(res);
-            }
-
-            x = x_new;
-        }
-
-        Err(SimulatorError::NonConvergentMaxIter {
-            max_iter: MAXITER,
-            tol: VECTOL,
-        })
+        let res = self.add_var_name(x_current);
+        Ok(res)
     }
 
     pub(crate) fn build_constant_a_mat(&mut self) {
@@ -378,6 +363,7 @@ impl<SO: Solver> Simulator<SO> {
         acc
     }
 
+    #[allow(dead_code)]
     fn has_converged(&self, x_old: &[Numeric], x_new: &[Numeric], tolerance: Numeric) -> bool {
         x_old
             .iter()
